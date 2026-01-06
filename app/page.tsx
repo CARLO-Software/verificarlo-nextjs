@@ -1,5 +1,7 @@
-import img from "next/image";
 import FAQ from "./components/FAQ";
+import WhatsappFlotante from "./components/WhatsappFlotante";
+import Footer from "./components/Footer";
+import { Slider } from "./services/Slider";
 
 export default function Home() {
   return (
@@ -70,6 +72,7 @@ export default function Home() {
           </div>
         </div>
       </nav>
+
       {/*Hero section */}
       <header className="section hero-section" id="main-content">
         <div className="w-layout-blockcontainer container hero-container w-container">
@@ -107,79 +110,81 @@ export default function Home() {
           <h2 id="process-heading" className="heading-3">
             <strong>Nuestro</strong> proceso
           </h2>
-          <div className="process-slider splide " role="group" aria-label="Proceso de inspección">
-            <div className="splide__track">
-              <ul className="splide__list">
-                <li className="splide__slide">
-                  <div className="process-card">
-                    <img src="assets/images/image13.webp" alt="Técnico verificando más de 200 puntos clave del vehículo"
-                      className="process-image" />
-                    <div className="process-box">
-                      <div className="process-box-container">
-                        <div className="process-box-flex">
-                          <div className="process-card-label" aria-label="Paso número 1">#1</div>
-                          <h3 className="process-card-heading">Verificamos +200 puntos clave</h3>
+          <Slider>
+            <div className="process-slider" role="group" aria-label="Proceso de inspección">
+              <div className="splide__track">
+                <ul className="splide__list">
+                  <li className="splide__slide">
+                    <div className="process-card">
+                      <img src="assets/images/image13.webp" alt="Técnico verificando más de 200 puntos clave del vehículo"
+                        className="process-image" />
+                      <div className="process-box">
+                        <div className="process-box-container">
+                          <div className="process-box-flex">
+                            <div className="process-card-label" aria-label="Paso número 1">#1</div>
+                            <h3 className="process-card-heading">Verificamos +200 puntos clave</h3>
+                          </div>
+                          <p className="process-card-text">
+                            Comprende una revisión mecánica, estética y legal del auto usado que quieres comprar.
+                          </p>
                         </div>
-                        <p className="process-card-text">
-                          Comprende una revisión mecánica, estética y legal del auto usado que quieres comprar.
-                        </p>
                       </div>
                     </div>
-                  </div>
-                </li>
-                <li className="splide__slide">
-                  <div className="process-card">
-                    <img src="assets/images/image14.webp" alt="Entrega de informe detallado de inspección" className="process-image" />
-                    <div className="process-box">
-                      <div className="process-box-container">
-                        <div className="process-box-flex">
-                          <div className="process-card-label" aria-label="Paso número 2">#2</div>
-                          <h3 className="process-card-heading">Te entregamos un informe detallado</h3>
+                  </li>
+                  <li className="splide__slide">
+                    <div className="process-card">
+                      <img src="assets/images/image14.webp" alt="Entrega de informe detallado de inspección" className="process-image" />
+                      <div className="process-box">
+                        <div className="process-box-container">
+                          <div className="process-box-flex">
+                            <div className="process-card-label" aria-label="Paso número 2">#2</div>
+                            <h3 className="process-card-heading">Te entregamos un informe detallado</h3>
+                          </div>
+                          <p className="process-card-text">
+                            Que incluye: motor, caja, carrocería, pintura, chasis, suspensión, frenos, y otros.
+                          </p>
                         </div>
-                        <p className="process-card-text">
-                          Que incluye: motor, caja, carrocería, pintura, chasis, suspensión, frenos, y otros.
-                        </p>
                       </div>
                     </div>
-                  </div>
-                </li>
-                <li className="splide__slide">
-                  <div className="process-card">
-                    <img src="assets/images/image15.webp" alt="Profesional dando opciones y presupuesto de reparaciones"
-                      className="process-image" />
-                    <div className="process-box">
-                      <div className="process-box-container">
-                        <div className="process-box-flex">
-                          <div className="process-card-label" aria-label="Paso número 3">#3</div>
-                          <h3 className="process-card-heading">Te damos opciones y presupuesto</h3>
+                  </li>
+                  <li className="splide__slide">
+                    <div className="process-card">
+                      <img src="assets/images/image15.webp" alt="Profesional dando opciones y presupuesto de reparaciones"
+                        className="process-image" />
+                      <div className="process-box">
+                        <div className="process-box-container">
+                          <div className="process-box-flex">
+                            <div className="process-card-label" aria-label="Paso número 3">#3</div>
+                            <h3 className="process-card-heading">Te damos opciones y presupuesto</h3>
+                          </div>
+                          <p className="process-card-text">
+                            Si encontramos problemas, te brindamos soluciones y costos estimados para su reparación.
+                          </p>
                         </div>
-                        <p className="process-card-text">
-                          Si encontramos problemas, te brindamos soluciones y costos estimados para su reparación.
-                        </p>
                       </div>
                     </div>
-                  </div>
-                </li>
-                <li className="splide__slide">
-                  <div className="process-card">
-                    <img src="assets/images/image16.webp" alt="Procurador notarial asistiendo con la gestión de documentos"
-                      className="process-image" />
-                    <div className="process-box">
-                      <div className="process-box-container">
-                        <div className="process-box-flex">
-                          <div className="process-card-label" aria-label="Paso número 4">#4</div>
-                          <h3 className="process-card-heading">Te ayudamos con la gestión notarial</h3>
+                  </li>
+                  <li className="splide__slide">
+                    <div className="process-card">
+                      <img src="assets/images/image16.webp" alt="Procurador notarial asistiendo con la gestión de documentos"
+                        className="process-image" />
+                      <div className="process-box">
+                        <div className="process-box-container">
+                          <div className="process-box-flex">
+                            <div className="process-card-label" aria-label="Paso número 4">#4</div>
+                            <h3 className="process-card-heading">Te ayudamos con la gestión notarial</h3>
+                          </div>
+                          <p className="process-card-text">
+                            En 1 hora un procurador de la notaría va a tu domicilio a tomarte las firmas.
+                          </p>
                         </div>
-                        <p className="process-card-text">
-                          En 1 hora un procurador de la notaría va a tu domicilio a tomarte las firmas.
-                        </p>
                       </div>
                     </div>
-                  </div>
-                </li>
-              </ul>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
+          </Slider>
         </div>
       </section>
       {/* Services section */}
@@ -190,161 +195,165 @@ export default function Home() {
               <strong>Elige la inspección para tu</strong> próximo auto seminuevo
             </h2>
           </div>
-          <div className="services-slider-div splide" role="group" aria-label="Servicios de inspección">
-            <div className="splide__track">
-              <ul className="splide__list" style={{ alignItems: "center" }}>
-                <li className="splide__slide">
-                  <article className="services-card services-card-first">
-                    <div className="services-box">
-                      <header className="card-header">
-                        <h3 className="header-title">Inspección Legal</h3>
-                        <p className="card-description">
-                          Ideal para quienes saben de mecánica y quieren complementar con la verificación legal.
-                        </p>
-                      </header>
-                      <p className="card-price" aria-label="Precio 49 soles">S/ 49</p>
-                      <div className="feature-container">
-                        <h4 className="feature-header">Incluye:</h4>
-                        <ul className="feature-items-container" role="list">
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">Siniestros reportados</span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">Revisión de Gravámenes y Papeletas</span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">Historial de propietarios</span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">Boleta informativa</span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">Otros puntos</span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20Legal.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
-                      target="_blank" className="primary-cta _w-full w-button" aria-label="Solicitar inspección legal">
-                      Solicitar inspección legal
-                    </a>
-                  </article>
-                </li>
-                <li className="splide__slide">
-                  <article className="services-card services-card-middle">
-                    <div className="services-box">
-                      <header className="card-header">
-                        <h3 className="header-title">Inspección BÁSICA</h3>
-                        <p className="card-description">
-                          Revisamos los puntos clave en la mecánica, estética y legal del carro que quieres comprar.
-                        </p>
-                      </header>
-                      <p className="card-price s-27900" aria-label="Precio 249 soles">S/ 249</p>
-                      <div className="feature-container">
-                        <h4 className="feature-header">Incluye:</h4>
-                        <ul className="feature-items-container" role="list">
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Todo sobre <span className="text-span">revisión legal</span>
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Revisión mecánica (200+ puntos de verificación)
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Escáner Profesional (motor, caja, airbags, ABS, módulos)
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Escaneo de pintura y carrocería (choques)
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Aprobación o desaprobación verbal
-                            </span>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20B%C3%A1sica.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
-                      target="_blank" className="primary-cta _w-full w-button" aria-label="Elegir inspección básica">
-                      Elegir inspección básica
-                    </a>
-                  </article>
-                </li>
-                <li className="splide__slide">
-                  <article className="services-card services-card-last">
-                    <div className="services-box">
-                      <header className="card-header">
-                        <h3 className="header-title">Inspección COMPLETA</h3>
-                        <p className="card-description">
-                          Para quienes buscan verificar hasta el alma del carro. Incluye soporte en el trámite notarial.
-                        </p>
-                      </header>
+          <Slider>
+            <div className="services-slider-div" role="group" aria-label="Servicios de inspección">
+              <div className="splide__track" style={{ paddingLeft: "20px", paddingRight: "20px" }}>
+                <ul className="splide__list" style={{ alignItems: "center" }}>
 
 
-                      <div className="price-container" style={{
-                        display: 'flex',
-                        justifyContent: "space-between",
-                        alignItems: "center", width: "100%"
-                      }} >
-                        <p className="card-price s-27900" aria-label="Precio 299 soles">S/ 299</p>
-                        <span className="badge-popular" aria-label="Más popular">POPULAR</span>
+                  <li className="splide__slide">
+                    <article className="services-card services-card-first">
+                      <div className="services-box">
+                        <header className="card-header">
+                          <h3 className="header-title">Inspección Legal</h3>
+                          <p className="card-description">
+                            Ideal para quienes saben de mecánica y quieren complementar con la verificación legal.
+                          </p>
+                        </header>
+                        <p className="card-price" aria-label="Precio 49 soles">S/ 49</p>
+                        <div className="feature-container">
+                          <h4 className="feature-header">Incluye:</h4>
+                          <ul className="feature-items-container" role="list">
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">Siniestros reportados</span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">Revisión de Gravámenes y Papeletas</span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">Historial de propietarios</span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">Boleta informativa</span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">Otros puntos</span>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
-                      <div className="feature-container">
-                        <h4 className="feature-header">Incluye:</h4>
-                        <ul className="feature-items-container" role="list">
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Toda la <span className="text-span">inspección básica</span>
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Videoscopía completa del motor y zonas críticas
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Asesoría en presupuesto de reparación
-                            </span>
-                          </li>
-                          <li className="feature-item" role="listitem">
-                            <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
-                            <span className="feature-item-text">
-                              Informe técnico y legal documentado
-                            </span>
-                          </li>
-                        </ul>
+                      <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20Legal.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
+                        target="_blank" className="primary-cta _w-full w-button" aria-label="Solicitar inspección legal">
+                        Solicitar inspección legal
+                      </a>
+                    </article>
+                  </li>
+                  <li className="splide__slide">
+                    <article className="services-card services-card-middle">
+                      <div className="services-box">
+                        <header className="card-header">
+                          <h3 className="header-title">Inspección BÁSICA</h3>
+                          <p className="card-description">
+                            Revisamos los puntos clave en la mecánica, estética y legal del carro que quieres comprar.
+                          </p>
+                        </header>
+                        <p className="card-price s-27900" aria-label="Precio 249 soles">S/ 249</p>
+                        <div className="feature-container">
+                          <h4 className="feature-header">Incluye:</h4>
+                          <ul className="feature-items-container" role="list">
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Todo sobre <span className="text-span">revisión legal</span>
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Revisión mecánica (200+ puntos de verificación)
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Escáner Profesional (motor, caja, airbags, ABS, módulos)
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Escaneo de pintura y carrocería (choques)
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Aprobación o desaprobación verbal
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
                       </div>
-                    </div>
-                    <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20Completa.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
-                      target="_blank" className="primary-cta _w-full w-button" aria-label="Elegir inspección completa">
-                      Elegir inspección completa
-                    </a>
-                  </article>
-                </li>
-              </ul>
+                      <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20B%C3%A1sica.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
+                        target="_blank" className="primary-cta _w-full w-button" aria-label="Elegir inspección básica">
+                        Elegir inspección básica
+                      </a>
+                    </article>
+                  </li>
+                  <li className="splide__slide">
+                    <article className="services-card services-card-last">
+                      <div className="services-box">
+                        <header className="card-header">
+                          <h3 className="header-title">Inspección COMPLETA</h3>
+                          <p className="card-description">
+                            Para quienes buscan verificar hasta el alma del carro. Incluye soporte en el trámite notarial.
+                          </p>
+                        </header>
+
+
+                        <div className="price-container" style={{
+                          display: 'flex',
+                          justifyContent: "space-between",
+                          alignItems: "center", width: "100%"
+                        }} >
+                          <p className="card-price s-27900" aria-label="Precio 299 soles">S/ 299</p>
+                          <span className="badge-popular" aria-label="Más popular">POPULAR</span>
+                        </div>
+                        <div className="feature-container">
+                          <h4 className="feature-header">Incluye:</h4>
+                          <ul className="feature-items-container" role="list">
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Toda la <span className="text-span">inspección básica</span>
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Videoscopía completa del motor y zonas críticas
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Asesoría en presupuesto de reparación
+                              </span>
+                            </li>
+                            <li className="feature-item" role="listitem">
+                              <img src="assets/images/image20.svg" loading="lazy" alt="Icono de verificación" className="icons" aria-hidden="true" />
+                              <span className="feature-item-text">
+                                Informe técnico y legal documentado
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                      <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20Completa.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
+                        target="_blank" className="primary-cta _w-full w-button" aria-label="Elegir inspección completa">
+                        Elegir inspección completa
+                      </a>
+                    </article>
+                  </li>
+                </ul>
+              </div>
             </div>
-          </div>
+          </Slider>
         </div>
       </section >
       {/*Benefits section */}
@@ -451,86 +460,14 @@ export default function Home() {
       </section>
 
       {/* FAQ section */}
-      <FAQ></FAQ>
+      <FAQ />
 
-      <footer className="section primary-background">
-        <div className="div-block-4">
-          <div className="w-layout-blockcontainer container footer-container w-container">
-            <div className="footer-row-1">
-              <div className="footer-left">
-                <div className="div-block-6"><img src="assets/images/image63.svg" loading="lazy" alt="" className="image-12" /></div>
-                <div className="footer-box-inner-1">
-                  <div className="footer-item">
-                    <div className="icon"><img src="assets/images/image64.svg" loading="lazy" alt="" /></div>
-                    <p className="footer-text">Cerro Azul 421, Santiago de
-                      Surco, Lima</p>
-                  </div>
-                  <div className="footer-item">
-                    <div className="icon"><img src="assets/images/image65.svg" loading="lazy" alt="" /></div>
-                    <div className="w-layout-vflex">
-                      <p className="footer-text"><a href="tel:+51934140010" className="link">+51 934 140 010</a></p>
-                    </div>
-                  </div>
-                  <div className="footer-item">
-                    <div className="icon"><img src="assets/images/image66.svg" loading="lazy" alt="" className="material-symbols-lightmail-outline" />
-                    </div>
-                    <div className="w-layout-vflex">
-                      <p className="footer-text"><a href="mailto:verificarlo@carlo.pe?subject=Hola"
-                        className="link">verificarlo@carlo.pe</a></p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="footer-right">
-                <div className="footer-box-inner-2">
-                  <h4 className="footer-heading">Tu seguridad empieza con una buena decisi&oacute;n.</h4>
-                  <p className="footer-description">Verifica el auto usado que quieres comprar con profesionales expertos.</p>
-                </div>
-                <a href="https://wa.link/64579s" target="_blank" className="primary-cta w-button"
-                  aria-label="Agendar inspección por WhatsApp">
-                  Agendar inspecci&oacute;n
-                </a>
 
-              </div>
-            </div>
-            <div className="footer-row-2">
-              <p className="_2025-todos-los-derechos-reservados">
-                &copy; 2025 Todos los derechos reservados.
-              </p>
-              <div className="list">
-                <a href="https://www.facebook.com/profile.php?id=61577445755386" target="_blank" className="w-inline-block">
-                  <img src="assets/images/image67.svg" loading="lazy" alt="Facebook" />
-                </a>
-                <a href="https://www.instagram.com/verificarlo.peru?igsh=NzllN2JrbWI5MXVm&amp;utm_source=qr" target="_blank"
-                  className="w-inline-block">
-                  <img src="assets/images/image68.svg" loading="lazy" alt="Instagram" />
-                </a>
-                <a href="https://www.tiktok.com/@verificarlo.peru?_t=ZM-8xHtDLk63fy&amp;_r=1" target="_blank" className="w-inline-block">
-                  <img src="assets/images/image69.svg" loading="lazy" alt="TikTok" />
-                </a>
-                <a href="https://www.linkedin.com/company/107714281/admin/dashboard" target="_blank" className="w-inline-block">
-                  <img src="assets/images/image70.svg" loading="lazy" alt="LinkedIn" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/*FOOTER */}
+      <Footer />
+
       {/* Botón flotante de WhatsApp */}
-      <div className="floating-container">
-        <div className="floating-wrapper">
-          <img data-w-id="f030f15b-81fd-0f05-9d10-5bcf9253e105" loading="lazy" alt="" src="assets/images/image71.svg"
-            className="floating-shape-1" />
-          <img data-w-id="f030f15b-81fd-0f05-9d10-5bcf9253e106" loading="lazy" alt="" src="assets/images/image72.svg"
-            className="floating-shape-2" />
-          <a href="https://wa.link/64579s" target="_blank" className="floating-button w-inline-block"
-            aria-label="Agendar inspección por WhatsApp">
-            <div className="icoutline-whatsapp">
-              <img loading="lazy" src="assets/images/image73.svg" alt="WhatsApp" className="icoutline-whatsapp" />
-            </div>
-          </a>
-        </div>
-      </div>
+      <WhatsappFlotante />
     </>
   );
 }

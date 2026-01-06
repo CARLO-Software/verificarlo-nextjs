@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Script from "next/script";
+import { Slider } from "./services/Slider";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -128,8 +129,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <link rel="apple-touch-icon" href="/assets/images/image0.png" />
 
           {/* ================= APP CONTENT ================= */}
-          {children}
-
+            {children}
+   
           {/* ================= SCRIPTS LOCALES ================= */}
           <Script src="/script1.js" strategy="afterInteractive" />
 

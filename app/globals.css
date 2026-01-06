@@ -2589,7 +2589,7 @@ p {
   border-radius: 20px;
   position: relative;
   overflow: hidden;
-  min-width: 294px;
+  /* min-width: 294px; */
   min-height: 425px;
 }
 
@@ -4916,5 +4916,4 @@ p {
 
 .splide__slide {
   margin-right: 8px !important;
-  width: calc(49.7512% - 4.0199px);
 }
