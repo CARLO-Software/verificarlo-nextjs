@@ -29,14 +29,14 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                     </div>
                 </div>
             )}
-            
+
             {isExpanded && (
-                
+
                 <>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 7 ? "open" : ""}`}>
+                        <div className={`frame-427318843 ${openFAQ === 7 ? "open" : ""}`} onClick={() => handleFAQToggle(7)}>
                             <p className="faq-item-header">&iquest;Pueden ir a cualquier parte de Lima? &iquest;Cobran extra por zonas
-                                lejanas?</p><a onClick={() => handleFAQToggle(7)} className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg"
+                                lejanas?</p><a className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg"
                                     loading="lazy" alt="" className="mynauichevron-up" /></a>
                         </div>
                         <div className="frame-427318844">
@@ -45,8 +45,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 8 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;Puedo pagar con Yape/Plin o tarjeta?</p><a onClick={() => handleFAQToggle(8)}
+                        <div className={`frame-427318843 ${openFAQ === 8 ? "open" : ""}`} onClick={() => handleFAQToggle(8)}>
+                            <p className="faq-item-header">&iquest;Puedo pagar con Yape/Plin o tarjeta?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -56,8 +56,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 9 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;Debo pagar por adelantado o despu&eacute;s del servicio?</p><a onClick={() => handleFAQToggle(9)}
+                        <div className={`frame-427318843 ${openFAQ === 9 ? "open" : ""}`} onClick={() => handleFAQToggle(9)}>
+                            <p className="faq-item-header">&iquest;Debo pagar por adelantado o despu&eacute;s del servicio?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -68,8 +68,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 10 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;Yo tengo que estar presente durante la inspecci&oacute;n?</p><a onClick={() => handleFAQToggle(10)}
+                        <div className={`frame-427318843 ${openFAQ === 10 ? "open" : ""}`} onClick={() => handleFAQToggle(10)}>
+                            <p className="faq-item-header">&iquest;Yo tengo que estar presente durante la inspecci&oacute;n?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -79,8 +79,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 11 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;Qu&eacute; incluye el informe que me entregan?</p><a onClick={() => handleFAQToggle(11)}
+                        <div className={`frame-427318843 ${openFAQ === 11 ? "open" : ""}`} onClick={() => handleFAQToggle(11)}>
+                            <p className="faq-item-header">&iquest;Qu&eacute; incluye el informe que me entregan?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -92,8 +92,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 12 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;En cu&aacute;nto tiempo me env&iacute;an el informe?</p><a onClick={() => handleFAQToggle(12)}
+                        <div className={`frame-427318843 ${openFAQ === 12 ? "open" : ""}`} onClick={() => handleFAQToggle(12)}>
+                            <p className="faq-item-header">&iquest;En cu&aacute;nto tiempo me env&iacute;an el informe?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -104,8 +104,8 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 13 ? "open" : ""}`}>
-                            <p className="faq-item-header">&iquest;Me dicen si vale la pena o no comprar el auto?</p><a onClick={() => handleFAQToggle(13)}
+                        <div className={`frame-427318843 ${openFAQ === 13 ? "open" : ""}`} onClick={() => handleFAQToggle(13)}>
+                            <p className="faq-item-header">&iquest;Me dicen si vale la pena o no comprar el auto?</p><a
                                 className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                     className="mynauichevron-up" /></a>
                         </div>
@@ -115,9 +115,9 @@ const FAQShowMore = ({ openFAQ, handleFAQToggle }: FAQShowMoreProps) => {
                         </div>
                     </div>
                     <div className="label-buttons">
-                        <div className={`frame-427318843 ${openFAQ === 14 ? "open" : ""}`}>
+                        <div className={`frame-427318843 ${openFAQ === 14 ? "open" : ""}`} onClick={() => handleFAQToggle(14)}>
                             <p className="faq-item-header">&iquest;Qui&eacute;n hace la inspecci&oacute;n? &iquest;Son mec&aacute;nicos
-                                certificados?</p><a onClick={() => handleFAQToggle(14)} className="faq-dropdown-btn w-inline-block"><img
+                                certificados?</p><a className="faq-dropdown-btn w-inline-block"><img
                                     src="assets/images/image44.svg" loading="lazy" alt="" className="mynauichevron-up" /></a>
                         </div>
                         <div className="frame-427318844">

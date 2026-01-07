@@ -1,6 +1,7 @@
 "use client"
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
 import FAQShowMore from "./FAQShowMore";
+import { useEscape } from "../hooks/useEscape";
 
 // Componente FAQ
 const FAQ = () => {
@@ -12,6 +13,13 @@ const FAQ = () => {
         setOpenFAQ(openFAQ === index ? null : index);
     };
 
+    //Cuando presionas escape ejecutas ese metodo -> setOpenFAQ
+    useEscape(() => {
+        if (openFAQ !== null) {
+            setOpenFAQ(null);
+        }
+    })
+
     return (
         <>
             <section className="faq-section" aria-labelledby="faq-heading">
@@ -22,9 +30,9 @@ const FAQ = () => {
                         </h2>
                         <div className="faq-right" role="list">
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 0 ? "open" : ""}`} >
+                                <div className={`frame-427318843 ${openFAQ === 0 ? "open" : ""}`} onClick={() => handleFAQToggle(0)}>
                                     <p className="faq-item-header">&iquest;Qu&eacute; puntos revisan en la inspecci&oacute;n del auto usado que
-                                        quiero comprar?</p><a className="faq-dropdown-btn w-inline-block" onClick={() => handleFAQToggle(0)}><img
+                                        quiero comprar?</p><a className="faq-dropdown-btn w-inline-block" ><img
                                             src="assets/images/image44.svg" loading="lazy" alt="" className="mynauichevron-up" /></a>
                                 </div>
 
@@ -36,8 +44,8 @@ const FAQ = () => {
                             </div>
 
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 1 ? "open" : ""}`} >
-                                    <p className="faq-item-header">&iquest;Incluyen revisi&oacute;n de motor y caja?</p><a onClick={() => handleFAQToggle(1)}
+                                <div className={`frame-427318843 ${openFAQ === 1 ? "open" : ""}`} onClick={() => handleFAQToggle(1)}>
+                                    <p className="faq-item-header">&iquest;Incluyen revisi&oacute;n de motor y caja?</p><a
                                         className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                             className="mynauichevron-up" /></a>
                                 </div>
@@ -50,9 +58,9 @@ const FAQ = () => {
                             </div>
 
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 2 ? "open" : ""}`}>
+                                <div className={`frame-427318843 ${openFAQ === 2 ? "open" : ""}`} onClick={() => handleFAQToggle(2)}>
                                     <p className="faq-item-header">&iquest;La revisi&oacute;n es solo visual o tambi&eacute;n t&eacute;cnica?</p>
-                                    <a onClick={() => handleFAQToggle(2)} className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                    <a className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                         className="mynauichevron-up" /></a>
                                 </div>
                                 <div className="frame-427318844">
@@ -62,8 +70,8 @@ const FAQ = () => {
                                 </div>
                             </div>
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 3 ? "open" : ""}`}>
-                                    <p className="faq-item-header">&iquest;Incluye prueba de manejo?</p><a onClick={() => handleFAQToggle(3)}
+                                <div className={`frame-427318843 ${openFAQ === 3 ? "open" : ""}`} onClick={() => handleFAQToggle(3)}>
+                                    <p className="faq-item-header">&iquest;Incluye prueba de manejo?</p><a
                                         className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                             className="mynauichevron-up" /></a>
                                 </div>
@@ -75,8 +83,8 @@ const FAQ = () => {
                                 </div>
                             </div>
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 4 ? "open" : ""}`}>
-                                    <p className="faq-item-header">&iquest;Pueden verificar si el auto ha tenido accidentes?</p><a onClick={() => handleFAQToggle(4)}
+                                <div className={`frame-427318843 ${openFAQ === 4 ? "open" : ""}`} onClick={() => handleFAQToggle(4)}>
+                                    <p className="faq-item-header">&iquest;Pueden verificar si el auto ha tenido accidentes?</p><a
                                         className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                             className="mynauichevron-up" /></a>
                                 </div>
@@ -87,8 +95,8 @@ const FAQ = () => {
                                 </div>
                             </div>
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 5 ? "open" : ""}`}>
-                                    <p className="faq-item-header">&iquest;Cu&aacute;nto tiempo demora la inspecci&oacute;n?</p><a onClick={() => handleFAQToggle(5)}
+                                <div className={`frame-427318843 ${openFAQ === 5 ? "open" : ""}`} onClick={() => handleFAQToggle(5)}>
+                                    <p className="faq-item-header">&iquest;Cu&aacute;nto tiempo demora la inspecci&oacute;n?</p><a
                                         className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                             className="mynauichevron-up" /></a>
                                 </div>
@@ -99,8 +107,8 @@ const FAQ = () => {
                                 </div>
                             </div>
                             <div className="label-buttons">
-                                <div className={`frame-427318843 ${openFAQ === 6 ? "open" : ""}`}>
-                                    <p className="faq-item-header">&iquest;C&oacute;mo agendo una inspecci&oacute;n?</p><a onClick={() => handleFAQToggle(6)}
+                                <div className={`frame-427318843 ${openFAQ === 6 ? "open" : ""}`} onClick={() => handleFAQToggle(6)}>
+                                    <p className="faq-item-header">&iquest;C&oacute;mo agendo una inspecci&oacute;n?</p><a
                                         className="faq-dropdown-btn w-inline-block"><img src="assets/images/image44.svg" loading="lazy" alt=""
                                             className="mynauichevron-up" /></a>
                                 </div>
@@ -111,7 +119,6 @@ const FAQ = () => {
                                     </p>
                                 </div>
                             </div>
-
 
                             {/* FAQ Fade and Show More Button */}
                             <FAQShowMore openFAQ={openFAQ} handleFAQToggle={handleFAQToggle}></FAQShowMore>
