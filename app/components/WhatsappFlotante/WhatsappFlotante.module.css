@@ -1,0 +1,21 @@
+/* ============================================
+   Whatsapp Flotante Component Styles
+   ============================================ */
+
+.floating-button {
+  z-index: 15;
+  background-color: #25d366;
+  border-radius: 200px;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  padding: 20px;
+  text-decoration: none;
+  display: flex;
+  position: relative;
+}
+
+.ico-outline-whatsapp {
+  overflow: hidden;
+}

@@ -1,0 +1,82 @@
+/* ============================================
+   NavBar Component Styles
+   ============================================ */
+
+.navbar {
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  text-decoration: none;
+}
+
+.navbar-box {
+  grid-column-gap: 50px;
+  flex: 1;
+  justify-content: flex-end;
+  align-items: center;
+  text-decoration: none;
+  display: flex;
+}
+
+.navbar-item {
+  grid-column-gap: 12px;
+  flex: none;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  display: flex;
+}
+
+.navbar-text {
+  color: var(--shark--950);
+  letter-spacing: -.03em;
+  white-space: pre-line;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: DM Sans, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 110%;
+  text-decoration: none;
+}
+
+.icon {
+  grid-column-gap: 8px;
+  border: .5px solid var(--shark--700);
+  border-radius: 100px;
+  flex: 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px;
+  text-decoration: none;
+  display: flex;
+}
+
+.secondary-cta {
+  grid-column-gap: 10px;
+  background-color: var(--shark--950);
+  color: var(--bright-sun--50);
+  text-align: center;
+  letter-spacing: -.03px;
+  border-radius: 100px;
+  flex: 0 auto;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  font-family: DM Sans, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+}
+
+.secondary-cta:hover {
+  background-color: var(--shark--900);
+}
+
+.nav-container {
+  justify-content: flex-start;
+  max-width: 1440px;
+  padding: 24px 5.25% 24px 5%;
+  display: flex;
+}

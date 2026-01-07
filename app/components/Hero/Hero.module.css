@@ -1,0 +1,259 @@
+/* ============================================
+   Hero Component Styles
+   ============================================ */
+
+.hero-section {
+  /* Hero section specific styles */
+}
+
+.hero-container {
+  flex-flow: row;
+  justify-content: space-between;
+  padding-top: 20px;
+  padding-left: 5%;
+  padding-right: 0;
+  display: flex;
+  position: relative;
+}
+
+.hero-left {
+  z-index: 1;
+  grid-row-gap: 24px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  width: 33%;
+  text-decoration: none;
+  display: flex;
+  position: relative;
+}
+
+.hero-row-1 {
+  grid-row-gap: 14px;
+  flex-direction: column;
+  width: 100%;
+  display: flex;
+  min-width: 551px;
+}
+
+.hero-description {
+  color: var(--shark--800);
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 120%;
+}
+
+.hero-row-2 {
+  grid-row-gap: 12px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  display: flex;
+}
+
+.hero-label {
+  color: var(--shark--950);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 110%;
+  text-decoration: none;
+}
+
+.hero-price {
+  color: var(--shark--950);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+}
+
+.hero-heading {
+  color: var(--shark--950);
+  text-transform: uppercase;
+  white-space: normal;
+  width: 520px;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 48px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 110%;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.primary-cta {
+  background-color: var(--bright-sun--300);
+  color: var(--shark--950);
+  letter-spacing: -.03px;
+  white-space: nowrap;
+  border-radius: 100px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 24px;
+  font-family: DM Sans, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+  display: flex;
+}
+
+.primary-cta:hover {
+  background-color: var(--bright-sun--400);
+}
+
+.hero-cta {
+  /* Specific styles for hero CTA if needed */
+}
+
+.hero-desktop {
+  align-self: flex-start;
+}
+
+.hero-mobile {
+  display: none;
+}
+
+.image-hero-car {
+  /* Mobile car image styles */
+}
+
+.image-hero-shape {
+  /* Mobile shape image styles */
+}
+
+.image-hero-logos {
+  /* Mobile logos image styles */
+}
+
+.image-7 {
+  z-index: 0;
+  position: relative;
+  right: auto;
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+
+@media screen and (max-width: 767px) {
+  .hero-container {
+    grid-column-gap: 20px;
+    grid-row-gap: 20px;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .hero-left {
+    z-index: 3;
+    grid-row-gap: 16px;
+    align-items: baseline;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .hero-description {
+    font-size: 18px;
+  }
+
+  .hero-heading {
+    text-transform: none;
+    font-size: 44px;
+  }
+
+  .hero-desktop {
+    min-width: 100%;
+    display: none;
+    position: absolute;
+    bottom: 0%;
+    right: 0%;
+  }
+
+  .hero-mobile {
+    justify-content: flex-start;
+    width: 100%;
+    display: block;
+    position: relative;
+    bottom: 60px;
+    overflow: hidden;
+  }
+
+  .image-hero-car {
+    z-index: 1;
+    min-width: 155%;
+    max-height: 100%;
+    object-fit: cover;
+    object-position: 0% 50%;
+    padding-left: 16px;
+    display: block;
+    position: relative;
+  }
+
+  .image-hero-shape {
+    z-index: 0;
+    object-fit: cover;
+    object-position: 5% 0%;
+    height: 100%;
+    min-height: 380px;
+    position: absolute;
+    top: 13%;
+    overflow: hidden;
+  }
+
+  .image-hero-logos {
+    z-index: 2;
+    position: relative;
+    left: 1.5%;
+  }
+}
+
+@media screen and (max-width: 479px) {
+  .primary-cta.hero-cta {
+    padding: 10px 14.5px;
+    font-size: 12px;
+  }
+
+  .hero-container {
+    padding-top: 52px;
+    display: block;
+    position: static;
+  }
+
+  .hero-left {
+    padding-left: 16px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
+  .hero-label {
+    font-size: 10px;
+  }
+
+  .hero-price {
+    font-size: 24px;
+  }
+
+  .hero-heading {
+    font-size: 38px;
+    text-wrap: balance;
+  }
+
+  .image-hero-shape {
+    width: 100%;
+    min-width: 100%;
+  }
+}

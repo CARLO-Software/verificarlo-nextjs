@@ -1,15 +1,15 @@
 "use client"
-import FAQ from "./components/FAQ";
-import WhatsappFlotante from "./components/WhatsappFlotante";
-import Footer from "./components/Footer";
-import NavBar from "./components/NavBar";
-import Hero from "./components/Hero";
-import PromotionalBanner from "./components/PromotionalBanner";
-import ProcessSection from "./components/ProcessSection";
-import ServicesSection from "./components/ServicesSection";
-import EligeTranquiloSection from "./components/EligeTranquiloSection";
-import CentroInspeccionSection from "./components/CentroInspeccionSection";
-import BenefitsSection from "./components/BenefitsSection";
+import FAQ from "./components/FAQ/FAQ";
+import WhatsappFlotante from "./components/WhatsappFlotante/WhatsappFlotante";
+import Footer from "./components/Footer/Footer";
+import NavBar from "./components/NavBar/NavBar";
+import Hero from "./components/Hero/Hero";
+import PromotionalBanner from "./components/PromotionalBanner/PromotionalBanner";
+import ProcessSection from "./components/ProcessSection/ProcessSection";
+import ServicesSection from "./components/ServicesSection/ServicesSection";
+import EligeTranquiloSection from "./components/EligeTranquilo/EligeTranquiloSection";
+import CentroInspeccionSection from "./components/CentroInspeccion/CentroInspeccionSection";
+import BenefitsSection from "./components/Benefits/BenefitsSection";
 
 export default function Home() {
 

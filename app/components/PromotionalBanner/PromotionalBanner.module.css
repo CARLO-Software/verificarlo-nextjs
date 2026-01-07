@@ -1,0 +1,100 @@
+/* ============================================
+   Promotional Banner Component Styles
+   ============================================ */
+
+.banner-3 {
+  background-color: #242424;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  padding: 12px 50px;
+  text-decoration: none;
+  display: flex;
+}
+
+.ticker-container {
+  background-color: var(--shark--950);
+  flex: 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 42px;
+  padding-top: 12px;
+  padding-bottom: 12px;
+  padding-left: 50px;
+  text-decoration: none;
+  display: flex;
+  overflow: hidden;
+}
+
+.ticker-item {
+  grid-column-gap: 12px;
+  white-space: nowrap;
+  flex: 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  margin-right: 300px;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.banner-text {
+  color: #fff;
+  text-align: left;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  align-self: center;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-right: .25rem;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 110%;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.frame-427327064 {
+  grid-column-gap: 12px;
+  flex: 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  text-decoration: none;
+  display: flex;
+}
+
+.ticker-content {
+  display: inline-flex;
+  animation: ticker 40s linear infinite;
+}
+
+.image-14 {
+  vertical-align: middle;
+  width: 63px;
+  height: 26px;
+  margin-right: 15px;
+  display: inline-block;
+}
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* ============================================
+   Responsive Styles
+   ============================================ */
+
+@media screen and (max-width: 767px) {
+  .ticker-container {
+    box-sizing: border-box;
+    height: 32px;
+  }
+}
