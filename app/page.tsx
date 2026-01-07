@@ -110,7 +110,7 @@ export default function Home() {
           <h2 id="process-heading" className="heading-3">
             <strong>Nuestro</strong> proceso
           </h2>
-          <Slider>
+          <Slider metodoSlider={"proceso-inspeccion"}>
             <div className="process-slider" role="group" aria-label="Proceso de inspección">
               <div className="splide__track">
                 <ul className="splide__list">
@@ -195,7 +195,7 @@ export default function Home() {
               <strong>Elige la inspección para tu</strong> próximo auto seminuevo
             </h2>
           </div>
-          <Slider>
+          <Slider metodoSlider="servicios">
             <div className="services-slider-div" role="group" aria-label="Servicios de inspección">
               <div className="splide__track" style={{ paddingLeft: "20px", paddingRight: "20px" }}>
                 <ul className="splide__list" style={{ alignItems: "center" }}>

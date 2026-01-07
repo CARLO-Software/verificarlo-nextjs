@@ -4917,3 +4917,6 @@ p {
 .splide__slide {
   margin-right: 8px !important;
 }
+.splide__list{
+  align-items: center;
+}
