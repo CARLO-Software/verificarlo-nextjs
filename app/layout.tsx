@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
+import "./globals-CLEAN.css";
 import Script from "next/script";
 
 // ===================== FONTS LOCALES =====================

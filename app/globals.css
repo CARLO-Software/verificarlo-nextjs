@@ -7,16 +7,16 @@
   --foreground: #171717;
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
-}
+} */
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: #ffffff;
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
 }
@@ -3877,7 +3877,7 @@ p {
 }
 
 .body {
-  background-color: var(--shark--50);
+  background-color: #ffffff;
 }
 
 .container-2 {
