@@ -95,9 +95,19 @@
   display: flex;
 }
 
+.benefits-section {
+  position: relative;
+  bottom: 60px;
+}
 /* ============================================
    Responsive Styles
    ============================================ */
+
+@media screen and (max-width: 767px){
+  .benefits-container{
+    flex-flow: column;
+  }
+}
 
 @media screen and (max-width: 991px) {
   .benefits-container {

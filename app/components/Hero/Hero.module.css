@@ -6,6 +6,17 @@
   /* Hero section specific styles */
 }
 
+.container {
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  padding-left: 20px;
+  padding-right: 20px;
+  text-decoration: none;
+  display: block;
+}
+
 .hero-container {
   flex-flow: row;
   justify-content: space-between;
@@ -147,6 +158,28 @@
 /* ============================================
    Responsive Styles
    ============================================ */
+
+@media screen and (max-width: 1199px) {
+  .hero-left {
+    width: 100%;
+  }
+
+  .hero-row-1 {
+    min-width: auto;
+  }
+
+  .hero-heading {
+    width: auto;
+  }
+
+  .hero-container {
+    flex-flow: column;
+    padding-top: 0;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
 
 @media screen and (max-width: 767px) {
   .hero-container {

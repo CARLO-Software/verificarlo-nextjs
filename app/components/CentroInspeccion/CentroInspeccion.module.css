@@ -145,6 +145,32 @@
   display: flex;
 }
 
+.primary-cta {
+  background-color: var(--bright-sun--300);
+  color: var(--shark--950);
+  letter-spacing: -.03px;
+  white-space: nowrap;
+  border-radius: 100px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 24px;
+  font-family: DM Sans, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+  display: flex;
+}
+
+.primary-cta:hover {
+  background-color: var(--bright-sun--400);
+}
+
+.primary-cta._w-full {
+  width: 100%;
+}
+
+
 .text-primary {
   color: var(--shark--950);
   letter-spacing: -.03em;
@@ -175,9 +201,19 @@
   height: 181px;
 }
 
+.image-8 {
+  height: 606px;
+}
+
 /* ============================================
    Responsive Styles
    ============================================ */
+
+@media screen and (max-width: 1199px) {
+  .image-8 {
+    display: none;
+  }
+}
 
 @media screen and (max-width: 479px) {
   .inspection-centers-container {

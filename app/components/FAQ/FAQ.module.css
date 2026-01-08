@@ -77,11 +77,19 @@
   display: none;
 }
 
-.frame-427318843.open + .frame-427318844 {
+.mynauichevron-up {
+  overflow: hidden;
+  transform: rotate(180deg);
+  /* Por defecto chevron hacia abajo */
+  transition: transform 0.3s ease;
+}
+
+
+.frame-427318843.open+.frame-427318844 {
   display: block;
 }
 
-.frame-427318843.open .mynaui-chevron-up {
+.frame-427318843.open .mynauichevron-up {
   transform: rotate(0deg);
 }
 
@@ -194,6 +202,28 @@
   display: block;
 }
 
+.secondary-cta {
+  grid-column-gap: 10px;
+  background-color: var(--shark--950);
+  color: var(--bright-sun--50);
+  text-align: center;
+  letter-spacing: -.03px;
+  border-radius: 100px;
+  flex: 0 auto;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  font-family: DM Sans, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+}
+
+.secondary-cta:hover {
+  background-color: var(--shark--900);
+}
+
 /* ============================================
    Responsive Styles
    ============================================ */
@@ -222,6 +252,11 @@
 }
 
 @media screen and (max-width: 479px) {
+  .secondary-cta {
+    order: 1;
+    height: 38px;
+  }
+
   .faq-item-header {
     font-size: 16px;
   }

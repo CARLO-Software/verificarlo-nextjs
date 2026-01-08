@@ -13,9 +13,17 @@
   gap: 40px;
 }
 
+
 .services-div {
-  text-align: center;
-  justify-content: flex-start;
+  flex: 0 auto;
+  justify-content: center;
+  width: 100%;
+  display: flex;
+}
+
+.services-div .heading-2 {
+  max-width: 572px;
+  margin: 0 auto;
 }
 
 .services-card {
@@ -111,6 +119,15 @@
   text-decoration: none;
 }
 
+.feature-item {
+  grid-column-gap: 8px;
+  justify-content: left;
+  align-items: center;
+  width: 100%;
+  text-decoration: none;
+  display: flex;
+}
+
 .feature-items-container {
   grid-row-gap: 12px;
   flex-direction: column;
@@ -119,6 +136,9 @@
   width: 100%;
   text-decoration: none;
   display: flex;
+  overflow: hidden;
+  padding-left: 0px;
+  margin-bottom: 0px;
 }
 
 .heading-2 {
@@ -130,7 +150,7 @@
   margin-bottom: 0;
   margin-right: 0;
   font-family: Inter, sans-serif;
-  font-size: 48px;
+  font-size: 36px;
   font-style: italic;
   font-weight: 400;
   line-height: 110%;
@@ -138,9 +158,70 @@
   display: inline-block;
 }
 
+.primary-cta {
+  background-color: var(--bright-sun--300);
+  color: var(--shark--950);
+  letter-spacing: -.03px;
+  white-space: nowrap;
+  border-radius: 100px;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 24px;
+  font-family: DM Sans, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+  display: flex;
+}
+
+.primary-cta:hover {
+  background-color: var(--bright-sun--400);
+}
+
+.primary-cta._w-full {
+  width: 100%;
+}
+
+.badge-popular {
+  background: #FF1E39;
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 12px;
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  line-height: 110%;
+}
+
 /* ============================================
    Responsive Styles
    ============================================ */
+
+@media screen and (max-width: 1199px) {
+  .services-container {
+    grid-column-gap: 36px;
+    grid-row-gap: 36px;
+    flex-flow: column;
+    height: auto;
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+
+@media screen and (min-width: 992px) {
+  .services-slider-div {
+    max-width: 1052px;
+    margin: 0 auto;
+  }
+
+  .services-slider-div .services-card-first,
+  .services-slider-div .services-card-last {
+    height: 467px;
+  }
+}
 
 @media screen and (max-width: 991px) {
   .services-div {

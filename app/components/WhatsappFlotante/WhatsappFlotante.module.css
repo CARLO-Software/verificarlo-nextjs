@@ -1,6 +1,9 @@
 /* ============================================
    Whatsapp Flotante Component Styles
    ============================================ */
+.ico-outline-whatsapp {
+  overflow: hidden;
+}
 
 .floating-button {
   z-index: 15;
@@ -16,6 +19,56 @@
   position: relative;
 }
 
-.ico-outline-whatsapp {
-  overflow: hidden;
+.floating-container {
+  z-index: 15;
+  justify-content: center;
+  align-items: center;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  position: fixed;
+  inset: auto 5px 2% auto;
+}
+
+.floating-shape-1 {
+  z-index: 15;
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  animation: pulse 2s infinite;
+  animation-delay: 0.5s;
+  /* Retraso para que aparezca después */
+}
+
+.floating-shape-2 {
+  z-index: 15;
+  width: 77px;
+  height: 77px;
+  position: absolute;
+  animation: pulse 2s infinite;
+  /* Comienza inmediatamente */
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+
+  70% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+}
+
+.floating-wrapper {
+  z-index: 10;
+  justify-content: center;
+  align-items: center;
+  display: flex;
 }

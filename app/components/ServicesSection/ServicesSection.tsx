@@ -53,7 +53,7 @@ export default function ServicesSection() {
                                             </div>
                                         </div>
                                         <a href="https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20Inspecci%C3%B3n%20Legal.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98"
-                                            target="_blank" className={`${styles['primary-cta']} ${styles['_w-full']} w-button`} aria-label="Solicitar inspección legal">
+                                            target="_blank" className={`${styles['primary-cta']} ${styles['_w-full']}`} aria-label="Solicitar inspección legal">
                                             Solicitar inspección legal
                                         </a>
                                     </article>

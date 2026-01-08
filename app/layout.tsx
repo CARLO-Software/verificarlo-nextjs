@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import Script from "next/script";
-import { Slider } from "./services/Slider";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -122,20 +121,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
           />
-          <link href="/styles1.css" rel="stylesheet" />
 
           {/* ================= FAVICON ================= */}
           <link rel="shortcut icon" href="/assets/images/image0.png" type="image/x-icon" />
           <link rel="apple-touch-icon" href="/assets/images/image0.png" />
 
           {/* ================= APP CONTENT ================= */}
-            {children}
-   
+          {children}
+
           {/* ================= SCRIPTS LOCALES ================= */}
-          <Script src="/script1.js" strategy="afterInteractive" />
+          {/* <Script src="/script1.js" strategy="afterInteractive" /> */}
 
           <Script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></Script>
-          <Script src="main.js" type="text/javascript"></Script>
+          {/* <Script src="main.js" type="text/javascript"></Script> */}
         </body>
       </html>
     </>

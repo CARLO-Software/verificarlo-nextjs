@@ -8,7 +8,7 @@ export default function CentroInspeccionSection() {
                 <div className={styles['inspection-centers-right']}>
                     <div className={styles['inspection-centers-row-1']}>
                         <div className={styles['centros-de-inspeccin']}>
-                            <h3 className={styles['inspection-centers-heading']}><strong>CENTROS DE</strong>
+                            <h3 className={styles['inspection-centers-heading']}><strong>CENTROS DE </strong>
                                 inspecci&oacute;n</h3>
                         </div>
                         <p className={styles['inspection-centers-heading-description']}>Puedes traer el auto a nuestro centro de inspecci&oacute;n o

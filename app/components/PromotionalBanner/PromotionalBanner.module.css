@@ -79,6 +79,11 @@
   display: inline-block;
 }
 
+.text-span-9 {
+  color: var(--bright-sun--300);
+  font-weight: 700;
+}
+
 @keyframes ticker {
   0% {
     transform: translateX(0%);

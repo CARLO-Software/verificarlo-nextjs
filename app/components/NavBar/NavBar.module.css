@@ -1,14 +1,15 @@
 /* ============================================
    NavBar Component Styles
    ============================================ */
-
 .navbar {
   justify-content: center;
   align-items: center;
   width: 100%;
   text-decoration: none;
 }
-
+.buenas{
+  background-color: red;
+}
 .navbar-box {
   grid-column-gap: 50px;
   flex: 1;
@@ -79,4 +80,32 @@
   max-width: 1440px;
   padding: 24px 5.25% 24px 5%;
   display: flex;
+}
+
+
+@media screen and (max-width: 1199px) {
+  .nav-container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .nav-container .div-block {
+    width: 100;
+    margin: 0 auto;
+  }
+
+  .navbar-box {
+    display: none;
+  }
+
+  .div-block img {
+    min-width: 100%;
+  }
+
+
+
+  .container.nav-container .div-block {
+    width: 100%;
+    margin: 0 auto;
+  }
 }

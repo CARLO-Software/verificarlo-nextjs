@@ -4,7 +4,7 @@ export default function NavBar() {
     return (
         <nav className={styles['navbar']} role="navigation" aria-label="Navegación principal">
             <div className={`w-layout-blockcontainer container ${styles['nav-container']} w-container`}>
-                <div className="div-block">
+                <div className={`${styles["div-block"]}`}>
                     <img loading="lazy" src="assets/images/image6.svg" alt="Logo VerifiCARLO" className="image-9" />
                 </div>
                 <div className={styles['navbar-box']}>
