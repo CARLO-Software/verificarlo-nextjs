@@ -163,6 +163,18 @@
   display: block;
 }
 
+.icon {
+  grid-column-gap: 8px;
+  border: .5px solid var(--shark--700);
+  border-radius: 100px;
+  flex: 0 auto;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 8px;
+  text-decoration: none;
+  display: flex;
+}
+
 .footer-text {
   color: var(--shark--50);
   letter-spacing: -.03em;

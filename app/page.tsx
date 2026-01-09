@@ -2,9 +2,7 @@
 import FAQ from "./components/FAQ/FAQ";
 import WhatsappFlotante from "./components/WhatsappFlotante/WhatsappFlotante";
 import Footer from "./components/Footer/Footer";
-import NavBar from "./components/NavBar/NavBar";
 import Hero from "./components/Hero/Hero";
-import PromotionalBanner from "./components/PromotionalBanner/PromotionalBanner";
 import ProcessSection from "./components/ProcessSection/ProcessSection";
 import ServicesSection from "./components/ServicesSection/ServicesSection";
 import EligeTranquiloSection from "./components/EligeTranquilo/EligeTranquiloSection";
@@ -20,12 +18,6 @@ export default function Home() {
       <a href="#main-content" className="skip-link">
         Saltar al contenido principal
       </a>
-
-      {/* Promotional banner */}
-      <PromotionalBanner />
-
-      {/* Main navigation */}
-      <NavBar />
 
       <main id="main-content">
         {/*Hero section */}
@@ -49,12 +41,6 @@ export default function Home() {
         {/* FAQ section */}
         <FAQ />
       </main>
-
-      {/*FOOTER */}
-      <Footer />
-
-      {/* Botón flotante de WhatsApp */}
-      <WhatsappFlotante />
     </>
   );
 }

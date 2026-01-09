@@ -1,0 +1,613 @@
+/* ============================================
+   IngresarDatosVehiculo.module.css
+
+   Design System Tokens Used:
+   - Colors: shark (grays), bright-sun (yellows)
+   - Border Radius: 24px (cards), 100px (buttons), 12px (inputs)
+   - Spacing: 8px, 12px, 20px, 24px, 40px
+   - Typography: DM Sans (buttons), Inter (headings/body)
+   ============================================ */
+
+/* ============================================
+   CONTAINER & LAYOUT
+   Split layout: illustration left, form right (desktop)
+   Stack layout on mobile for better UX
+   ============================================ */
+
+.container {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+    min-height: 100vh;
+}
+
+/* Left side - Illustration section */
+.illustrationSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--bright-sun--100);
+    border-radius: 32px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    /* Entrance animation */
+    animation: slideInLeft 0.6s ease-out;
+}
+
+/* Decorative background pattern */
+.illustrationSection::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle at 30% 30%,
+        var(--bright-sun--200) 0%,
+        transparent 50%
+    );
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.illustrationContent {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.illustrationIcon {
+    width: 180px;
+    height: 180px;
+    margin-bottom: 24px;
+    /* Subtle float animation */
+    animation: float 3s ease-in-out infinite;
+    margin: auto;
+}
+
+.illustrationTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--shark--950);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-style: italic;
+}
+
+.illustrationDescription {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--shark--700);
+    line-height: 1.5;
+    max-width: 300px;
+    margin: auto;
+}
+
+/* ============================================
+   FORM SECTION
+   Main form container with card styling
+   ============================================ */
+
+.formSection {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Entrance animation with delay */
+    animation: slideInRight 0.6s ease-out 0.1s both;
+}
+
+.formCard {
+    background: var(--shark--50);
+    border: 0.5px solid var(--shark--200);
+    border-radius: 32px;
+    padding: 40px;
+    /* Subtle shadow for depth */
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.formCard:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================
+   FORM HEADER
+   ============================================ */
+
+.formHeader {
+    margin-bottom: 32px;
+    text-align: center;
+}
+
+.formTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--shark--950);
+    margin: 0 0 8px 0;
+    text-transform: uppercase;
+    font-style: italic;
+}
+
+.formSubtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--shark--600);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Form row for side-by-side fields on desktop */
+.formRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Individual form group */
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Stagger animation for form fields */
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Stagger delays for each form group */
+.formGroup:nth-child(1) { animation-delay: 0.2s; }
+.formGroup:nth-child(2) { animation-delay: 0.25s; }
+.formGroup:nth-child(3) { animation-delay: 0.3s; }
+.formGroup:nth-child(4) { animation-delay: 0.35s; }
+
+/* Labels */
+.label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--shark--800);
+    letter-spacing: -0.02em;
+}
+
+/* Required asterisk */
+.required {
+    color: #FF1E39;
+    margin-left: 2px;
+}
+
+/* ============================================
+   INPUT STYLES
+   Consistent styling for inputs and selects
+   ============================================ */
+
+.input,
+.select {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--shark--950);
+    background: var(--basics--white);
+    border: 1px solid var(--shark--200);
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 100%;
+    outline: none;
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.15s ease;
+}
+
+.input::placeholder {
+    color: var(--shark--400);
+}
+
+/* Focus state - Yellow accent to match brand */
+.input:focus,
+.select:focus {
+    border-color: var(--bright-sun--400);
+    box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.15);
+    transform: translateY(-1px);
+}
+
+/* Hover state */
+.input:hover:not(:focus),
+.select:hover:not(:focus) {
+    border-color: var(--shark--400);
+}
+
+/* Error state */
+.inputError {
+    border-color: #FF1E39;
+}
+
+.inputError:focus {
+    box-shadow: 0 0 0 3px rgba(255, 30, 57, 0.15);
+}
+
+/* Select specific styling */
+.select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236d6d6d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 40px;
+}
+
+/* Number input - hide spinners for cleaner look */
+.input[type="number"]::-webkit-inner-spin-button,
+.input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ============================================
+   HELPER TEXT & VALIDATION
+   ============================================ */
+
+.helperText {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: var(--shark--500);
+    margin-top: 4px;
+}
+
+.errorText {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    color: #FF1E39;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    animation: shake 0.3s ease-out;
+}
+
+/* ============================================
+   SUBMIT BUTTON
+   Primary CTA style from design system
+   ============================================ */
+
+.submitButton {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 100%;
+    color: var(--shark--950);
+    background: var(--bright-sun--300);
+    border: none;
+    border-radius: 100px;
+    padding: 16px 32px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+    /* Entrance animation */
+    animation: fadeInUp 0.4s ease-out 0.4s both;
+}
+
+.submitButton:hover:not(:disabled) {
+    background: var(--bright-sun--400);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(253, 191, 18, 0.3);
+}
+
+.submitButton:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.submitButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.4);
+}
+
+/* Disabled state */
+.submitButton:disabled {
+    background: var(--shark--200);
+    color: var(--shark--500);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Loading state with spinner */
+.submitButton.loading {
+    position: relative;
+    color: transparent;
+}
+
+.submitButton.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid var(--shark--950);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* ============================================
+   ERROR MESSAGE CONTAINER
+   ============================================ */
+
+.errorContainer {
+    background: rgba(255, 30, 57, 0.1);
+    border: 1px solid rgba(255, 30, 57, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.errorContainer p {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #FF1E39;
+    margin: 0;
+}
+
+/* ============================================
+   ANIMATIONS
+   Subtle, professional animations
+   ============================================ */
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   Following project breakpoints
+   ============================================ */
+
+/* Tablet / Medium screens */
+@media (max-width: 1199px) {
+    .container {
+        gap: 32px;
+        padding: 40px 20px;
+    }
+
+    .illustrationSection {
+        padding: 32px;
+    }
+
+    .formCard {
+        padding: 32px;
+    }
+
+    .formTitle {
+        font-size: 28px;
+    }
+}
+
+/* Tablet / Small - Stack layout */
+@media (max-width: 991px) {
+    .container {
+        flex-direction: column;
+        gap: 24px;
+        padding: 32px 20px;
+        min-height: auto;
+    }
+
+    /* On smaller screens, illustration becomes a compact header */
+    .illustrationSection {
+        padding: 32px;
+        border-radius: 24px;
+        /* Change animation direction for stacked layout */
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    .illustrationIcon {
+        width: 120px;
+        height: 120px;
+        margin-bottom: 16px;
+    }
+
+    .illustrationTitle {
+        font-size: 24px;
+    }
+
+    .illustrationDescription {
+        font-size: 14px;
+    }
+
+    .formSection {
+        animation: fadeInUp 0.5s ease-out 0.15s both;
+    }
+
+    .formCard {
+        border-radius: 24px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+    .container {
+        padding: 24px 16px;
+    }
+
+    .illustrationSection {
+        padding: 24px;
+    }
+
+    .formCard {
+        padding: 24px;
+    }
+
+    .formHeader {
+        margin-bottom: 24px;
+    }
+
+    .formTitle {
+        font-size: 24px;
+    }
+
+    .formSubtitle {
+        font-size: 14px;
+    }
+
+    /* Stack form row on mobile */
+    .formRow {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+
+    .form {
+        gap: 20px;
+    }
+
+    .input,
+    .select {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    .submitButton {
+        padding: 14px 24px;
+    }
+}
+
+/* Mobile Small */
+@media (max-width: 479px) {
+    .container {
+        padding: 16px 12px;
+    }
+
+    /* Consider hiding illustration on very small screens */
+    .illustrationSection {
+        display: none;
+    }
+
+    .formCard {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .formTitle {
+        font-size: 22px;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY
+   Focus states and reduced motion
+   ============================================ */
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .illustrationSection,
+    .formSection,
+    .formGroup,
+    .submitButton,
+    .illustrationIcon,
+    .errorText {
+        animation: none;
+    }
+
+    .formCard,
+    .input,
+    .select,
+    .submitButton {
+        transition: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .input,
+    .select {
+        border-width: 2px;
+    }
+
+    .input:focus,
+    .select:focus {
+        box-shadow: 0 0 0 3px var(--bright-sun--500);
+    }
+}

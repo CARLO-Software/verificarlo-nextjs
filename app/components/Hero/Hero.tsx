@@ -1,4 +1,5 @@
 import styles from './Hero.module.css';
+import Link from 'next/link'
 
 export default function Hero() {
     return (
@@ -17,14 +18,14 @@ export default function Hero() {
                         <p className={styles['hero-label']}>Verifícalo desde</p>
                         <p className={styles['hero-price']} aria-label="Precio desde 249 soles">S/249</p>
                     </div>
-                    <a
-                        href="https://wa.link/64579s"
-                        target="_blank"
+                    <Link
+                        href="/vehiculo"
                         className={`${styles['primary-cta']} ${styles['hero-cta']} w-button`}
+                        rel="noopener noreferrer"
                         aria-label="Agendar inspección por WhatsApp"
                     >
                         Agendar inspección
-                    </a>
+                    </Link>
                 </div>
                 <div className={styles['hero-mobile']} aria-hidden="true">
                     <img src="assets/images/image9.webp" alt="Auto siendo inspeccionado" className={styles['image-hero-car']} />

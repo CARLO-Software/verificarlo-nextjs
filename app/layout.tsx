@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals-CLEAN.css";
 import Script from "next/script";
+import NavBar from "./components/NavBar/NavBar";
+import PromotionalBanner from "./components/PromotionalBanner/PromotionalBanner";
+import Footer from "./components/Footer/Footer";
+import WhatsappFlotante from "./components/WhatsappFlotante/WhatsappFlotante";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -127,8 +131,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <link rel="apple-touch-icon" href="/assets/images/image0.png" />
 
           {/* ================= APP CONTENT ================= */}
+
+          {/* Promotional banner */}
+          <PromotionalBanner />
+
+          {/* Main navigation */}
+          <NavBar />
+
           {children}
 
+          {/*FOOTER */}
+          <Footer />
+
+          {/* Botón flotante de WhatsApp */}
+          <WhatsappFlotante />
           {/* ================= SCRIPTS LOCALES ================= */}
           {/* <Script src="/script1.js" strategy="afterInteractive" /> */}
 
