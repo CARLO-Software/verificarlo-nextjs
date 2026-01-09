@@ -1,6 +1,16 @@
 /* ============================================
    Services Section Component Styles
    ============================================ */
+.container {
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1440px;
+  padding-left: 20px;
+  padding-right: 20px;
+  text-decoration: none;
+  display: block;
+}
 
 .services-container {
   z-index: 0;
@@ -105,6 +115,7 @@
   width: 100%;
   text-decoration: none;
   display: flex;
+  color: black;
 }
 
 .feature-header {
@@ -193,6 +204,18 @@
   display: inline-block;
   font-family: 'Inter', sans-serif;
   line-height: 110%;
+}
+
+.section-background {
+  background-color: var(--bright-sun--300);
+  border-top-left-radius: 60px;
+  border-top-right-radius: 60px;
+  justify-content: center;
+  align-items: flex-start;
+  display: flex;
+  position: relative;
+  bottom: 0;
+  overflow: hidden;
 }
 
 /* ============================================

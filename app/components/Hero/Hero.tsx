@@ -2,8 +2,8 @@ import styles from './Hero.module.css';
 
 export default function Hero() {
     return (
-        <header className={`section ${styles['hero-section']}`} id="main-content">
-            <div className={`w-layout-blockcontainer container ${styles['hero-container']} w-container`}>
+        <header className={`${styles["section"]} ${styles['hero-section']}`} id="main-content">
+            <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['hero-container']} w-container`}>
                 <div className={styles['hero-left']}>
                     <div className={styles['hero-row-1']}>
                         <h1 className={styles['hero-heading']}>

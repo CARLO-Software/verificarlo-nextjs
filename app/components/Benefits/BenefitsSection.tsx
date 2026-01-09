@@ -2,7 +2,7 @@ import styles from './Benefits.module.css';
 
 export default function BenefitsSection() {
     return (
-        <section className={`section ${styles['benefits-section']}`} aria-labelledby="benefits-heading">
+        <section className={`${styles["section"]} ${styles['benefits-section']}`} aria-labelledby="benefits-heading">
             <div className={`container ${styles['benefits-container']}`}>
                 <h2 id="benefits-heading" className="sr-only">Beneficios de nuestro servicio</h2>
                 <article className={styles['benefits-card']}>

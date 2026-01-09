@@ -3,8 +3,8 @@ import styles from './ServicesSection.module.css';
 
 export default function ServicesSection() {
     return (
-        <section className={`section-background ${styles['services-section']}`} aria-labelledby="services-heading">
-            <div className={`w-layout-blockcontainer container ${styles['services-container']} w-container`}>
+        <section className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
+            <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
                 <div className={styles['services-div']}>
                     <h2 id="services-heading" className={styles['heading-2']}>
                         <strong>Elige la inspección para tu</strong> próximo auto seminuevo

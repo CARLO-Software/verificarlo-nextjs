@@ -2,7 +2,7 @@ import { Slider } from "../../services/Slider"
 import styles from './ProcessSection.module.css'
 
 export default function ProcessSection() {
-    return (<section className={`section ${styles['process-section']}`} aria-labelledby="process-heading">
+    return (<section className={`${styles["section"]} ${styles['process-section']}`} aria-labelledby="process-heading">
         <div className={`w-layout-blockcontainer container ${styles['process-container']} w-container`}>
             <h2 id="process-heading" className={styles['heading-3']}>
                 <strong>Nuestro</strong> proceso

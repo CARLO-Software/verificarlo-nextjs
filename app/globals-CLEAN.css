@@ -85,7 +85,7 @@ html {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: white;
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
   min-height: 100%;

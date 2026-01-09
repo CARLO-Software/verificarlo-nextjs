@@ -89,6 +89,7 @@
   height: 80px;
   text-decoration: none;
   display: flex;
+  color: var(--shark--800);
 }
 
 .inspection-centers-heading {
@@ -203,6 +204,42 @@
 
 .image-8 {
   height: 606px;
+}
+
+.lunes-a-viernes-900-am-600-pm-sbados-900-am-200-pm {
+  color: var(--shark--800);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: undefined, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 140%;
+  text-decoration: none;
+}
+
+.horarios-de-atencin {
+  color: var(--shark--950);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 140%;
+  text-decoration: none;
+}
+
+.contctanos {
+  color: var(--shark--950);
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: 0;
+  font-family: Inter, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 140%;
+  text-decoration: none;
 }
 
 /* ============================================

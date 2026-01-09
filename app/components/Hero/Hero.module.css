@@ -2,9 +2,6 @@
    Hero Component Styles
    ============================================ */
 
-.hero-section {
-  /* Hero section specific styles */
-}
 
 .container {
   justify-content: space-between;
@@ -15,6 +12,17 @@
   padding-right: 20px;
   text-decoration: none;
   display: block;
+}
+
+.section {
+  display: block;
+  grid-column-gap: 39px;
+  grid-row-gap: 39px;
+  background-color: var(--shark--50);
+  border-top-left-radius: 60px;
+  border-top-right-radius: 60px;
+  flex-flow: column;
+  align-items: center;
 }
 
 .hero-container {
