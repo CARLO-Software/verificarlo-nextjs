@@ -39,10 +39,13 @@ type Brand = {
 };
 
 type VehicleFormData = {
-    year: string;
     brandId: string;
     model: string;
+    year: string;
     mileage: string;
+    placa: string;
+    vin: string;
+    fechaEstimada: Date | null;
 };
 
 // Static brand list for demo - will be replaced with API data
@@ -207,10 +210,13 @@ export default function IngresarDatosVehiculos() {
     // ------------------------------------------
 
     const [formData, setFormData] = useState<VehicleFormData>({
-        year: "",
         brandId: "",
         model: "",
+        year: "",
         mileage: "",
+        placa: "",
+        vin: "",
+        fechaEstimada: null
     });
 
     // Using demo brands - replace with API fetch when backend is ready
@@ -286,10 +292,13 @@ export default function IngresarDatosVehiculos() {
 
             // Prepare data (convert strings to numbers for API)
             const dataToSend = {
-                year: parseInt(formData.year),
                 brand_id: parseInt(formData.brandId),
                 model: formData.model.trim(),
+                year: parseInt(formData.year),
                 mileage: parseInt(formData.mileage),
+                placa: formData.placa.trim(),
+                vin: formData.vin.trim(),
+                fechaEstimada: formData.fechaEstimada
             };
 
             // TODO: Replace with actual API call when backend is ready
@@ -306,7 +315,7 @@ export default function IngresarDatosVehiculos() {
 
             // Success - reset form
             alert("¡Vehículo guardado exitosamente!");
-            setFormData({ year: "", brandId: "", model: "", mileage: "" });
+            setFormData({ year: "", brandId: "", model: "", mileage: "", placa: "", vin: "", fechaEstimada: null });
 
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error al enviar los datos");
@@ -350,7 +359,7 @@ export default function IngresarDatosVehiculos() {
                 <div className={styles.formCard}>
                     {/* Form Header */}
                     <header className={styles.formHeader}>
-                        <h1 className={styles.formTitle}>Datos del Vehículo</h1>
+                        <h1 className={styles.formTitle}>Datos para la inspección</h1>
                         <p className={styles.formSubtitle}>
                             Completa todos los campos para registrar tu vehículo
                         </p>
@@ -360,8 +369,8 @@ export default function IngresarDatosVehiculos() {
                     {error && (
                         <div className={styles.errorContainer} role="alert">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                <circle cx="10" cy="10" r="9" stroke="#FF1E39" strokeWidth="2"/>
-                                <path d="M10 6v5M10 13.5v.5" stroke="#FF1E39" strokeWidth="2" strokeLinecap="round"/>
+                                <circle cx="10" cy="10" r="9" stroke="#FF1E39" strokeWidth="2" />
+                                <path d="M10 6v5M10 13.5v.5" stroke="#FF1E39" strokeWidth="2" strokeLinecap="round" />
                             </svg>
                             <p>{error}</p>
                         </div>
@@ -369,109 +378,202 @@ export default function IngresarDatosVehiculos() {
 
                     {/* Main Form */}
                     <form onSubmit={handleSubmit} className={styles.form} noValidate>
-                        {/* Row 1: Year and Brand (side by side on desktop) */}
-                        <div className={styles.formRow}>
-                            {/* Year Input */}
-                            <div className={styles.formGroup}>
-                                <label htmlFor="year" className={styles.label}>
-                                    Año del vehículo
-                                    <span className={styles.required}>*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    id="year"
-                                    name="year"
-                                    value={formData.year}
-                                    onChange={handleChange}
-                                    placeholder="Ej: 2020"
-                                    min="1900"
-                                    max={new Date().getFullYear() + 1}
-                                    maxLength={4}
-                                    required
-                                    className={styles.input}
-                                    aria-describedby="year-helper"
-                                />
-                                <span id="year-helper" className={styles.helperText}>
-                                    Ingresa el año de fabricación
-                                </span>
-                            </div>
+                        {/* Row 1: Brand and Model (side by side on desktop) */}
 
-                            {/* Brand Select */}
-                            <div className={styles.formGroup}>
-                                <label htmlFor="brandId" className={styles.label}>
-                                    Marca
-                                    <span className={styles.required}>*</span>
-                                </label>
-                                <select
-                                    id="brandId"
-                                    name="brandId"
-                                    value={formData.brandId}
-                                    onChange={handleChange}
-                                    required
-                                    className={styles.select}
-                                    aria-describedby="brand-helper"
-                                >
-                                    <option value="">Selecciona una marca</option>
-                                    {brands.map((brand) => (
-                                        <option key={brand.id} value={brand.id}>
-                                            {brand.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <span id="brand-helper" className={styles.helperText}>
-                                    Elige la marca de tu vehículo
-                                </span>
+                        <div className={styles.formGroup}>
+                            <h2 className={styles.sectionTitle}>
+                                Datos del Vehículo
+                            </h2>
+                            <div className={styles.formSectionDivider}>
+                                <div className={styles.formRow}>
+
+                                    {/* Brand Select */}
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="brandId" className={styles.label}>
+                                            Marca
+                                            <span className={styles.required}>*</span>
+                                        </label>
+                                        <select
+                                            id="brandId"
+                                            name="brandId"
+                                            value={formData.brandId}
+                                            onChange={handleChange}
+                                            required
+                                            className={styles.select}
+                                            aria-describedby="brand-helper"
+                                        >
+                                            <option value="">Selecciona una marca</option>
+                                            {brands.map((brand) => (
+                                                <option key={brand.id} value={brand.id}>
+                                                    {brand.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <span id="brand-helper" className={styles.helperText}>
+                                            Elige la marca de tu vehículo
+                                        </span>
+                                    </div>
+
+
+                                    {/* Model Input */}
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="model" className={styles.label}>
+                                            Modelo
+                                            <span className={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="model"
+                                            name="model"
+                                            value={formData.model}
+                                            onChange={handleChange}
+                                            placeholder="Ej: Corolla, Civic, Sentra"
+                                            required
+                                            className={styles.input}
+                                            aria-describedby="model-helper"
+                                        />
+                                        <span id="model-helper" className={styles.helperText}>
+                                            Nombre del modelo específico
+                                        </span>
+                                    </div>
+
+                                    {/*Row 2: Year and Mileage*/}
+                                    {/* Year Input */}
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="year" className={styles.label}>
+                                            Año del vehículo
+                                            <span className={styles.required}>*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="year"
+                                            name="year"
+                                            value={formData.year}
+                                            inputMode="numeric"
+                                            placeholder="Ej: 2020"
+                                            maxLength={4}
+                                            required
+                                            className={styles.input}
+                                            aria-describedby="year-helper"
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                // Solo números y máximo 4 dígitos
+                                                if (/^\d{0,4}$/.test(value)) {
+                                                    setFormData({
+                                                        ...formData,
+                                                        year: value
+                                                    })
+                                                }
+                                            }}
+                                        />
+                                        <span id="year-helper" className={styles.helperText}>
+                                            Ingresa el año de fabricación
+                                        </span>
+                                    </div>
+
+                                    {/* Mileage Input */}
+                                    <div className={styles.formGroup}>
+                                        <label htmlFor="mileage" className={styles.label}>
+                                            Kilometraje (Opcional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="mileage"
+                                            name="mileage"
+                                            value={formData.mileage}
+                                            onChange={(e) => {
+                                                const value = e.target.value
+                                                // Solo números y máximo 4 dígitos
+                                                if (/^\d{0,7}$/.test(value)) {
+                                                    setFormData({
+                                                        ...formData,
+                                                        mileage: value
+                                                    })
+                                                }
+                                            }}
+                                            placeholder="Ej: 50000"
+                                            min="0"
+                                            max="2000000"
+                                            className={styles.input}
+                                            aria-describedby="mileage-helper"
+                                        />
+                                        <span id="mileage-helper" className={styles.helperText}>
+                                            Kilometraje actual en km
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Row 2: Model and Mileage (side by side on desktop) */}
-                        <div className={styles.formRow}>
-                            {/* Model Input */}
-                            <div className={styles.formGroup}>
-                                <label htmlFor="model" className={styles.label}>
-                                    Modelo
-                                    <span className={styles.required}>*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="model"
-                                    name="model"
-                                    value={formData.model}
-                                    onChange={handleChange}
-                                    placeholder="Ej: Corolla, Civic, Sentra"
-                                    required
-                                    className={styles.input}
-                                    aria-describedby="model-helper"
-                                />
-                                <span id="model-helper" className={styles.helperText}>
-                                    Nombre del modelo específico
-                                </span>
-                            </div>
+                        {/*Sección de identificación*/}
+                        <div className={styles.formGroup}>
 
-                            {/* Mileage Input */}
-                            <div className={styles.formGroup}>
-                                <label htmlFor="mileage" className={styles.label}>
-                                    Kilometraje (Opcional)
-                                    
-                                </label>
-                                <input
-                                    type="number"
-                                    id="mileage"
-                                    name="mileage"
-                                    value={formData.mileage}
-                                    onChange={handleChange}
-                                    placeholder="Ej: 50000"
-                                    min="0"
-                                    max="2000000"
-                                    className={styles.input}
-                                    aria-describedby="mileage-helper"
-                                />
-                                <span id="mileage-helper" className={styles.helperText}>
-                                    Kilometraje actual en km
-                                </span>
+                            <h2 className={styles.sectionTitle}>
+                                Identificación
+                            </h2>
+
+                            <div className={styles.formSectionDivider}>
+
+                                <div className={styles.formRow}>
+                                    <div>
+                                        <label htmlFor="year" className={styles.label}>
+                                            Nro. Placa <span className={styles.optional}>(opcional)</span>
+                                        </label>
+                                        <input type="text"
+                                            id="placa"
+                                            name="placa"
+                                            placeholder="Ej: A1B-234"
+                                            className={styles.input}
+                                            aria-describedby="placa-helper"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="year" className={styles.label}>
+                                            Nro. VIN <span className={styles.optional}>(opcional)</span>
+                                        </label>
+                                        {/*VIN*/}
+                                        <input type="text"
+                                            id="vin"
+                                            name="vin"
+                                            placeholder="Ej: 1HGCM82633A123456"
+                                            className={styles.input}
+                                            aria-describedby="vin-helper"
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
+                            <p className={styles.helperText}>
+                                Ayúdanos a identificar mejor tu vehículo
+                            </p>
+
                         </div>
 
+                        <div className={styles.formGroup}>
+                            {/*Sección de preferencia de revisión*/}
+                            <h2 className={styles.sectionTitle}>
+                                Preferencia de revisión
+                            </h2>
+                            <div className={styles.formSectionDivider}>
+                                <label htmlFor="date">Fecha estimada                                         <span className={styles.optional}>(opcional)</span>
+                                </label>
+                                <div className={styles.formRow}>
+                                    {/*Fecha*/}
+                                    <input type="date"
+                                        id="date"
+                                        name="preferred_date"
+                                        className="input border border-gray-300 text-center rounded-lg px-4"
+                                        min={new Date().toISOString().split('T')[0]} />
+                                    <p className="text-xs text-gray-400 ">
+                                        Esta fecha es referencial. Te confirmaremos según disponibilidad.
+                                    </p>
+                                </div>
+
+                            </div>
+                            <p className={styles.helperText}>
+                                Indícanos cuándo te gustaría realizar la revisión
+                            </p>
+                        </div>
                         {/* Submit Button */}
                         <button
                             type="submit"
@@ -483,7 +585,7 @@ export default function IngresarDatosVehiculos() {
                         </button>
                     </form>
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     );
 }

@@ -34,6 +34,20 @@ export default function NavBar() {
                     >
                         Agendar inspección
                     </Link>
+                    <Link
+                        href="/login"
+                        className={`${styles['secondary-cta']} w-button`}
+                        aria-label="Agendar inspección por WhatsApp"
+                        rel="noopener noreferrer"
+                    >Login
+                    </Link>
+                    <Link
+                        href="/register"
+                        className={`${styles['secondary-cta']} w-button`}
+                        aria-label="Agendar inspección por WhatsApp"
+                        rel="noopener noreferrer"
+                    > Register
+                    </Link>
                 </div>
             </div>
         </nav>

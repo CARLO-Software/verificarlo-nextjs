@@ -1,11 +1,32 @@
 /* ============================================
-   IngresarDatosVehiculo.module.css
+   Login.module.css
+
+   CSS Module for the Login Component
+
+   =====================================================
+   LEARNING NOTES FOR CSS MODULES IN NEXT.JS
+   =====================================================
+
+   1. WHAT ARE CSS MODULES?
+      - CSS Modules are CSS files where class names are locally scoped
+      - When you import them, class names are automatically made unique
+      - This prevents style conflicts between components
+
+   2. HOW TO USE:
+      - Name your file: ComponentName.module.css
+      - Import: import styles from "./Login.module.css"
+      - Use: className={styles.formCard}
+
+   3. CSS VARIABLES (Custom Properties):
+      - Defined with --variable-name: value;
+      - Used with var(--variable-name)
+      - Defined in globals.css, available everywhere
 
    Design System Tokens Used:
    - Colors: shark (grays), bright-sun (yellows)
-   - Border Radius: 24px (cards), 100px (buttons), 12px (inputs)
+   - Border Radius: 32px (cards), 100px (buttons), 12px (inputs)
    - Spacing: 8px, 12px, 20px, 24px, 40px
-   - Typography: DM Sans (buttons), Inter (headings/body)
+   - Typography: DM Sans (buttons/labels), Inter (headings/body)
    ============================================ */
 
 /* ============================================
@@ -19,7 +40,7 @@
     align-items: stretch;
     justify-content: center;
     gap: 40px;
-    max-width: 1200px;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 60px 20px;
     min-height: 100vh;
@@ -37,7 +58,8 @@
     padding: 40px;
     position: relative;
     overflow: hidden;
-    /* Entrance animation */
+    max-width: 400px;
+    /* Entrance animation - slides in from left */
     animation: slideInLeft 0.6s ease-out;
 }
 
@@ -63,17 +85,16 @@
 }
 
 .illustrationIcon {
-    width: 180px;
-    height: 180px;
-    margin-bottom: 24px;
-    /* Subtle float animation */
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 24px auto;
+    /* Subtle floating animation */
     animation: float 3s ease-in-out infinite;
-    margin: auto;
 }
 
 .illustrationTitle {
     font-family: 'Inter', sans-serif;
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 600;
     color: var(--shark--950);
     margin-bottom: 12px;
@@ -83,12 +104,12 @@
 
 .illustrationDescription {
     font-family: 'Inter', sans-serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 400;
     color: var(--shark--700);
     line-height: 1.5;
-    max-width: 300px;
-    margin: auto;
+    max-width: 280px;
+    margin: 0 auto;
 }
 
 /* ============================================
@@ -101,7 +122,8 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    /* Entrance animation with delay */
+    max-width: 450px;
+    /* Entrance animation with slight delay */
     animation: slideInRight 0.6s ease-out 0.1s both;
 }
 
@@ -112,7 +134,7 @@
     padding: 40px;
     /* Subtle shadow for depth */
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transition: box-shadow 0.3s ease;
 }
 
 .formCard:hover {
@@ -130,7 +152,7 @@
 
 .formTitle {
     font-family: 'Inter', sans-serif;
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 600;
     color: var(--shark--950);
     margin: 0 0 8px 0;
@@ -154,40 +176,24 @@
 .form {
     display: flex;
     flex-direction: column;
-    gap: 24px;
-}
-
-/* Form row for side-by-side fields on desktop */
-.formRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
 
-/* Individual form group */
+/* Individual form group (label + input + error) */
 .formGroup {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    /* Stagger animation for form fields */
+    /* Staggered entrance animation */
     animation: fadeInUp 0.4s ease-out both;
 }
 
-/* Stagger delays for each form group */
 .formGroup:nth-child(1) {
     animation-delay: 0.2s;
 }
 
 .formGroup:nth-child(2) {
     animation-delay: 0.25s;
-}
-
-.formGroup:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-.formGroup:nth-child(4) {
-    animation-delay: 0.35s;
 }
 
 /* Labels */
@@ -207,11 +213,10 @@
 
 /* ============================================
    INPUT STYLES
-   Consistent styling for inputs and selects
+   Consistent styling matching design system
    ============================================ */
 
-.input,
-.select {
+.input {
     font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 400;
@@ -233,59 +238,31 @@
 }
 
 /* Focus state - Yellow accent to match brand */
-.input:focus,
-.select:focus {
+.input:focus {
     border-color: var(--bright-sun--400);
     box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.15);
     transform: translateY(-1px);
 }
 
-/* Hover state */
-.input:hover:not(:focus),
-.select:hover:not(:focus) {
+/* Hover state (when not focused) */
+.input:hover:not(:focus) {
     border-color: var(--shark--400);
 }
 
 /* Error state */
 .inputError {
     border-color: #FF1E39;
+    animation: shake 0.3s ease-out;
 }
 
 .inputError:focus {
+    border-color: #FF1E39;
     box-shadow: 0 0 0 3px rgba(255, 30, 57, 0.15);
 }
 
-/* Select specific styling */
-.select {
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236d6d6d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    padding-right: 40px;
-}
-
-/* Number input - hide spinners for cleaner look */
-.input[type="number"]::-webkit-inner-spin-button,
-.input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-.input[type="number"] {
-    -moz-appearance: textfield;
-}
-
 /* ============================================
-   HELPER TEXT & VALIDATION
+   ERROR & HELPER TEXT
    ============================================ */
-
-.helperText {
-    font-family: 'Inter', sans-serif;
-    font-size: 12px;
-    color: var(--shark--500);
-    margin-top: 4px;
-}
 
 .errorText {
     font-family: 'Inter', sans-serif;
@@ -295,7 +272,49 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    animation: shake 0.3s ease-out;
+    animation: fadeInUp 0.2s ease-out;
+}
+
+/* General error container (for API errors) */
+.errorContainer {
+    background: rgba(255, 30, 57, 0.1);
+    border: 1px solid rgba(255, 30, 57, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeInUp 0.3s ease-out;
+}
+
+.errorContainer p {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: #FF1E39;
+    margin: 0;
+}
+
+/* ============================================
+   FORGOT PASSWORD LINK
+   ============================================ */
+
+.forgotPassword {
+    text-align: right;
+    margin-top: -8px;
+}
+
+.forgotPasswordLink {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--shark--600);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.forgotPasswordLink:hover {
+    color: var(--shark--950);
+    text-decoration: underline;
 }
 
 /* ============================================
@@ -322,7 +341,7 @@
         transform 0.15s ease,
         box-shadow 0.2s ease;
     /* Entrance animation */
-    animation: fadeInUp 0.4s ease-out 0.4s both;
+    animation: fadeInUp 0.4s ease-out 0.35s both;
 }
 
 .submitButton:hover:not(:disabled) {
@@ -370,26 +389,28 @@
 }
 
 /* ============================================
-   ERROR MESSAGE CONTAINER
+   REGISTER PROMPT
    ============================================ */
 
-.errorContainer {
-    background: rgba(255, 30, 57, 0.1);
-    border: 1px solid rgba(255, 30, 57, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: fadeInUp 0.3s ease-out;
-}
-
-.errorContainer p {
+.registerPrompt {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    color: #FF1E39;
-    margin: 0;
+    color: var(--shark--600);
+    text-align: center;
+    margin: 16px 0 0 0;
+    animation: fadeInUp 0.4s ease-out 0.4s both;
+}
+
+.registerLink {
+    color: var(--shark--950);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.registerLink:hover {
+    color: var(--bright-sun--500);
+    text-decoration: underline;
 }
 
 /* ============================================
@@ -402,7 +423,6 @@
         opacity: 0;
         transform: translateX(-30px);
     }
-
     to {
         opacity: 1;
         transform: translateX(0);
@@ -414,7 +434,6 @@
         opacity: 0;
         transform: translateX(30px);
     }
-
     to {
         opacity: 1;
         transform: translateX(0);
@@ -426,7 +445,6 @@
         opacity: 0;
         transform: translateY(15px);
     }
-
     to {
         opacity: 1;
         transform: translateY(0);
@@ -434,12 +452,9 @@
 }
 
 @keyframes float {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: translateY(0);
     }
-
     50% {
         transform: translateY(-10px);
     }
@@ -452,54 +467,23 @@
 }
 
 @keyframes shake {
-
-    0%,
-    100% {
+    0%, 100% {
         transform: translateX(0);
     }
-
     25% {
         transform: translateX(-4px);
     }
-
     75% {
         transform: translateX(4px);
     }
 }
-
-.formSectionDivider {
-    /* margin-top: 2.5rem;  */
-    /* margin-bottom: 1.5rem; */
-    padding-top: 1.5rem; 
-    border-top: 1px solid #e5e7eb;
-    /* línea sutil */
-}
-
-.sectionTitle {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #111827;
-    margin-top: 0px;
-    margin-bottom: 0px;
-}
-
-.optional {
-    font-weight: 400;
-    color: #6b7280;
-}
-
-.sectionDescription {
-    font-size: 0.875rem;
-    color: #6b7280;
-}
-
 
 /* ============================================
    RESPONSIVE DESIGN
    Following project breakpoints
    ============================================ */
 
-/* Tablet / Medium screens */
+/* Large tablets */
 @media (max-width: 1199px) {
     .container {
         gap: 32px;
@@ -515,11 +499,11 @@
     }
 
     .formTitle {
-        font-size: 28px;
+        font-size: 26px;
     }
 }
 
-/* Tablet / Small - Stack layout */
+/* Tablets - Stack layout */
 @media (max-width: 991px) {
     .container {
         flex-direction: column;
@@ -528,11 +512,10 @@
         min-height: auto;
     }
 
-    /* On smaller screens, illustration becomes a compact header */
     .illustrationSection {
+        max-width: 100%;
         padding: 32px;
         border-radius: 24px;
-        /* Change animation direction for stacked layout */
         animation: fadeInUp 0.5s ease-out;
     }
 
@@ -543,7 +526,7 @@
     }
 
     .illustrationTitle {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .illustrationDescription {
@@ -551,6 +534,7 @@
     }
 
     .formSection {
+        max-width: 100%;
         animation: fadeInUp 0.5s ease-out 0.15s both;
     }
 
@@ -585,21 +569,14 @@
         font-size: 14px;
     }
 
-    /* Stack form row on mobile */
-    .formRow {
-        grid-template-columns: 1fr;
-        gap: 24px;
-    }
-
     .form {
-        gap: 20px;
+        gap: 16px;
     }
 
-    .input,
-    .select {
+    .input {
         padding: 12px 14px;
+        /* 16px prevents zoom on iOS when focusing inputs */
         font-size: 16px;
-        /* Prevents zoom on iOS */
     }
 
     .submitButton {
@@ -607,13 +584,13 @@
     }
 }
 
-/* Mobile Small */
+/* Small mobile */
 @media (max-width: 479px) {
     .container {
         padding: 16px 12px;
     }
 
-    /* Consider hiding illustration on very small screens */
+    /* Hide illustration on very small screens */
     .illustrationSection {
         display: none;
     }
@@ -635,34 +612,32 @@
 
 /* Respect user preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
-
     .illustrationSection,
     .formSection,
     .formGroup,
     .submitButton,
     .illustrationIcon,
-    .errorText {
+    .errorText,
+    .inputError {
         animation: none;
     }
 
     .formCard,
     .input,
-    .select,
-    .submitButton {
+    .submitButton,
+    .forgotPasswordLink,
+    .registerLink {
         transition: none;
     }
 }
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-
-    .input,
-    .select {
+    .input {
         border-width: 2px;
     }
 
-    .input:focus,
-    .select:focus {
+    .input:focus {
         box-shadow: 0 0 0 3px var(--bright-sun--500);
     }
 }
