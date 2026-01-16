@@ -3,31 +3,11 @@
  * IngresarDatosVehiculo.tsx
  *
  * Vehicle Data Entry Form Component
- *
- * DESIGN DECISIONS:
- * - Split layout with illustration (left) and form (right) on desktop
- *   This creates visual balance and makes the form less intimidating
- * - Stacked layout on mobile for optimal scrolling experience
- * - Uses VerifiCARLO design system: bright-sun (yellow) and shark (gray) palette
- * - Subtle entrance animations improve perceived performance
- * - Focus states use brand yellow for consistency
- *
- * UX CONSIDERATIONS:
- * - Form fields are grouped logically (year/brand, model/mileage)
- * - Required fields are marked with red asterisk
- * - Helper text guides users on expected input format
- * - Loading state with spinner prevents double submissions
- * - Error states are clearly visible with shake animation
- *
- * ACCESSIBILITY:
- * - All inputs have associated labels with htmlFor
- * - Focus states are clearly visible
- * - Respects prefers-reduced-motion preference
- * - Semantic HTML structure
  */
 
 import { useState } from "react";
 import styles from "./IngresarDatosVehiculo.module.css";
+import { CloudSun, Sun } from "lucide-react";
 
 // ============================================
 // TYPES - Define the shape of our data
@@ -36,6 +16,7 @@ import styles from "./IngresarDatosVehiculo.module.css";
 type Brand = {
     id: number;
     name: string;
+    logo: string;
 };
 
 type VehicleFormData = {
@@ -50,17 +31,32 @@ type VehicleFormData = {
 
 // Static brand list for demo - will be replaced with API data
 const DEMO_BRANDS: Brand[] = [
-    { id: 1, name: "Toyota" },
-    { id: 2, name: "Honda" },
-    { id: 3, name: "Nissan" },
-    { id: 4, name: "Hyundai" },
-    { id: 5, name: "Kia" },
-    { id: 6, name: "Chevrolet" },
-    { id: 7, name: "Ford" },
-    { id: 8, name: "Volkswagen" },
-    { id: 9, name: "Mazda" },
-    { id: 10, name: "Suzuki" },
+    { id: 1, name: "Toyota", logo: "assets/logos/toyota.jpg" },
+    { id: 2, name: "Honda", logo: "assets/logos/honda.svg" },
+    { id: 3, name: "Nissan", logo: "assets/logos/nissan.svg" },
+    { id: 4, name: "Hyundai", logo: "assets/logos/hyundai.svg" },
+    { id: 5, name: "Kia", logo: "assets/logos/kia.svg" },
+    { id: 6, name: "Chevrolet", logo: "assets/logos/chevrolet.svg" },
+    { id: 7, name: "Ford", logo: "assets/logos/ford.svg" },
+    { id: 8, name: "Volkswagen", logo: "assets/logos/volkswagen.svg" },
+    { id: 9, name: "Mazda", logo: "assets/logos/mazda.svg" },
+    { id: 10, name: "Suzuki", logo: "assets/logos/suzuki.svg" },
 ];
+const timeSlots = [
+    "09:00",
+    "10:00",
+    "11:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+];
+
+//Creamos un mapa de iconos
+const ICONS = {
+    Sun: Sun,
+    CloudSun: CloudSun,
+}
 
 // ============================================
 // SVG ILLUSTRATION COMPONENT
@@ -68,6 +64,7 @@ const DEMO_BRANDS: Brand[] = [
 // ============================================
 
 function CarInspectionIllustration({ className }: { className?: string }) {
+
     return (
         <svg
             className={className}
@@ -225,6 +222,13 @@ export default function IngresarDatosVehiculos() {
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [plate, setPlate] = useState("");
+
+    //* Para el buscador de marca
+    const [brandQuery, setBrandQuery] = useState("");
+    const [showBrands, setShowBrands] = useState(false);
+
+
     // ------------------------------------------
     // HANDLE INPUT CHANGES
     // Generic handler for all form inputs
@@ -277,6 +281,43 @@ export default function IngresarDatosVehiculos() {
         return true;
     }
 
+    /**
+     * * FUNCIÓN PARA FORMATOS 
+     */
+
+    function formatPlate(value: string) {
+        // 1. Normalizamos la entrada:
+        //    - Convertimos a mayúsculas
+        //    - Eliminamos símbolos, espacios y caracteres inválidos
+        const clean = value
+            .toUpperCase()
+            .replace(/[^A-Z0-9]/g, "");
+
+        // 2. Si aún no hay suficientes caracteres para insertar el guion,
+        //    retornamos el valor tal cual (solo letras/números en mayúscula)
+        if (clean.length <= 3) {
+            return clean;
+        }
+
+        // 3. Cuando hay más de 3 caracteres:
+        //    - Los primeros 3 corresponden al prefijo de la placa
+        //    - Los siguientes hasta 3 corresponden al número
+        //    - Se inserta el guion automáticamente
+        return clean.slice(0, 3) + "-" + clean.slice(3, 6);
+    }
+
+    function formatMileage(value: string) {
+        // Eliminamos cualquier carácter que no sea número
+        const clean = value.replace(/\D/g, "");
+
+        // Evitamos valores absurdamente largos
+        if (clean.length > 7) return clean.slice(0, 8);
+
+        // Convertimos a número y aplicamos separadores de miles
+        return clean === "" ? "" : Number(clean).toLocaleString("en-US");
+    }
+
+
     // ------------------------------------------
     // HANDLE FORM SUBMIT
     // ------------------------------------------
@@ -324,24 +365,19 @@ export default function IngresarDatosVehiculos() {
         }
     }
 
+    //Para realizar filtrado en el buscador de marcas
+    const filteredBrands = brands.filter((b) =>
+        b.name.toLowerCase().includes(brandQuery.toLowerCase())
+    );
+
+
     // ------------------------------------------
     // RENDER
     // ------------------------------------------
 
     return (
         <div className={styles.container}>
-            {/*
-              LEFT SIDE: Illustration Section
-
-              UX Decision: Including an illustration here serves multiple purposes:
-              1. Creates visual balance and breaks up the "wall of form fields" feeling
-              2. Reinforces the brand identity (car inspection theme)
-              3. Makes the form feel less transactional and more welcoming
-              4. Provides a natural visual hierarchy guiding users to the form
-
-              The illustration is hidden on very small screens (< 480px) where
-              vertical space is precious and users expect a form-first experience.
-            */}
+            {/* LEFT SIDE: Illustration Section */}
             <aside className={styles.illustrationSection}>
                 <div className={styles.illustrationContent}>
                     <CarInspectionIllustration className={styles.illustrationIcon} />
@@ -388,27 +424,48 @@ export default function IngresarDatosVehiculos() {
                                 <div className={styles.formRow}>
 
                                     {/* Brand Select */}
-                                    <div className={styles.formGroup}>
+                                    <div className={styles.formGroup}  style={{ zIndex: '99' }}>
                                         <label htmlFor="brandId" className={styles.label}>
                                             Marca
                                             <span className={styles.required}>*</span>
                                         </label>
-                                        <select
-                                            id="brandId"
-                                            name="brandId"
-                                            value={formData.brandId}
-                                            onChange={handleChange}
-                                            required
-                                            className={styles.select}
-                                            aria-describedby="brand-helper"
-                                        >
-                                            <option value="">Selecciona una marca</option>
-                                            {brands.map((brand) => (
-                                                <option key={brand.id} value={brand.id}>
-                                                    {brand.name}
-                                                </option>
-                                            ))}
-                                        </select>
+
+                                        <input
+                                            type="text"
+                                            value={brandQuery}
+                                            placeholder="Busca la marca"
+                                            onChange={(e) => {
+                                                setBrandQuery(e.target.value);
+                                                setShowBrands(true);
+                                            }}
+                                            onFocus={() => setShowBrands(true)}
+                                            className={styles.input}
+                                        />
+
+                                        {showBrands && (
+                                            <ul className={styles.dropdown}>
+                                                {filteredBrands.length > 0 ? (
+                                                    filteredBrands.map((brand) => (
+                                                        <li
+                                                            key={brand.id}
+                                                            className={styles.option}
+                                                            onClick={() => {
+                                                                setBrandQuery(brand.name);
+                                                                setShowBrands(false);
+                                                            }}
+                                                        >
+                                                            <img src={brand.logo} alt={brand.name} className={styles.logo} />
+                                                            <span>{brand.name}</span>
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className={styles.noOption}>
+                                                        No se encontraron marcas
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        )}
+
                                         <span id="brand-helper" className={styles.helperText}>
                                             Elige la marca de tu vehículo
                                         </span>
@@ -482,16 +539,12 @@ export default function IngresarDatosVehiculos() {
                                             name="mileage"
                                             value={formData.mileage}
                                             onChange={(e) => {
-                                                const value = e.target.value
-                                                // Solo números y máximo 4 dígitos
-                                                if (/^\d{0,7}$/.test(value)) {
-                                                    setFormData({
-                                                        ...formData,
-                                                        mileage: value
-                                                    })
-                                                }
+                                                setFormData({
+                                                    ...formData,
+                                                    mileage: formatMileage(e.target.value)
+                                                })
                                             }}
-                                            placeholder="Ej: 50000"
+                                            placeholder="Ej: 2,000,000"
                                             min="0"
                                             max="2000000"
                                             className={styles.input}
@@ -508,41 +561,24 @@ export default function IngresarDatosVehiculos() {
                         {/*Sección de identificación*/}
                         <div className={styles.formGroup}>
 
-                            <h2 className={styles.sectionTitle}>
-                                Identificación
-                            </h2>
 
-                            <div className={styles.formSectionDivider}>
-
-                                <div className={styles.formRow}>
-                                    <div>
-                                        <label htmlFor="year" className={styles.label}>
-                                            Nro. Placa <span className={styles.optional}>(opcional)</span>
-                                        </label>
-                                        <input type="text"
-                                            id="placa"
-                                            name="placa"
-                                            placeholder="Ej: A1B-234"
-                                            className={styles.input}
-                                            aria-describedby="placa-helper"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="year" className={styles.label}>
-                                            Nro. VIN <span className={styles.optional}>(opcional)</span>
-                                        </label>
-                                        {/*VIN*/}
-                                        <input type="text"
-                                            id="vin"
-                                            name="vin"
-                                            placeholder="Ej: 1HGCM82633A123456"
-                                            className={styles.input}
-                                            aria-describedby="vin-helper"
-                                        />
-                                    </div>
-                                </div>
-
+                            <div>
+                                <label htmlFor="year" className={styles.label}>
+                                    Nro. Placa <span className={styles.optional}>(opcional)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="placa"
+                                    name="placa"
+                                    placeholder="Ej: A1B-234"
+                                    className={styles.input}
+                                    aria-describedby="placa-helper"
+                                    value={plate}
+                                    onChange={(e) => setPlate(formatPlate(e.target.value))}
+                                    maxLength={7}
+                                />
                             </div>
+
                             <p className={styles.helperText}>
                                 Ayúdanos a identificar mejor tu vehículo
                             </p>
@@ -552,10 +588,10 @@ export default function IngresarDatosVehiculos() {
                         <div className={styles.formGroup}>
                             {/*Sección de preferencia de revisión*/}
                             <h2 className={styles.sectionTitle}>
-                                Preferencia de revisión
+                                Seleccione su fecha y hora
                             </h2>
                             <div className={styles.formSectionDivider}>
-                                <label htmlFor="date">Fecha estimada                                         <span className={styles.optional}>(opcional)</span>
+                                <label htmlFor="date">Fecha estimada <span className={styles.required}>*</span>
                                 </label>
                                 <div className={styles.formRow}>
                                     {/*Fecha*/}
@@ -567,6 +603,32 @@ export default function IngresarDatosVehiculos() {
                                     <p className="text-xs text-gray-400 ">
                                         Esta fecha es referencial. Te confirmaremos según disponibilidad.
                                     </p>
+                                </div>
+
+                                <label htmlFor="radio" className="mt-4">Hora estimada
+                                    <span className={styles.required}>*</span>
+                                </label>
+                                <div className="grid grid-cols-3 gap-3 ">
+                                    {timeSlots.map((time) => (
+                                        <label key={time}>
+                                            <input
+                                                id="radio"
+                                                type="radio"
+                                                name="hour"
+                                                value={time}
+                                                className="sr-only peer"
+                                            />
+
+                                            <div className="
+        text-center p-3 rounded-lg border cursor-pointer
+        border-gray-200
+        peer-checked:border-yellow-400
+        peer-checked:bg-yellow-50
+      ">
+                                                {time}
+                                            </div>
+                                        </label>
+                                    ))}
                                 </div>
 
                             </div>
@@ -581,11 +643,12 @@ export default function IngresarDatosVehiculos() {
                             className={`${styles.submitButton} ${isSubmitting ? styles.loading : ''}`}
                             aria-busy={isSubmitting}
                         >
-                            {isSubmitting ? "Guardando..." : "Guardar Vehículo"}
+                            {isSubmitting ? "Guardando..." : "Agendar Vehículo"}
                         </button>
                     </form>
                 </div>
-            </main >
-        </div >
+            </main>
+
+        </div>
     );
 }

@@ -470,7 +470,7 @@
 .formSectionDivider {
     /* margin-top: 2.5rem;  */
     /* margin-bottom: 1.5rem; */
-    padding-top: 1.5rem; 
+    padding-top: 1.5rem;
     border-top: 1px solid #e5e7eb;
     /* línea sutil */
 }
@@ -493,6 +493,52 @@
     color: #6b7280;
 }
 
+.dropdown {
+    position: absolute;
+    width: 100%;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    margin-top: 6px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    z-index: 50;
+    padding-left: 0px;
+}
+
+.option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #111827;
+    transition: background 0.15s ease;
+}
+
+.option:hover {
+    background: #fef3c7;
+    /* amarillo suave */
+}
+
+.logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    background: #f3f4f6;
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.noOption {
+  padding: 14px;
+  font-size: 13px;
+  color: #6b7280;
+  text-align: center;
+  cursor: default;
+}
 
 /* ============================================
    RESPONSIVE DESIGN
@@ -517,6 +563,21 @@
     .formTitle {
         font-size: 28px;
     }
+}
+
+.slotCard {
+    padding: 2rem;
+    display: flex;
+    border: lightgray 1px solid;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.slotInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 /* Tablet / Small - Stack layout */

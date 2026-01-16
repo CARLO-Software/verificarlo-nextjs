@@ -288,237 +288,252 @@ export default function Login() {
         }));
     }
 
-    /**
-     * Handle Form Submission
-     *
-     * async/await explanation:
-     * - async: Marks the function as asynchronous (can wait for operations)
-     * - await: Pauses execution until the Promise resolves
-     *
-     * event.preventDefault() stops the browser from doing its default
-     * form submission (which would reload the page).
-     */
-    async function handleSubmit(event: React.FormEvent) {
-        event.preventDefault();
-
-        // Don't submit if already submitting
-        if (isSubmitting) return;
-
-        // Validate all fields first
-        if (!validateForm()) return;
-
-        try {
-            setIsSubmitting(true);
-            setGeneralError(null);
-
-            // Prepare data for API
-            const dataToSend = {
-                email: formData.email.trim().toLowerCase(),
-                password: formData.password,
-            };
-
-            // TODO: Replace with actual API call when backend is ready
-            // Example API call:
-            // const response = await fetch("/api/auth/login", {
-            //     method: "POST",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify(dataToSend),
-            // });
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw new Error(errorData.message || "Error al iniciar sesión");
-            // }
-            // const userData = await response.json();
-            // Handle successful login (redirect, store token, etc.)
-
-            // Simulate API call for demo (remove in production)
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            console.log("Login data:", dataToSend);
-
-            // Success - redirect or show success message
-            alert("¡Inicio de sesión exitoso!");
-
-        } catch (err) {
-            // Handle errors
-            setGeneralError(
-                err instanceof Error
-                    ? err.message
-                    : "Error al iniciar sesión. Por favor, intenta nuevamente."
-            );
-        } finally {
-            // This runs whether the try block succeeded or failed
-            setIsSubmitting(false);
+    function setShowRegisterModal(show: boolean) {
+        if (show) {
+            alert("Usuario no registrado. Mostrar modal de registro.");
         }
-    }
 
-    // ------------------------------------------
-    // RENDER (JSX)
-    // ------------------------------------------
+        /**
+         * Handle Form Submission
+         *
+         * async/await explanation:
+         * - async: Marks the function as asynchronous (can wait for operations)
+         * - await: Pauses execution until the Promise resolves
+         *
+         * event.preventDefault() stops the browser from doing its default
+         * form submission (which would reload the page).
+         */
+        async function handleSubmit(event: React.FormEvent) {
+            event.preventDefault();
 
-    /**
-     * JSX Explanation
-     *
-     * JSX is a syntax extension that lets us write HTML-like code in JavaScript.
-     * It gets compiled to React.createElement() calls.
-     *
-     * Key differences from HTML:
-     * - className instead of class (class is reserved in JS)
-     * - htmlFor instead of for (for is reserved in JS)
-     * - camelCase for attributes (onClick, onChange, etc.)
-     * - {} to embed JavaScript expressions
-     */
+            // Don't submit if already submitting
+            if (isSubmitting) return;
 
-    return (
-        <div className={styles.container}>
-            {/*
+            // Validate all fields first
+            if (!validateForm()) return;
+
+            try {
+                setIsSubmitting(true);
+                setGeneralError(null);
+
+                // Prepare data for API
+                const dataToSend = {
+                    email: formData.email.trim().toLowerCase(),
+                    password: formData.password,
+                };
+
+                // TODO: Replace with actual API call when backend is ready
+                // Example API call:
+                const res = await fetch("http://localhost:8000/agendar-vehiculo", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include", // Include cookies for session
+                    body: JSON.stringify(dataToSend),
+                });
+
+                if (res.status === 401) {
+                    // 👇 UX correcta
+                    setShowRegisterModal(true);
+                    return;
+                }
+
+                
+
+                // if (!res.ok) {
+                //     const errorData = await res.json();
+                //     throw new Error(errorData.message || "Error al iniciar sesión");
+                // }
+                const userData = await res.json();
+                // Handle successful login (redirect, store token, etc.)
+
+                // Simulate API call for demo (remove in production)
+                await new Promise((resolve) => setTimeout(resolve, 1500));
+                console.log("Login data:", dataToSend);
+
+                // Success - redirect or show success message
+                alert("¡Inicio de sesión exitoso!");
+
+            } catch (err) {
+                // Handle errors
+                setGeneralError(
+                    err instanceof Error
+                        ? err.message
+                        : "Error al iniciar sesión. Por favor, intenta nuevamente."
+                );
+            } finally {
+                // This runs whether the try block succeeded or failed
+                setIsSubmitting(false);
+            }
+        }
+
+        // ------------------------------------------
+        // RENDER (JSX)
+        // ------------------------------------------
+
+        /**
+         * JSX Explanation
+         *
+         * JSX is a syntax extension that lets us write HTML-like code in JavaScript.
+         * It gets compiled to React.createElement() calls.
+         *
+         * Key differences from HTML:
+         * - className instead of class (class is reserved in JS)
+         * - htmlFor instead of for (for is reserved in JS)
+         * - camelCase for attributes (onClick, onChange, etc.)
+         * - {} to embed JavaScript expressions
+         */
+
+        return (
+            <div className={styles.container}>
+                {/*
               LEFT SIDE: Illustration Section
 
               This creates visual balance and makes the form feel more welcoming.
               Hidden on small screens where space is limited.
             */}
-            <aside className={styles.illustrationSection}>
-                <div className={styles.illustrationContent}>
-                    <LoginIllustration className={styles.illustrationIcon} />
-                    <h2 className={styles.illustrationTitle}>
-                        Accede a tu cuenta
-                    </h2>
-                    <p className={styles.illustrationDescription}>
-                        Inicia sesión para gestionar tus inspecciones y acceder a tu historial.
-                    </p>
-                </div>
-            </aside>
-
-            {/* RIGHT SIDE: Form Section */}
-            <main className={styles.formSection}>
-                <div className={styles.formCard}>
-                    {/* Form Header */}
-                    <header className={styles.formHeader}>
-                        <h1 className={styles.formTitle}>Iniciar Sesión</h1>
-                        <p className={styles.formSubtitle}>
-                            Ingresa tus credenciales para continuar
+                <aside className={styles.illustrationSection}>
+                    <div className={styles.illustrationContent}>
+                        <LoginIllustration className={styles.illustrationIcon} />
+                        <h2 className={styles.illustrationTitle}>
+                            Accede a tu cuenta
+                        </h2>
+                        <p className={styles.illustrationDescription}>
+                            Inicia sesión para gestionar tus inspecciones y acceder a tu historial.
                         </p>
-                    </header>
+                    </div>
+                </aside>
 
-                    {/* General Error Alert */}
-                    {generalError && (
-                        <div className={styles.errorContainer} role="alert">
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                aria-hidden="true"
-                            >
-                                <circle cx="10" cy="10" r="9" stroke="#FF1E39" strokeWidth="2" />
-                                <path
-                                    d="M10 6v5M10 13.5v.5"
-                                    stroke="#FF1E39"
-                                    strokeWidth="2"
-                                    strokeLinecap="round"
-                                />
-                            </svg>
-                            <p>{generalError}</p>
-                        </div>
-                    )}
+                {/* RIGHT SIDE: Form Section */}
+                <main className={styles.formSection}>
+                    <div className={styles.formCard}>
+                        {/* Form Header */}
+                        <header className={styles.formHeader}>
+                            <h1 className={styles.formTitle}>Iniciar Sesión</h1>
+                            <p className={styles.formSubtitle}>
+                                Ingresa tus credenciales para continuar
+                            </p>
+                        </header>
 
-                    {/* Login Form */}
-                    <form onSubmit={handleSubmit} className={styles.form} noValidate>
-                        {/*
+                        {/* General Error Alert */}
+                        {generalError && (
+                            <div className={styles.errorContainer} role="alert">
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 20 20"
+                                    fill="none"
+                                    aria-hidden="true"
+                                >
+                                    <circle cx="10" cy="10" r="9" stroke="#FF1E39" strokeWidth="2" />
+                                    <path
+                                        d="M10 6v5M10 13.5v.5"
+                                        stroke="#FF1E39"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                <p>{generalError}</p>
+                            </div>
+                        )}
+
+                        {/* Login Form */}
+                        <form onSubmit={handleSubmit} className={styles.form} noValidate>
+                            {/*
                           noValidate disables browser's default validation UI
                           We use our own validation logic for better UX
                         */}
 
-                        {/* Email Field */}
-                        <div className={styles.formGroup}>
-                            <label htmlFor="email" className={styles.label}>
-                                Correo electrónico
-                                <span className={styles.required}>*</span>
-                            </label>
-                            <input
-                                type="email"
-                                id="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                placeholder="tucorreo@ejemplo.com"
-                                required
-                                autoComplete="email"
-                                className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
-                                aria-describedby="email-error"
-                                aria-invalid={errors.email ? "true" : "false"}
-                            />
-                            {/* Error message for email */}
-                            {errors.email && (
-                                <span
-                                    id="email-error"
-                                    className={styles.errorText}
-                                    role="alert"
-                                >
-                                    {errors.email}
-                                </span>
-                            )}
-                        </div>
+                            {/* Email Field */}
+                            <div className={styles.formGroup}>
+                                <label htmlFor="email" className={styles.label}>
+                                    Correo electrónico
+                                    <span className={styles.required}>*</span>
+                                </label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    placeholder="tucorreo@ejemplo.com"
+                                    required
+                                    autoComplete="email"
+                                    className={`${styles.input} ${errors.email ? styles.inputError : ""}`}
+                                    aria-describedby="email-error"
+                                    aria-invalid={errors.email ? "true" : "false"}
+                                />
+                                {/* Error message for email */}
+                                {errors.email && (
+                                    <span
+                                        id="email-error"
+                                        className={styles.errorText}
+                                        role="alert"
+                                    >
+                                        {errors.email}
+                                    </span>
+                                )}
+                            </div>
 
-                        {/* Password Field */}
-                        <div className={styles.formGroup}>
-                            <label htmlFor="password" className={styles.label}>
-                                Contraseña
-                                <span className={styles.required}>*</span>
-                            </label>
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                onBlur={handleBlur}
-                                placeholder="••••••••"
-                                required
-                                autoComplete="current-password"
-                                className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
-                                aria-describedby="password-error"
-                                aria-invalid={errors.password ? "true" : "false"}
-                            />
-                            {/* Error message for password */}
-                            {errors.password && (
-                                <span
-                                    id="password-error"
-                                    className={styles.errorText}
-                                    role="alert"
-                                >
-                                    {errors.password}
-                                </span>
-                            )}
-                        </div>
+                            {/* Password Field */}
+                            <div className={styles.formGroup}>
+                                <label htmlFor="password" className={styles.label}>
+                                    Contraseña
+                                    <span className={styles.required}>*</span>
+                                </label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    placeholder="••••••••"
+                                    required
+                                    autoComplete="current-password"
+                                    className={`${styles.input} ${errors.password ? styles.inputError : ""}`}
+                                    aria-describedby="password-error"
+                                    aria-invalid={errors.password ? "true" : "false"}
+                                />
+                                {/* Error message for password */}
+                                {errors.password && (
+                                    <span
+                                        id="password-error"
+                                        className={styles.errorText}
+                                        role="alert"
+                                    >
+                                        {errors.password}
+                                    </span>
+                                )}
+                            </div>
 
-                        {/* Forgot Password Link */}
-                        <div className={styles.forgotPassword}>
-                            <a href="#" className={styles.forgotPasswordLink}>
-                                ¿Olvidaste tu contraseña?
-                            </a>
-                        </div>
+                            {/* Forgot Password Link */}
+                            <div className={styles.forgotPassword}>
+                                <a href="#" className={styles.forgotPasswordLink}>
+                                    ¿Olvidaste tu contraseña?
+                                </a>
+                            </div>
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className={`${styles.submitButton} ${isSubmitting ? styles.loading : ""}`}
-                            aria-busy={isSubmitting}
-                        >
-                            {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
-                        </button>
+                            {/* Submit Button */}
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className={`${styles.submitButton} ${isSubmitting ? styles.loading : ""}`}
+                                aria-busy={isSubmitting}
+                            >
+                                {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
+                            </button>
 
-                        {/* Register Link */}
-                        <p className={styles.registerPrompt}>
-                            ¿No tienes una cuenta?{" "}
-                            <a href="#" className={styles.registerLink}>
-                                Regístrate aquí
-                            </a>
-                        </p>
-                    </form>
-                </div>
-            </main>
-        </div>
-    );
-}
+                            {/* Register Link */}
+                            <p className={styles.registerPrompt}>
+                                ¿No tienes una cuenta?{" "}
+                                <a href="#" className={styles.registerLink}>
+                                    Regístrate aquí
+                                </a>
+                            </p>
+                        </form>
+                    </div>
+                </main>
+            </div>
+        );
+    }
