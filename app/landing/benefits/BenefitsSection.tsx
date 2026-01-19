@@ -1,4 +1,4 @@
-import styles from './Benefits.module.css';
+import styles from './benefits.module.css';
 
 export default function BenefitsSection() {
     return (

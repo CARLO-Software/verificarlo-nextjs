@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals-CLEAN.css";
 import Script from "next/script";
-import NavBar from "./components/NavBar/NavBar";
-import PromotionalBanner from "./components/PromotionalBanner/PromotionalBanner";
-import Footer from "./components/Footer/Footer";
-import WhatsappFlotante from "./components/WhatsappFlotante/WhatsappFlotante";
+import NavBar from "./layout/navBar/NavBar";
+import Footer from "./layout/footer/Footer";
+import WhatsappFlotante from "./layout/whatsappFlotante/WhatsappFlotante";
+import PromotionalBanner from "./layout/promotionalBanner/PromotionalBanner";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({

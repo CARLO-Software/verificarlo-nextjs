@@ -675,9 +675,7 @@
     }
 
     /* Consider hiding illustration on very small screens */
-    .illustrationSection {
-        display: none;
-    }
+
 
     .formCard {
         padding: 20px;

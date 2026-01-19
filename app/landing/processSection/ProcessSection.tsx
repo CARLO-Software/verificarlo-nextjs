@@ -1,4 +1,4 @@
-import { Slider } from "../../services/Slider"
+import { Slider } from "@/utils/Slider"
 import styles from './ProcessSection.module.css'
 
 export default function ProcessSection() {

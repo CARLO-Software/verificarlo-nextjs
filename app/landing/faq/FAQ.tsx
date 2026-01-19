@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react";
 import FAQShowMore from "./FAQShowMore";
-import { useEscape } from "../../hooks/useEscape";
+import { useEscape } from "@/hooks/useEscape";
 import styles from './FAQ.module.css';
 
 // Componente FAQ
