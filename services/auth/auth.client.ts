@@ -1,0 +1,17 @@
+// services/auth.client.ts
+import { LoginFormData } from "@/app/(auth)/login/types";
+
+export async function login(payload: LoginFormData) {
+    //Llamar a la API de autenticación, siendo Next.js el backend
+    const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        throw new Error("Login failed");
+    }
+
+    return res.json();
+}
