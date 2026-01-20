@@ -1,9 +1,9 @@
 "use client";
 
-
 import styles from "./Login.module.css";
 import { useLogin } from "./useLogin";
-
+import Link from 'next/link';
+import { GoogleButton } from "@/app/components/GoogleButton";
 
 // ============================================
 // SVG ILLUSTRATION COMPONENT
@@ -227,12 +227,25 @@ export default function Login() {
                             {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
                         </button>
 
+                        {/* Divider */}
+                        <div className={styles.divider}>
+                            <span className={styles.dividerLine}></span>
+                            <span className={styles.dividerText}>o</span>
+                            <span className={styles.dividerLine}></span>
+                        </div>
+
+                        {/* Google Button */}
+                        <GoogleButton
+                            text="Continuar con Google"
+                            callbackUrl="/"
+                        />
+
                         {/* Register Link */}
                         <p className={styles.registerPrompt}>
                             ¿No tienes una cuenta?{" "}
-                            <a href="#" className={styles.registerLink}>
+                            <Link href="/register" className={styles.registerLink}>
                                 Regístrate aquí
-                            </a>
+                            </Link>
                         </p>
                     </form>
                 </div>

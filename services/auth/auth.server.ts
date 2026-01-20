@@ -1,27 +1,35 @@
 // services/auth.service.ts
-import { LoginFormData } from "@/app/(auth)/login/types";
+import { LoginFormData, RegisterFormData } from "@/app/(auth)/login/types";
 import { db } from "@/lib/db";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 export async function loginUser(payload: LoginFormData) {
     const user = await db.user.findUnique({
         where: { email: payload.email }
     });
 
-    if (!user) {
+    if (!user || !user.password) {
         return null;
     }
 
-    //Validar password
+    // Comparar password
+    const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 
-    return user;
+    if(!isPasswordValid) {
+        return null; //credenciales inválidas
+    }
+
+    //No devolver password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
 }
 
-export async function register(email: string, password: string) {
-  const hashedPassword = await bcrypt.hash(password, 10);
+export async function registerUser(payload: RegisterFormData) {
+  const hashedPassword = await bcrypt.hash(payload.password, 10);
 
   return db.user.create({
     data: {
-      email,
+      fullName: payload.fullName,
+      email: payload.email,
       password: hashedPassword,
     },
   });

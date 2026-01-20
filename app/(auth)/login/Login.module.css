@@ -641,3 +641,27 @@
         box-shadow: 0 0 0 3px var(--bright-sun--500);
     }
 }
+
+/* ============================================
+   DIVIDER / SEPARADOR
+   ============================================ */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+}
+
+.dividerLine {
+    flex: 1;
+    height: 1px;
+    background: var(--shark--200);
+}
+
+.dividerText {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--shark--500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}

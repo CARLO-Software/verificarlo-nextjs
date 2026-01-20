@@ -6,6 +6,7 @@ import NavBar from "./layout/navBar/NavBar";
 import Footer from "./layout/footer/Footer";
 import WhatsappFlotante from "./layout/whatsappFlotante/WhatsappFlotante";
 import PromotionalBanner from "./layout/promotionalBanner/PromotionalBanner";
+import { Providers } from "./providers";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -131,20 +132,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <link rel="apple-touch-icon" href="/assets/images/image0.png" />
 
           {/* ================= APP CONTENT ================= */}
+          <Providers>
+            {/* Promotional banner */}
+            <PromotionalBanner />
 
-          {/* Promotional banner */}
-          <PromotionalBanner />
+            {/* Main navigation */}
+            <NavBar />
 
-          {/* Main navigation */}
-          <NavBar />
+            {children}
 
-          {children}
+            {/*FOOTER */}
+            <Footer />
 
-          {/*FOOTER */}
-          <Footer />
-
-          {/* Botón flotante de WhatsApp */}
-          <WhatsappFlotante />
+            {/* Botón flotante de WhatsApp */}
+            <WhatsappFlotante />
+          </Providers>
           {/* ================= SCRIPTS LOCALES ================= */}
           {/* <Script src="/script1.js" strategy="afterInteractive" /> */}
 

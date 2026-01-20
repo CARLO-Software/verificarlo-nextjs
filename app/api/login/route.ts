@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     // Call the login service
     const result = await loginUser(body);
-
+    
     if (!result) {
         return NextResponse.json({ message: "User not found" }, { status: 401 });
     }

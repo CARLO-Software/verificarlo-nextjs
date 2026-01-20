@@ -16,6 +16,12 @@ export type LoginFormData = {
     password: string;
 };
 
+export type RegisterFormData = {
+    fullName: string;
+    email: string;
+    password: string;
+};
+
 /**
  * Type for tracking which fields have errors
  * Each field can have an error message (string) or no error (empty string)

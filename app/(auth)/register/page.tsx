@@ -1,35 +1,12 @@
 "use client";
-/**
- * Register.tsx
- *
- * User Registration Form Component
- *
- * =====================================================
- * LEARNING NOTES FOR REACT/NEXT.JS BEGINNERS
- * =====================================================
- *
- * This component builds on concepts from Login.tsx. New concepts here:
- *
- * 1. PASSWORD CONFIRMATION:
- *    - Common pattern to prevent typos in passwords
- *    - We compare password and confirmPassword fields
- *
- * 2. MORE COMPLEX VALIDATION:
- *    - Multiple rules per field (length, format, matching)
- *    - Real-time validation feedback
- *
- * 3. FORM FIELD DEPENDENCIES:
- *    - confirmPassword validation depends on password value
- *    - We handle this in our validation logic
- *
- * DESIGN DECISIONS:
- * - Split layout matches other forms for consistency
- * - Uses VerifiCARLO design system colors and typography
- * - Field-level validation provides immediate feedback
- */
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./Register.module.css";
+import { register } from "@/services/auth/auth.client";
+import Link from 'next/link';
+import { GoogleButton } from "@/app/components/GoogleButton";
+import { useToast } from "@/app/components/Toast";
 
 // ============================================
 // TYPES - Define the shape of our form data
@@ -118,6 +95,9 @@ function RegisterIllustration({ className }: { className?: string }) {
 // ============================================
 
 export default function Register() {
+    const router = useRouter();
+    const { showToast } = useToast();
+
     // ------------------------------------------
     // STATE VARIABLES
     // ------------------------------------------
@@ -321,24 +301,12 @@ export default function Register() {
 
             // TODO: Replace with actual API call when backend is ready
             // Example API call:
-            // const response = await fetch("/api/auth/register", {
-            //     method: "POST",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify(dataToSend),
-            // });
-            // if (!response.ok) {
-            //     const errorData = await response.json();
-            //     throw new Error(errorData.message || "Error al crear la cuenta");
-            // }
-            // const userData = await response.json();
-            // Handle successful registration (redirect, show success, etc.)
 
-            // Simulate API call for demo
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            console.log("Register data:", dataToSend);
 
-            // Success
-            alert("¡Cuenta creada exitosamente! Ya puedes iniciar sesión.");
+            await register(dataToSend);
+
+            // Success - mostrar toast y redirigir al login
+            showToast("¡Cuenta creada exitosamente! Ya puedes iniciar sesión.", "success");
 
             // Reset form
             setFormData({
@@ -347,6 +315,11 @@ export default function Register() {
                 password: "",
                 confirmPassword: "",
             });
+
+            // Redirigir al login después de un momento
+            setTimeout(() => {
+                router.push("/login");
+            }, 1500);
 
         } catch (err) {
             setGeneralError(
@@ -553,12 +526,25 @@ export default function Register() {
                             {isSubmitting ? "Creando cuenta..." : "Crear Cuenta"}
                         </button>
 
+                        {/* Divider */}
+                        <div className={styles.divider}>
+                            <span className={styles.dividerLine}></span>
+                            <span className={styles.dividerText}>o</span>
+                            <span className={styles.dividerLine}></span>
+                        </div>
+
+                        {/* Google Button */}
+                        <GoogleButton
+                            text="Registrarse con Google"
+                            callbackUrl="/"
+                        />
+
                         {/* Login Link */}
                         <p className={styles.loginPrompt}>
                             ¿Ya tienes una cuenta?{" "}
-                            <a href="#" className={styles.loginLink}>
+                            <Link href="/login" className={styles.loginLink}>
                                 Inicia sesión aquí
-                            </a>
+                            </Link>
                         </p>
                     </form>
                 </div>
