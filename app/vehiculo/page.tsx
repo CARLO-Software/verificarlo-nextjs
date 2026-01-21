@@ -5,8 +5,10 @@
  * Vehicle Data Entry Form Component
  */
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import styles from "./IngresarDatosVehiculo.module.css";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 // ============================================
 // TYPES - Define the shape of our data
@@ -16,6 +18,15 @@ type Brand = {
     id: number;
     name: string;
     logo: string;
+};
+
+type Model = {
+    id: number;
+    brandId: number;  // Vinculación con marca
+    name: string;
+    logo: string;
+    yearFrom: number; // Año inicio de producción
+    yearTo: number;   // Año fin de producción (usar año actual si sigue en producción)
 };
 
 type VehicleFormData = {
@@ -54,6 +65,61 @@ const DEMO_BRANDS: Brand[] = [
     { id: 9, name: "Mazda", logo: "assets/logos/mazda.svg" },
     { id: 10, name: "Suzuki", logo: "assets/logos/suzuki.svg" },
 ];
+
+// Modelos con relación a marcas y rangos de años de producción
+const DEMO_MODELS: Model[] = [
+    // Toyota (brandId: 1)
+    { id: 1, brandId: 1, name: "Corolla", logo: "assets/logos/toyota.jpg", yearFrom: 2014, yearTo: 2025 },
+    { id: 2, brandId: 1, name: "Camry", logo: "assets/logos/toyota.jpg", yearFrom: 2012, yearTo: 2025 },
+    { id: 3, brandId: 1, name: "RAV4", logo: "assets/logos/toyota.jpg", yearFrom: 2013, yearTo: 2025 },
+    { id: 4, brandId: 1, name: "Hilux", logo: "assets/logos/toyota.jpg", yearFrom: 2005, yearTo: 2025 },
+    // Honda (brandId: 2)
+    { id: 5, brandId: 2, name: "Civic", logo: "assets/logos/honda.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 6, brandId: 2, name: "Accord", logo: "assets/logos/honda.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 7, brandId: 2, name: "CR-V", logo: "assets/logos/honda.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 8, brandId: 2, name: "Pilot", logo: "assets/logos/honda.svg", yearFrom: 2016, yearTo: 2025 },
+    // Nissan (brandId: 3)
+    { id: 9, brandId: 3, name: "Sentra", logo: "assets/logos/nissan.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 10, brandId: 3, name: "Altima", logo: "assets/logos/nissan.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 11, brandId: 3, name: "Versa", logo: "assets/logos/nissan.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 12, brandId: 3, name: "X-Trail", logo: "assets/logos/nissan.svg", yearFrom: 2014, yearTo: 2025 },
+    // Hyundai (brandId: 4)
+    { id: 13, brandId: 4, name: "Elantra", logo: "assets/logos/hyundai.svg", yearFrom: 2011, yearTo: 2025 },
+    { id: 14, brandId: 4, name: "Tucson", logo: "assets/logos/hyundai.svg", yearFrom: 2010, yearTo: 2025 },
+    { id: 15, brandId: 4, name: "Santa Fe", logo: "assets/logos/hyundai.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 16, brandId: 4, name: "Accent", logo: "assets/logos/hyundai.svg", yearFrom: 2012, yearTo: 2023 },
+    // Kia (brandId: 5)
+    { id: 17, brandId: 5, name: "Sportage", logo: "assets/logos/kia.svg", yearFrom: 2011, yearTo: 2025 },
+    { id: 18, brandId: 5, name: "Sorento", logo: "assets/logos/kia.svg", yearFrom: 2010, yearTo: 2025 },
+    { id: 19, brandId: 5, name: "Rio", logo: "assets/logos/kia.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 20, brandId: 5, name: "Seltos", logo: "assets/logos/kia.svg", yearFrom: 2020, yearTo: 2025 },
+    // Chevrolet (brandId: 6)
+    { id: 21, brandId: 6, name: "Silverado", logo: "assets/logos/chevrolet.svg", yearFrom: 2014, yearTo: 2025 },
+    { id: 22, brandId: 6, name: "Cruze", logo: "assets/logos/chevrolet.svg", yearFrom: 2011, yearTo: 2019 },
+    { id: 23, brandId: 6, name: "Spark", logo: "assets/logos/chevrolet.svg", yearFrom: 2013, yearTo: 2022 },
+    { id: 24, brandId: 6, name: "Tracker", logo: "assets/logos/chevrolet.svg", yearFrom: 2020, yearTo: 2025 },
+    // Ford (brandId: 7)
+    { id: 25, brandId: 7, name: "F-150", logo: "assets/logos/ford.svg", yearFrom: 2009, yearTo: 2025 },
+    { id: 26, brandId: 7, name: "Ranger", logo: "assets/logos/ford.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 27, brandId: 7, name: "Explorer", logo: "assets/logos/ford.svg", yearFrom: 2011, yearTo: 2025 },
+    { id: 28, brandId: 7, name: "Escape", logo: "assets/logos/ford.svg", yearFrom: 2013, yearTo: 2025 },
+    // Volkswagen (brandId: 8)
+    { id: 29, brandId: 8, name: "Golf", logo: "assets/logos/volkswagen.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 30, brandId: 8, name: "Jetta", logo: "assets/logos/volkswagen.svg", yearFrom: 2011, yearTo: 2025 },
+    { id: 31, brandId: 8, name: "Tiguan", logo: "assets/logos/volkswagen.svg", yearFrom: 2012, yearTo: 2025 },
+    { id: 32, brandId: 8, name: "Passat", logo: "assets/logos/volkswagen.svg", yearFrom: 2012, yearTo: 2022 },
+    // Mazda (brandId: 9)
+    { id: 33, brandId: 9, name: "Mazda3", logo: "assets/logos/mazda.svg", yearFrom: 2014, yearTo: 2025 },
+    { id: 34, brandId: 9, name: "Mazda6", logo: "assets/logos/mazda.svg", yearFrom: 2014, yearTo: 2021 },
+    { id: 35, brandId: 9, name: "CX-5", logo: "assets/logos/mazda.svg", yearFrom: 2013, yearTo: 2025 },
+    { id: 36, brandId: 9, name: "CX-30", logo: "assets/logos/mazda.svg", yearFrom: 2020, yearTo: 2025 },
+    // Suzuki (brandId: 10)
+    { id: 37, brandId: 10, name: "Swift", logo: "assets/logos/suzuki.svg", yearFrom: 2011, yearTo: 2025 },
+    { id: 38, brandId: 10, name: "Vitara", logo: "assets/logos/suzuki.svg", yearFrom: 2015, yearTo: 2025 },
+    { id: 39, brandId: 10, name: "Jimny", logo: "assets/logos/suzuki.svg", yearFrom: 2019, yearTo: 2025 },
+    { id: 40, brandId: 10, name: "Baleno", logo: "assets/logos/suzuki.svg", yearFrom: 2016, yearTo: 2022 },
+];
+
 const timeSlots = [
     "09:00",
     "10:00",
@@ -205,13 +271,140 @@ function CarInspectionIllustration({ className }: { className?: string }) {
 }
 
 // ============================================
+// LOGIN REQUIRED MODAL COMPONENT
+// Beautiful modal to prompt users to log in
+// ============================================
+
+type LoginRequiredModalProps = {
+    isOpen: boolean;
+    onClose: () => void;
+    onLogin: () => void;
+    onRegister: () => void;
+};
+
+function LoginRequiredModal({ isOpen, onClose, onLogin, onRegister }: LoginRequiredModalProps) {
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+    }, [onClose]);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.addEventListener("keydown", handleEscape);
+            document.body.style.overflow = "hidden";
+        }
+        return () => {
+            document.removeEventListener("keydown", handleEscape);
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen, handleEscape]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div
+            className={styles.modalOverlay}
+            onClick={onClose}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+        >
+            <div
+                className={styles.modalContent}
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Close button */}
+                <button
+                    className={styles.modalCloseButton}
+                    onClick={onClose}
+                    aria-label="Cerrar modal"
+                >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                </button>
+
+                {/* Icon */}
+                <div className={styles.modalIconWrapper}>
+                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+                        <circle cx="40" cy="40" r="38" fill="var(--bright-sun--100)" />
+                        <rect x="25" y="35" width="30" height="24" rx="4" fill="var(--bright-sun--400)" />
+                        <path d="M32 35V28C32 23.5817 35.5817 20 40 20C44.4183 20 48 23.5817 48 28V35" stroke="var(--shark--950)" strokeWidth="4" strokeLinecap="round" fill="none" />
+                        <circle cx="40" cy="45" r="3" fill="var(--shark--950)" />
+                        <path d="M40 48V54" stroke="var(--shark--950)" strokeWidth="3" strokeLinecap="round" />
+                    </svg>
+                </div>
+
+                {/* Title */}
+                <h2 id="modal-title" className={styles.modalTitle}>
+                    Inicia sesion para continuar
+                </h2>
+
+                {/* Description */}
+                <p className={styles.modalDescription}>
+                    Para agendar tu inspeccion vehicular necesitas tener una cuenta.
+                    Asi podremos enviarte actualizaciones sobre tu cita y guardar tu historial.
+                </p>
+
+                {/* Benefits list */}
+                <ul className={styles.modalBenefits}>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" fill="var(--bright-sun--200)" />
+                            <path d="M6 10L9 13L14 7" stroke="var(--shark--950)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Recibe confirmacion de tu cita por email
+                    </li>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" fill="var(--bright-sun--200)" />
+                            <path d="M6 10L9 13L14 7" stroke="var(--shark--950)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Accede a tu historial de inspecciones
+                    </li>
+                    <li>
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="8" fill="var(--bright-sun--200)" />
+                            <path d="M6 10L9 13L14 7" stroke="var(--shark--950)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        Gestiona tus vehiculos registrados
+                    </li>
+                </ul>
+
+                {/* Action buttons */}
+                <div className={styles.modalActions}>
+                    <button className={styles.modalPrimaryButton} onClick={onLogin}>
+                        Iniciar Sesion
+                    </button>
+                    <button className={styles.modalSecondaryButton} onClick={onRegister}>
+                        Crear cuenta gratis
+                    </button>
+                </div>
+
+                {/* Footer text */}
+                <p className={styles.modalFooter}>
+                    Registrarte solo toma 30 segundos
+                </p>
+            </div>
+        </div>
+    );
+}
+
+// ============================================
 // MAIN COMPONENT
 // ============================================
 
 export default function IngresarDatosVehiculos() {
     // ------------------------------------------
+    // HOOKS
+    // ------------------------------------------
+    const { data: session } = useSession();
+    const router = useRouter();
+
+    // ------------------------------------------
     // STATE VARIABLES
     // ------------------------------------------
+
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     const [formData, setFormData] = useState<VehicleFormData>({
         brandId: "",
@@ -235,29 +428,54 @@ export default function IngresarDatosVehiculos() {
     //* Para el buscador de marca
     const [brandQuery, setBrandQuery] = useState("");
     const [showBrands, setShowBrands] = useState(false);
+    const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
+
+    //* Para el buscador de modelo
+    const [modelQuery, setModelQuery] = useState("");
+    const [showModels, setShowModels] = useState(false);
+    const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+
+    //* Para carga de modelos (preparado para API)
+    const [loadingModels, setLoadingModels] = useState(false);
+    const [availableModels, setAvailableModels] = useState<Model[]>([]);
+
+    //* Para el selector de año
+    const [yearQuery, setYearQuery] = useState("");
+    const [showYears, setShowYears] = useState(false);
+    const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
     //* Para el tipo de inspección seleccionado
     const [selectedInspection, setSelectedInspection] = useState<string | null>(null);
 
     // ------------------------------------------
-    // HANDLE INPUT CHANGES
-    // Generic handler for all form inputs
+    // FUNCIÓN PARA CERRAR TODOS LOS DROPDOWNS
     // ------------------------------------------
+    const closeAllDropdowns = useCallback(() => {
+        setShowBrands(false);
+        setShowModels(false);
+        setShowYears(false);
+    }, []);
 
-    function handleChange(
-        event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-    ) {
-        //* Se llama al name y al value (importante)
-        const { name, value } = event.target;
+    // ------------------------------------------
+    // CLICK OUTSIDE PARA CERRAR DROPDOWNS
+    // ------------------------------------------
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            const target = event.target as HTMLElement;
+            // Si el clic no fue dentro de un dropdown o input, cerrar todos
+            // Verificar ambas clases: la inactiva y la activa
+            const isInsideDropdown =
+                target.closest(`.${styles.formGroupWithDropdown}`) ||
+                target.closest(`.${styles.formGroupWithDropdownActive}`);
 
-        // Clear error when user starts typing
-        if (error) setError(null);
+            if (!isInsideDropdown) {
+                closeAllDropdowns();
+            }
+        }
 
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [closeAllDropdowns]);
 
     // ------------------------------------------
     // FORM VALIDATION
@@ -328,13 +546,18 @@ export default function IngresarDatosVehiculos() {
         return clean === "" ? "" : Number(clean).toLocaleString("en-US");
     }
 
-
     // ------------------------------------------
-    // HANDLE FORM SUBMIT
+    //* HANDLE FORM SUBMIT
     // ------------------------------------------
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
+
+        // Verificar si el usuario esta autenticado
+        if (!session) {
+            setShowLoginModal(true);
+            return;
+        }
 
         if (!validateForm()) return;
 
@@ -369,6 +592,14 @@ export default function IngresarDatosVehiculos() {
             // Success - reset form
             alert("¡Vehículo guardado exitosamente!");
             setFormData({ year: "", brandId: "", model: "", mileage: "", placa: "", fechaEstimada: "", tipoInspeccion: "", horaEstimada: "" });
+            // Reset selection states
+            setSelectedBrand(null);
+            setSelectedModel(null);
+            setSelectedYear(null);
+            setBrandQuery("");
+            setModelQuery("");
+            setYearQuery("");
+            setAvailableModels([]);
 
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error al enviar los datos");
@@ -382,6 +613,94 @@ export default function IngresarDatosVehiculos() {
         b.name.toLowerCase().includes(brandQuery.toLowerCase())
     );
 
+    //Para realizar filtrado en el buscador de modelos (usa availableModels filtrados por marca)
+    const filteredModels = availableModels.filter((m) =>
+        m.name.toLowerCase().includes(modelQuery.toLowerCase())
+    );
+
+    //Para realizar filtrado en el buscador de años (basado en el modelo seleccionado)
+    const availableYears = selectedModel
+        ? Array.from(
+            { length: selectedModel.yearTo - selectedModel.yearFrom + 1 },
+            (_, i) => selectedModel.yearTo - i // Orden descendente (más reciente primero)
+        )
+        : [];
+
+    const filteredYears = availableYears.filter((year) =>
+        year.toString().includes(yearQuery)
+    );
+
+    // ------------------------------------------
+    // FETCH MODELS BY BRAND (preparado para API)
+    // ------------------------------------------
+
+    async function fetchModelsByBrand(brandId: number): Promise<Model[]> {
+        // TODO: Reemplazar con llamada real a API
+        // const response = await fetch(`/api/brands/${brandId}/models`);
+        // return response.json();
+
+        // Demo: filtrar de datos estáticos con pequeña latencia simulada
+        await new Promise(resolve => setTimeout(resolve, 300));
+        return DEMO_MODELS.filter(m => m.brandId === brandId);
+    }
+
+    // ------------------------------------------
+    // HANDLERS DE SELECCIÓN EN CASCADA
+    // ------------------------------------------
+
+    async function handleBrandSelect(brand: Brand) {
+        // Actualizar estados de marca
+        setSelectedBrand(brand);
+        setBrandQuery(brand.name);
+        setShowBrands(false);
+        setFormData(prev => ({ ...prev, brandId: String(brand.id) }));
+
+        // Resetear modelo, año y kilometraje (porque cambió la marca)
+        setSelectedModel(null);
+        setModelQuery("");
+        setSelectedYear(null);
+        setYearQuery("");
+        setFormData(prev => ({ ...prev, model: "", year: "", mileage: "" }));
+
+        // Cargar modelos de esta marca
+        setLoadingModels(true);
+        const models = await fetchModelsByBrand(brand.id);
+        setAvailableModels(models);
+        setLoadingModels(false);
+    }
+
+    function handleModelSelect(model: Model) {
+        setSelectedModel(model);
+        setModelQuery(model.name);
+        setShowModels(false);
+        setFormData(prev => ({ ...prev, model: model.name }));
+
+        // Resetear año y kilometraje (porque cambió el modelo)
+        setSelectedYear(null);
+        setYearQuery("");
+        setFormData(prev => ({ ...prev, year: "", mileage: "" }));
+    }
+
+    function handleYearSelect(year: number) {
+        setSelectedYear(year);
+        setYearQuery(year.toString());
+        setShowYears(false);
+        setFormData(prev => ({ ...prev, year: year.toString(), mileage: "" }));
+    }
+
+    // ------------------------------------------
+    // MODAL NAVIGATION HANDLERS
+    // ------------------------------------------
+
+    function handleLoginClick() {
+        setShowLoginModal(false);
+        router.push("/login");
+    }
+
+    function handleRegisterClick() {
+        setShowLoginModal(false);
+        router.push("/register");
+    }
 
     // ------------------------------------------
     // RENDER
@@ -495,7 +814,7 @@ export default function IngresarDatosVehiculos() {
                     <form onSubmit={handleSubmit} className={styles.form} noValidate>
                         {/* Row 1: Brand and Model (side by side on desktop) */}
 
-                        <div className={styles.formGroup}>
+                        <div className={(showBrands || showModels || showYears) ? styles.formGroupVehicleDataActive : styles.formGroupVehicleData}>
                             <h2 className={styles.sectionTitle}>
                                 Datos del Vehículo
                             </h2>
@@ -503,7 +822,7 @@ export default function IngresarDatosVehiculos() {
                                 <div className={styles.formRow}>
 
                                     {/* Brand Select */}
-                                    <div className={styles.formGroup} style={{ zIndex: '99' }}>
+                                    <div className={showBrands ? styles.formGroupWithDropdownActive : styles.formGroupWithDropdown}>
                                         <label htmlFor="brandId" className={styles.label}>
                                             Marca
                                             <span className={styles.required}>*</span>
@@ -518,7 +837,11 @@ export default function IngresarDatosVehiculos() {
                                                 setBrandQuery(e.target.value);
                                                 setShowBrands(true);
                                             }}
-                                            onFocus={() => setShowBrands(true)}
+                                            onFocus={() => {
+                                                setShowModels(false);
+                                                setShowYears(false);
+                                                setShowBrands(true);
+                                            }}
                                             className={styles.input}
                                         />
 
@@ -529,10 +852,7 @@ export default function IngresarDatosVehiculos() {
                                                         <li
                                                             key={brand.id}
                                                             className={styles.option}
-                                                            onClick={() => {
-                                                                setBrandQuery(brand.name);
-                                                                setShowBrands(false);
-                                                            }}
+                                                            onClick={() => handleBrandSelect(brand)}
                                                         >
                                                             <img src={brand.logo} alt={brand.name} className={styles.logo} />
                                                             <span>{brand.name}</span>
@@ -553,7 +873,7 @@ export default function IngresarDatosVehiculos() {
 
 
                                     {/* Model Input */}
-                                    <div className={styles.formGroup}>
+                                    <div className={showModels ? styles.formGroupWithDropdownActive : styles.formGroupWithDropdown}>
                                         <label htmlFor="model" className={styles.label}>
                                             Modelo
                                             <span className={styles.required}>*</span>
@@ -562,21 +882,58 @@ export default function IngresarDatosVehiculos() {
                                             type="text"
                                             id="model"
                                             name="model"
-                                            value={formData.model}
-                                            onChange={handleChange}
-                                            placeholder="Ej: Corolla, Civic, Sentra"
+                                            value={modelQuery}
+                                            onChange={(e) => {
+                                                setModelQuery(e.target.value);
+                                                setShowModels(true);
+                                            }}
+                                            onFocus={() => {
+                                                setShowBrands(false);
+                                                setShowYears(false);
+                                                setShowModels(true);
+                                            }}
+                                            placeholder={
+                                                !selectedBrand
+                                                    ? "Primero selecciona una marca"
+                                                    : loadingModels
+                                                        ? "Cargando modelos..."
+                                                        : "Busca el modelo"
+                                            }
+                                            disabled={!selectedBrand || loadingModels}
                                             required
                                             className={styles.input}
                                             aria-describedby="model-helper"
                                         />
+
+                                        {showModels && !loadingModels && selectedBrand && (
+                                            <ul className={styles.dropdown}>
+                                                {filteredModels.length > 0 ? (
+                                                    filteredModels.map((model) => (
+                                                        <li
+                                                            key={model.id}
+                                                            className={styles.option}
+                                                            onClick={() => handleModelSelect(model)}
+                                                        >
+                                                            <img src={model.logo} alt={model.name} className={styles.logo} />
+                                                            <span>{model.name}</span>
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className={styles.noOption}>
+                                                        No se encontraron modelos
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        )}
+
                                         <span id="model-helper" className={styles.helperText}>
-                                            Nombre del modelo específico
+                                            {!selectedBrand ? "Selecciona una marca primero" : "Nombre del modelo específico"}
                                         </span>
                                     </div>
 
                                     {/*Row 2: Year and Mileage*/}
-                                    {/* Year Input */}
-                                    <div className={styles.formGroup}>
+                                    {/* Year Select */}
+                                    <div className={showYears ? styles.formGroupWithDropdownActive : styles.formGroupWithDropdown}>
                                         <label htmlFor="year" className={styles.label}>
                                             Año del vehículo
                                             <span className={styles.required}>*</span>
@@ -585,26 +942,49 @@ export default function IngresarDatosVehiculos() {
                                             type="text"
                                             id="year"
                                             name="year"
-                                            value={formData.year}
-                                            inputMode="numeric"
-                                            placeholder="Ej: 2020"
-                                            maxLength={4}
+                                            value={yearQuery}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                // Solo permitir números
+                                                if (/^\d*$/.test(value)) {
+                                                    setYearQuery(value);
+                                                    setShowYears(true);
+                                                }
+                                            }}
+                                            onFocus={() => {
+                                                setShowBrands(false);
+                                                setShowModels(false);
+                                                setShowYears(true);
+                                            }}
+                                            placeholder={!selectedModel ? "Primero selecciona un modelo" : "Busca el año"}
+                                            disabled={!selectedModel}
                                             required
                                             className={styles.input}
                                             aria-describedby="year-helper"
-                                            onChange={(e) => {
-                                                const value = e.target.value
-                                                // Solo números y máximo 4 dígitos
-                                                if (/^\d{0,4}$/.test(value)) {
-                                                    setFormData({
-                                                        ...formData,
-                                                        year: value
-                                                    })
-                                                }
-                                            }}
                                         />
+
+                                        {showYears && selectedModel && (
+                                            <ul className={styles.dropdown}>
+                                                {filteredYears.length > 0 ? (
+                                                    filteredYears.slice(0, 10).map((year) => (
+                                                        <li
+                                                            key={year}
+                                                            className={styles.option}
+                                                            onClick={() => handleYearSelect(year)}
+                                                        >
+                                                            <span>{year}</span>
+                                                        </li>
+                                                    ))
+                                                ) : (
+                                                    <li className={styles.noOption}>
+                                                        No se encontraron años
+                                                    </li>
+                                                )}
+                                            </ul>
+                                        )}
+
                                         <span id="year-helper" className={styles.helperText}>
-                                            Ingresa el año de fabricación
+                                            {!selectedModel ? "Selecciona un modelo primero" : "Selecciona el año de fabricación"}
                                         </span>
                                     </div>
 
@@ -617,21 +997,20 @@ export default function IngresarDatosVehiculos() {
                                             type="text"
                                             id="mileage"
                                             name="mileage"
-                                            value={formData.mileage ? formData.mileage : ""}
+                                            value={formData.mileage || ""}
                                             onChange={(e) => {
-                                                setFormData({
-                                                    ...formData,
-                                                    mileage: formatMileage(e.target.value)
-                                                })
+                                                const value = e.target.value.replace(/\D/g, "");
+                                                const formatted = value === "" ? "" : Number(value).toLocaleString("en-US");
+                                                setFormData(prev => ({ ...prev, mileage: formatted }));
                                             }}
-                                            placeholder="Ej: 2,000,000"
-                                            min="0"
-                                            max="2000000"
+                                            placeholder={!selectedYear ? "Primero selecciona el año" : "ej. 50,000"}
+                                            title="Ingrese kilometraje ej. 0"
+                                            disabled={!selectedYear}
                                             className={styles.input}
                                             aria-describedby="mileage-helper"
                                         />
                                         <span id="mileage-helper" className={styles.helperText}>
-                                            Kilometraje actual en km
+                                            {!selectedYear ? "Selecciona el año primero" : "Kilometraje actual en km"}
                                         </span>
                                     </div>
                                 </div>
@@ -641,22 +1020,20 @@ export default function IngresarDatosVehiculos() {
                         {/*Sección de identificación*/}
                         <div className={styles.formGroup}>
 
-                            <div>
-                                <label htmlFor="year" className={styles.label}>
-                                    Nro. Placa <span className={styles.optional}>(opcional)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="placa"
-                                    name="placa"
-                                    placeholder="Ej: A1B-234"
-                                    className={styles.input}
-                                    aria-describedby="placa-helper"
-                                    value={plate}
-                                    onChange={(e) => setPlate(formatPlate(e.target.value))}
-                                    maxLength={7}
-                                />
-                            </div>
+                            <label htmlFor="year" className={styles.label}>
+                                Nro. Placa <span className={styles.optional}>(opcional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="placa"
+                                name="placa"
+                                placeholder="Ej: A1B-234"
+                                className={styles.input}
+                                aria-describedby="placa-helper"
+                                value={plate}
+                                onChange={(e) => setPlate(formatPlate(e.target.value))}
+                                maxLength={7}
+                            />
 
                             <p className={styles.helperText}>
                                 Ayúdanos a identificar mejor tu vehículo
@@ -723,7 +1100,6 @@ export default function IngresarDatosVehiculos() {
                             </p>
                         </div>
 
-                        <input type="hidden" />
 
                         {/* Submit Button */}
                         <button
@@ -738,6 +1114,13 @@ export default function IngresarDatosVehiculos() {
                 </div>
             </main>
 
+            {/* Login Required Modal */}
+            <LoginRequiredModal
+                isOpen={showLoginModal}
+                onClose={() => setShowLoginModal(false)}
+                onLogin={handleLoginClick}
+                onRegister={handleRegisterClick}
+            />
         </div>
     );
 }

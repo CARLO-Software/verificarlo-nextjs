@@ -169,7 +169,48 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    position: relative;
+    z-index: 1;
     /* Stagger animation for form fields */
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Form group with dropdown - base styling */
+.formGroupWithDropdown {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+/* When dropdown is active/open - highest z-index */
+.formGroupWithDropdownActive {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 9999;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Container for vehicle data section - elevated z-index when dropdowns are open */
+.formGroupVehicleData {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.formGroupVehicleDataActive {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    z-index: 100;
     animation: fadeInUp 0.4s ease-out both;
 }
 
@@ -274,6 +315,20 @@
 
 .input[type="number"] {
     -moz-appearance: textfield;
+}
+
+/* Disabled input styling */
+.input:disabled,
+.select:disabled {
+    background-color: var(--shark--100);
+    color: var(--shark--400);
+    cursor: not-allowed;
+    opacity: 0.7;
+    border-color: var(--shark--200);
+}
+
+.input:disabled::placeholder {
+    color: var(--shark--400);
 }
 
 /* ============================================
@@ -495,15 +550,17 @@
 
 .dropdown {
     position: absolute;
+    top: 100%;
+    left: 0;
     width: 100%;
     max-height: 260px;
     overflow-y: auto;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    margin-top: 6px;
+    margin-top: 4px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    z-index: 50;
+    z-index: 1000;
     padding-left: 0px;
 }
 
@@ -723,5 +780,277 @@
     .input:focus,
     .select:focus {
         box-shadow: 0 0 0 3px var(--bright-sun--500);
+    }
+}
+
+/* ============================================
+   LOGIN REQUIRED MODAL
+   Beautiful modal to prompt users to log in
+   ============================================ */
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modalContent {
+    background: var(--basics--white);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 420px;
+    width: 100%;
+    position: relative;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modalCloseButton {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--shark--100);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--shark--600);
+    transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+    background: var(--shark--200);
+    color: var(--shark--900);
+    transform: rotate(90deg);
+}
+
+.modalCloseButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--bright-sun--300);
+}
+
+.modalIconWrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+    animation: bounce 0.5s ease-out 0.2s both;
+}
+
+@keyframes bounce {
+    0% {
+        transform: scale(0);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.modalTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--shark--950);
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+}
+
+.modalDescription {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--shark--600);
+    margin: 0 0 24px 0;
+    line-height: 1.6;
+}
+
+.modalBenefits {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px 0;
+    text-align: left;
+    background: var(--shark--50);
+    border-radius: 16px;
+    padding: 20px;
+}
+
+.modalBenefits li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--shark--700);
+    padding: 8px 0;
+}
+
+.modalBenefits li:not(:last-child) {
+    border-bottom: 1px solid var(--shark--200);
+    padding-bottom: 12px;
+    margin-bottom: 4px;
+}
+
+.modalBenefits li svg {
+    flex-shrink: 0;
+}
+
+.modalActions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.modalPrimaryButton {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--shark--950);
+    background: var(--bright-sun--300);
+    border: none;
+    border-radius: 100px;
+    padding: 16px 32px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.modalPrimaryButton:hover {
+    background: var(--bright-sun--400);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(253, 191, 18, 0.3);
+}
+
+.modalPrimaryButton:active {
+    transform: translateY(0);
+}
+
+.modalPrimaryButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.4);
+}
+
+.modalSecondaryButton {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--shark--700);
+    background: transparent;
+    border: 2px solid var(--shark--200);
+    border-radius: 100px;
+    padding: 14px 32px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.modalSecondaryButton:hover {
+    background: var(--shark--50);
+    border-color: var(--shark--300);
+    color: var(--shark--900);
+}
+
+.modalSecondaryButton:active {
+    background: var(--shark--100);
+}
+
+.modalSecondaryButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--bright-sun--200);
+}
+
+.modalFooter {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--shark--500);
+    margin: 20px 0 0 0;
+}
+
+/* Modal responsive */
+@media (max-width: 479px) {
+    .modalContent {
+        padding: 28px 20px;
+        border-radius: 20px;
+    }
+
+    .modalTitle {
+        font-size: 20px;
+    }
+
+    .modalDescription {
+        font-size: 14px;
+    }
+
+    .modalBenefits {
+        padding: 16px;
+    }
+
+    .modalBenefits li {
+        font-size: 13px;
+    }
+
+    .modalPrimaryButton,
+    .modalSecondaryButton {
+        padding: 14px 24px;
+    }
+}
+
+/* Reduced motion for modal */
+@media (prefers-reduced-motion: reduce) {
+    .modalOverlay,
+    .modalContent,
+    .modalIconWrapper,
+    .modalCloseButton {
+        animation: none;
+    }
+
+    .modalCloseButton:hover {
+        transform: none;
+    }
+
+    .modalPrimaryButton:hover,
+    .modalSecondaryButton:hover {
+        transform: none;
     }
 }

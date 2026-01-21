@@ -5,20 +5,11 @@ import BenefitsSection from "./landing/benefits/BenefitsSection";
 import EligeTranquiloSection from "./landing/eligeTranquilo/EligeTranquiloSection";
 import CentroInspeccionSection from "./landing/centroInspeccion/CentroInspeccionSection";
 import FAQ from "./landing/faq/FAQ";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-
-
-
+// import { getServerSession } from "next-auth";
+// import { redirect } from "next/navigation";
 
 export default async function Home() {
   
-  const session = await getServerSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
   return (
     <>
 
