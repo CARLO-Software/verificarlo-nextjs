@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from "react";
 import styles from "./IngresarDatosVehiculo.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { agendarVehiculo } from "@/services/vehicle/vehicle.client";
 
 // ============================================
 // TYPES - Define the shape of our data
@@ -30,26 +31,27 @@ type Model = {
 };
 
 type VehicleFormData = {
-    brandId: string;
-    model: string;
-    year: string;
-    mileage: string | null;
-    placa: string | null;
-    fechaEstimada: string | null;
+    brandId: number | null;
+    model: number | null;
+    tipoInspeccion: number | null;
+    year: number | null;
+    mileage: number | null;
+    placa: string;
+    fechaEstimada: string;
     horaEstimada: string;
-    tipoInspeccion: string;
 };
 
 type InspectionType = {
-    id: string;
+    id: number;
+    name: string;
     title: string;
     description: string;
 };
 
 const INSPECTION_TYPES: InspectionType[] = [
-    { id: "legal", title: "Inspección Legal", description: "Cumple requisitos normativos" },
-    { id: "basica", title: "Inspección Básica", description: "Revisión general del vehículo" },
-    { id: "completa", title: "Inspección Completa", description: "Revisión técnica y legal" },
+    { id: 1, name: "legal", title: "Inspección Legal", description: "Cumple requisitos normativos" },
+    { id: 2, name: "basica", title: "Inspección Básica", description: "Revisión general del vehículo" },
+    { id: 3, name: "completa", title: "Inspección Completa", description: "Revisión técnica y legal" },
 ];
 
 // Static brand list for demo - will be replaced with API data
@@ -407,14 +409,14 @@ export default function IngresarDatosVehiculos() {
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     const [formData, setFormData] = useState<VehicleFormData>({
-        brandId: "",
-        model: "",
-        year: "",
-        mileage: "",
+        brandId: null,
+        model: null,
+        year: null,
+        mileage: null,
         placa: "",
-        fechaEstimada: null,
+        fechaEstimada: "",
         horaEstimada: "",
-        tipoInspeccion: "",
+        tipoInspeccion: null,
     });
 
     // Using demo brands - replace with API fetch when backend is ready
@@ -445,7 +447,11 @@ export default function IngresarDatosVehiculos() {
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
 
     //* Para el tipo de inspección seleccionado
-    const [selectedInspection, setSelectedInspection] = useState<string | null>(null);
+    const [selectedInspection, setSelectedInspection] = useState<number | null>(null);
+
+    //* Para el mileage (kilometraje) será solo visual, pero su resultado será otro
+    const [mileageInput, setMileageInput] = useState("");
+
 
     // ------------------------------------------
     // FUNCIÓN PARA CERRAR TODOS LOS DROPDOWNS
@@ -484,9 +490,10 @@ export default function IngresarDatosVehiculos() {
 
     function validateForm(): boolean {
         const currentYear = new Date().getFullYear();
-        const year = parseInt(formData.year);
+        const year = formData.year;
+        const model = formData.model;
 
-        if (year < 1900 || year > currentYear + 1) {
+        if (year === null || year < 1900 || year > currentYear + 1) {
             setError(`El año debe estar entre 1900 y ${currentYear + 1}`);
             return false;
         }
@@ -496,14 +503,29 @@ export default function IngresarDatosVehiculos() {
             return false;
         }
 
-        if (formData.model.trim().length < 2) {
-            setError("El modelo debe tener al menos 2 caracteres");
+        if (model === null || !Number.isInteger(model) || model <= 0) {
+            setError("Modelo inválido");
             return false;
         }
 
-        const mileage = formData.mileage ? parseInt(formData.mileage) : null;
+        const mileage = formData.mileage ? formData.mileage : null;
         if (mileage !== null && (mileage < 0 || mileage > 2000000)) {
             setError("El kilometraje debe estar entre 0 y 2,000,000 km");
+            return false;
+        }
+
+        if (!formData.tipoInspeccion) {
+            setError("Por favor selecciona un tipo de inspección");
+            return false;
+        }
+
+        if (!formData.fechaEstimada) {
+            setError("Por favor selecciona una fecha");
+            return false;
+        }
+
+        if (!formData.horaEstimada) {
+            setError("Por favor selecciona una hora");
             return false;
         }
 
@@ -567,31 +589,22 @@ export default function IngresarDatosVehiculos() {
 
             // Prepare data (convert strings to numbers for API)
             const dataToSend = {
-                brand_id: parseInt(formData.brandId),
-                model: formData.model.trim(),
-                year: parseInt(formData.year),
-                mileage: formData.mileage ? parseInt(formData.mileage) : null,
-                placa: formData.placa?.trim() || null,
+                brand_id: formData.brandId,
+                model: formData.model,
+                year: formData.year,
+                mileage: formData.mileage,
+                placa: formData.placa?.trim() || "",
                 fechaEstimada: formData.fechaEstimada,
                 horaEstimada: formData.horaEstimada,
-                tipoInspeccion: selectedInspection,
+                tipoInspeccion: formData.tipoInspeccion,
             };
 
             // TODO: Replace with actual API call when backend is ready
-            // const response = await fetch("http://localhost:8000/api/vehicles", {
-            //     method: "POST",
-            //     headers: { "Content-Type": "application/json" },
-            //     body: JSON.stringify(dataToSend),
-            // });
-            // if (!response.ok) throw new Error("Error al guardar el vehículo");
-
-            // Simulate API call for demo
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log("Vehicle data to send:", dataToSend);
+            await agendarVehiculo(dataToSend);
 
             // Success - reset form
             alert("¡Vehículo guardado exitosamente!");
-            setFormData({ year: "", brandId: "", model: "", mileage: "", placa: "", fechaEstimada: "", tipoInspeccion: "", horaEstimada: "" });
+            setFormData({ year: null, brandId: null, model: null, mileage: null, placa: "", fechaEstimada: "", tipoInspeccion: null, horaEstimada: "" });
             // Reset selection states
             setSelectedBrand(null);
             setSelectedModel(null);
@@ -653,14 +666,14 @@ export default function IngresarDatosVehiculos() {
         setSelectedBrand(brand);
         setBrandQuery(brand.name);
         setShowBrands(false);
-        setFormData(prev => ({ ...prev, brandId: String(brand.id) }));
+        setFormData(prev => ({ ...prev, brandId: brand.id }));
 
         // Resetear modelo, año y kilometraje (porque cambió la marca)
         setSelectedModel(null);
         setModelQuery("");
         setSelectedYear(null);
         setYearQuery("");
-        setFormData(prev => ({ ...prev, model: "", year: "", mileage: "" }));
+        setFormData(prev => ({ ...prev, model: null, year: null, mileage: null }));
 
         // Cargar modelos de esta marca
         setLoadingModels(true);
@@ -673,19 +686,19 @@ export default function IngresarDatosVehiculos() {
         setSelectedModel(model);
         setModelQuery(model.name);
         setShowModels(false);
-        setFormData(prev => ({ ...prev, model: model.name }));
+        setFormData(prev => ({ ...prev, model: model.id }));
 
         // Resetear año y kilometraje (porque cambió el modelo)
         setSelectedYear(null);
         setYearQuery("");
-        setFormData(prev => ({ ...prev, year: "", mileage: "" }));
+        setFormData(prev => ({ ...prev, year: null, mileage: null }));
     }
 
     function handleYearSelect(year: number) {
         setSelectedYear(year);
         setYearQuery(year.toString());
         setShowYears(false);
-        setFormData(prev => ({ ...prev, year: year.toString(), mileage: "" }));
+        setFormData(prev => ({ ...prev, year: year, mileage: null }));
     }
 
     // ------------------------------------------
@@ -726,7 +739,11 @@ export default function IngresarDatosVehiculos() {
                         return (
                             <li
                                 key={inspection.id}
-                                onClick={() => setSelectedInspection(inspection.id)}
+                                value={Number(formData.tipoInspeccion)}
+                                onClick={() => {
+                                    setSelectedInspection(inspection.id)
+                                    setFormData(prev => ({ ...prev, tipoInspeccion: inspection.id }));
+                                }}
                                 className={`
                                     p-4 mb-4 rounded-lg shadow-md cursor-pointer
                                     flex items-center justify-between gap-3
@@ -997,11 +1014,16 @@ export default function IngresarDatosVehiculos() {
                                             type="text"
                                             id="mileage"
                                             name="mileage"
-                                            value={formData.mileage || ""}
+                                            value={mileageInput}
                                             onChange={(e) => {
-                                                const value = e.target.value.replace(/\D/g, "");
-                                                const formatted = value === "" ? "" : Number(value).toLocaleString("en-US");
-                                                setFormData(prev => ({ ...prev, mileage: formatted }));
+                                                const raw = e.target.value;
+                                                const clean = raw.replace(/\D/g, "");
+
+                                                const value = clean === "" ? null : Number(clean);
+
+                                                setMileageInput(formatMileage(raw))
+
+                                                setFormData({ ...formData, mileage: value });
                                             }}
                                             placeholder={!selectedYear ? "Primero selecciona el año" : "ej. 50,000"}
                                             title="Ingrese kilometraje ej. 0"
@@ -1055,7 +1077,13 @@ export default function IngresarDatosVehiculos() {
                                         id="date"
                                         name="fechaEstimada"
                                         className="input border border-gray-300 text-center rounded-lg px-4"
-                                        min={new Date().toISOString().split('T')[0]} />
+                                        min={new Date().toISOString().split('T')[0]}
+                                        onChange={(e) => {
+                                            const valor = e.target.value;
+                                            setFormData({ ...formData, fechaEstimada: valor })
+
+                                        }}
+                                    />
                                     <p className="text-xs text-gray-400 ">
                                         Esta fecha es referencial. Te confirmaremos según disponibilidad.
                                     </p>

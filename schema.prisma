@@ -17,6 +17,7 @@ model User {
 
   accounts  Account[]
   sessions  Session[]
+  agendas Agenda[]
 }
 
 enum Role {
@@ -59,4 +60,78 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Inspeccion{
+  id Int @id @default(autoincrement())
+  name enumInspeccion
+
+  title String
+  description String
+  price Int
+
+  items InspeccionItem[]
+  agendas Agenda[]
+}
+
+model InspeccionItem {
+  id Int @id @default(autoincrement())
+  inspeccionId Int
+  label String
+
+  inspeccion Inspeccion @relation(fields: [inspeccionId], references: [id], onDelete: Cascade)
+
+  @@index([inspeccionId])
+}
+
+enum enumInspeccion{
+  LEGAL
+  BASICA
+  COMPLETA
+}
+
+model Brand{
+  id Int @id @default(autoincrement())
+  name String
+  logo String
+
+  models Model[]
+}
+
+model Model {
+  id Int @id @default(autoincrement())
+  brandId Int
+  name String
+  logo String
+  yearFrom Int
+  yearTo Int
+
+  agendas Agenda[]
+
+  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  @@index([brandId])
+}
+
+model Agenda{
+  id Int @id @default(autoincrement())
+  userId Int
+  modelId Int
+  inspeccionId Int
+
+  year Int
+  mileage Int
+  placa String
+  fechaHora DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model Model @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  inspeccion Inspeccion @relation(fields: [inspeccionId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([modelId])
+  @@index([inspeccionId])
+  @@index([fechaHora])
 }
