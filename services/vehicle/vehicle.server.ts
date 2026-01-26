@@ -19,19 +19,19 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
 
         throw new Error('Faltan campos requeridos');
     }
-    const fechaHora = new Date(`${payload.fechaEstimada}T${payload.horaEstimada}`);
+    const datetime = new Date(`${payload.fechaEstimada}T${payload.horaEstimada}`);
 
-    const agenda = await db.agenda.create({
+    const schedule = await db.schedule.create({
         data: {
-            userId: Number(session.user.id),
-            modelId: payload.model,
-            inspeccionId: payload.tipoInspeccion,
+            user_id: Number(session.user.id),
+            model_id: payload.model,
+            inspection_id: payload.tipoInspeccion,
             year: payload.year,
             mileage: payload.mileage,
-            placa: payload.placa,
-            fechaHora: fechaHora
+            plate: payload.placa,
+            date_time: datetime
         }
     });
 
-    return agenda;
+    return schedule;
 }

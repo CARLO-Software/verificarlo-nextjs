@@ -9,26 +9,12 @@ import { useState, useEffect, useCallback } from "react";
 import styles from "./IngresarDatosVehiculo.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { agendarVehiculo } from "@/services/vehicle/vehicle.client";
+import { agendarVehiculo, getBrands, getModelsByBrand, getInspections } from "@/services/vehicle/vehicle.client";
+import { Brand, Model, Inspection } from "./types";
 
 // ============================================
-// TYPES - Define the shape of our data
+// TYPES - Tipos locales del formulario
 // ============================================
-
-type Brand = {
-    id: number;
-    name: string;
-    logo: string;
-};
-
-type Model = {
-    id: number;
-    brandId: number;  // Vinculación con marca
-    name: string;
-    logo: string;
-    yearFrom: number; // Año inicio de producción
-    yearTo: number;   // Año fin de producción (usar año actual si sigue en producción)
-};
 
 type VehicleFormData = {
     brandId: number | null;
@@ -41,86 +27,15 @@ type VehicleFormData = {
     horaEstimada: string;
 };
 
-type InspectionType = {
+// Tipo interno para el modelo con campos en camelCase (mapeado desde BD)
+type ModelUI = {
     id: number;
+    brandId: number;
     name: string;
-    title: string;
-    description: string;
+    logo: string;
+    yearFrom: number;
+    yearTo: number;
 };
-
-const INSPECTION_TYPES: InspectionType[] = [
-    { id: 1, name: "legal", title: "Inspección Legal", description: "Cumple requisitos normativos" },
-    { id: 2, name: "basica", title: "Inspección Básica", description: "Revisión general del vehículo" },
-    { id: 3, name: "completa", title: "Inspección Completa", description: "Revisión técnica y legal" },
-];
-
-// Static brand list for demo - will be replaced with API data
-const DEMO_BRANDS: Brand[] = [
-    { id: 1, name: "Toyota", logo: "assets/logos/toyota.jpg" },
-    { id: 2, name: "Honda", logo: "assets/logos/honda.svg" },
-    { id: 3, name: "Nissan", logo: "assets/logos/nissan.svg" },
-    { id: 4, name: "Hyundai", logo: "assets/logos/hyundai.svg" },
-    { id: 5, name: "Kia", logo: "assets/logos/kia.svg" },
-    { id: 6, name: "Chevrolet", logo: "assets/logos/chevrolet.svg" },
-    { id: 7, name: "Ford", logo: "assets/logos/ford.svg" },
-    { id: 8, name: "Volkswagen", logo: "assets/logos/volkswagen.svg" },
-    { id: 9, name: "Mazda", logo: "assets/logos/mazda.svg" },
-    { id: 10, name: "Suzuki", logo: "assets/logos/suzuki.svg" },
-];
-
-// Modelos con relación a marcas y rangos de años de producción
-const DEMO_MODELS: Model[] = [
-    // Toyota (brandId: 1)
-    { id: 1, brandId: 1, name: "Corolla", logo: "assets/logos/toyota.jpg", yearFrom: 2014, yearTo: 2025 },
-    { id: 2, brandId: 1, name: "Camry", logo: "assets/logos/toyota.jpg", yearFrom: 2012, yearTo: 2025 },
-    { id: 3, brandId: 1, name: "RAV4", logo: "assets/logos/toyota.jpg", yearFrom: 2013, yearTo: 2025 },
-    { id: 4, brandId: 1, name: "Hilux", logo: "assets/logos/toyota.jpg", yearFrom: 2005, yearTo: 2025 },
-    // Honda (brandId: 2)
-    { id: 5, brandId: 2, name: "Civic", logo: "assets/logos/honda.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 6, brandId: 2, name: "Accord", logo: "assets/logos/honda.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 7, brandId: 2, name: "CR-V", logo: "assets/logos/honda.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 8, brandId: 2, name: "Pilot", logo: "assets/logos/honda.svg", yearFrom: 2016, yearTo: 2025 },
-    // Nissan (brandId: 3)
-    { id: 9, brandId: 3, name: "Sentra", logo: "assets/logos/nissan.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 10, brandId: 3, name: "Altima", logo: "assets/logos/nissan.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 11, brandId: 3, name: "Versa", logo: "assets/logos/nissan.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 12, brandId: 3, name: "X-Trail", logo: "assets/logos/nissan.svg", yearFrom: 2014, yearTo: 2025 },
-    // Hyundai (brandId: 4)
-    { id: 13, brandId: 4, name: "Elantra", logo: "assets/logos/hyundai.svg", yearFrom: 2011, yearTo: 2025 },
-    { id: 14, brandId: 4, name: "Tucson", logo: "assets/logos/hyundai.svg", yearFrom: 2010, yearTo: 2025 },
-    { id: 15, brandId: 4, name: "Santa Fe", logo: "assets/logos/hyundai.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 16, brandId: 4, name: "Accent", logo: "assets/logos/hyundai.svg", yearFrom: 2012, yearTo: 2023 },
-    // Kia (brandId: 5)
-    { id: 17, brandId: 5, name: "Sportage", logo: "assets/logos/kia.svg", yearFrom: 2011, yearTo: 2025 },
-    { id: 18, brandId: 5, name: "Sorento", logo: "assets/logos/kia.svg", yearFrom: 2010, yearTo: 2025 },
-    { id: 19, brandId: 5, name: "Rio", logo: "assets/logos/kia.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 20, brandId: 5, name: "Seltos", logo: "assets/logos/kia.svg", yearFrom: 2020, yearTo: 2025 },
-    // Chevrolet (brandId: 6)
-    { id: 21, brandId: 6, name: "Silverado", logo: "assets/logos/chevrolet.svg", yearFrom: 2014, yearTo: 2025 },
-    { id: 22, brandId: 6, name: "Cruze", logo: "assets/logos/chevrolet.svg", yearFrom: 2011, yearTo: 2019 },
-    { id: 23, brandId: 6, name: "Spark", logo: "assets/logos/chevrolet.svg", yearFrom: 2013, yearTo: 2022 },
-    { id: 24, brandId: 6, name: "Tracker", logo: "assets/logos/chevrolet.svg", yearFrom: 2020, yearTo: 2025 },
-    // Ford (brandId: 7)
-    { id: 25, brandId: 7, name: "F-150", logo: "assets/logos/ford.svg", yearFrom: 2009, yearTo: 2025 },
-    { id: 26, brandId: 7, name: "Ranger", logo: "assets/logos/ford.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 27, brandId: 7, name: "Explorer", logo: "assets/logos/ford.svg", yearFrom: 2011, yearTo: 2025 },
-    { id: 28, brandId: 7, name: "Escape", logo: "assets/logos/ford.svg", yearFrom: 2013, yearTo: 2025 },
-    // Volkswagen (brandId: 8)
-    { id: 29, brandId: 8, name: "Golf", logo: "assets/logos/volkswagen.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 30, brandId: 8, name: "Jetta", logo: "assets/logos/volkswagen.svg", yearFrom: 2011, yearTo: 2025 },
-    { id: 31, brandId: 8, name: "Tiguan", logo: "assets/logos/volkswagen.svg", yearFrom: 2012, yearTo: 2025 },
-    { id: 32, brandId: 8, name: "Passat", logo: "assets/logos/volkswagen.svg", yearFrom: 2012, yearTo: 2022 },
-    // Mazda (brandId: 9)
-    { id: 33, brandId: 9, name: "Mazda3", logo: "assets/logos/mazda.svg", yearFrom: 2014, yearTo: 2025 },
-    { id: 34, brandId: 9, name: "Mazda6", logo: "assets/logos/mazda.svg", yearFrom: 2014, yearTo: 2021 },
-    { id: 35, brandId: 9, name: "CX-5", logo: "assets/logos/mazda.svg", yearFrom: 2013, yearTo: 2025 },
-    { id: 36, brandId: 9, name: "CX-30", logo: "assets/logos/mazda.svg", yearFrom: 2020, yearTo: 2025 },
-    // Suzuki (brandId: 10)
-    { id: 37, brandId: 10, name: "Swift", logo: "assets/logos/suzuki.svg", yearFrom: 2011, yearTo: 2025 },
-    { id: 38, brandId: 10, name: "Vitara", logo: "assets/logos/suzuki.svg", yearFrom: 2015, yearTo: 2025 },
-    { id: 39, brandId: 10, name: "Jimny", logo: "assets/logos/suzuki.svg", yearFrom: 2019, yearTo: 2025 },
-    { id: 40, brandId: 10, name: "Baleno", logo: "assets/logos/suzuki.svg", yearFrom: 2016, yearTo: 2022 },
-];
 
 const timeSlots = [
     "09:00",
@@ -419,8 +334,13 @@ export default function IngresarDatosVehiculos() {
         tipoInspeccion: null,
     });
 
-    // Using demo brands - replace with API fetch when backend is ready
-    const [brands] = useState<Brand[]>(DEMO_BRANDS);
+    // Marcas cargadas desde la API
+    const [brands, setBrands] = useState<Brand[]>([]);
+    const [loadingBrands, setLoadingBrands] = useState(true);
+
+    // Tipos de inspección cargados desde la API
+    const [inspectionTypes, setInspectionTypes] = useState<Inspection[]>([]);
+    const [loadingInspections, setLoadingInspections] = useState(true);
 
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -435,11 +355,11 @@ export default function IngresarDatosVehiculos() {
     //* Para el buscador de modelo
     const [modelQuery, setModelQuery] = useState("");
     const [showModels, setShowModels] = useState(false);
-    const [selectedModel, setSelectedModel] = useState<Model | null>(null);
+    const [selectedModel, setSelectedModel] = useState<ModelUI | null>(null);
 
     //* Para carga de modelos (preparado para API)
     const [loadingModels, setLoadingModels] = useState(false);
-    const [availableModels, setAvailableModels] = useState<Model[]>([]);
+    const [availableModels, setAvailableModels] = useState<ModelUI[]>([]);
 
     //* Para el selector de año
     const [yearQuery, setYearQuery] = useState("");
@@ -482,6 +402,33 @@ export default function IngresarDatosVehiculos() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [closeAllDropdowns]);
+
+    // ------------------------------------------
+    // CARGAR DATOS INICIALES (Marcas e Inspecciones)
+    // ------------------------------------------
+    useEffect(() => {
+        // Cargar marcas
+        getBrands()
+            .then((data) => {
+                setBrands(data);
+                setLoadingBrands(false);
+            })
+            .catch((err) => {
+                console.error("Error al cargar marcas:", err);
+                setLoadingBrands(false);
+            });
+
+        // Cargar tipos de inspección
+        getInspections()
+            .then((data) => {
+                setInspectionTypes(data);
+                setLoadingInspections(false);
+            })
+            .catch((err) => {
+                console.error("Error al cargar inspecciones:", err);
+                setLoadingInspections(false);
+            });
+    }, []);
 
     // ------------------------------------------
     // FORM VALIDATION
@@ -647,14 +594,19 @@ export default function IngresarDatosVehiculos() {
     // FETCH MODELS BY BRAND (preparado para API)
     // ------------------------------------------
 
-    async function fetchModelsByBrand(brandId: number): Promise<Model[]> {
-        // TODO: Reemplazar con llamada real a API
-        // const response = await fetch(`/api/brands/${brandId}/models`);
-        // return response.json();
+    async function fetchModelsByBrand(brandId: number): Promise<ModelUI[]> {
+        // Llamada a la API real
+        const models = await getModelsByBrand(brandId);
 
-        // Demo: filtrar de datos estáticos con pequeña latencia simulada
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return DEMO_MODELS.filter(m => m.brandId === brandId);
+        // Mapear de snake_case (BD) a camelCase (UI)
+        return models.map((m: Model) => ({
+            id: m.id,
+            brandId: m.brand_id,
+            name: m.name,
+            logo: m.logo,
+            yearFrom: m.year_from,
+            yearTo: m.year_to,
+        }));
     }
 
     // ------------------------------------------
@@ -682,7 +634,7 @@ export default function IngresarDatosVehiculos() {
         setLoadingModels(false);
     }
 
-    function handleModelSelect(model: Model) {
+    function handleModelSelect(model: ModelUI) {
         setSelectedModel(model);
         setModelQuery(model.name);
         setShowModels(false);
@@ -734,7 +686,9 @@ export default function IngresarDatosVehiculos() {
                 </div>
 
                 <ul className="w-[90%] mt-7 pl-0">
-                    {INSPECTION_TYPES.map((inspection) => {
+                    {loadingInspections ? (
+                        <li className="p-4 text-center text-gray-500">Cargando tipos de inspección...</li>
+                    ) : inspectionTypes.map((inspection) => {
                         const isSelected = selectedInspection === inspection.id;
                         return (
                             <li
@@ -864,7 +818,11 @@ export default function IngresarDatosVehiculos() {
 
                                         {showBrands && (
                                             <ul className={styles.dropdown}>
-                                                {filteredBrands.length > 0 ? (
+                                                {loadingBrands ? (
+                                                    <li className={styles.noOption}>
+                                                        Cargando marcas...
+                                                    </li>
+                                                ) : filteredBrands.length > 0 ? (
                                                     filteredBrands.map((brand) => (
                                                         <li
                                                             key={brand.id}

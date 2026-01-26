@@ -8,12 +8,17 @@ import styles from './NavBar.module.css';
 export default function NavBar() {
     const { data: session, status } = useSession();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const mobileMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownOpen(false);
+            }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+                setIsMobileMenuOpen(false);
             }
         }
 
@@ -21,13 +26,27 @@ export default function NavBar() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Bloquear scroll cuando el menú móvil está abierto
+    useEffect(() => {
+        if (isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isMobileMenuOpen]);
+
+    const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
     const handleSignOut = async () => {
         await signOut({ callbackUrl: '/' });
     };
 
     const getInitial = () => {
-        if (session?.user?.fullName) {
-            return session.user.fullName.charAt(0).toUpperCase();
+        if (session?.user?.full_name) {
+            return session.user.full_name.charAt(0).toUpperCase();
         }
         if (session?.user?.name) {
             return session.user.name.charAt(0).toUpperCase();
@@ -36,8 +55,8 @@ export default function NavBar() {
     };
 
     const getDisplayName = () => {
-        if (session?.user?.fullName) {
-            return session.user.fullName.split(' ')[0];
+        if (session?.user?.full_name) {
+            return session.user.full_name.split(' ')[0];
         }
         if (session?.user?.name) {
             return session.user.name.split(' ')[0];
@@ -54,7 +73,28 @@ export default function NavBar() {
                     </Link>
                 </div>
 
-                <div className={styles['navbar-box']}>
+                {/* Botón hamburguesa para móvil */}
+                <button
+                    className={styles['hamburger-button']}
+                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-expanded={isMobileMenuOpen}
+                    aria-label="Abrir menú de navegación"
+                >
+                    <span className={`${styles['hamburger-line']} ${isMobileMenuOpen ? styles['line-1-active'] : ''}`}></span>
+                    <span className={`${styles['hamburger-line']} ${isMobileMenuOpen ? styles['line-2-active'] : ''}`}></span>
+                    <span className={`${styles['hamburger-line']} ${isMobileMenuOpen ? styles['line-3-active'] : ''}`}></span>
+                </button>
+
+                {/* Overlay - solo visible en móvil cuando el menú está abierto */}
+                {isMobileMenuOpen && (
+                    <div className={styles['overlay']} onClick={closeMobileMenu}></div>
+                )}
+
+                {/* navbar-box: en PC es horizontal, en móvil se convierte en menú lateral */}
+                <div
+                    ref={mobileMenuRef}
+                    className={`${styles['navbar-box']} ${isMobileMenuOpen ? styles['navbar-box-open'] : ''}`}
+                >
                     <div className={styles['navbar-item']}>
                         <div className={styles['icon']} aria-hidden="true">
                             <img loading="lazy" src="assets/images/image7.svg" alt="" />
@@ -155,7 +195,7 @@ export default function NavBar() {
                             )}
                         </div>
                     ) : (
-                        <>
+                        <div className='flex gap-2'>
                             <Link
                                 href="/login"
                                 className={`${styles['auth-button']} ${styles['login-button']}`}
@@ -168,7 +208,7 @@ export default function NavBar() {
                             >
                                 Registrarse
                             </Link>
-                        </>
+                        </ div>
                     )}
                 </div>
             </div>

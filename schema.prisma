@@ -6,18 +6,19 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
 }
-model User {
-  id        Int      @id @default(autoincrement())
-  fullName String
-  email     String   @unique
-  password  String?
-  role      Role     @default(CLIENT)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  accounts  Account[]
-  sessions  Session[]
-  agendas Agenda[]
+model User {
+  id         Int       @id @default(autoincrement())
+  full_name  String
+  email      String    @unique
+  password   String?
+  role       Role      @default(CLIENT)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  accounts   Account[]
+  sessions   Session[]
+  schedules  Schedule[]
 }
 
 enum Role {
@@ -27,31 +28,31 @@ enum Role {
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            Int
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String? @db.Text
-  id_token          String? @db.Text
-  session_state     String? @db.Text
+  id                 String  @id @default(cuid())
+  user_id            Int
+  type               String
+  provider           String
+  provider_account_id String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String? @db.Text
+  id_token           String? @db.Text
+  session_state      String? @db.Text
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, provider_account_id])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       Int
-  expires      DateTime
+  id            String   @id @default(cuid())
+  session_token String   @unique
+  user_id       Int
+  expires       DateTime
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -62,76 +63,76 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Inspeccion{
-  id Int @id @default(autoincrement())
-  name enumInspeccion
+model Inspection {
+  id          Int              @id @default(autoincrement())
+  type        InspectionType
 
-  title String
+  title       String
   description String
-  price Int
+  price       Int
 
-  items InspeccionItem[]
-  agendas Agenda[]
+  items       InspectionItem[]
+  schedules   Schedule[]
 }
 
-model InspeccionItem {
-  id Int @id @default(autoincrement())
-  inspeccionId Int
-  label String
+model InspectionItem {
+  id            Int        @id @default(autoincrement())
+  inspection_id Int
+  label         String
 
-  inspeccion Inspeccion @relation(fields: [inspeccionId], references: [id], onDelete: Cascade)
+  inspection    Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
 
-  @@index([inspeccionId])
+  @@index([inspection_id])
 }
 
-enum enumInspeccion{
-  LEGAL
-  BASICA
-  COMPLETA
+enum InspectionType {
+  legal
+  basica
+  completa
 }
 
-model Brand{
-  id Int @id @default(autoincrement())
-  name String
-  logo String
+model Brand {
+  id     Int     @id @default(autoincrement())
+  name   String
+  logo   String
 
   models Model[]
 }
 
 model Model {
-  id Int @id @default(autoincrement())
-  brandId Int
-  name String
-  logo String
-  yearFrom Int
-  yearTo Int
+  id        Int       @id @default(autoincrement())
+  brand_id  Int
+  name      String
+  logo      String
+  year_from Int
+  year_to   Int
 
-  agendas Agenda[]
+  schedules Schedule[]
 
-  brand Brand @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  @@index([brandId])
+  brand Brand @relation(fields: [brand_id], references: [id], onDelete: Cascade)
+  @@index([brand_id])
 }
 
-model Agenda{
-  id Int @id @default(autoincrement())
-  userId Int
-  modelId Int
-  inspeccionId Int
+model Schedule {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  model_id      Int
+  inspection_id Int
 
-  year Int
-  mileage Int
-  placa String
-  fechaHora DateTime
+  year        Int
+  mileage     Int
+  plate       String
+  date_time   DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  model Model @relation(fields: [modelId], references: [id], onDelete: Cascade)
-  inspeccion Inspeccion @relation(fields: [inspeccionId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  model       Model      @relation(fields: [model_id], references: [id], onDelete: Cascade)
+  inspection  Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([modelId])
-  @@index([inspeccionId])
-  @@index([fechaHora])
+  @@index([user_id])
+  @@index([model_id])
+  @@index([inspection_id])
+  @@index([date_time])
 }

@@ -42,8 +42,8 @@ export const authOptions: NextAuthOptions = {
         return {
           id: String(user.id),
           email: user.email,
-          name: user.fullName,
-          fullName: user.fullName,
+          name: user.full_name,
+          full_name: user.full_name,
           role: user.role,
         };
       },
@@ -130,7 +130,7 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = String(dbUser.id);
           token.role = dbUser.role;
-          token.fullName = dbUser.fullName;
+          token.full_name = dbUser.full_name;
         }
       }
       return token;
@@ -140,7 +140,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.fullName = token.fullName as string;
+        session.user.full_name = token.full_name as string;
       }
       return session;
     },

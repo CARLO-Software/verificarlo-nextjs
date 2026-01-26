@@ -7,6 +7,8 @@ import Footer from "./layout/footer/Footer";
 import WhatsappFlotante from "./layout/whatsappFlotante/WhatsappFlotante";
 import PromotionalBanner from "./layout/promotionalBanner/PromotionalBanner";
 import { Providers } from "./providers";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -46,7 +48,10 @@ export const metadata: Metadata = {
 };
 
 // ===================== ROOTLAYOUT =====================
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Obtener sesión del servidor - elimina el estado "loading" inicial
+  const session = await getServerSession(authOptions);
+
   return (
     <>
       <html
@@ -132,7 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <link rel="apple-touch-icon" href="/assets/images/image0.png" />
 
           {/* ================= APP CONTENT ================= */}
-          <Providers>
+          <Providers session={session}>
             {/* Promotional banner */}
             <PromotionalBanner />
 

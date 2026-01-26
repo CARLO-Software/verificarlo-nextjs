@@ -1,8 +1,6 @@
 //prisma/data/vehicles.ts
 
 export const vehicles = [
-
-
     { year: 2014, brand: "AUDI", model: "A1" },
     { year: 2014, brand: "AUDI", model: "A3" },
     { year: 2014, brand: "AUDI", model: "A4" },

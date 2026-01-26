@@ -1,5 +1,47 @@
-import { AgendarVehiculo } from "@/app/vehiculo/types";
+import { AgendarVehiculo, Brand, Model, Inspection } from "@/app/vehiculo/types";
 
+// ============================================
+// GET - Obtener marcas
+// ============================================
+export async function getBrands(): Promise<Brand[]> {
+    const res = await fetch("/api/vehicles/brands");
+
+    if (!res.ok) {
+        throw new Error("Error al obtener marcas");
+    }
+
+    return res.json();
+}
+
+// ============================================
+// GET - Obtener modelos por marca
+// ============================================
+export async function getModelsByBrand(brandId: number): Promise<Model[]> {
+    const res = await fetch(`/api/vehicles/models/${brandId}`);
+
+    if (!res.ok) {
+        throw new Error("Error al obtener modelos");
+    }
+
+    return res.json();
+}
+
+// ============================================
+// GET - Obtener tipos de inspección
+// ============================================
+export async function getInspections(): Promise<Inspection[]> {
+    const res = await fetch("/api/vehicles/inspections");
+
+    if (!res.ok) {
+        throw new Error("Error al obtener inspecciones");
+    }
+
+    return res.json();
+}
+
+// ============================================
+// POST - Agendar vehículo
+// ============================================
 export async function agendarVehiculo(payload: AgendarVehiculo) {
     //Llamar a la API de autenticación, siendo Next.js el backend
     const res = await fetch("/api/vehicles/agendar", {
