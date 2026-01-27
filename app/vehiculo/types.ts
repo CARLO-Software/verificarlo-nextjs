@@ -4,7 +4,7 @@ export type AgendarVehiculo = {
     year: number | null;
     tipoInspeccion: number | null;
     mileage: number | null;
-    placa: string;
+    plate: string;
     fechaEstimada: string;
     horaEstimada: string;
 }

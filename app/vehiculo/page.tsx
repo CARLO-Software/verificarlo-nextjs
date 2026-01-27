@@ -32,7 +32,6 @@ type ModelUI = {
     id: number;
     brandId: number;
     name: string;
-    logo: string;
     yearFrom: number;
     yearTo: number;
 };
@@ -372,6 +371,11 @@ export default function IngresarDatosVehiculos() {
     //* Para el mileage (kilometraje) será solo visual, pero su resultado será otro
     const [mileageInput, setMileageInput] = useState("");
 
+    //* Para manejar el estado de las fechas (input data: Calendario)
+    const [date, setDate] = useState("");
+
+    //* Para manejar el estado del tiempo (horas)
+    const [time, setTime] = useState("");
 
     // ------------------------------------------
     // FUNCIÓN PARA CERRAR TODOS LOS DROPDOWNS
@@ -540,7 +544,7 @@ export default function IngresarDatosVehiculos() {
                 model: formData.model,
                 year: formData.year,
                 mileage: formData.mileage,
-                placa: formData.placa?.trim() || "",
+                plate: formData.placa?.trim() || "",
                 fechaEstimada: formData.fechaEstimada,
                 horaEstimada: formData.horaEstimada,
                 tipoInspeccion: formData.tipoInspeccion,
@@ -552,7 +556,8 @@ export default function IngresarDatosVehiculos() {
             // Success - reset form
             alert("¡Vehículo guardado exitosamente!");
             setFormData({ year: null, brandId: null, model: null, mileage: null, placa: "", fechaEstimada: "", tipoInspeccion: null, horaEstimada: "" });
-            // Reset selection states
+
+            //* Reset selection states
             setSelectedBrand(null);
             setSelectedModel(null);
             setSelectedYear(null);
@@ -560,6 +565,9 @@ export default function IngresarDatosVehiculos() {
             setModelQuery("");
             setYearQuery("");
             setAvailableModels([]);
+            setPlate("");
+            setSelectedInspection(null);
+            setDate("");
 
         } catch (err) {
             setError(err instanceof Error ? err.message : "Error al enviar los datos");
@@ -690,7 +698,9 @@ export default function IngresarDatosVehiculos() {
                         <li className="p-4 text-center text-gray-500">Cargando tipos de inspección...</li>
                     ) : inspectionTypes.map((inspection) => {
                         const isSelected = selectedInspection === inspection.id;
+
                         return (
+                            /*Parte de la izquierda*/
                             <li
                                 key={inspection.id}
                                 value={Number(formData.tipoInspeccion)}
@@ -889,7 +899,6 @@ export default function IngresarDatosVehiculos() {
                                                             className={styles.option}
                                                             onClick={() => handleModelSelect(model)}
                                                         >
-                                                            <img src={model.logo} alt={model.name} className={styles.logo} />
                                                             <span>{model.name}</span>
                                                         </li>
                                                     ))
@@ -1011,7 +1020,10 @@ export default function IngresarDatosVehiculos() {
                                 className={styles.input}
                                 aria-describedby="placa-helper"
                                 value={plate}
-                                onChange={(e) => setPlate(formatPlate(e.target.value))}
+                                onChange={(e) => {
+                                    setPlate(formatPlate(e.target.value))
+                                    setFormData({ ...formData, placa: e.target.value })
+                                }}
                                 maxLength={7}
                             />
 
@@ -1036,10 +1048,10 @@ export default function IngresarDatosVehiculos() {
                                         name="fechaEstimada"
                                         className="input border border-gray-300 text-center rounded-lg px-4"
                                         min={new Date().toISOString().split('T')[0]}
+                                        value={date}
                                         onChange={(e) => {
-                                            const valor = e.target.value;
-                                            setFormData({ ...formData, fechaEstimada: valor })
-
+                                            setDate(e.target.value);
+                                            setFormData({ ...formData, fechaEstimada: e.target.value })
                                         }}
                                     />
                                     <p className="text-xs text-gray-400 ">
@@ -1059,7 +1071,7 @@ export default function IngresarDatosVehiculos() {
                                                 name="horaEstimada"
                                                 value={time}
                                                 className="sr-only peer"
-
+                                                checked={formData.horaEstimada === time} //Controlado
                                                 onChange={(e) => {
                                                     setFormData({
                                                         ...formData,

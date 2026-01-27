@@ -15,10 +15,10 @@ async function main() {
   for (const brandName of uniqueBrands) {
     await prisma.brand.upsert({
       where: { id: uniqueBrands.indexOf(brandName) + 1 },
-      update: {},
+      update: {logo: `/assets/icons/${brandName.toLowerCase()}.svg`},
       create: {
         name: brandName,
-        logo: `/assets/brands/${brandName.toLowerCase()}.svg`,
+        logo: `/assets/icons/${brandName.toLowerCase()}.svg`,
       },
     });
   }
@@ -70,7 +70,6 @@ async function main() {
         data: {
           brand_id: brandId,
           name: data.model,
-          logo: `/assets/models/${data.brand.toLowerCase()}-${data.model.toLowerCase().replace(/\s+/g, "-")}.svg`,
           year_from: yearFrom,
           year_to: yearTo,
         },

@@ -103,7 +103,6 @@ model Model {
   id        Int       @id @default(autoincrement())
   brand_id  Int
   name      String
-  logo      String
   year_from Int
   year_to   Int
 
@@ -120,7 +119,7 @@ model Schedule {
   inspection_id Int
 
   year        Int
-  mileage     Int
+  mileage     Int?
   plate       String
   date_time   DateTime
 
