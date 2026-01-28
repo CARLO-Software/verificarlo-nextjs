@@ -1286,12 +1286,18 @@ textarea.w-select {
 /* ==========================================================================
    SPLIDE SLIDER OVERRIDES
    ========================================================================== */
-.splide {
-  visibility: visible !important;
+
+/* Prevenir FOUC: ocultar slider hasta que Splide esté inicializado */
+.splide:not(.is-initialized) .splide__list {
+  visibility: hidden;
 }
 
-.splide__slide {
-  margin-right: 8px !important;
+.splide.is-initialized .splide__list {
+  visibility: visible;
+}
+
+.splide {
+  visibility: visible !important;
 }
 
 /* ==========================================================================

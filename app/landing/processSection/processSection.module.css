@@ -29,6 +29,7 @@
   position: relative;
   overflow: hidden;
   min-height: 425px;
+  min-width: 280px;
 }
 
 .process-slider {
@@ -141,20 +142,28 @@
 .process-image {
   border-radius: 20px;
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* ============================================
    Responsive Styles
    ============================================ */
 
+@media screen and (min-width: 1200px) {
+  .process-container {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @media screen and (max-width: 991px) {
   .slide {
     box-sizing: border-box;
-    width: 100%;
-  }
-
-  .process-image {
-    border-radius: 20px;
     width: 100%;
   }
 }

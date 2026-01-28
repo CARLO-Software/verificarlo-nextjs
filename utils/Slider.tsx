@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css"; // estilos necesarios
 
@@ -14,7 +14,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
     const splideRef = useRef<HTMLDivElement>(null);
 
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!splideRef.current) return;
 
         let options = {}
@@ -24,7 +24,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
             options = {
                 type: "slide",
                 perPage: 1.01,
-                gap: "14px",
+                gap: "16px",
                 focus: "center",
                 arrows: false,
                 pagination: false,
@@ -33,19 +33,22 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
                 rewind: false,
                 clampDrag: true,
                 autoWidth: false,
+                lazyLoad: "nearby",
                 mediaQuery: "min",
+                width: "100%",
                 breakpoints: {
                     600: {
                         perPage: 2.01,
                         perMove: 2,
-                        gap: "8px",
+                        gap: "20px",
                         padding: { right: "20px", left: "20px" },
                         focus: 0,
                     },
                     1200: {
-                        fixedWidth: "294px",
+                        fixedWidth: "285px",
+                        gap: "24px",
                         padding: { right: "0px", left: "0px" },
-                        drag: false, // ejemplo: desactivar drag en desktop 
+                        drag: false,
                     },
                 },
             }
@@ -86,7 +89,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
             }
         }
         const splide = new Splide(splideRef.current, options);
-        splide.mount(); // ✅ existe y funciona
+        splide.mount(); // Aquí Splide agrega la clase "is-initialized"
 
         return () => {
             splide.destroy();
