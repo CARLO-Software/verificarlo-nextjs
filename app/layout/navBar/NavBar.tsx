@@ -45,9 +45,6 @@ export default function NavBar() {
     };
 
     const getInitial = () => {
-        if (session?.user?.full_name) {
-            return session.user.full_name.charAt(0).toUpperCase();
-        }
         if (session?.user?.name) {
             return session.user.name.charAt(0).toUpperCase();
         }
@@ -55,9 +52,6 @@ export default function NavBar() {
     };
 
     const getDisplayName = () => {
-        if (session?.user?.full_name) {
-            return session.user.full_name.split(' ')[0];
-        }
         if (session?.user?.name) {
             return session.user.name.split(' ')[0];
         }

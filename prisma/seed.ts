@@ -139,7 +139,7 @@ async function main() {
       console.warn(`Inspección no encontrada para tipo: ${inspectionType}`);
       continue;
     }
-    
+
     // Iterar sobre cada label del array y crear un InspectionItem
     for (const label of ii.label) {
       const existing = await prisma.inspectionItem.findFirst({

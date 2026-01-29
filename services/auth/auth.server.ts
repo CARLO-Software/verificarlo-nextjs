@@ -28,7 +28,7 @@ export async function registerUser(payload: RegisterFormData) {
 
   return db.user.create({
     data: {
-      full_name: payload.fullName,
+      name: payload.fullName,
       email: payload.email,
       password: hashedPassword,
     },

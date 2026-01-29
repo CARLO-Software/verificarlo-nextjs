@@ -42,8 +42,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: String(user.id),
           email: user.email,
-          name: user.full_name,
-          full_name: user.full_name,
+          name: user.name,
           role: user.role,
         };
       },
@@ -70,6 +69,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (existingUser) {
+          // Actualizar imagen si cambió o no existe
+          if (user.image && existingUser.image !== user.image) {
+            await db.user.update({
+              where: { id: existingUser.id },
+              data: { image: user.image },
+            });
+          }
+
           // Vincular cuenta Google si no está creada
           const existingAccount = await db.account.findUnique({
             where: {
@@ -99,7 +106,9 @@ export const authOptions: NextAuthOptions = {
           await db.user.create({
             data: {
               email: user.email!,
-              fullName: user.name || "Usuario Google",
+              name: user.name || "Usuario Google",
+              emailVerified: new Date(),
+              image: user.image,
               password: null,
               role: "CLIENT",
               accounts: {
@@ -130,7 +139,8 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = String(dbUser.id);
           token.role = dbUser.role;
-          token.full_name = dbUser.full_name;
+          token.name = dbUser.name;
+          token.picture = dbUser.image;
         }
       }
       return token;
@@ -140,7 +150,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.full_name = token.full_name as string;
+        session.user.name = token.name as string;
+        session.user.image = token.picture as string | null;
       }
       return session;
     },

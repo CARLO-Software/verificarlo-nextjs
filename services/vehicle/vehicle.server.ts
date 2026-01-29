@@ -1,9 +1,32 @@
-import { AgendarVehiculo } from '@/app/vehiculo/types';
+import { AgendarVehiculo, Brand, Inspection } from '@/app/vehiculo/types';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth';
-import { getBrands, getInspections } from './vehicle.client';
 import { convertirBogotaALocalUTC } from '@/app/domain/datetime';
+
+// ============================================
+// GET - Server-side data fetching
+// ============================================
+
+/** Obtiene todas las marcas desde el servidor */
+export async function getBrandsServer(): Promise<Brand[]> {
+    const brands = await db.brand.findMany({
+        orderBy: { name: "asc" },
+    });
+    return brands;
+}
+
+/** Obtiene todos los tipos de inspección desde el servidor */
+export async function getInspectionsServer(): Promise<Inspection[]> {
+    const inspections = await db.inspection.findMany({
+        include: { items: true },
+    });
+    return inspections as Inspection[];
+}
+
+// ============================================
+// POST - Agendar vehículo
+// ============================================
 
 export async function agendarVehiculo(payload: AgendarVehiculo) {
     const session = await getServerSession(authOptions);
@@ -39,11 +62,3 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
 
     return schedule;
 }
-
-// export default async function VehiculoPage() {
-//     const [brands, inspections] = await Promise.all([
-//         getBrands(),
-//         getInspections()
-//     ]);
-//     return <VehiculoForm initialBrands = { brands } initialInspections = { inspections } />;
-// }

@@ -7,7 +7,7 @@
 	.st2{display:inline;}
 	.st3{fill:#010101;}
 	.st4{fill:#FFFFFF;}
-	.st5{fill-rule:evenodd;clip-rule:evenodd;fill:#ED1C24;}
+	.st5{fill-rule:evenodd;clip-rule:evenodd;fill:currentColor;}
 </style>
 
 

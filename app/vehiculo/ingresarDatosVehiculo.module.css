@@ -580,21 +580,36 @@
     /* amarillo suave */
 }
 
+/* Brand logo - uses currentColor for SVGs that support it */
 .logo {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     object-fit: contain;
-    background: #f3f4f6;
-    border-radius: 6px;
-    padding: 4px;
+    background: var(--shark--100);
+    border-radius: 8px;
+    padding: 5px;
+    /* Black color for currentColor SVGs */
+    color: var(--shark--950);
+    /* Grayscale filter for SVGs with hardcoded colors */
+    filter: grayscale(100%);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Hover: yellow color + remove grayscale */
+.option:hover .logo {
+    color: var(--bright-sun--500);
+    filter: grayscale(0%);
+    background: var(--bright-sun--100);
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(253, 191, 18, 0.3);
 }
 
 .noOption {
-  padding: 14px;
-  font-size: 13px;
-  color: #6b7280;
-  text-align: center;
-  cursor: default;
+    padding: 14px;
+    font-size: 13px;
+    color: #6b7280;
+    text-align: center;
+    cursor: default;
 }
 
 /* ============================================
@@ -808,6 +823,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -830,6 +846,7 @@
         opacity: 0;
         transform: translateY(20px) scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -878,9 +895,11 @@
     0% {
         transform: scale(0);
     }
+
     50% {
         transform: scale(1.1);
     }
+
     100% {
         transform: scale(1);
     }
@@ -1038,6 +1057,7 @@
 
 /* Reduced motion for modal */
 @media (prefers-reduced-motion: reduce) {
+
     .modalOverlay,
     .modalContent,
     .modalIconWrapper,
@@ -1053,4 +1073,170 @@
     .modalSecondaryButton:hover {
         transform: none;
     }
+}
+
+/* ============================================
+   INTERACTIVE ICON BUTTONS
+   Professional hover effects for SVG icons
+   ============================================ */
+
+.infoButton {
+    padding: 10px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoButton:hover {
+    background: var(--bright-sun--200);
+    transform: scale(1.1);
+}
+
+.infoButton:active {
+    transform: scale(0.95);
+}
+
+.infoButton:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--bright-sun--300);
+}
+
+/* Icon inside info button */
+.infoIcon {
+    width: 20px;
+    height: 20px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoIcon circle {
+    stroke: var(--shark--500);
+    transition: stroke 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoIcon path {
+    stroke: var(--shark--500);
+    transition: stroke 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoIcon .infoDot {
+    fill: var(--shark--500);
+    transition: fill 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.infoButton:hover .infoIcon circle {
+    stroke: var(--shark--950);
+}
+
+.infoButton:hover .infoIcon path {
+    stroke: var(--shark--950);
+}
+
+.infoButton:hover .infoIcon .infoDot {
+    fill: var(--shark--950);
+}
+
+/* ============================================
+   INSPECTION TYPE CARD
+   Styles for the inspection selection items
+   ============================================ */
+
+.inspectionCard {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--basics--white);
+    border: 2px solid transparent;
+}
+
+.inspectionCard:hover {
+    border-color: var(--shark--200);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.inspectionCardSelected {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(253, 191, 18, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bright-sun--50);
+    border: 2px solid var(--bright-sun--400);
+}
+
+.inspectionCardSelected:hover {
+    box-shadow: 0 6px 20px rgba(253, 191, 18, 0.3);
+}
+
+/* Check circle indicator */
+.checkCircle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--shark--200);
+}
+
+.checkCircleSelected {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bright-sun--400);
+    box-shadow: 0 2px 8px rgba(253, 191, 18, 0.4);
+}
+
+/* Card content */
+.inspectionContent {
+    flex: 1;
+}
+
+.inspectionTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--shark--700);
+    margin: 0 0 4px 0;
+    transition: color 0.2s ease;
+}
+
+.inspectionTitleSelected {
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--shark--950);
+    margin: 0 0 4px 0;
+}
+
+.inspectionDescription {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--shark--500);
+    margin: 0;
+    line-height: 1.4;
 }
