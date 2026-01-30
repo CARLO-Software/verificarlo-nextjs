@@ -1,0 +1,346 @@
+/* ============================================
+   Confirmation.module.css
+   Booking confirmation success screen
+   ============================================ */
+
+.container {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Success icon */
+.successIcon {
+  margin-bottom: 24px;
+}
+
+.circleAnimation {
+  stroke-dasharray: 226;
+  stroke-dashoffset: 226;
+  animation: drawCircle 0.6s ease-out 0.2s forwards;
+}
+
+@keyframes drawCircle {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkAnimation {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: drawCheck 0.4s ease-out 0.6s forwards;
+}
+
+@keyframes drawCheck {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Title */
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--shark--950);
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--shark--600);
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+/* Booking card */
+.card {
+  background: var(--basics--white);
+  border: 1px solid var(--shark--200);
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  text-align: left;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: var(--shark--50);
+  border-bottom: 1px solid var(--shark--100);
+}
+
+.bookingId {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--shark--700);
+}
+
+.status {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #22C55E;
+  background: rgba(34, 197, 94, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.cardBody {
+  padding: 20px 24px;
+}
+
+.detailRow {
+  display: flex;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--shark--100);
+}
+
+.detailRow:last-child {
+  border-bottom: none;
+}
+
+.detailIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bright-sun--100);
+  border-radius: 10px;
+  color: var(--shark--700);
+  flex-shrink: 0;
+}
+
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detailLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--shark--500);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detailValue {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--shark--950);
+  text-transform: capitalize;
+}
+
+.plate {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--shark--700);
+  background: var(--shark--100);
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* Location card */
+.locationCard {
+  background: var(--bright-sun--50);
+  border: 1px solid var(--bright-sun--200);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.locationHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--shark--950);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.locationAddress {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--shark--700);
+  margin: 0 0 12px 0;
+  padding-left: 34px;
+}
+
+.mapLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--shark--950);
+  text-decoration: none;
+  margin-left: 34px;
+  transition: color 0.2s ease;
+}
+
+.mapLink:hover {
+  color: var(--bright-sun--600);
+}
+
+/* Reminders */
+.reminders {
+  background: var(--basics--white);
+  border: 1px solid var(--shark--200);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 32px;
+  text-align: left;
+}
+
+.remindersTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--shark--950);
+  margin: 0 0 12px 0;
+}
+
+.reminders ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.reminders li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--shark--700);
+  padding: 8px 0;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.primaryButton {
+  flex: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--shark--950);
+  background: var(--bright-sun--300);
+  border: none;
+  border-radius: 100px;
+  padding: 16px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primaryButton:hover {
+  background: var(--bright-sun--400);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(253, 191, 18, 0.3);
+}
+
+.secondaryButton {
+  flex: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--shark--700);
+  background: transparent;
+  border: 2px solid var(--shark--200);
+  border-radius: 100px;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background: var(--shark--50);
+  border-color: var(--shark--300);
+}
+
+/* Responsive */
+@media (max-width: 479px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .cardHeader {
+    padding: 12px 16px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .cardBody {
+    padding: 16px;
+  }
+
+  .detailRow {
+    padding: 12px 0;
+  }
+
+  .detailIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .detailValue {
+    font-size: 14px;
+  }
+
+  .locationCard,
+  .reminders {
+    padding: 16px;
+  }
+
+  .locationAddress,
+  .mapLink {
+    padding-left: 0;
+    margin-left: 0;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+}

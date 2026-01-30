@@ -1,3 +1,8 @@
+// ============================================
+// VERIFICARLO - Schema de Base de Datos
+// Sistema de Agendamiento Semiautomático
+// ============================================
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
@@ -7,26 +12,80 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id            Int       @id @default(autoincrement())
-  name          String
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(CLIENT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  accounts   Account[]
-  sessions   Session[]
-  schedules  Schedule[]
-}
+// ============================================
+// ENUMS
+// ============================================
 
 enum Role {
   CLIENT
   INSPECTOR
   ADMIN
+}
+
+enum InspectionType {
+  legal
+  basica
+  completa
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT // Slot reservado, esperando pago (30 min max)
+  PAID            // Pagado, asignando inspector
+  CONFIRMED       // Pagado + inspector asignado
+  COMPLETED       // Inspección realizada
+  CANCELLED       // Cancelada por cliente/admin
+  NO_SHOW         // Cliente no se presentó
+  EXPIRED         // Pago no completado en 30 min
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ============================================
+// AUTENTICACIÓN (NextAuth)
+// ============================================
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  phone         String?   // Para WhatsApp
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(CLIENT)
+  isActive      Boolean   @default(true) // Para desactivar inspectores
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // ============================================
+  // CAMPOS ESPECÍFICOS POR ROL
+  // ============================================
+
+  // Solo INSPECTOR: zona de atención y disponibilidad
+  serviceZone  String?   // "Lima Norte", "Lima Sur", "Callao", etc.
+  availability Json?     // {"lunes": ["09:00-13:00", "14:00-18:00"], ...}
+
+  // Solo CLIENT: dirección para inspección a domicilio
+  address      String?   // Dirección completa
+  district     String?   // Distrito de Lima
+
+  // Relaciones de autenticación
+  accounts Account[]
+  sessions Session[]
+
+  // Relaciones de negocio
+  vehicles         Vehicle[]
+  clientBookings   Booking[]     @relation("ClientBookings")
+  inspectorBookings Booking[]    @relation("InspectorBookings")
+  blockedDates     BlockedDate[]
+
+  // Legacy - mantener para migración, eliminar después
+  schedules Schedule[]
 }
 
 model Account {
@@ -65,72 +124,214 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// ============================================
+// CATÁLOGO DE INSPECCIONES
+// ============================================
+
 model Inspection {
-  id          Int              @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   type        InspectionType
-
   title       String
-  description String
-  price       Int
+  description String         @db.Text
+  price       Int            // En soles (ej: 150 = S/150.00)
 
-  items       InspectionItem[]
-  schedules   Schedule[]
+  items     InspectionItem[]
+  bookings  Booking[]
+
+  // Legacy - mantener para migración
+  schedules Schedule[]
 }
 
 model InspectionItem {
-  id            Int        @id @default(autoincrement())
+  id            Int    @id @default(autoincrement())
   inspection_id Int
   label         String
 
-  inspection    Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
+  inspection Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
 
   @@index([inspection_id])
 }
 
-enum InspectionType {
-  legal
-  basica
-  completa
-}
+// ============================================
+// VEHÍCULOS
+// ============================================
 
 model Brand {
-  id     Int     @id @default(autoincrement())
-  name   String
-  logo   String
+  id   Int    @id @default(autoincrement())
+  name String
+  logo String
 
   models Model[]
 }
 
 model Model {
-  id        Int       @id @default(autoincrement())
+  id        Int @id @default(autoincrement())
   brand_id  Int
   name      String
   year_from Int
   year_to   Int
 
+  brand    Brand     @relation(fields: [brand_id], references: [id], onDelete: Cascade)
+  vehicles Vehicle[]
+
+  // Legacy - mantener para migración
   schedules Schedule[]
 
-  brand Brand @relation(fields: [brand_id], references: [id], onDelete: Cascade)
   @@index([brand_id])
 }
 
+// Vehículo del cliente (separado para reutilización)
+model Vehicle {
+  id      Int     @id @default(autoincrement())
+  userId  Int
+  modelId Int
+  year    Int
+  plate   String  @unique // Placa única
+  mileage Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model    Model     @relation(fields: [modelId], references: [id])
+  bookings Booking[]
+
+  @@index([userId])
+  @@index([plate])
+}
+
+// ============================================
+// RESERVAS (BOOKING)
+// ============================================
+
+model Booking {
+  id Int @id @default(autoincrement())
+
+  // Relaciones principales
+  clientId     Int
+  inspectorId  Int? // Se asigna después del pago
+  inspectionId Int
+  vehicleId    Int
+
+  // Datos de la cita
+  date      DateTime @db.Date // Solo fecha (YYYY-MM-DD)
+  timeSlot  String   @db.VarChar(5) // "09:00", "09:45", etc.
+  startTime DateTime // Fecha + hora completa
+  endTime   DateTime // startTime + 45 min
+
+  // Estado y control
+  status    BookingStatus @default(PENDING_PAYMENT)
+  expiresAt DateTime? // Para PENDING_PAYMENT (30 min)
+
+  // Reprogramación
+  isRescheduled   Boolean @default(false)
+  rescheduledFrom Int? // ID del booking original
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  confirmedAt DateTime?
+  completedAt DateTime?
+  cancelledAt DateTime?
+
+  // Notas
+  clientNotes    String? @db.Text // Notas del cliente
+  inspectorNotes String? @db.Text // Notas del inspector
+  adminNotes     String? @db.Text // Notas del admin
+
+  // Relaciones
+  client     User        @relation("ClientBookings", fields: [clientId], references: [id])
+  inspector  User?       @relation("InspectorBookings", fields: [inspectorId], references: [id])
+  inspection Inspection  @relation(fields: [inspectionId], references: [id])
+  vehicle    Vehicle     @relation(fields: [vehicleId], references: [id])
+  payment    Payment?
+
+  @@index([clientId])
+  @@index([inspectorId])
+  @@index([date, timeSlot])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([startTime])
+}
+
+// ============================================
+// PAGOS
+// ============================================
+
+model Payment {
+  id        Int @id @default(autoincrement())
+  bookingId Int @unique
+
+  // Datos Culqi
+  culqiChargeId String? @unique
+  culqiToken    String?
+
+  // Montos
+  amount   Int    // En céntimos (ej: 15000 = S/150.00)
+  currency String @default("PEN")
+
+  // Estado
+  status PaymentStatus @default(PENDING)
+
+  // Datos de facturación
+  receiptNumber String?
+  receiptUrl    String?
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  // Metadata de Culqi
+  metadata Json?
+
+  // Error info (si falla)
+  errorCode    String?
+  errorMessage String? @db.Text
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([culqiChargeId])
+  @@index([status])
+}
+
+// ============================================
+// FECHAS BLOQUEADAS
+// ============================================
+
+model BlockedDate {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique @db.Date
+  reason    String?  // "Feriado - Fiestas Patrias", "Mantenimiento", etc.
+  createdBy Int
+  createdAt DateTime @default(now())
+
+  admin User @relation(fields: [createdBy], references: [id])
+
+  @@index([date])
+}
+
+// ============================================
+// LEGACY - Schedule (mantener durante migración)
+// Eliminar después de migrar datos existentes
+// ============================================
+
 model Schedule {
-  id            Int       @id @default(autoincrement())
+  id            Int @id @default(autoincrement())
   user_id       Int
   model_id      Int
   inspection_id Int
 
-  year        Int
-  mileage     Int?
-  plate       String
-  date_time   DateTime
+  year      Int
+  mileage   Int?
+  plate     String
+  date_time DateTime
 
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 
-  user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  model       Model      @relation(fields: [model_id], references: [id], onDelete: Cascade)
-  inspection  Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  model      Model      @relation(fields: [model_id], references: [id], onDelete: Cascade)
+  inspection Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
 
   @@index([user_id])
   @@index([model_id])

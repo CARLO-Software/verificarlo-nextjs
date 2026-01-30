@@ -1,0 +1,229 @@
+/* ============================================
+   TimeSlots.module.css
+   Time slot selection component
+   ============================================ */
+
+.container {
+  background: var(--basics--white);
+  border: 1px solid var(--shark--200);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+/* Header */
+.header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.title {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--shark--950);
+  margin: 0 0 4px 0;
+}
+
+.dateLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--shark--600);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+/* Grid de slots */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Slot individual */
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 12px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 60px;
+  position: relative;
+}
+
+.slotAvailable {
+  background: var(--shark--50);
+  border-color: var(--shark--200);
+}
+
+.slotAvailable:hover {
+  background: var(--bright-sun--50);
+  border-color: var(--bright-sun--300);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(253, 191, 18, 0.15);
+}
+
+.slotSelected {
+  background: var(--bright-sun--100) !important;
+  border-color: var(--bright-sun--400) !important;
+  box-shadow: 0 4px 12px rgba(253, 191, 18, 0.2);
+}
+
+.slotUnavailable {
+  background: var(--shark--50);
+  border-color: transparent;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.time {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--shark--950);
+}
+
+.slotUnavailable .time {
+  color: var(--shark--400);
+}
+
+.lastSpot {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: #FF6B35;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.occupiedLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--shark--400);
+  margin-top: 4px;
+}
+
+/* Helper text */
+.helperText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--shark--500);
+  margin: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--shark--100);
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
+}
+
+.loading span {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--shark--600);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--shark--200);
+  border-top-color: var(--bright-sun--400);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error state */
+.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
+  color: #FF4444;
+}
+
+.error svg {
+  width: 32px;
+  height: 32px;
+}
+
+.error span {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+/* No slots state */
+.noSlots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.noSlots p {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--shark--700);
+  margin: 16px 0 4px 0;
+}
+
+.noSlots span {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--shark--500);
+}
+
+/* Responsive */
+@media (max-width: 479px) {
+  .container {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .slot {
+    padding: 14px 10px;
+    min-height: 54px;
+  }
+
+  .time {
+    font-size: 14px;
+  }
+
+  .helperText {
+    font-size: 12px;
+  }
+}

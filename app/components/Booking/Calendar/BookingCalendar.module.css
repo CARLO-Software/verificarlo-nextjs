@@ -1,0 +1,248 @@
+/* ============================================
+   BookingCalendar.module.css
+   Calendar component for date selection
+   ============================================ */
+
+.calendar {
+  background: var(--basics--white);
+  border: 1px solid var(--shark--200);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+/* Header con navegación */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.monthTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--shark--950);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.navButton {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--shark--100);
+  color: var(--shark--700);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background: var(--bright-sun--100);
+  color: var(--shark--950);
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Días de la semana */
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--shark--500);
+  text-align: center;
+  padding: 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Grid de días */
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  min-height: 240px;
+  position: relative;
+}
+
+.emptyDay {
+  aspect-ratio: 1;
+}
+
+/* Estilo base de día */
+.day {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* Día disponible */
+.available {
+  background: var(--shark--50);
+  color: var(--shark--950);
+}
+
+.available:hover {
+  background: var(--bright-sun--100);
+  transform: scale(1.05);
+}
+
+/* Día no disponible */
+.unavailable {
+  background: transparent;
+  color: var(--shark--300);
+  cursor: not-allowed;
+}
+
+/* Día pasado */
+.past {
+  background: transparent;
+  color: var(--shark--300);
+  cursor: not-allowed;
+}
+
+/* Día de hoy */
+.today {
+  font-weight: 700;
+}
+
+.today::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--bright-sun--400);
+}
+
+/* Día seleccionado */
+.selected {
+  background: var(--bright-sun--400) !important;
+  color: var(--shark--950) !important;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(253, 191, 18, 0.3);
+}
+
+.selected:hover {
+  transform: scale(1.05);
+}
+
+/* Loading */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--shark--200);
+  border-top-color: var(--bright-sun--400);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Leyenda */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--shark--100);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--shark--600);
+}
+
+.dotAvailable {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bright-sun--400);
+}
+
+.dotUnavailable {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--shark--300);
+}
+
+/* Responsive */
+@media (max-width: 479px) {
+  .calendar {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .monthTitle {
+    font-size: 16px;
+  }
+
+  .navButton {
+    width: 32px;
+    height: 32px;
+  }
+
+  .weekday {
+    font-size: 10px;
+    padding: 6px 0;
+  }
+
+  .day {
+    font-size: 13px;
+  }
+
+  .legend {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .legendItem {
+    font-size: 11px;
+  }
+}

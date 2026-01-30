@@ -1,0 +1,139 @@
+/* ============================================
+   StepIndicator.module.css
+   Progress indicator for booking flow
+   ============================================ */
+
+.container {
+  padding: 24px 0;
+  margin-bottom: 32px;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+}
+
+.stepWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 1;
+  max-width: 160px;
+}
+
+/* Línea conectora entre pasos */
+.connector {
+  position: absolute;
+  top: 16px;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--shark--200);
+  z-index: 0;
+  transition: background-color 0.3s ease;
+}
+
+.connectorActive {
+  background: var(--bright-sun--400);
+}
+
+.stepWrapper:first-child .connector {
+  display: none;
+}
+
+/* Círculo del paso */
+.step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+}
+
+.stepPending {
+  background: var(--shark--100);
+  color: var(--shark--400);
+  border: 2px solid var(--shark--200);
+}
+
+.stepCurrent {
+  background: var(--bright-sun--100);
+  color: var(--shark--950);
+  border: 2px solid var(--bright-sun--400);
+  box-shadow: 0 0 0 4px rgba(253, 191, 18, 0.15);
+}
+
+.stepCompleted {
+  background: var(--bright-sun--400);
+  color: var(--shark--950);
+  border: 2px solid var(--bright-sun--400);
+}
+
+/* Labels */
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  margin-top: 8px;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.labelPending {
+  color: var(--shark--400);
+}
+
+.labelCurrent {
+  color: var(--shark--950);
+  font-weight: 600;
+}
+
+.labelCompleted {
+  color: var(--shark--700);
+}
+
+/* Responsive */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 0;
+    margin-bottom: 24px;
+  }
+
+  .stepWrapper {
+    max-width: 80px;
+  }
+
+  .step {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .label {
+    font-size: 10px;
+  }
+
+  .connector {
+    top: 14px;
+  }
+}
+
+@media (max-width: 479px) {
+  .label {
+    display: none;
+  }
+
+  .stepWrapper {
+    max-width: 60px;
+  }
+}

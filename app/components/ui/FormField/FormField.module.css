@@ -1,0 +1,113 @@
+/* ============================================
+   FormField: Estilos para inputs del formulario
+   Mobile-first: estilos base son para móvil
+   ============================================ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--shark--950, #242424);
+  line-height: 1.4;
+}
+
+.required {
+  color: #dc2626;
+  margin-left: 2px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 16px; /* 16px evita zoom en iOS al hacer focus */
+  line-height: 1.5;
+  color: var(--shark--950, #242424);
+  background-color: var(--basics--white, #fff);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+
+/* Placeholder sutil */
+.input::placeholder {
+  color: #9ca3af;
+}
+
+/* Focus state: borde amarillo de la marca */
+.input:focus {
+  border-color: var(--bright-sun--400, #fdbf12);
+  box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.15);
+}
+
+/* Disabled state */
+.input:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Error state */
+.inputError {
+  border-color: #dc2626;
+}
+
+.inputError:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+}
+
+/* Textarea específico */
+textarea.input {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Select específico */
+select.input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 44px;
+  cursor: pointer;
+}
+
+/* Hint: texto de ayuda */
+.hint {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Error message */
+.error {
+  font-size: 12px;
+  color: #dc2626;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================
+   Responsive: Tablet y Desktop
+   ============================================ */
+
+@media (min-width: 768px) {
+  .label {
+    font-size: 14px;
+  }
+
+  .input {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+}
