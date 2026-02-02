@@ -65,9 +65,8 @@ model User {
   // ============================================
   // CAMPOS ESPECÍFICOS POR ROL
   // ============================================
-
+  
   // Solo INSPECTOR: zona de atención y disponibilidad
-  serviceZone  String?   // "Lima Norte", "Lima Sur", "Callao", etc.
   availability Json?     // {"lunes": ["09:00-13:00", "14:00-18:00"], ...}
 
   // Solo CLIENT: dirección para inspección a domicilio
@@ -83,9 +82,6 @@ model User {
   clientBookings   Booking[]     @relation("ClientBookings")
   inspectorBookings Booking[]    @relation("InspectorBookings")
   blockedDates     BlockedDate[]
-
-  // Legacy - mantener para migración, eliminar después
-  schedules Schedule[]
 }
 
 model Account {
@@ -137,9 +133,6 @@ model Inspection {
 
   items     InspectionItem[]
   bookings  Booking[]
-
-  // Legacy - mantener para migración
-  schedules Schedule[]
 }
 
 model InspectionItem {
@@ -158,7 +151,7 @@ model InspectionItem {
 
 model Brand {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @unique
   logo String
 
   models Model[]
@@ -174,9 +167,7 @@ model Model {
   brand    Brand     @relation(fields: [brand_id], references: [id], onDelete: Cascade)
   vehicles Vehicle[]
 
-  // Legacy - mantener para migración
-  schedules Schedule[]
-
+  @@unique([brand_id, name])
   @@index([brand_id])
 }
 
@@ -186,7 +177,7 @@ model Vehicle {
   userId  Int
   modelId Int
   year    Int
-  plate   String  @unique // Placa única
+  plate   String? // Placa opcional
   mileage Int?
 
   createdAt DateTime @default(now())
@@ -196,8 +187,8 @@ model Vehicle {
   model    Model     @relation(fields: [modelId], references: [id])
   bookings Booking[]
 
+  @@unique([plate]) // Única solo si tiene valor
   @@index([userId])
-  @@index([plate])
 }
 
 // ============================================
@@ -267,7 +258,7 @@ model Payment {
   culqiToken    String?
 
   // Montos
-  amount   Int    // En céntimos (ej: 15000 = S/150.00)
+  amount   Int    // En céntimos (ej: 15000 = S/150.00) //debe de ser double o decimal
   currency String @default("PEN")
 
   // Estado
@@ -308,33 +299,4 @@ model BlockedDate {
   admin User @relation(fields: [createdBy], references: [id])
 
   @@index([date])
-}
-
-// ============================================
-// LEGACY - Schedule (mantener durante migración)
-// Eliminar después de migrar datos existentes
-// ============================================
-
-model Schedule {
-  id            Int @id @default(autoincrement())
-  user_id       Int
-  model_id      Int
-  inspection_id Int
-
-  year      Int
-  mileage   Int?
-  plate     String
-  date_time DateTime
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  user       User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  model      Model      @relation(fields: [model_id], references: [id], onDelete: Cascade)
-  inspection Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
-
-  @@index([user_id])
-  @@index([model_id])
-  @@index([inspection_id])
-  @@index([date_time])
 }

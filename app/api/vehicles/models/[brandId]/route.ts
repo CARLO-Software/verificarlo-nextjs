@@ -20,7 +20,16 @@ export async function GET(
       orderBy: { name: "asc" },
     });
 
-    return NextResponse.json(models);
+    // Transformar a camelCase para el frontend
+    const formattedModels = models.map((model) => ({
+      id: model.id,
+      name: model.name,
+      brandId: model.brand_id,
+      yearFrom: model.year_from,
+      yearTo: model.year_to,
+    }));
+
+    return NextResponse.json(formattedModels);
   } catch (error) {
     console.error("Error al obtener modelos:", error);
     return NextResponse.json(

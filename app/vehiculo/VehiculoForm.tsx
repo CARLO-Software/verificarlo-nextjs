@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { agendarVehiculo, getModelsByBrand } from "@/services/vehicle/vehicle.client";
 import { Brand, Model, Inspection } from "./types";
+import { useToast } from "@/app/components/Toast";
 
 // ============================================
 // TYPES
@@ -169,6 +170,7 @@ function LoginRequiredModal({ isOpen, onClose, onLogin, onRegister }: LoginRequi
 // ============================================
 
 export default function VehiculoForm({ initialBrands, initialInspections }: VehiculoFormProps) {
+    const {showToast} = useToast();
     const { data: session } = useSession();
     const router = useRouter();
 
@@ -276,6 +278,7 @@ export default function VehiculoForm({ initialBrands, initialInspections }: Vehi
                 tipoInspeccion: formData.tipoInspeccion,
             });
             alert("¡Vehículo guardado exitosamente!");
+            showToast("¡Vehículo guardado exitosamente!", "success");
             // Reset
             setFormData({ year: null, brandId: null, model: null, mileage: null, placa: "", fechaEstimada: "", tipoInspeccion: null, horaEstimada: "" });
             setSelectedBrand(null); setSelectedModel(null); setSelectedYear(null);

@@ -138,16 +138,6 @@ export default function ProfileForm({ user }: ProfileFormProps) {
             Define tu zona de atención y disponibilidad
           </p>
 
-          <FormField
-            label="Zona de atención"
-            name="serviceZone"
-            as="select"
-            value={formData.serviceZone || ''}
-            onChange={(e) => handleChange('serviceZone', e.target.value)}
-            error={errors.serviceZone}
-            options={SERVICE_ZONES.map((z) => ({ value: z, label: z }))}
-          />
-
           {/* Nota: La disponibilidad completa requeriría un componente
               más complejo (scheduler). Esto es un placeholder. */}
           <div className={styles.availabilityNote}>

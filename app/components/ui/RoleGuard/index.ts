@@ -1,1 +1,1 @@
-export { default as RoleGuard } from './RoleGuard';
+export { RoleGuard } from './RoleGuard';

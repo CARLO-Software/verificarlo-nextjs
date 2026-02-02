@@ -40,7 +40,6 @@ export async function getProfile(): Promise<ActionResponse<UserProfile>> {
         role: true,
         isActive: true,
         createdAt: true,
-        serviceZone: true,
         availability: true,
         address: true,
         district: true,
@@ -118,7 +117,6 @@ export async function updateProfile(
         role: true,
         isActive: true,
         createdAt: true,
-        serviceZone: true,
         availability: true,
         address: true,
         district: true,
@@ -169,7 +167,6 @@ function filterDataByRole(
       // Inspector: campos comunes + zona y disponibilidad
       return {
         ...baseFields,
-        serviceZone: data.serviceZone,
         availability: data.availability,
       };
 

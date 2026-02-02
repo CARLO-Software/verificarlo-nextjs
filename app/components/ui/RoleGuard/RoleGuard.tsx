@@ -17,7 +17,7 @@ interface RoleGuardProps {
   fallback?: ReactNode;      // Qué mostrar si no tiene permiso (opcional)
 }
 
-export default function RoleGuard({
+export function RoleGuard({
   children,
   allowedRoles,
   userRole,

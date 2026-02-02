@@ -279,6 +279,7 @@
   padding: 14px 16px;
   outline: none;
   transition: all 0.2s ease;
+  width: 100%;
 }
 
 .input:focus,

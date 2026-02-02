@@ -64,22 +64,25 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { modelId, year, plate, mileage } = body;
 
-  // Validaciones
-  if (!modelId || !year || !plate) {
+  // Validaciones (placa es opcional)
+  if (!modelId || !year) {
     return NextResponse.json(
-      { error: "Se requiere modelId, year y plate" },
+      { error: "Se requiere modelId y year" },
       { status: 400 }
     );
   }
 
-  // Normalizar placa
-  const normalizedPlate = plate.toUpperCase().replace(/[^A-Z0-9]/g, "");
-
-  if (normalizedPlate.length < 6 || normalizedPlate.length > 7) {
-    return NextResponse.json(
-      { error: "Placa inválida" },
-      { status: 400 }
-    );
+  // Normalizar placa si existe
+  let normalizedPlate: string | null = null;
+  if (plate && plate.trim()) {
+    const cleanPlate = plate.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    if (cleanPlate.length < 6 || cleanPlate.length > 7) {
+      return NextResponse.json(
+        { error: "Placa inválida (debe tener 6-7 caracteres)" },
+        { status: 400 }
+      );
+    }
+    normalizedPlate = cleanPlate;
   }
 
   try {
@@ -103,43 +106,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Buscar vehículo existente por placa
-    const existingVehicle = await db.vehicle.findUnique({
-      where: { plate: normalizedPlate },
-    });
+    // Buscar vehículo existente por placa (solo si hay placa)
+    if (normalizedPlate) {
+      const existingVehicle = await db.vehicle.findFirst({
+        where: { plate: normalizedPlate },
+      });
 
-    if (existingVehicle) {
-      // Si la placa existe pero pertenece a otro usuario
-      if (existingVehicle.userId !== parseInt(session.user.id)) {
-        return NextResponse.json(
-          { error: "Esta placa ya está registrada por otro usuario" },
-          { status: 409 }
-        );
-      }
+      if (existingVehicle) {
+        // Si la placa existe pero pertenece a otro usuario
+        if (existingVehicle.userId !== parseInt(session.user.id)) {
+          return NextResponse.json(
+            { error: "Esta placa ya está registrada por otro usuario" },
+            { status: 409 }
+          );
+        }
 
-      // Si es del mismo usuario, actualizar datos si es necesario
-      const updatedVehicle = await db.vehicle.update({
-        where: { id: existingVehicle.id },
-        data: {
-          modelId,
-          year,
-          mileage: mileage || existingVehicle.mileage,
-        },
-        include: {
-          model: {
-            include: { brand: true },
+        // Si es del mismo usuario, actualizar datos si es necesario
+        const updatedVehicle = await db.vehicle.update({
+          where: { id: existingVehicle.id },
+          data: {
+            modelId,
+            year,
+            mileage: mileage !== undefined ? mileage : existingVehicle.mileage,
           },
-        },
-      });
+          include: {
+            model: {
+              include: { brand: true },
+            },
+          },
+        });
 
-      return NextResponse.json({
-        id: updatedVehicle.id,
-        plate: updatedVehicle.plate,
-        year: updatedVehicle.year,
-        brand: updatedVehicle.model.brand.name,
-        model: updatedVehicle.model.name,
-        isNew: false,
-      });
+        return NextResponse.json({
+          id: updatedVehicle.id,
+          plate: updatedVehicle.plate,
+          year: updatedVehicle.year,
+          brand: updatedVehicle.model.brand.name,
+          model: updatedVehicle.model.name,
+          isNew: false,
+        });
+      }
     }
 
     // Crear nuevo vehículo
@@ -149,7 +154,7 @@ export async function POST(req: NextRequest) {
         modelId,
         year,
         plate: normalizedPlate,
-        mileage: mileage || null,
+        mileage: mileage !== undefined ? mileage : null,
       },
       include: {
         model: {

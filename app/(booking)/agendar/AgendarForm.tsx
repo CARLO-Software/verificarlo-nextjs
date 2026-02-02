@@ -5,6 +5,35 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import styles from "./Agendar.module.css";
 
+// ============================================
+// Helpers de formato
+// ============================================
+
+// Formatear placa: ABC123 -> ABC-123
+function formatPlate(value: string): string {
+  // Remover todo excepto letras y números
+  const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  // Si tiene más de 3 caracteres, insertar guión después del tercero
+  if (clean.length > 3) {
+    return clean.slice(0, 3) + "-" + clean.slice(3, 6);
+  }
+  return clean;
+}
+
+// Formatear número con comas: 50000 -> 50,000
+function formatNumberWithCommas(value: number | null): string {
+  if (value === null) return "";
+  return value.toLocaleString("es-PE");
+}
+
+// Parsear número quitando comas: 50,000 -> 50000
+function parseFormattedNumber(value: string): number | null {
+  const clean = value.replace(/[^0-9]/g, "");
+  if (clean === "") return null;
+  return parseInt(clean, 10);
+}
+
 // Components
 import StepIndicator, { BookingStep } from "@/app/components/Booking/StepIndicator/StepIndicator";
 import BookingCalendar from "@/app/components/Booking/Calendar/BookingCalendar";
@@ -137,6 +166,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
       ...prev,
       modelId: model.id,
       modelName: model.name,
+      year: null, // Resetear año al cambiar modelo
     }));
     setModelQuery(model.name);
     setShowModels(false);
@@ -157,8 +187,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
   const canProceedToDate =
     vehicleData.brandId !== null &&
     vehicleData.modelId !== null &&
-    vehicleData.year !== null &&
-    vehicleData.plate.length >= 6;
+    vehicleData.year !== null;
 
   const canProceedToPayment = selectedDate !== null && selectedSlot !== null;
 
@@ -467,16 +496,14 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
 
               {/* Placa */}
               <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Placa <span className={styles.required}>*</span>
-                </label>
+                <label className={styles.label}>Placa (opcional)</label>
                 <input
                   type="text"
                   value={vehicleData.plate}
                   onChange={(e) =>
                     setVehicleData((prev) => ({
                       ...prev,
-                      plate: e.target.value.toUpperCase().slice(0, 7),
+                      plate: formatPlate(e.target.value),
                     }))
                   }
                   placeholder="ABC-123"
@@ -489,15 +516,16 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
               <div className={styles.formGroup}>
                 <label className={styles.label}>Kilometraje (opcional)</label>
                 <input
-                  type="number"
-                  value={vehicleData.mileage || ""}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatNumberWithCommas(vehicleData.mileage)}
                   onChange={(e) =>
                     setVehicleData((prev) => ({
                       ...prev,
-                      mileage: e.target.value ? Number(e.target.value) : null,
+                      mileage: parseFormattedNumber(e.target.value),
                     }))
                   }
-                  placeholder="Ej: 50000"
+                  placeholder="Ej: 50,000"
                   className={styles.input}
                 />
               </div>

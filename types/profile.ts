@@ -16,7 +16,6 @@ export interface UserProfile {
   createdAt: Date;
 
   // Campos específicos de INSPECTOR
-  serviceZone: string | null;
   availability: Record<string, string[]> | null; // {"lunes": ["09:00-13:00"], ...}
 
   // Campos específicos de CLIENT
@@ -31,7 +30,6 @@ export interface UpdateProfileData {
   image?: string;
 
   // Inspector
-  serviceZone?: string;
   availability?: Record<string, string[]>;
 
   // Cliente

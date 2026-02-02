@@ -2,7 +2,7 @@ import { AgendarVehiculo, Brand, Inspection } from '@/app/vehiculo/types';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth';
-import { convertirBogotaALocalUTC } from '@/app/domain/datetime';
+import { crearFechaHoraSinConversion, crearFechaSinConversion, sumarMinutos } from '@/app/domain/datetime';
 
 // ============================================
 // GET - Server-side data fetching
@@ -35,30 +35,61 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
         throw new Error("Usuario no encontrado");
     }
 
-    const fechaEstimadaLocal = convertirBogotaALocalUTC(payload.fechaEstimada, payload.horaEstimada);
-
+    // Validar campos requeridos (placa es opcional)
     if (!payload.model || !payload.tipoInspeccion || !payload.year) {
-        console.log(payload.model);
-        console.log(payload.tipoInspeccion);
-        console.log(payload.year);
-
         throw new Error('Faltan campos requeridos');
     }
 
-    console.log("Millas: " + payload.mileage);
-    console.log("La placa es: " + payload.plate);
+    const userId = Number(session.user.id);
+    const plateValue = payload.plate?.trim().toUpperCase() || null;
 
-    const schedule = await db.schedule.create({
+    let vehicle;
+
+    // Buscar si ya existe un vehículo con esta placa (solo si hay placa)
+    if (plateValue) {
+        const existingVehicle = await db.vehicle.findFirst({
+            where: { plate: plateValue }
+        });
+
+        if (existingVehicle) {
+            // Si existe y pertenece al mismo usuario, reutilizarlo
+            if (existingVehicle.userId === userId) {
+                vehicle = existingVehicle;
+            } else {
+                throw new Error('Esta placa ya está registrada por otro usuario');
+            }
+        }
+    }
+
+    // Si no encontramos vehículo existente, crear uno nuevo
+    if (!vehicle) {
+        vehicle = await db.vehicle.create({
+            data: {
+                userId: userId,
+                modelId: payload.model,
+                year: payload.year,
+                plate: plateValue,
+                mileage: payload.mileage,
+            }
+        });
+    }
+
+    // Construir fechas para el booking (sin conversión de zona horaria)
+    const dateOnly = crearFechaSinConversion(payload.fechaEstimada);
+    const startTime = crearFechaHoraSinConversion(payload.fechaEstimada, payload.horaEstimada);
+    const endTime = sumarMinutos(startTime, 45);
+
+    const booking = await db.booking.create({
         data: {
-            user_id: Number(session.user.id),
-            model_id: payload.model,
-            inspection_id: payload.tipoInspeccion,
-            year: payload.year,
-            mileage: payload.mileage ?? null,
-            plate: payload.plate,
-            date_time: fechaEstimadaLocal
+            clientId: userId,
+            vehicleId: vehicle.id,
+            inspectionId: payload.tipoInspeccion,
+            date: dateOnly,
+            timeSlot: payload.horaEstimada,
+            startTime: startTime,
+            endTime: endTime,
         }
     });
 
-    return schedule;
+    return booking;
 }
