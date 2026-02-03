@@ -1,96 +1,118 @@
 /* ============================================
    Promotional Banner Component Styles
+   Fixed banner at the top with close button
    ============================================ */
 
-.banner-3 {
-  background-color: #242424;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  max-width: 1440px;
-  padding: 12px 50px;
-  text-decoration: none;
-  display: flex;
+.bannerWrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001; /* Above navbar */
+    display: flex;
+    align-items: center;
+    background: linear-gradient(90deg, var(--shark--950) 0%, #1a1a1a 100%);
+    height: 42px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
-.ticker-container {
-  background-color: var(--shark--950);
-  flex: 0 auto;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  height: 42px;
-  padding-top: 12px;
-  padding-bottom: 12px;
-  padding-left: 50px;
-  text-decoration: none;
-  display: flex;
-  overflow: hidden;
+.bannerHiding {
+    transform: translateY(-100%);
+    opacity: 0;
 }
 
-.ticker-item {
-  grid-column-gap: 12px;
-  white-space: nowrap;
-  flex: 0 auto;
-  justify-content: flex-start;
-  align-items: center;
-  margin-right: 300px;
-  text-decoration: none;
-  display: inline-block;
+.tickerContainer {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
 }
 
-.banner-text {
-  color: #fff;
-  text-align: left;
-  letter-spacing: -.02em;
-  white-space: nowrap;
-  align-self: center;
-  margin-top: 0;
-  margin-bottom: 0;
-  margin-right: .25rem;
-  font-family: Inter, sans-serif;
-  font-size: 16px;
-  font-style: italic;
-  font-weight: 500;
-  line-height: 110%;
-  text-decoration: none;
-  display: inline-block;
+.tickerContent {
+    display: inline-flex;
+    animation: ticker 30s linear infinite;
+    white-space: nowrap;
 }
 
-.frame-427327064 {
-  grid-column-gap: 12px;
-  flex: 0 auto;
-  justify-content: flex-start;
-  align-items: center;
-  text-decoration: none;
-  display: flex;
+.tickerContent:hover {
+    animation-play-state: paused;
 }
 
-.ticker-content {
-  display: inline-flex;
-  animation: ticker 40s linear infinite;
+.tickerItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding-right: 80px;
 }
 
-.image-14 {
-  vertical-align: middle;
-  width: 63px;
-  height: 26px;
-  margin-right: 15px;
-  display: inline-block;
+.offerIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.text-span-9 {
-  color: var(--bright-sun--300);
-  font-weight: 700;
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.bannerText {
+    color: var(--basics--white);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.highlight {
+    color: var(--bright-sun--400);
+    font-weight: 700;
+}
+
+.separator {
+    color: var(--shark--600);
+    font-size: 12px;
+}
+
+.closeButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    background: transparent;
+    border: none;
+    border-left: 1px solid var(--shark--800);
+    color: var(--shark--400);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.closeButton:hover {
+    background: var(--shark--900);
+    color: var(--basics--white);
+}
+
+.closeButton:focus-visible {
+    outline: 2px solid var(--bright-sun--400);
+    outline-offset: -2px;
 }
 
 @keyframes ticker {
-  0% {
-    transform: translateX(0%);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
 /* ============================================
@@ -98,8 +120,45 @@
    ============================================ */
 
 @media screen and (max-width: 767px) {
-  .ticker-container {
-    box-sizing: border-box;
-    height: 32px;
-  }
+    .bannerWrapper {
+        height: 36px;
+    }
+
+    .bannerText {
+        font-size: 12px;
+    }
+
+    .tickerItem {
+        padding-right: 50px;
+    }
+
+    .offerIcon svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .closeButton {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media screen and (max-width: 479px) {
+    .bannerWrapper {
+        height: 32px;
+    }
+
+    .bannerText {
+        font-size: 11px;
+    }
+
+    .closeButton {
+        width: 32px;
+        height: 32px;
+    }
+
+    .closeButton svg {
+        width: 14px;
+        height: 14px;
+    }
 }

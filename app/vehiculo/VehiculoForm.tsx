@@ -356,41 +356,61 @@ export default function VehiculoForm({ initialBrands, initialInspections }: Vehi
                     </p>
                 </div>
 
-                <ul className="w-[90%] mt-7 pl-0">
-                    {inspectionTypes.map((inspection) => {
-                        const isSelected = selectedInspection === inspection.id;
-                        return (
-                            <li
-                                key={inspection.id}
-                                onClick={() => {
-                                    setSelectedInspection(inspection.id);
-                                    setFormData(prev => ({ ...prev, tipoInspeccion: inspection.id }));
-                                }}
-                                className={isSelected ? styles.inspectionCardSelected : styles.inspectionCard}
-                            >
-                                <div className={isSelected ? styles.checkCircleSelected : styles.checkCircle}>
-                                    {isSelected && (
-                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                            <path d="M3 7L6 10L11 4" stroke="var(--shark--950)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                {/* Sección de Tipos de Inspección */}
+                <div className={styles.inspectionTypesSection}>
+                    <div className={styles.inspectionTypesHeader}>
+                        <div className={styles.inspectionTypesIcon}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className={styles.inspectionTypesTitle}>Elige tu tipo de inspección</h3>
+                            <p className={styles.inspectionTypesSubtitle}>Selecciona el servicio que mejor se adapte a tus necesidades</p>
+                        </div>
+                    </div>
+
+                    <ul className={styles.inspectionTypesList}>
+                        {inspectionTypes.map((inspection, index) => {
+                            const isSelected = selectedInspection === inspection.id;
+                            return (
+                                <li
+                                    key={inspection.id}
+                                    onClick={() => {
+                                        setSelectedInspection(inspection.id);
+                                        setFormData(prev => ({ ...prev, tipoInspeccion: inspection.id }));
+                                    }}
+                                    className={isSelected ? styles.inspectionCardSelected : styles.inspectionCard}
+                                    style={{ animationDelay: `${index * 0.1}s` }}
+                                >
+                                    <div className={styles.inspectionCardInner}>
+                                        <div className={isSelected ? styles.checkCircleSelected : styles.checkCircle}>
+                                            {isSelected && (
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                    <path d="M3 7L6 10L11 4" stroke="var(--shark--950)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                        <div className={styles.inspectionContent}>
+                                            <h4 className={isSelected ? styles.inspectionTitleSelected : styles.inspectionTitle}>{inspection.title}</h4>
+                                            <p className={styles.inspectionDescription}>{inspection.description}</p>
+                                        </div>
+                                    </div>
+                                    <button type="button" onClick={(e) => { e.stopPropagation(); alert(`Ver más información sobre: ${inspection.title}`); }}
+                                        className={styles.infoButton} aria-label={`Ver más información sobre ${inspection.title}`}>
+                                        <svg className={styles.infoIcon} viewBox="0 0 20 20" fill="none">
+                                            <circle cx="10" cy="10" r="8" strokeWidth="1.5" />
+                                            <path d="M10 9V14" strokeWidth="1.5" strokeLinecap="round" />
+                                            <circle className={styles.infoDot} cx="10" cy="6.5" r="1" />
                                         </svg>
-                                    )}
-                                </div>
-                                <div className={styles.inspectionContent}>
-                                    <h4 className={isSelected ? styles.inspectionTitleSelected : styles.inspectionTitle}>{inspection.title}</h4>
-                                    <p className={styles.inspectionDescription}>{inspection.description}</p>
-                                </div>
-                                <button type="button" onClick={(e) => { e.stopPropagation(); alert(`Ver más información sobre: ${inspection.title}`); }}
-                                    className={styles.infoButton} aria-label={`Ver más información sobre ${inspection.title}`}>
-                                    <svg className={styles.infoIcon} viewBox="0 0 20 20" fill="none">
-                                        <circle cx="10" cy="10" r="8" strokeWidth="1.5" />
-                                        <path d="M10 9V14" strokeWidth="1.5" strokeLinecap="round" />
-                                        <circle className={styles.infoDot} cx="10" cy="6.5" r="1" />
-                                    </svg>
-                                </button>
-                            </li>
-                        );
-                    })}
-                </ul>
+                                    </button>
+                                    {isSelected && <div className={styles.selectedBadge}>Seleccionado</div>}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </div>
             </aside>
 
             {/* RIGHT SIDE: Form Section */}

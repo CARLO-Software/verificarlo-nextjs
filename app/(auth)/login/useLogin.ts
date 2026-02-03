@@ -90,7 +90,7 @@ export function useLogin() {
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
-
+        
         if (isSubmitting) return;
 
         if (!validateForm()) return;

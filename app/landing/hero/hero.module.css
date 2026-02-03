@@ -1,166 +1,433 @@
 /* ============================================
-   Hero Component Styles
+   Hero Section - Bold & Eye-catching Design
    ============================================ */
 
-
-.container {
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 1440px;
-  padding-left: 20px;
-  padding-right: 20px;
-  text-decoration: none;
-  display: block;
+.heroSection {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--shark--950);
+    padding-top: calc(var(--banner-height, 42px) + 80px); /* Banner + Navbar */
 }
 
-.section {
-  display: block;
-  grid-column-gap: 39px;
-  grid-row-gap: 39px;
-  background-color: var(--shark--50);
-  border-top-left-radius: 60px;
-  border-top-right-radius: 60px;
-  flex-flow: column;
-  align-items: center;
+/* ============================================
+   Video Background
+   ============================================ */
+
+.videoContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
 }
 
-.hero-container {
-  flex-flow: row;
-  justify-content: space-between;
-  padding-top: 20px;
-  padding-left: 5%;
-  padding-right: 0;
-  display: flex;
-  position: relative;
+.videoBackground {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-.hero-left {
-  z-index: 1;
-  grid-row-gap: 24px;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: 33%;
-  text-decoration: none;
-  display: flex;
-  position: relative;
+.videoOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        135deg,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.6) 50%,
+        rgba(0, 0, 0, 0.4) 100%
+    );
 }
 
-.hero-row-1 {
-  grid-row-gap: 14px;
-  flex-direction: column;
-  width: 100%;
-  display: flex;
-  min-width: 551px;
+/* ============================================
+   Hero Container
+   ============================================ */
+
+.heroContainer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+    max-width: 1400px;
+    width: 100%;
+    padding: 40px 5%;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
 }
 
-.hero-description {
-  color: var(--shark--800);
-  margin-bottom: 0;
-  font-family: Inter, sans-serif;
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 120%;
+.heroContainer.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
-.hero-row-2 {
-  grid-row-gap: 12px;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  display: flex;
+/* ============================================
+   Hero Content (Left Side)
+   ============================================ */
+
+.heroContent {
+    flex: 1;
+    max-width: 650px;
 }
 
-.hero-label {
-  color: var(--shark--950);
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 0;
-  font-family: Inter, sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 110%;
-  text-decoration: none;
+/* Badge */
+.heroBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(253, 191, 18, 0.15);
+    border: 1px solid var(--bright-sun--400);
+    border-radius: 100px;
+    padding: 8px 20px;
+    margin-bottom: 24px;
+    animation: fadeInDown 0.6s ease 0.2s both;
 }
 
-.hero-price {
-  color: var(--shark--950);
-  width: 100%;
-  margin-top: 0;
-  margin-bottom: 0;
-  font-family: Inter, sans-serif;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 100%;
-  text-decoration: none;
+.heroBadge span:last-child {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--bright-sun--400);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.hero-heading {
-  color: var(--shark--950);
-  text-transform: uppercase;
-  white-space: normal;
-  width: 520px;
-  margin-top: 0;
-  margin-bottom: 0;
-  font-family: Inter, sans-serif;
-  font-size: 48px;
-  font-style: italic;
-  font-weight: 400;
-  line-height: 110%;
-  text-decoration: none;
-  display: inline-block;
+.badgePulse {
+    width: 10px;
+    height: 10px;
+    background: var(--bright-sun--400);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
 }
 
-.primary-cta {
-  background-color: var(--bright-sun--300);
-  color: var(--shark--950);
-  letter-spacing: -.03px;
-  white-space: nowrap;
-  border-radius: 100px;
-  justify-content: center;
-  align-items: center;
-  padding: 14px 24px;
-  font-family: DM Sans, sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 100%;
-  text-decoration: none;
-  display: flex;
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(253, 191, 18, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(253, 191, 18, 0);
+    }
 }
 
-.primary-cta:hover {
-  background-color: var(--bright-sun--400);
+/* Heading */
+.heroHeading {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 24px 0;
+    font-family: 'Inter', sans-serif;
+    line-height: 1.1;
 }
 
-.hero-cta {
-  /* Specific styles for hero CTA if needed */
+.headingLine1 {
+    font-size: 28px;
+    font-weight: 400;
+    color: var(--shark--300);
+    animation: fadeInUp 0.6s ease 0.3s both;
 }
 
-.hero-desktop {
-  align-self: flex-start;
+.headingHighlight {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--basics--white);
+    text-transform: uppercase;
+    animation: fadeInUp 0.6s ease 0.4s both;
+    background: linear-gradient(135deg, var(--basics--white) 0%, var(--bright-sun--300) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.hero-mobile {
-  display: none;
+.headingLine2 {
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--bright-sun--400);
+    text-transform: uppercase;
+    font-style: italic;
+    animation: fadeInUp 0.6s ease 0.5s both;
 }
 
-.image-hero-car {
-  /* Mobile car image styles */
+/* Description */
+.heroDescription {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--shark--300);
+    line-height: 1.6;
+    margin: 0 0 32px 0;
+    max-width: 500px;
+    animation: fadeInUp 0.6s ease 0.6s both;
 }
 
-.image-hero-shape {
-  /* Mobile shape image styles */
+.heroDescription strong {
+    color: var(--bright-sun--400);
+    font-weight: 600;
 }
 
-.image-hero-logos {
-  /* Mobile logos image styles */
+/* Price Section */
+.priceSection {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 32px;
+    animation: fadeInUp 0.6s ease 0.7s both;
 }
 
-.image-7 {
-  z-index: 0;
-  position: relative;
-  right: auto;
+.priceLabel {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: var(--shark--400);
+}
+
+.priceAmount {
+    font-family: 'Inter', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--basics--white);
+}
+
+.priceBadge {
+    background: var(--bright-sun--400);
+    color: var(--shark--950);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* CTA Buttons */
+.ctaContainer {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 40px;
+    animation: fadeInUp 0.6s ease 0.8s both;
+}
+
+.primaryCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bright-sun--400);
+    color: var(--shark--950);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 18px 32px;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(253, 191, 18, 0.4);
+}
+
+.primaryCta:hover {
+    background: var(--bright-sun--300);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(253, 191, 18, 0.5);
+}
+
+.whatsappCta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 18px 32px;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
+}
+
+.whatsappCta:hover {
+    background: #20bd5a;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.4);
+}
+
+/* Trust Badges */
+.trustBadges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    animation: fadeInUp 0.6s ease 0.9s both;
+}
+
+.trustItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trustItem span {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--shark--300);
+}
+
+/* ============================================
+   Hero Image (Right Side)
+   ============================================ */
+
+.heroImageContainer {
+    flex: 1;
+    max-width: 550px;
+    position: relative;
+    animation: fadeInRight 0.8s ease 0.5s both;
+}
+
+.heroImage {
+    width: 100%;
+    height: auto;
+    border-radius: 24px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Floating Card */
+.floatingCard {
+    position: absolute;
+    bottom: -20px;
+    left: -40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--basics--white);
+    padding: 20px 24px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: floatAnimation 3s ease-in-out infinite;
+}
+
+.floatingCardIcon {
+    width: 56px;
+    height: 56px;
+    background: var(--bright-sun--100);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bright-sun--500);
+}
+
+.floatingCardText {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.floatingCardTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--shark--950);
+}
+
+.floatingCardDesc {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--shark--500);
+}
+
+@keyframes floatAnimation {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ============================================
+   Scroll Indicator
+   ============================================ */
+
+.scrollIndicator {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInUp 0.6s ease 1.2s both;
+}
+
+.scrollIndicator span {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--shark--400);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.scrollArrow {
+    animation: bounce 2s ease-in-out infinite;
+    color: var(--bright-sun--400);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(10px);
+    }
+    60% {
+        transform: translateY(5px);
+    }
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* ============================================
@@ -168,133 +435,207 @@
    ============================================ */
 
 @media screen and (max-width: 1199px) {
-  .hero-left {
-    width: 100%;
-  }
+    .heroContainer {
+        gap: 40px;
+    }
 
-  .hero-row-1 {
-    min-width: auto;
-  }
+    .headingHighlight {
+        font-size: 52px;
+    }
 
-  .hero-heading {
-    width: auto;
-  }
+    .headingLine2 {
+        font-size: 40px;
+    }
 
-  .hero-container {
-    flex-flow: column;
-    padding-top: 0;
-    padding-left: 20px;
-    padding-right: 20px;
-  }
+    .heroImageContainer {
+        max-width: 450px;
+    }
 }
 
+@media screen and (max-width: 991px) {
+    .heroSection {
+        min-height: auto;
+        padding: 100px 0 60px;
+    }
+
+    .heroContainer {
+        flex-direction: column;
+        text-align: center;
+        gap: 48px;
+    }
+
+    .heroContent {
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .heroDescription {
+        max-width: 600px;
+    }
+
+    .trustBadges {
+        justify-content: center;
+    }
+
+    .heroImageContainer {
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .floatingCard {
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -30px;
+    }
+
+    @keyframes floatAnimation {
+        0%, 100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        50% {
+            transform: translateX(-50%) translateY(-10px);
+        }
+    }
+
+    .scrollIndicator {
+        display: none;
+    }
+}
 
 @media screen and (max-width: 767px) {
-  .hero-container {
-    grid-column-gap: 20px;
-    grid-row-gap: 20px;
-    padding-left: 0;
-    padding-right: 0;
-  }
+    .heroSection {
+        padding: 80px 0 40px;
+    }
 
-  .hero-left {
-    z-index: 3;
-    grid-row-gap: 16px;
-    align-items: baseline;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
+    .headingLine1 {
+        font-size: 22px;
+    }
 
-  .hero-description {
-    font-size: 18px;
-  }
+    .headingHighlight {
+        font-size: 40px;
+    }
 
-  .hero-heading {
-    text-transform: none;
-    font-size: 44px;
-  }
+    .headingLine2 {
+        font-size: 32px;
+    }
 
-  .hero-desktop {
-    min-width: 100%;
-    display: none;
-    position: absolute;
-    bottom: 0%;
-    right: 0%;
-  }
+    .heroDescription {
+        font-size: 16px;
+    }
 
-  .hero-mobile {
-    justify-content: flex-start;
-    width: 100%;
-    display: block;
-    position: relative;
-    bottom: 60px;
-    overflow: hidden;
-  }
+    .priceAmount {
+        font-size: 40px;
+    }
 
-  .image-hero-car {
-    z-index: 1;
-    min-width: 155%;
-    max-height: 100%;
-    object-fit: cover;
-    object-position: 0% 50%;
-    padding-left: 16px;
-    display: block;
-    position: relative;
-  }
+    .ctaContainer {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+    }
 
-  .image-hero-shape {
-    z-index: 0;
-    object-fit: cover;
-    object-position: 5% 0%;
-    height: 100%;
-    min-height: 380px;
-    position: absolute;
-    top: 13%;
-    overflow: hidden;
-  }
+    .primaryCta,
+    .whatsappCta {
+        width: 100%;
+        justify-content: center;
+        padding: 16px 24px;
+    }
 
-  .image-hero-logos {
-    z-index: 2;
-    position: relative;
-    left: 1.5%;
-  }
+    .trustBadges {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .heroImageContainer {
+        display: none;
+    }
 }
 
 @media screen and (max-width: 479px) {
-  .primary-cta.hero-cta {
-    padding: 10px 14.5px;
-    font-size: 12px;
-  }
+    .heroSection {
+        padding: 70px 0 30px;
+    }
 
-  .hero-container {
-    padding-top: 52px;
-    display: block;
-    position: static;
-  }
+    .heroBadge {
+        padding: 6px 14px;
+    }
 
-  .hero-left {
-    padding-left: 16px;
-  }
+    .heroBadge span:last-child {
+        font-size: 12px;
+    }
 
-  .hero-description {
-    font-size: 14px;
-  }
+    .headingLine1 {
+        font-size: 18px;
+    }
 
-  .hero-label {
-    font-size: 10px;
-  }
+    .headingHighlight {
+        font-size: 32px;
+    }
 
-  .hero-price {
-    font-size: 24px;
-  }
+    .headingLine2 {
+        font-size: 26px;
+    }
 
-  .hero-heading {
-    font-size: 38px;
-    text-wrap: balance;
-  }
+    .heroDescription {
+        font-size: 15px;
+    }
 
-  .image-hero-shape {
-    width: 100%;
-    min-width: 100%;
-  }
+    .priceSection {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .priceAmount {
+        font-size: 36px;
+    }
+
+    .priceBadge {
+        font-size: 11px;
+        padding: 5px 12px;
+    }
+
+    .primaryCta,
+    .whatsappCta {
+        font-size: 14px;
+        padding: 14px 20px;
+    }
+
+    .trustItem span {
+        font-size: 13px;
+    }
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .heroContainer,
+    .heroBadge,
+    .headingLine1,
+    .headingHighlight,
+    .headingLine2,
+    .heroDescription,
+    .priceSection,
+    .ctaContainer,
+    .trustBadges,
+    .heroImageContainer,
+    .scrollIndicator {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .badgePulse,
+    .floatingCard,
+    .scrollArrow {
+        animation: none;
+    }
+
+    .primaryCta:hover,
+    .whatsappCta:hover {
+        transform: none;
+    }
 }

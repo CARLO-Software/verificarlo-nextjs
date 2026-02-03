@@ -7,6 +7,7 @@ import { register } from "@/services/auth/auth.client";
 import Link from 'next/link';
 import { GoogleButton } from "@/app/components/GoogleButton";
 import { useToast } from "@/app/components/Toast";
+import { PrismaClient } from "@prisma/client";
 
 // ============================================
 // TYPES - Define the shape of our form data
@@ -161,6 +162,12 @@ export default function Register() {
                 if (!isValidEmail(value)) {
                     return "Ingresa un correo electrónico válido";
                 }
+
+                const prisma = new PrismaClient(); 
+                const existingUser = await prisma.user.findUnique({
+                    where: {value},
+                });
+
                 return "";
 
             case "password":
@@ -199,6 +206,7 @@ export default function Register() {
      * Validate all fields before submission
      */
     function validateForm(): boolean {
+        
         const newErrors: FormErrors = {
             fullName: validateField("fullName", formData.fullName),
             email: validateField("email", formData.email),
@@ -301,8 +309,6 @@ export default function Register() {
 
             // TODO: Replace with actual API call when backend is ready
             // Example API call:
-
-
             await register(dataToSend);
 
             // Success - mostrar toast y redirigir al login

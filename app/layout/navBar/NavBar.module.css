@@ -2,21 +2,96 @@
    NavBar Component Styles
    ============================================ */
 .navbar {
+  position: fixed;
+  top: var(--banner-height, 42px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
   justify-content: center;
   align-items: center;
   width: 100%;
   text-decoration: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Estado cuando el usuario hace scroll */
+.navbarScrolled {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Cambiar colores de texto cuando es transparente */
+.navbar:not(.navbarScrolled) .navbar-text {
+  color: var(--basics--white);
+}
+
+.navbar:not(.navbarScrolled) .icon {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.navbar:not(.navbarScrolled) .icon img {
+  filter: brightness(0) invert(1);
+}
+
+.navbar:not(.navbarScrolled) .hamburger-line {
+  background-color: var(--basics--white);
+}
+
+.navbar:not(.navbarScrolled) .login-button {
+  color: var(--basics--white);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.navbar:not(.navbarScrolled) .login-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Logo en modo transparente */
+.navbar:not(.navbarScrolled) .div-block img {
+  filter: brightness(0) invert(1);
+  transition: filter 0.4s ease;
+}
+
+.navbarScrolled .div-block img {
+  filter: none;
+  transition: filter 0.4s ease;
+}
+
+/* User button en modo transparente */
+.navbar:not(.navbarScrolled) .user-button {
+  border-color: rgba(255, 255, 255, 0.4);
+  color: var(--basics--white);
+}
+
+.navbar:not(.navbarScrolled) .user-avatar {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--basics--white);
+}
+
+.navbar:not(.navbarScrolled) .user-name {
+  color: var(--basics--white);
+}
+
+.navbar:not(.navbarScrolled) .dropdown-arrow {
+  color: var(--basics--white);
 }
 .buenas{
   background-color: red;
 }
 .navbar-box {
-  grid-column-gap: 30px;
   flex: 1;
-  justify-content: flex-end;
-  align-items: center;
   text-decoration: none;
   display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  margin-left: 16px;
 }
 
 .navbar-item {
@@ -53,6 +128,32 @@
   display: flex;
 }
 
+/* CTA Principal - Agendar inspección */
+.primary-cta {
+  grid-column-gap: 10px;
+  background-color: var(--bright-sun--400, #FACC15);
+  color: var(--shark--950);
+  text-align: center;
+  letter-spacing: -.03px;
+  border-radius: 100px;
+  flex: 0 auto;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 20px;
+  font-family: DM Sans, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 100%;
+  text-decoration: none;
+  align-content: center;
+  border: none;
+}
+
+.primary-cta:hover {
+  background-color: var(--bright-sun--500, #EAB308);
+}
+
+/* CTA Secundario - Registrarse */
 .secondary-cta {
   grid-column-gap: 10px;
   background-color: var(--shark--950);
@@ -69,6 +170,7 @@
   font-weight: 600;
   line-height: 100%;
   text-decoration: none;
+  align-content: center;
 }
 
 .secondary-cta:hover {
@@ -80,6 +182,14 @@
   max-width: 1440px;
   padding: 24px 5.25% 24px 5%;
   display: flex;
+  align-items: center;
+}
+
+/* En móvil: separar logo y hamburguesa */
+@media screen and (max-width: 991px) {
+  .nav-container {
+    justify-content: space-between;
+  }
 }
 
 
@@ -103,8 +213,8 @@
     gap: 16px;
   }
 
-  /* Ocultar info de contacto en tablets */
-  .navbar-item {
+  /* Ocultar info de contacto en tablets (solo en navbar-box principal) */
+  .navbar-box > .navbar-item {
     display: none;
   }
 }
@@ -336,10 +446,43 @@
 }
 
 /* ============================================
+   CLOSE BUTTON (botón X dentro del panel)
+   ============================================ */
+.close-button {
+  display: none; /* Oculto en PC */
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--shark--950);
+  transition: background 0.2s ease;
+}
+
+.close-button:hover {
+  background: var(--shark--100);
+}
+
+/* ============================================
    OVERLAY (fondo oscuro al abrir menú móvil)
    ============================================ */
 .overlay {
   display: none; /* Solo visible en móvil */
+}
+
+.menuMovil {
+  display: flex;
+  gap: 10px;
+  width: inherit;
+}
+
+/* Ocultar info de contacto dentro de menuMovil en PC */
+.menuMovil .navbar-item {
+  display: none;
 }
 
 /* ============================================
@@ -349,6 +492,13 @@
   /* Mostrar hamburguesa */
   .hamburger-button {
     display: flex;
+  }
+
+  /* Mostrar botón cerrar (X) */
+  .close-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   /* Overlay visible */
@@ -381,7 +531,7 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 20px;
-    padding: 80px 24px 24px;
+    padding: 30px 24px 24px;
     box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     overflow-y: auto;
@@ -402,11 +552,24 @@
     justify-content: flex-start;
   }
 
+  /* Mostrar navbar-items dentro de menuMovil */
+  .menuMovil .navbar-item {
+    display: flex;
+  }
+
+  /* Separar info de contacto del botón Registrarse */
+  .menuMovil .navbar-item:first-of-type {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--shark--200);
+  }
+
   .navbar-text {
     font-size: 14px;
   }
 
-  /* Botón CTA ocupa todo el ancho */
+  /* Botones CTA ocupan todo el ancho */
+  .primary-cta,
   .secondary-cta {
     width: 100%;
     text-align: center;
@@ -423,6 +586,13 @@
   .login-button {
     width: 100%;
     text-align: center;
+  }
+
+  /* Contenedor de botones auth en móvil */
+  .menuMovil {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
   }
 
   /* User menu ajustes */
@@ -456,7 +626,6 @@
 @media screen and (max-width: 480px) {
   .navbar-box {
     width: 100%;
-    max-width: 100%;
   }
 
   .nav-container {

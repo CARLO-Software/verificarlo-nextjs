@@ -69,23 +69,6 @@ export default function Login() {
 
     const { formData, errors, generalError, isSubmitting, handleChange, handleBlur, handleSubmit } = useLogin();
 
-    // ------------------------------------------
-    // RENDER (JSX)
-    // ------------------------------------------
-
-    /**
-     * JSX Explanation
-     *
-     * JSX is a syntax extension that lets us write HTML-like code in JavaScript.
-     * It gets compiled to React.createElement() calls.
-     *
-     * Key differences from HTML:
-     * - className instead of class (class is reserved in JS)
-     * - htmlFor instead of for (for is reserved in JS)
-     * - camelCase for attributes (onClick, onChange, etc.)
-     * - {} to embed JavaScript expressions
-     */
-
     return (
         <div className={styles.container}>
             {/*

@@ -12,7 +12,7 @@ export async function login(payload: LoginFormData) {
     if (!res.ok) {
         throw new Error("Login failed");
     }
-    
+
     return res.json();
 }
 export async function register(payload: RegisterFormData) {
@@ -21,8 +21,12 @@ export async function register(payload: RegisterFormData) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
+
+    const data = await res.json();
+
     if (!res.ok) {
-        throw new Error("Registration failed");
+        throw new Error(data.message || "Error al registrar");
     }
-    return res.json();
+
+    return data;
 }

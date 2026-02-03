@@ -1240,3 +1240,184 @@
     margin: 0;
     line-height: 1.4;
 }
+
+/* ============================================
+   INSPECTION TYPES SECTION
+   Eye-catching section for inspection selection
+   ============================================ */
+
+.inspectionTypesSection {
+    width: 100%;
+    margin-top: 32px;
+    position: relative;
+    z-index: 1;
+}
+
+.inspectionTypesHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: var(--basics--white);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-left: 4px solid var(--bright-sun--400);
+    animation: slideInLeft 0.5s ease-out 0.2s both;
+}
+
+.inspectionTypesIcon {
+    width: 48px;
+    height: 48px;
+    background: var(--bright-sun--400);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--shark--950);
+    box-shadow: 0 4px 12px rgba(253, 191, 18, 0.4);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(253, 191, 18, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(253, 191, 18, 0.6);
+    }
+}
+
+.inspectionTypesTitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--shark--950);
+    margin: 0 0 4px 0;
+}
+
+.inspectionTypesSubtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    color: var(--shark--600);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.inspectionTypesList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Updated inspection card with inner wrapper */
+.inspectionCardInner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+/* Selected badge */
+.selectedBadge {
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    background: var(--bright-sun--400);
+    color: var(--shark--950);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(253, 191, 18, 0.4);
+    animation: popIn 0.3s ease-out;
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Update inspection card to support badge */
+.inspectionCard {
+    position: relative;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--basics--white);
+    border: 2px solid transparent;
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+.inspectionCardSelected {
+    position: relative;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(253, 191, 18, 0.2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--bright-sun--50);
+    border: 2px solid var(--bright-sun--400);
+    animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+    .inspectionTypesHeader {
+        padding: 16px;
+    }
+
+    .inspectionTypesIcon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .inspectionTypesTitle {
+        font-size: 16px;
+    }
+
+    .inspectionTypesSubtitle {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 479px) {
+    .inspectionTypesHeader {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+    }
+
+    .selectedBadge {
+        top: -6px;
+        right: 12px;
+        font-size: 10px;
+        padding: 3px 10px;
+    }
+}
