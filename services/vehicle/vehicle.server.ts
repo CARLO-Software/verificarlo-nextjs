@@ -3,26 +3,47 @@ import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth';
 import { crearFechaHoraSinConversion, crearFechaSinConversion, sumarMinutos } from '@/app/domain/datetime';
+import { unstable_cache } from 'next/cache';
 
 // ============================================
-// GET - Server-side data fetching
+// GET - Server-side data fetching (CON CACHE)
 // ============================================
 
-/** Obtiene todas las marcas desde el servidor */
-export async function getBrandsServer(): Promise<Brand[]> {
-    const brands = await db.brand.findMany({
-        orderBy: { name: "asc" },
-    });
-    return brands;
-}
+/**
+ * Obtiene todas las marcas desde el servidor
+ * OPTIMIZADO: Cache por 24 horas - las marcas raramente cambian
+ */
+export const getBrandsServer = unstable_cache(
+    async (): Promise<Brand[]> => {
+        const brands = await db.brand.findMany({
+            orderBy: { name: "asc" },
+        });
+        return brands;
+    },
+    ['brands-list'],
+    {
+        revalidate: 86400, // 24 horas en segundos
+        tags: ['brands']
+    }
+);
 
-/** Obtiene todos los tipos de inspección desde el servidor */
-export async function getInspectionsServer(): Promise<Inspection[]> {
-    const inspections = await db.inspection.findMany({
-        include: { items: true },
-    });
-    return inspections as Inspection[];
-}
+/**
+ * Obtiene todos los tipos de inspección desde el servidor
+ * OPTIMIZADO: Cache por 24 horas - los tipos de inspección raramente cambian
+ */
+export const getInspectionsServer = unstable_cache(
+    async (): Promise<Inspection[]> => {
+        const inspections = await db.inspection.findMany({
+            include: { items: true },
+        });
+        return inspections as Inspection[];
+    },
+    ['inspections-list'],
+    {
+        revalidate: 86400, // 24 horas en segundos
+        tags: ['inspections']
+    }
+);
 
 // ============================================
 // POST - Agendar vehículo

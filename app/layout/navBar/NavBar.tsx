@@ -175,11 +175,10 @@ export default function NavBar() {
             Agendar inspeccion
           </Link>
 
-          {status === "loading" ? (
-            <div className={styles["auth-loading"]}>
-              <span className={styles["loading-spinner"]}></span>
-            </div>
-          ) : session ? (
+          {/* OPTIMIZADO: Mostrar botones inmediatamente mientras carga
+              La mayoría de visitantes no están logueados, así que mostramos
+              los botones por defecto. Si hay sesión, cambiará al menú de usuario. */}
+          {session ? (
             <div className={styles["user-menu"]} ref={dropdownRef}>
               <button
                 className={styles["user-button"]}

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
+// OPTIMIZADO: Cache por 24 horas - modelos por marca raramente cambian
+export const revalidate = 86400;
+
 export async function GET(
   req: Request,
   { params }: { params: { brandId: string } }
@@ -29,7 +32,11 @@ export async function GET(
       yearTo: model.year_to,
     }));
 
-    return NextResponse.json(formattedModels);
+    return NextResponse.json(formattedModels, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200',
+      },
+    });
   } catch (error) {
     console.error("Error al obtener modelos:", error);
     return NextResponse.json(

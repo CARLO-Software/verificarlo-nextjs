@@ -7,8 +7,7 @@ import Footer from "./layout/footer/Footer";
 import WhatsappFlotante from "./layout/whatsappFlotante/WhatsappFlotante";
 import PromotionalBanner from "./layout/promotionalBanner/PromotionalBanner";
 import { Providers } from "./providers";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// REMOVED: getServerSession - bloqueaba el render de toda la página
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -48,17 +47,36 @@ export const metadata: Metadata = {
 };
 
 // ===================== ROOTLAYOUT =====================
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  // Obtener sesión del servidor - elimina el estado "loading" inicial
-  const session = await getServerSession(authOptions);
-
+// OPTIMIZADO: Ya no es async - no bloquea el render esperando la sesión
+// La sesión se obtiene en el cliente via SessionProvider (refetch automático)
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <>
-      <html
-        lang="es-PE"
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <body>
+    <html
+      lang="es-PE"
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+      <head>
+        {/* Preconnect para recursos externos */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
+        {/* Preload CSS crítico */}
+        <link
+          rel="preload"
+          as="style"
+          href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
+        />
+
+        {/* Favicon */}
+        <link rel="shortcut icon" href="/assets/images/image0.png" type="image/x-icon" />
+        <link rel="apple-touch-icon" href="/assets/images/image0.png" />
+      </head>
+      <body>
           {/* ================= Google Tag Manager ================= */}
           <Script id="gtm" strategy="afterInteractive">
             {`
@@ -114,30 +132,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </iframe>
           </noscript>
 
-          {/* ================= FONTS DE GOOGLE Y SPLIDE CSS ================= */}
-          <Script id="webfont" strategy="beforeInteractive">
-            {`
-            WebFont.load({
-              google: {
-                families: ["DM Sans:regular,500,600,700,800,900", "Inter:regular,500,600,700,800,900"]
-              }
-            });
-          `}
-          </Script>
-
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-          <link
-            rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css"
-          />
-
-          {/* ================= FAVICON ================= */}
-          <link rel="shortcut icon" href="/assets/images/image0.png" type="image/x-icon" />
-          <link rel="apple-touch-icon" href="/assets/images/image0.png" />
-
           {/* ================= APP CONTENT ================= */}
-          <Providers session={session}>
+          {/* OPTIMIZADO: Providers sin session - se obtiene en cliente */}
+          <Providers>
             {/* Promotional banner */}
             <PromotionalBanner />
 
@@ -152,14 +149,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {/* Botón flotante de WhatsApp */}
             <WhatsappFlotante />
           </Providers>
-          {/* ================= SCRIPTS LOCALES ================= */}
-          {/* <Script src="/script1.js" strategy="afterInteractive" /> */}
-
-          <Script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></Script>
-          {/* <Script src="main.js" type="text/javascript"></Script> */}
+          {/* ================= SCRIPTS EXTERNOS (lazy load) ================= */}
+          <Script
+            src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"
+            strategy="lazyOnload"
+          />
         </body>
-      </html>
-    </>
+    </html>
   );
-
 }

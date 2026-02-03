@@ -1,16 +1,10 @@
-"use client";
+// OPTIMIZADO: Server Component - no bloquea hidratación
+// Las animaciones se manejan con CSS puro (animation-fill-mode: both)
 
 import styles from './Hero.module.css';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 
 export default function Hero() {
-    const [isVisible, setIsVisible] = useState(false);
-
-    useEffect(() => {
-        setIsVisible(true);
-    }, []);
-
     return (
         <header className={styles.heroSection} id="main-content">
             {/* Video Background */}
@@ -28,8 +22,8 @@ export default function Hero() {
                 <div className={styles.videoOverlay}></div>
             </div>
 
-            {/* Hero Content */}
-            <div className={`${styles.heroContainer} ${isVisible ? styles.visible : ''}`}>
+            {/* Hero Content - animación con CSS puro */}
+            <div className={styles.heroContainer}>
                 <div className={styles.heroContent}>
                     {/* Badge */}
                     <div className={styles.heroBadge}>
@@ -43,11 +37,6 @@ export default function Hero() {
                         <span className={styles.headingHighlight}>auto usado?</span>
                         <span className={styles.headingLine2}>Verifícalo primero</span>
                     </h1>
-
-                    {/* Description */}
-                    <p className={styles.heroDescription}>
-                        Revisamos más de <strong>200 puntos</strong> en mecánica, estética y documentación legal para que compres con total confianza.
-                    </p>
 
                     {/* Price Section */}
                     <div className={styles.priceSection}>
@@ -78,31 +67,6 @@ export default function Hero() {
                             </svg>
                             ¿Qué revisamos?
                         </a>
-                    </div>
-
-                    {/* Trust Badges */}
-                    <div className={styles.trustBadges}>
-                        <div className={styles.trustItem}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bright-sun--400)" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                            <span>+200 puntos revisados</span>
-                        </div>
-                        <div className={styles.trustItem}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bright-sun--400)" strokeWidth="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            </svg>
-                            <span>Garantía de servicio</span>
-                        </div>
-                        <div className={styles.trustItem}>
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--bright-sun--400)" strokeWidth="2">
-                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                                <line x1="8" y1="21" x2="16" y2="21"></line>
-                                <line x1="12" y1="17" x2="12" y2="21"></line>
-                            </svg>
-                            <span>Reporte 100% digital</span>
-                        </div>
                     </div>
                 </div>
 
