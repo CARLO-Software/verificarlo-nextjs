@@ -7,7 +7,7 @@ import { BookingStatus } from '@prisma/client';
 // Tipos
 // ============================================
 
-export interface InspectionWithDetails {
+export interface BookingWithDetails {
   id: number;
   code: string;
   status: BookingStatus;
@@ -39,7 +39,7 @@ export interface InspectionWithDetails {
       };
     };
   };
-  inspection: {
+  inspectionPlan: {
     id: number;
     type: string;
     title: string;
@@ -67,7 +67,7 @@ function generateInspectionCode(id: number, createdAt: Date): string {
 // GET - Inspecciones del cliente actual
 // ============================================
 
-export async function getClientInspections(): Promise<InspectionWithDetails[]> {
+export async function getClientInspections(): Promise<BookingWithDetails[]> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -96,7 +96,7 @@ export async function getClientInspections(): Promise<InspectionWithDetails[]> {
           },
         },
       },
-      inspection: {
+      inspectionPlan: {
         select: {
           id: true,
           type: true,
@@ -125,14 +125,14 @@ export async function getClientInspections(): Promise<InspectionWithDetails[]> {
 }
 
 // ============================================
-// GET - Todas las inspecciones (Admin)
+// GET - Todos los bookings (Admin)
 // ============================================
 
-export async function getAllInspections(filters?: {
+export async function getAllBookings(filters?: {
   status?: BookingStatus;
   inspectorId?: number;
   search?: string;
-}): Promise<InspectionWithDetails[]> {
+}): Promise<BookingWithDetails[]> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -177,7 +177,7 @@ export async function getAllInspections(filters?: {
           },
         },
       },
-      inspection: {
+      inspectionPlan: {
         select: {
           id: true,
           type: true,
@@ -236,7 +236,7 @@ export async function getInspectionStats() {
 // GET - Inspección por ID
 // ============================================
 
-export async function getInspectionById(id: number): Promise<InspectionWithDetails | null> {
+export async function getInspectionById(id: number): Promise<BookingWithDetails | null> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -263,7 +263,7 @@ export async function getInspectionById(id: number): Promise<InspectionWithDetai
           },
         },
       },
-      inspection: {
+      inspectionPlan: {
         select: {
           id: true,
           type: true,

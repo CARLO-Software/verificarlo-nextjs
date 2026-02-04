@@ -1,4 +1,4 @@
-import { AgendarVehiculo, Brand, Inspection } from '@/app/vehiculo/types';
+import { AgendarVehiculo, Brand, InspectionPlan } from '@/app/vehiculo/types';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth';
@@ -28,20 +28,20 @@ export const getBrandsServer = unstable_cache(
 );
 
 /**
- * Obtiene todos los tipos de inspección desde el servidor
- * OPTIMIZADO: Cache por 24 horas - los tipos de inspección raramente cambian
+ * Obtiene todos los planes de inspección desde el servidor
+ * OPTIMIZADO: Cache por 24 horas - los planes de inspección raramente cambian
  */
-export const getInspectionsServer = unstable_cache(
-    async (): Promise<Inspection[]> => {
-        const inspections = await db.inspection.findMany({
+export const getInspectionPlansServer = unstable_cache(
+    async (): Promise<InspectionPlan[]> => {
+        const inspectionPlans = await db.inspectionPlan.findMany({
             include: { items: true },
         });
-        return inspections as Inspection[];
+        return inspectionPlans as InspectionPlan[];
     },
-    ['inspections-list'],
+    ['inspection-plans-list'],
     {
         revalidate: 86400, // 24 horas en segundos
-        tags: ['inspections']
+        tags: ['inspection-plans']
     }
 );
 
@@ -57,7 +57,7 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
     }
 
     // Validar campos requeridos (placa es opcional)
-    if (!payload.model || !payload.tipoInspeccion || !payload.year) {
+    if (!payload.model || !payload.inspectionPlanId || !payload.year) {
         throw new Error('Faltan campos requeridos');
     }
 
@@ -104,7 +104,7 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
         data: {
             clientId: userId,
             vehicleId: vehicle.id,
-            inspectionId: payload.tipoInspeccion,
+            inspectionPlanId: payload.inspectionPlanId,
             date: dateOnly,
             timeSlot: payload.horaEstimada,
             startTime: startTime,

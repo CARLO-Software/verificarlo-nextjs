@@ -39,7 +39,7 @@ export interface MonthDayAvailability {
 export interface CreateBookingInput {
   date: string; // YYYY-MM-DD
   timeSlot: string; // HH:mm
-  inspectionId: number;
+  inspectionPlanId: number;
   vehicleId: number;
 }
 
@@ -49,8 +49,8 @@ export interface CreateBookingResponse {
   expiresAt?: Date;
   amount?: number;
   amountInCents?: number;
-  inspectionType?: string;
-  inspectionTitle?: string;
+  inspectionPlanType?: string;
+  inspectionPlanTitle?: string;
   error?: string;
 }
 
@@ -72,7 +72,7 @@ export interface ProcessPaymentResponse {
       name: string;
       phone: string | null;
     } | null;
-    inspection: {
+    inspectionPlan: {
       title: string;
       type: string;
     };
@@ -119,7 +119,7 @@ export interface BookingWithDetails {
     name: string;
     phone: string | null;
   } | null;
-  inspection: {
+  inspectionPlan: {
     id: number;
     title: string;
     type: string;

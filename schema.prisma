@@ -121,28 +121,28 @@ model VerificationToken {
 }
 
 // ============================================
-// CATÁLOGO DE INSPECCIONES
+// CATÁLOGO DE PLANES DE INSPECCIÓN
 // ============================================
 
-model Inspection {
+model InspectionPlan {
   id          Int            @id @default(autoincrement())
   type        InspectionType
   title       String
   description String         @db.Text
   price       Int            // En soles (ej: 150 = S/150.00)
 
-  items     InspectionItem[]
-  bookings  Booking[]
+  items    InspectionPlanItem[]
+  bookings Booking[]
 }
 
-model InspectionItem {
-  id            Int    @id @default(autoincrement())
-  inspection_id Int
-  label         String
+model InspectionPlanItem {
+  id               Int    @id @default(autoincrement())
+  inspectionPlanId Int
+  label            String
 
-  inspection Inspection @relation(fields: [inspection_id], references: [id], onDelete: Cascade)
+  inspectionPlan InspectionPlan @relation(fields: [inspectionPlanId], references: [id], onDelete: Cascade)
 
-  @@index([inspection_id])
+  @@index([inspectionPlanId])
 }
 
 // ============================================
@@ -158,17 +158,17 @@ model Brand {
 }
 
 model Model {
-  id        Int @id @default(autoincrement())
-  brand_id  Int
-  name      String
-  year_from Int
-  year_to   Int
+  id       Int    @id @default(autoincrement())
+  brandId  Int
+  name     String
+  yearFrom Int
+  yearTo   Int
 
-  brand    Brand     @relation(fields: [brand_id], references: [id], onDelete: Cascade)
+  brand    Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
   vehicles Vehicle[]
 
-  @@unique([brand_id, name])
-  @@index([brand_id])
+  @@unique([brandId, name])
+  @@index([brandId])
 }
 
 // Vehículo del cliente (separado para reutilización)
@@ -199,10 +199,10 @@ model Booking {
   id Int @id @default(autoincrement())
 
   // Relaciones principales
-  clientId     Int
-  inspectorId  Int? // Se asigna después del pago
-  inspectionId Int
-  vehicleId    Int
+  clientId         Int
+  inspectorId      Int?  // Se asigna después del pago
+  inspectionPlanId Int
+  vehicleId        Int
 
   // Datos de la cita
   date      DateTime @db.Date // Solo fecha (YYYY-MM-DD)
@@ -231,11 +231,11 @@ model Booking {
   adminNotes     String? @db.Text // Notas del admin
 
   // Relaciones
-  client     User        @relation("ClientBookings", fields: [clientId], references: [id])
-  inspector  User?       @relation("InspectorBookings", fields: [inspectorId], references: [id])
-  inspection Inspection  @relation(fields: [inspectionId], references: [id])
-  vehicle    Vehicle     @relation(fields: [vehicleId], references: [id])
-  payment    Payment?
+  client         User           @relation("ClientBookings", fields: [clientId], references: [id])
+  inspector      User?          @relation("InspectorBookings", fields: [inspectorId], references: [id])
+  inspectionPlan InspectionPlan @relation(fields: [inspectionPlanId], references: [id])
+  vehicle        Vehicle        @relation(fields: [vehicleId], references: [id])
+  payment        Payment?
 
   @@index([clientId])
   @@index([inspectorId])

@@ -9,7 +9,7 @@ import styles from "./IngresarDatosVehiculo.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { agendarVehiculo, getModelsByBrand } from "@/services/vehicle/vehicle.client";
-import { Brand, Model, Inspection } from "./types";
+import { Brand, Model, InspectionPlan } from "./types";
 import { useToast } from "@/app/components/Toast";
 
 // ============================================
@@ -37,7 +37,7 @@ type ModelUI = {
 
 type VehiculoFormProps = {
     initialBrands: Brand[];
-    initialInspections: Inspection[];
+    initialInspectionPlans: InspectionPlan[];
 };
 
 const timeSlots = ["09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00"];
@@ -169,14 +169,14 @@ function LoginRequiredModal({ isOpen, onClose, onLogin, onRegister }: LoginRequi
 // MAIN FORM COMPONENT
 // ============================================
 
-export default function VehiculoForm({ initialBrands, initialInspections }: VehiculoFormProps) {
-    const {showToast} = useToast();
+export default function VehiculoForm({ initialBrands, initialInspectionPlans }: VehiculoFormProps) {
+    const { showToast } = useToast();
     const { data: session } = useSession();
     const router = useRouter();
 
     // State - Data pre-loaded from server (no loading states needed)
     const [brands] = useState<Brand[]>(initialBrands);
-    const [inspectionTypes] = useState<Inspection[]>(initialInspections);
+    const [inspectionTypes] = useState<InspectionPlan[]>(initialInspectionPlans);
 
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [formData, setFormData] = useState<VehicleFormData>({
@@ -272,12 +272,12 @@ export default function VehiculoForm({ initialBrands, initialInspections }: Vehi
             setIsSubmitting(true);
             setError(null);
             await agendarVehiculo({
-                brand_id: formData.brandId, model: formData.model, year: formData.year,
+                brandId: formData.brandId, model: formData.model, year: formData.year,
                 mileage: formData.mileage, plate: formData.placa?.trim() || "",
                 fechaEstimada: formData.fechaEstimada, horaEstimada: formData.horaEstimada,
-                tipoInspeccion: formData.tipoInspeccion,
+                inspectionPlanId: formData.tipoInspeccion,
             });
-            alert("¡Vehículo guardado exitosamente!");
+
             showToast("¡Vehículo guardado exitosamente!", "success");
             // Reset
             setFormData({ year: null, brandId: null, model: null, mileage: null, placa: "", fechaEstimada: "", tipoInspeccion: null, horaEstimada: "" });
@@ -303,8 +303,8 @@ export default function VehiculoForm({ initialBrands, initialInspections }: Vehi
     async function fetchModelsByBrand(brandId: number): Promise<ModelUI[]> {
         const models = await getModelsByBrand(brandId);
         return models.map((m: Model) => ({
-            id: m.id, brandId: m.brand_id, name: m.name,
-            yearFrom: m.year_from, yearTo: m.year_to,
+            id: m.id, brandId: m.brandId, name: m.name,
+            yearFrom: m.yearFrom, yearTo: m.yearTo,
         }));
     }
 
@@ -361,8 +361,8 @@ export default function VehiculoForm({ initialBrands, initialInspections }: Vehi
                     <div className={styles.inspectionTypesHeader}>
                         <div className={styles.inspectionTypesIcon}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2"/>
+                                <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" strokeWidth="2" />
                             </svg>
                         </div>
                         <div>

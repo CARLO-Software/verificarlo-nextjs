@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { vehicles } from "./data/vehicles";
-import { inspections, inspectionsItems } from "./data/inspections";
+import { inspectionPlans, inspectionPlanItems } from "./data/inspections";
 
 const prisma = new PrismaClient();
 
@@ -68,23 +68,23 @@ async function main() {
       const yearFrom = Math.min(...data.years);
       const yearTo = Math.max(...data.years);
 
-      // Upsert usando la constraint única [brand_id, name]
+      // Upsert usando la constraint única [brandId, name]
       await tx.model.upsert({
         where: {
-          brand_id_name: {
-            brand_id: brandId,
+          brandId_name: {
+            brandId: brandId,
             name: data.model,
           },
         },
         update: {
-          year_from: yearFrom,
-          year_to: yearTo,
+          yearFrom: yearFrom,
+          yearTo: yearTo,
         },
         create: {
-          brand_id: brandId,
+          brandId: brandId,
           name: data.model,
-          year_from: yearFrom,
-          year_to: yearTo,
+          yearFrom: yearFrom,
+          yearTo: yearTo,
         },
       });
 
@@ -94,89 +94,110 @@ async function main() {
     console.log(`   ✓ ${modelCount} modelos procesados`);
 
     // ============================================
-    // 3. CREAR INSPECCIONES (Inspections)
+    // 3. CREAR PLANES DE INSPECCIÓN (InspectionPlans)
     // ============================================
-    console.log("📦 Procesando inspecciones...");
+    console.log("📦 Procesando planes de inspección...");
 
-    for (const inspection of inspections) {
-      await tx.inspection.upsert({
-        where: { id: inspection.id },
+    for (const plan of inspectionPlans) {
+      await tx.inspectionPlan.upsert({
+        where: { id: plan.id },
         update: {
-          type: inspection.type,
-          title: inspection.title,
-          description: inspection.description,
-          price: inspection.price,
+          type: plan.type,
+          title: plan.title,
+          description: plan.description,
+          price: plan.price,
         },
         create: {
-          type: inspection.type,
-          title: inspection.title,
-          description: inspection.description,
-          price: inspection.price,
+          type: plan.type,
+          title: plan.title,
+          description: plan.description,
+          price: plan.price,
         },
       });
     }
 
-    console.log(`   ✓ ${inspections.length} inspecciones procesadas`);
+    console.log(`   ✓ ${inspectionPlans.length} planes de inspección procesados`);
 
     // ============================================
-    // 4. CREAR ITEMS DE INSPECCIÓN (InspectionItems)
+    // 4. CREAR ITEMS DE PLANES DE INSPECCIÓN (InspectionPlanItems)
     // ============================================
-    console.log("📦 Procesando items de inspección...");
+    console.log("📦 Procesando items de planes de inspección...");
 
-    // Obtener inspecciones de la DB
-    const inspectionsInDb = await tx.inspection.findMany();
-    const inspectionMap = new Map(inspectionsInDb.map((i) => [i.type, i.id]));
+    // Obtener planes de inspección de la DB
+    const plansInDb = await tx.inspectionPlan.findMany();
+    const planMap = new Map(plansInDb.map((p) => [p.type, p.id]));
 
-    // Mapeo: inspection_id del array -> tipo de inspección
-    const inspectionTypes = ["legal", "basica", "completa"] as const;
+    // Mapeo: inspectionPlanId del array -> tipo de plan
+    const planTypes = ["legal", "basica", "completa"] as const;
 
     // Recopilar todos los items a crear
-    const itemsToCreate: { inspection_id: number; label: string }[] = [];
+    const itemsToCreate: { inspectionPlanId: number; label: string }[] = [];
 
-    for (const ii of inspectionsItems) {
-      const inspectionType = inspectionTypes[ii.inspection_id - 1];
-      const realInspectionId = inspectionMap.get(inspectionType);
+    for (const ii of inspectionPlanItems) {
+      const planType = planTypes[ii.inspectionPlanId - 1];
+      const realPlanId = planMap.get(planType);
 
-      if (!realInspectionId) {
+      if (!realPlanId) {
         console.warn(
-          `   ⚠ Inspección no encontrada para tipo: ${inspectionType}`
+          `   ⚠ Plan de inspección no encontrado para tipo: ${planType}`
         );
         continue;
       }
 
       for (const label of ii.label) {
         itemsToCreate.push({
-          inspection_id: realInspectionId,
+          inspectionPlanId: realPlanId,
           label: label,
         });
       }
     }
 
     // Obtener items existentes para evitar duplicados
-    const existingItems = await tx.inspectionItem.findMany({
-      select: { inspection_id: true, label: true },
+    const existingItems = await tx.inspectionPlanItem.findMany({
+      select: { inspectionPlanId: true, label: true },
     });
 
     const existingSet = new Set(
-      existingItems.map((item) => `${item.inspection_id}-${item.label}`)
+      existingItems.map((item) => `${item.inspectionPlanId}-${item.label}`)
     );
 
     // Filtrar solo los nuevos
     const newItems = itemsToCreate.filter(
-      (item) => !existingSet.has(`${item.inspection_id}-${item.label}`)
+      (item) => !existingSet.has(`${item.inspectionPlanId}-${item.label}`)
     );
 
     // Crear en batch
     if (newItems.length > 0) {
-      await tx.inspectionItem.createMany({
+      await tx.inspectionPlanItem.createMany({
         data: newItems,
         skipDuplicates: true,
       });
     }
 
     console.log(
-      `   ✓ ${newItems.length} items de inspección creados (${existingItems.length} ya existían)`
+      `   ✓ ${newItems.length} items de planes de inspección creados (${existingItems.length} ya existían)`
     );
+
+    // ============================================
+    // 5. CREAR INSPECTOR DE PRUEBA
+    // ============================================
+    console.log("📦 Procesando inspector de prueba...");
+
+    const testInspector = await tx.user.upsert({
+      where: { email: "inspector@verificarlo.pe" },
+      update: {
+        role: "INSPECTOR",
+        isActive: true,
+      },
+      create: {
+        name: "Inspector de Prueba",
+        email: "inspector@verificarlo.pe",
+        role: "INSPECTOR",
+        isActive: true,
+      },
+    });
+
+    console.log(`   ✓ Inspector de prueba creado (ID: ${testInspector.id})`);
   });
 
   console.log("\n✅ Seed completado!");

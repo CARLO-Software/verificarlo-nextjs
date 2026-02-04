@@ -1,4 +1,4 @@
-import { getInspectionsServer, getBrandsServer } from "@/services/vehicle/vehicle.server";
+import { getInspectionPlansServer, getBrandsServer } from "@/services/vehicle/vehicle.server";
 import AgendarForm from "./AgendarForm";
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 export default async function AgendarPage() {
   // Pre-cargar datos del servidor
   const [inspections, brands] = await Promise.all([
-    getInspectionsServer(),
+    getInspectionPlansServer(),
     getBrandsServer(),
   ]);
 

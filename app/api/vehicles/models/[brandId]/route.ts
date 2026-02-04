@@ -19,17 +19,17 @@ export async function GET(
     }
 
     const models = await db.model.findMany({
-      where: { brand_id: brandId },
+      where: { brandId: brandId },
       orderBy: { name: "asc" },
     });
 
-    // Transformar a camelCase para el frontend
+    // Ya está en camelCase desde Prisma
     const formattedModels = models.map((model) => ({
       id: model.id,
       name: model.name,
-      brandId: model.brand_id,
-      yearFrom: model.year_from,
-      yearTo: model.year_to,
+      brandId: model.brandId,
+      yearFrom: model.yearFrom,
+      yearTo: model.yearTo,
     }));
 
     return NextResponse.json(formattedModels, {

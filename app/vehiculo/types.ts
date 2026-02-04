@@ -1,8 +1,8 @@
 export type AgendarVehiculo = {
-    brand_id: number | null;
+    brandId: number | null;
     model: number | null;
     year: number | null;
-    tipoInspeccion: number | null;
+    inspectionPlanId: number | null;
     mileage: number | null;
     plate: string;
     fechaEstimada: string;
@@ -18,24 +18,24 @@ export type Brand = {
 
 export type Model = {
     id: number;
-    brand_id: number;
+    brandId: number;
     name: string;
-    logo: string;
-    year_from: number;
-    year_to: number;
+    logo?: string;
+    yearFrom: number;
+    yearTo: number;
 };
 
-export type InspectionItem = {
+export type InspectionPlanItem = {
     id: number;
-    inspection_id: number;
+    inspectionPlanId: number;
     label: string;
 };
 
-export type Inspection = {
+export type InspectionPlan = {
     id: number;
-    type: "LEGAL" | "BASIC" | "COMPLETE";
+    type: "legal" | "basica" | "completa";
     title: string;
     description: string;
     price: number;
-    items?: InspectionItem[];
+    items?: InspectionPlanItem[];
 };

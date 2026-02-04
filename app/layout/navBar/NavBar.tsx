@@ -1,15 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import styles from "./NavBar.module.css";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Solo aplicar el tema transparente (texto blanco) en la página principal
+  const isHeroPage = pathname === "/";
 
   //*Hace referencia a un elemento del DOM
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -86,7 +91,7 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""}`}
+      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""}`}
       role="navigation"
       aria-label="Navegacion principal"
     >

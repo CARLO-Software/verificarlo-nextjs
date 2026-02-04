@@ -1,18 +1,18 @@
 /**
  * VehiculoPage - Server Component
- * Pre-loads brands and inspections on the server for instant rendering
+ * Pre-loads brands and inspection plans on the server for instant rendering
  */
 
-import { getBrandsServer, getInspectionsServer } from "@/services/vehicle/vehicle.server";
+import { getBrandsServer, getInspectionPlansServer } from "@/services/vehicle/vehicle.server";
 import VehiculoForm from "./VehiculoForm";
 
 export default async function VehiculoPage() {
     // Fetch data in parallel on the server
-    const [brands, inspections] = await Promise.all([
+    const [brands, inspectionPlans] = await Promise.all([
         getBrandsServer(),
-        getInspectionsServer()
+        getInspectionPlansServer()
     ]);
 
     // Pass pre-loaded data to client component
-    return <VehiculoForm initialBrands={brands} initialInspections={inspections} />;
+    return <VehiculoForm initialBrands={brands} initialInspectionPlans={inspectionPlans} />;
 }

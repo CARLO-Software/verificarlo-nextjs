@@ -6,21 +6,21 @@ export const revalidate = 86400;
 
 export async function GET() {
   try {
-    const inspections = await db.inspection.findMany({
+    const inspectionPlans = await db.inspectionPlan.findMany({
       include: {
         items: true,
       },
     });
 
-    return NextResponse.json(inspections, {
+    return NextResponse.json(inspectionPlans, {
       headers: {
         'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=43200',
       },
     });
   } catch (error) {
-    console.error("Error al obtener inspecciones:", error);
+    console.error("Error al obtener planes de inspección:", error);
     return NextResponse.json(
-      { message: "Error al obtener inspecciones" },
+      { message: "Error al obtener planes de inspección" },
       { status: 500 }
     );
   }

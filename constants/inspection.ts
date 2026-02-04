@@ -1,7 +1,7 @@
-export const INSPECTION = {
+export const INSPECTION_PLAN = {
     legal: "legal",
     basica: "basica",
     completa: "completa",
 } as const
 
-export type Inspection = typeof INSPECTION[keyof typeof INSPECTION] 
+export type InspectionPlanType = typeof INSPECTION_PLAN[keyof typeof INSPECTION_PLAN] 

@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
         );
       }
 
+      //Separar año y mes por el guión
       const [year, monthNum] = month.split("-").map(Number);
 
       // Validar rango del mes

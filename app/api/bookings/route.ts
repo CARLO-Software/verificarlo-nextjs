@@ -29,12 +29,12 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { date, timeSlot, inspectionId, vehicleId } = body;
+  const { date, timeSlot, inspectionPlanId, vehicleId } = body;
 
   // Validaciones básicas
-  if (!date || !timeSlot || !inspectionId || !vehicleId) {
+  if (!date || !timeSlot || !inspectionPlanId || !vehicleId) {
     return NextResponse.json(
-      { error: "Faltan campos requeridos: date, timeSlot, inspectionId, vehicleId" },
+      { error: "Faltan campos requeridos: date, timeSlot, inspectionPlanId, vehicleId" },
       { status: 400 }
     );
   }
@@ -50,14 +50,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar que la inspección existe
-    const inspection = await db.inspection.findUnique({
-      where: { id: inspectionId },
+    // Verificar que el plan de inspección existe
+    const inspectionPlan = await db.inspectionPlan.findUnique({
+      where: { id: inspectionPlanId },
     });
 
-    if (!inspection) {
+    if (!inspectionPlan) {
       return NextResponse.json(
-        { error: "Tipo de inspección no válido" },
+        { error: "Plan de inspección no válido" },
         { status: 400 }
       );
     }
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       const newBooking = await tx.booking.create({
         data: {
           clientId: parseInt(session.user.id),
-          inspectionId,
+          inspectionPlanId,
           vehicleId,
           date: new Date(date),
           timeSlot,
@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
       await tx.payment.create({
         data: {
           bookingId: newBooking.id,
-          amount: inspection.price * 100, // Convertir a céntimos para Culqi
+          amount: inspectionPlan.price * 100, // Convertir a céntimos para Culqi
           status: "PENDING",
         },
       });
@@ -131,10 +131,10 @@ export async function POST(req: NextRequest) {
       success: true,
       bookingId: booking.id,
       expiresAt,
-      amount: inspection.price,
-      amountInCents: inspection.price * 100,
-      inspectionType: inspection.type,
-      inspectionTitle: inspection.title,
+      amount: inspectionPlan.price,
+      amountInCents: inspectionPlan.price * 100,
+      inspectionPlanType: inspectionPlan.type,
+      inspectionPlanTitle: inspectionPlan.title,
     });
   } catch (error) {
     console.error("Error creando reserva:", error);
@@ -169,7 +169,7 @@ export async function GET(req: NextRequest) {
         ...(status && { status: status as any }),
       },
       include: {
-        inspection: {
+        inspectionPlan: {
           select: { title: true, type: true, price: true },
         },
         vehicle: {

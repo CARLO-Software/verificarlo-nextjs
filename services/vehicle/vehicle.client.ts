@@ -1,4 +1,4 @@
-import { AgendarVehiculo, Brand, Model, Inspection } from "@/app/vehiculo/types";
+import { AgendarVehiculo, Brand, Model, InspectionPlan } from "@/app/vehiculo/types";
 
 // ============================================
 // GET - Obtener marcas
@@ -27,13 +27,13 @@ export async function getModelsByBrand(brandId: number): Promise<Model[]> {
 }
 
 // ============================================
-// GET - Obtener tipos de inspección
+// GET - Obtener planes de inspección
 // ============================================
-export async function getInspections(): Promise<Inspection[]> {
+export async function getInspectionPlans(): Promise<InspectionPlan[]> {
     const res = await fetch("/api/vehicles/inspections");
 
     if (!res.ok) {
-        throw new Error("Error al obtener inspecciones");
+        throw new Error("Error al obtener planes de inspección");
     }
 
     return res.json();

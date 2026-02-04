@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import styles from "./Agendar.module.css";
@@ -191,7 +191,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
 
   const canProceedToPayment = selectedDate !== null && selectedSlot !== null;
 
-  // Crear reserva y proceder al pago
+  //* Crear reserva y proceder al pago
   const handleProceedToPayment = async () => {
     if (!canProceedToPayment || !selectedInspection) return;
 
@@ -216,6 +216,11 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
       if (!vehicleRes.ok) {
         throw new Error(vehicleResult.error || "Error creando vehículo");
       }
+      console.log("ANTES DE CREAR LA RESERVA:");
+      console.log("date: " + selectedDate);
+      console.log("timeSlot:" + selectedSlot);
+      console.log("inspectionId:" + selectedInspection.id);
+      console.log("vehicleId: " + vehicleResult.id);
 
       // Crear la reserva
       const bookingRes = await fetch("/api/bookings", {
@@ -224,7 +229,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
         body: JSON.stringify({
           date: selectedDate,
           timeSlot: selectedSlot,
-          inspectionId: selectedInspection.id,
+          inspectionPlanId: selectedInspection.id,
           vehicleId: vehicleResult.id,
         }),
       });
@@ -266,6 +271,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
   // Navegación entre pasos
   const goToStep = (step: BookingStep) => {
     setError(null);
+    //*Esto es crucial para pasar a la siguiente ventana
     setCurrentStep(step);
   };
 
@@ -342,14 +348,12 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
                 <div
                   key={inspection.id}
                   onClick={() => handleInspectionSelect(inspection)}
-                  className={`${styles.inspectionCard} ${
-                    selectedInspection?.id === inspection.id ? styles.inspectionCardSelected : ""
-                  }`}
+                  className={`${styles.inspectionCard} ${selectedInspection?.id === inspection.id ? styles.inspectionCardSelected : ""
+                    }`}
                 >
                   <div className={styles.inspectionRadio}>
-                    <div className={`${styles.radioCircle} ${
-                      selectedInspection?.id === inspection.id ? styles.radioCircleSelected : ""
-                    }`}>
+                    <div className={`${styles.radioCircle} ${selectedInspection?.id === inspection.id ? styles.radioCircleSelected : ""
+                      }`}>
                       {selectedInspection?.id === inspection.id && (
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
                           <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -555,6 +559,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
             <h2 className={styles.stepTitle}>Selecciona fecha y hora</h2>
 
             <div className={styles.dateTimeGrid}>
+              {/**La fecha seleccionada en el handleDateSelect se asigna a selectedDate desde el hijo (BookingCalendar) => esa funcion y valor obtenido de esa funcion se van al BookingCalendar */}
               <BookingCalendar
                 onDateSelect={handleDateSelect}
                 selectedDate={selectedDate}

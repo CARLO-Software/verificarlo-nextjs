@@ -7,7 +7,6 @@ import { register } from "@/services/auth/auth.client";
 import Link from 'next/link';
 import { GoogleButton } from "@/app/components/GoogleButton";
 import { useToast } from "@/app/components/Toast";
-import { PrismaClient } from "@prisma/client";
 
 // ============================================
 // TYPES - Define the shape of our form data
@@ -163,10 +162,10 @@ export default function Register() {
                     return "Ingresa un correo electrónico válido";
                 }
 
-                const prisma = new PrismaClient(); 
-                const existingUser = await prisma.user.findUnique({
-                    where: {value},
-                });
+                // const prisma = new PrismaClient(); 
+                // const existingUser = await prisma.user.findUnique({
+                //     where: {value},
+                // });
 
                 return "";
 

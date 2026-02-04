@@ -1,6 +1,6 @@
 import { Slider } from "@/utils/Slider";
 import styles from './ServicesSection.module.css';
-import { inspections, inspectionsItems } from "@/prisma/data/inspections";
+import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
 
 export default function ServicesSection() {
 
@@ -17,12 +17,12 @@ export default function ServicesSection() {
                         <div className="splide__track" style={{ paddingLeft: "20px", paddingRight: "20px" }}>
                             <ul className="splide__list" style={{ alignItems: "center" }}>
 
-                                {inspections.map((inspection, inspectionIndex) => {
+                                {inspectionPlans.map((inspection, inspectionIndex) => {
                                     // Obtener los labels correspondientes a esta inspección
-                                    const itemsForInspection = inspectionsItems.find(
-                                        ii => ii.inspection_id === inspectionIndex + 1
+                                    const itemsForInspection = inspectionPlanItems.find(
+                                        ii => ii.inspectionPlanId === inspectionIndex + 1
                                     );
-
+                                    
                                     return (
                                         <li key={inspection.type} className="splide__slide">
                                             <article className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]}`}>

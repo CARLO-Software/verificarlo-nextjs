@@ -99,9 +99,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Verificar que el año esté en el rango del modelo
-    if (year < model.year_from || year > model.year_to) {
+    if (year < model.yearFrom || year > model.yearTo) {
       return NextResponse.json(
-        { error: `El año debe estar entre ${model.year_from} y ${model.year_to}` },
+        { error: `El año debe estar entre ${model.yearFrom} y ${model.yearTo}` },
         { status: 400 }
       );
     }

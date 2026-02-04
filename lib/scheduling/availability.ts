@@ -351,6 +351,7 @@ export async function isSlotAvailable(
   }
 
   // Verificar capacidad
+  //Numero de reservas ya hechas para ese horario especifico (ej: 09:00)
   const existingCount = await db.booking.count({
     where: {
       date: startOfDay(date),
@@ -360,8 +361,21 @@ export async function isSlotAvailable(
       },
     },
   });
-
+  //Numero de inspectores activos (capacidad maxima por slot)
   const activeInspectors = await getActiveInspectorsCount();
+  /**
+   * La lógica es:
+  ┌──────────────────────────┬──────────────────┬─────────────────────┐
+  │ existingCount (reservas) │ activeInspectors │    ¿Disponible?     │
+  ├──────────────────────────┼──────────────────┼─────────────────────┤
+  │ 0                        │ 2                │ Sí (quedan 2 cupos) │
+  ├──────────────────────────┼──────────────────┼─────────────────────┤
+  │ 1                        │ 2                │ Sí (queda 1 cupo)   │
+  ├──────────────────────────┼──────────────────┼─────────────────────┤
+  │ 2                        │ 2                │ No (lleno)          │
+  └──────────────────────────┴──────────────────┴─────────────────────┘
+   */
+
 
   if (existingCount >= activeInspectors) {
     return { available: false, reason: "Este horario ya no está disponible" };

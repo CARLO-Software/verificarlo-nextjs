@@ -26,59 +26,68 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Cambiar colores de texto cuando es transparente */
-.navbar:not(.navbarScrolled) .navbar-text {
+/* Estado para páginas que NO son el Hero (texto negro por defecto) */
+.navbarSolid {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Cambiar colores de texto cuando es transparente (solo en Hero, sin scroll ni solid) */
+.navbar:not(.navbarScrolled):not(.navbarSolid) .navbar-text {
   color: var(--basics--white);
 }
 
-.navbar:not(.navbarScrolled) .icon {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .icon {
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-.navbar:not(.navbarScrolled) .icon img {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .icon img {
   filter: brightness(0) invert(1);
 }
 
-.navbar:not(.navbarScrolled) .hamburger-line {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .hamburger-line {
   background-color: var(--basics--white);
 }
 
-.navbar:not(.navbarScrolled) .login-button {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .login-button {
   color: var(--basics--white);
   border-color: rgba(255, 255, 255, 0.5);
 }
 
-.navbar:not(.navbarScrolled) .login-button:hover {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .login-button:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Logo en modo transparente */
-.navbar:not(.navbarScrolled) .div-block img {
+/* Logo en modo transparente (solo en Hero) */
+.navbar:not(.navbarScrolled):not(.navbarSolid) .div-block img {
   filter: brightness(0) invert(1);
   transition: filter 0.4s ease;
 }
 
-.navbarScrolled .div-block img {
+.navbarScrolled .div-block img,
+.navbarSolid .div-block img {
   filter: none;
   transition: filter 0.4s ease;
 }
 
-/* User button en modo transparente */
-.navbar:not(.navbarScrolled) .user-button {
+/* User button en modo transparente (solo en Hero) */
+.navbar:not(.navbarScrolled):not(.navbarSolid) .user-button {
   border-color: rgba(255, 255, 255, 0.4);
   color: var(--basics--white);
 }
 
-.navbar:not(.navbarScrolled) .user-avatar {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .user-avatar {
   background: rgba(255, 255, 255, 0.2);
   color: var(--basics--white);
 }
 
-.navbar:not(.navbarScrolled) .user-name {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .user-name {
   color: var(--basics--white);
 }
 
-.navbar:not(.navbarScrolled) .dropdown-arrow {
+.navbar:not(.navbarScrolled):not(.navbarSolid) .dropdown-arrow {
   color: var(--basics--white);
 }
 .buenas{
