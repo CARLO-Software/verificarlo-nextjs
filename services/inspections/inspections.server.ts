@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { BookingStatus } from '@prisma/client';
+import { BookingStatus, InspectionResultStatus } from '@prisma/client';
 
 // ============================================
 // Tipos
@@ -14,6 +14,7 @@ export interface BookingWithDetails {
   date: Date;
   startTime: Date;
   timeSlot: string;
+  expiresAt: Date | null;
   createdAt: Date;
   clientNotes: string | null;
   inspectorNotes: string | null;
@@ -50,6 +51,28 @@ export interface BookingWithDetails {
     name: string;
     email: string;
     image: string | null;
+  } | null;
+  payment: {
+    id: number;
+    status: string;
+    amount: number;
+    paidAt: Date | null;
+    receiptNumber: string | null;
+  } | null;
+  report: {
+    id: number;
+    legalStatus: InspectionResultStatus;
+    legalScore: number | null;
+    mechanicalStatus: InspectionResultStatus;
+    mechanicalScore: number | null;
+    bodyStatus: InspectionResultStatus;
+    bodyScore: number | null;
+    overallScore: number | null;
+    overallStatus: InspectionResultStatus;
+    executiveSummary: string | null;
+    recommendations: string | null;
+    completedAt: Date | null;
+    pdfUrl: string | null;
   } | null;
 }
 
@@ -277,6 +300,32 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           name: true,
           email: true,
           image: true,
+        },
+      },
+      payment: {
+        select: {
+          id: true,
+          status: true,
+          amount: true,
+          paidAt: true,
+          receiptNumber: true,
+        },
+      },
+      report: {
+        select: {
+          id: true,
+          legalStatus: true,
+          legalScore: true,
+          mechanicalStatus: true,
+          mechanicalScore: true,
+          bodyStatus: true,
+          bodyScore: true,
+          overallScore: true,
+          overallStatus: true,
+          executiveSummary: true,
+          recommendations: true,
+          completedAt: true,
+          pdfUrl: true,
         },
       },
     },

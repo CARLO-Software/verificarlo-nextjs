@@ -45,6 +45,13 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum InspectionResultStatus {
+  PENDING   // Aún no evaluado
+  OK        // Aprobado sin observaciones
+  WARNING   // Aprobado con observaciones menores
+  CRITICAL  // No aprobado - Requiere atención
+}
+
 // ============================================
 // AUTENTICACIÓN (NextAuth)
 // ============================================
@@ -231,11 +238,12 @@ model Booking {
   adminNotes     String? @db.Text // Notas del admin
 
   // Relaciones
-  client         User           @relation("ClientBookings", fields: [clientId], references: [id])
-  inspector      User?          @relation("InspectorBookings", fields: [inspectorId], references: [id])
-  inspectionPlan InspectionPlan @relation(fields: [inspectionPlanId], references: [id])
-  vehicle        Vehicle        @relation(fields: [vehicleId], references: [id])
+  client         User              @relation("ClientBookings", fields: [clientId], references: [id])
+  inspector      User?             @relation("InspectorBookings", fields: [inspectorId], references: [id])
+  inspectionPlan InspectionPlan    @relation(fields: [inspectionPlanId], references: [id])
+  vehicle        Vehicle           @relation(fields: [vehicleId], references: [id])
   payment        Payment?
+  report         InspectionReport? // Informe de la inspección (solo si está COMPLETED)
 
   @@index([clientId])
   @@index([inspectorId])
@@ -283,6 +291,156 @@ model Payment {
 
   @@index([culqiChargeId])
   @@index([status])
+}
+
+// ============================================
+// INFORME DE INSPECCIÓN
+// ============================================
+
+model InspectionReport {
+  id        Int @id @default(autoincrement())
+  bookingId Int @unique
+
+  // ============================================
+  // RESULTADOS POR CATEGORÍA
+  // ============================================
+
+  // Revisión Legal
+  legalStatus       InspectionResultStatus @default(PENDING)
+  legalScore        Int?                   // Puntaje 0-100
+  legalObservations Json?                  // Array de observaciones detalladas
+  // Estructura: [{ item: "Siniestros", status: "OK", note: "Sin registros" }, ...]
+
+  // Revisión Mecánica
+  mechanicalStatus       InspectionResultStatus @default(PENDING)
+  mechanicalScore        Int?                   // Puntaje 0-100
+  mechanicalObservations Json?                  // Array de observaciones
+  // Estructura: [{ category: "Motor", item: "Aceite", status: "WARNING", note: "Nivel bajo" }, ...]
+
+  // Revisión de Carrocería
+  bodyStatus       InspectionResultStatus @default(PENDING)
+  bodyScore        Int?                   // Puntaje 0-100
+  bodyObservations Json?                  // Array de observaciones
+  // Estructura: [{ area: "Puerta delantera izquierda", issue: "Rayón leve", severity: "minor" }, ...]
+
+  // ============================================
+  // DATOS ADICIONALES DEL VEHÍCULO
+  // ============================================
+
+  // Kilometraje registrado en inspección
+  mileageAtInspection Int?
+
+  // VIN/Número de chasis (verificado)
+  vinNumber String? @db.VarChar(17)
+
+  // Número de motor
+  engineNumber String?
+
+  // Color real del vehículo
+  actualColor String?
+
+  // ============================================
+  // RESUMEN Y RECOMENDACIONES
+  // ============================================
+
+  // Puntaje general (promedio ponderado)
+  overallScore Int? // 0-100
+
+  // Resultado final
+  overallStatus InspectionResultStatus @default(PENDING)
+
+  // Resumen ejecutivo (texto libre)
+  executiveSummary String? @db.Text
+
+  // Recomendaciones del inspector
+  recommendations String? @db.Text
+
+  // Presupuesto estimado de reparaciones (en soles)
+  estimatedRepairCost Decimal? @db.Decimal(10, 2)
+
+  // ============================================
+  // VERIFICACIÓN DE DOCUMENTOS
+  // ============================================
+
+  // Tarjeta de propiedad verificada
+  ownershipCardVerified Boolean @default(false)
+
+  // SOAT vigente
+  soatValid Boolean @default(false)
+  soatExpiryDate DateTime? @db.Date
+
+  // Revisión técnica vigente
+  technicalReviewValid Boolean @default(false)
+  technicalReviewExpiryDate DateTime? @db.Date
+
+  // ============================================
+  // METADATA
+  // ============================================
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  completedAt DateTime? // Cuando el inspector finalizó el informe
+
+  // Firma digital del inspector (hash o URL)
+  inspectorSignature String?
+
+  // PDF generado
+  pdfUrl    String?
+  pdfHash   String? // Para verificar integridad
+
+  // Relaciones
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  photos  InspectionPhoto[]
+
+  @@index([bookingId])
+  @@index([overallStatus])
+}
+
+// ============================================
+// FOTOS DE INSPECCIÓN
+// ============================================
+
+model InspectionPhoto {
+  id         Int @id @default(autoincrement())
+  reportId   Int
+
+  // URL de la imagen (en Cloudinary, S3, etc.)
+  url        String
+  thumbnailUrl String?
+
+  // Categoría de la foto
+  category   PhotoCategory
+
+  // Descripción/etiqueta
+  label      String?  // "Puerta delantera izquierda", "Motor - vista general", etc.
+
+  // Orden de visualización
+  sortOrder  Int      @default(0)
+
+  // Metadata
+  createdAt  DateTime @default(now())
+
+  // Relación
+  report InspectionReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+  @@index([category])
+}
+
+enum PhotoCategory {
+  EXTERIOR_FRONT      // Frente del vehículo
+  EXTERIOR_BACK       // Parte trasera
+  EXTERIOR_LEFT       // Lado izquierdo
+  EXTERIOR_RIGHT      // Lado derecho
+  INTERIOR_DASHBOARD  // Tablero/odómetro
+  INTERIOR_SEATS      // Asientos
+  INTERIOR_TRUNK      // Maletero
+  ENGINE              // Motor
+  TIRES               // Llantas
+  DOCUMENTS           // Documentos (tarjeta, SOAT, etc.)
+  DAMAGE              // Daños encontrados
+  OTHER               // Otros
 }
 
 // ============================================

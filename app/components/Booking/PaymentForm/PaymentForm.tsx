@@ -97,15 +97,21 @@ export default function PaymentForm({
     return `${hour12}:${minutes} ${ampm}`;
   };
 
-  // Configurar Culqi cuando el script carga
+  //! Configurar Culqi cuando el script carga // ESENCIAL
+  //Cada vez que los valores de la interface bookingDetails se alteran se ejecuta ese metodo
+  //* UseCallBack recuerda, mas no reacciona
+  //Eso es diferente a lo que se estaba pensando porque al ser useEffect se estaría ejecutando todo de nuevo despues de que se genere ese estado
   const handleCulqiLoad = useCallback(() => {
     if (typeof window !== "undefined" && window.Culqi) {
       window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
+      //* Con el open window.culqi.open() lo que hace es leer el settings y el options
+      //Esto le va a llegar al cliente para que pueda ingresar su numero de tarjeta, cuanto es lo que debe de pagar
+      
       window.Culqi.settings({
         title: "VerifiCARLO",
         currency: "PEN",
         description: `Inspección ${bookingDetails.inspectionType}`,
-        amount: bookingDetails.amount * 100, // En céntimos
+        amount: bookingDetails.amount * 100, //! En céntimos
       });
       window.Culqi.options({
         lang: "es",
@@ -117,9 +123,12 @@ export default function PaymentForm({
           buttonTextHover: "#1A1A1A",
         },
       });
+
       setCulqiReady(true);
+      //* Cuando el usuario llena los datos de la tarjeta se genera un token que se va a enviar al servidor de Culqi para proceder con el pago
     }
   }, [bookingDetails]);
+
 
   // Handler global de Culqi
   useEffect(() => {
@@ -156,8 +165,11 @@ export default function PaymentForm({
     };
   }, [bookingId, onSuccess]);
 
+  //window.Culqi espera a que Culqi haya cargado en el navegador, sino será undefined
   const handleOpenCulqi = () => {
     if (window.Culqi && culqiReady) {
+      //Este es el corazón de Culqi
+      //Culqi crea un modal (dialog)
       window.Culqi.open();
     }
   };
@@ -167,17 +179,27 @@ export default function PaymentForm({
 
   return (
     <>
-      <Script
-        src="https://checkout.culqi.com/js/v4"
-        onLoad={handleCulqiLoad}
-      />
+      <Script src="https://checkout.culqi.com/js/v4" onLoad={handleCulqiLoad} />
 
       <div className={styles.container}>
         {/* Timer */}
-        <div className={`${styles.timer} ${isUrgent ? styles.timerUrgent : ""}`}>
+        <div
+          className={`${styles.timer} ${isUrgent ? styles.timerUrgent : ""}`}
+        >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-            <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle
+              cx="10"
+              cy="10"
+              r="8"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+            <path
+              d="M10 6v4l3 3"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
           </svg>
           <span>
             {isExpired
@@ -190,8 +212,19 @@ export default function PaymentForm({
         {error && (
           <div className={styles.error}>
             <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-              <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <circle
+                cx="10"
+                cy="10"
+                r="8"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+              <path
+                d="M10 6v5M10 13.5v.5"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
             <span>{error}</span>
           </div>
@@ -203,36 +236,47 @@ export default function PaymentForm({
 
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Inspección</span>
-            <span className={styles.summaryValue}>{bookingDetails.inspectionTitle}</span>
+            <span className={styles.summaryValue}>
+              {bookingDetails.inspectionTitle}
+            </span>
           </div>
 
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Vehículo</span>
             <span className={styles.summaryValue}>
-              {bookingDetails.vehicleBrand} {bookingDetails.vehicleModel} {bookingDetails.vehicleYear}
+              {bookingDetails.vehicleBrand} {bookingDetails.vehicleModel}{" "}
+              {bookingDetails.vehicleYear}
             </span>
           </div>
 
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Placa</span>
-            <span className={styles.summaryValue}>{bookingDetails.vehiclePlate}</span>
+            <span className={styles.summaryValue}>
+              {bookingDetails.vehiclePlate}
+            </span>
           </div>
 
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Fecha</span>
-            <span className={styles.summaryValue}>{formatDate(bookingDetails.date)}</span>
+            <span className={styles.summaryValue}>
+              {formatDate(bookingDetails.date)}
+            </span>
           </div>
 
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Hora</span>
-            <span className={styles.summaryValue}>{formatTimeSlot(bookingDetails.timeSlot)}</span>
+            <span className={styles.summaryValue}>
+              {formatTimeSlot(bookingDetails.timeSlot)}
+            </span>
           </div>
 
           <div className={styles.divider} />
 
           <div className={`${styles.summaryItem} ${styles.total}`}>
             <span className={styles.summaryLabel}>Total a pagar</span>
-            <span className={styles.summaryValue}>S/ {bookingDetails.amount.toFixed(2)}</span>
+            <span className={styles.summaryValue}>
+              S/ {bookingDetails.amount.toFixed(2)}
+            </span>
           </div>
         </div>
 
@@ -269,7 +313,15 @@ export default function PaymentForm({
             ) : (
               <>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <rect
+                    x="2"
+                    y="5"
+                    width="16"
+                    height="10"
+                    rx="2"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  />
                   <path d="M2 9h16" stroke="currentColor" strokeWidth="2" />
                 </svg>
                 Pagar S/ {bookingDetails.amount.toFixed(2)}
@@ -281,8 +333,21 @@ export default function PaymentForm({
         {/* Seguridad */}
         <p className={styles.securityNote}>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            <rect
+              x="3"
+              y="7"
+              width="10"
+              height="7"
+              rx="2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path
+              d="M5 7V5a3 3 0 016 0v2"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           </svg>
           Pago seguro procesado por Culqi
         </p>

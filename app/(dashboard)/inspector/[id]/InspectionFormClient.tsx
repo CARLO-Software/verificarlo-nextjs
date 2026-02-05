@@ -1,0 +1,1092 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import styles from "./InspectionForm.module.css";
+
+type ResultStatus = "PENDING" | "OK" | "WARNING" | "CRITICAL";
+
+interface Photo {
+  id: number;
+  url: string;
+  thumbnailUrl: string | null;
+  category: string;
+  label: string | null;
+}
+
+interface Report {
+  id: number;
+  legalStatus: ResultStatus;
+  legalScore: number | null;
+  legalObservations: any;
+  mechanicalStatus: ResultStatus;
+  mechanicalScore: number | null;
+  mechanicalObservations: any;
+  bodyStatus: ResultStatus;
+  bodyScore: number | null;
+  bodyObservations: any;
+  mileageAtInspection: number | null;
+  vinNumber: string | null;
+  engineNumber: string | null;
+  actualColor: string | null;
+  ownershipCardVerified: boolean;
+  soatValid: boolean;
+  soatExpiryDate: string | null;
+  technicalReviewValid: boolean;
+  technicalReviewExpiryDate: string | null;
+  executiveSummary: string | null;
+  recommendations: string | null;
+  estimatedRepairCost: number | null;
+  overallScore: number | null;
+  overallStatus: ResultStatus;
+  completedAt: string | null;
+  photos: Photo[];
+}
+
+interface InspectionData {
+  id: number;
+  code: string;
+  status: string;
+  date: string;
+  timeSlot: string;
+  client: {
+    id: number;
+    name: string;
+    phone: string | null;
+    email: string;
+  };
+  vehicle: {
+    brand: string;
+    model: string;
+    year: number;
+    plate: string | null;
+    mileage: number | null;
+  };
+  inspectionPlan: {
+    id: number;
+    type: string;
+    title: string;
+    items: string[];
+  };
+  report: Report | null;
+}
+
+interface InspectionFormClientProps {
+  inspection: InspectionData;
+}
+
+type Section = "info" | "legal" | "mechanical" | "body" | "summary";
+
+export function InspectionFormClient({ inspection }: InspectionFormClientProps) {
+  const router = useRouter();
+  const [activeSection, setActiveSection] = useState<Section>("info");
+  const [report, setReport] = useState<Report | null>(inspection.report);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isCompleted = report?.completedAt !== null;
+
+  // Crear informe si no existe
+  useEffect(() => {
+    if (!report && !isCompleted) {
+      createReport();
+    }
+  }, []);
+
+  const createReport = async () => {
+    try {
+      const res = await fetch(`/api/bookings/${inspection.id}/report`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReport({
+          ...data.report,
+          photos: [],
+        });
+      }
+    } catch (err) {
+      setError("Error al crear el informe");
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("es-PE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const sections: { id: Section; label: string; icon: JSX.Element }[] = [
+    {
+      id: "info",
+      label: "Información",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+          <path d="M10 9v4M10 7v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: "legal",
+      label: "Legal",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="currentColor" strokeWidth="2" />
+          <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      ),
+    },
+    {
+      id: "mechanical",
+      label: "Mecánica",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M10 6v8M6 10h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      ),
+    },
+    {
+      id: "body",
+      label: "Carrocería",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="3" y="6" width="14" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
+          <circle cx="6" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <circle cx="14" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      ),
+    },
+    {
+      id: "summary",
+      label: "Resumen",
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M7 10l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+        </svg>
+      ),
+    },
+  ];
+
+  const getSectionStatus = (section: Section): "pending" | "complete" | "active" => {
+    if (activeSection === section) return "active";
+    if (!report) return "pending";
+
+    switch (section) {
+      case "info":
+        return report.mileageAtInspection ? "complete" : "pending";
+      case "legal":
+        return report.legalStatus !== "PENDING" ? "complete" : "pending";
+      case "mechanical":
+        return report.mechanicalStatus !== "PENDING" ? "complete" : "pending";
+      case "body":
+        return report.bodyStatus !== "PENDING" ? "complete" : "pending";
+      case "summary":
+        return report.executiveSummary ? "complete" : "pending";
+      default:
+        return "pending";
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <Link href="/inspector" className={styles.backLink}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Volver
+        </Link>
+        <div className={styles.headerInfo}>
+          <h1 className={styles.headerTitle}>{inspection.code}</h1>
+          <p className={styles.headerSubtitle}>
+            {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
+            {inspection.vehicle.plate && ` • ${inspection.vehicle.plate}`}
+          </p>
+        </div>
+        {isCompleted && (
+          <span className={styles.completedBadge}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Completado
+          </span>
+        )}
+      </header>
+
+      {/* Navigation */}
+      <nav className={styles.nav}>
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            onClick={() => setActiveSection(section.id)}
+            className={`${styles.navItem} ${styles[`navItem--${getSectionStatus(section.id)}`]}`}
+          >
+            {section.icon}
+            <span>{section.label}</span>
+            {getSectionStatus(section.id) === "complete" && (
+              <svg className={styles.navCheck} width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+        ))}
+      </nav>
+
+      {/* Error */}
+      {error && (
+        <div className={styles.error}>
+          <span>{error}</span>
+          <button onClick={() => setError(null)}>×</button>
+        </div>
+      )}
+
+      {/* Content */}
+      <div className={styles.content}>
+        {activeSection === "info" && (
+          <InfoSection
+            inspection={inspection}
+            report={report}
+            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
+            disabled={isCompleted}
+          />
+        )}
+        {activeSection === "legal" && report && (
+          <LegalSection
+            reportId={report.id}
+            data={{
+              status: report.legalStatus,
+              score: report.legalScore,
+              observations: report.legalObservations || [],
+              ownershipCardVerified: report.ownershipCardVerified,
+              soatValid: report.soatValid,
+              soatExpiryDate: report.soatExpiryDate,
+              technicalReviewValid: report.technicalReviewValid,
+              technicalReviewExpiryDate: report.technicalReviewExpiryDate,
+            }}
+            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
+            disabled={isCompleted}
+          />
+        )}
+        {activeSection === "mechanical" && report && (
+          <MechanicalSection
+            reportId={report.id}
+            data={{
+              status: report.mechanicalStatus,
+              score: report.mechanicalScore,
+              observations: report.mechanicalObservations || [],
+            }}
+            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
+            disabled={isCompleted}
+          />
+        )}
+        {activeSection === "body" && report && (
+          <BodySection
+            reportId={report.id}
+            data={{
+              status: report.bodyStatus,
+              score: report.bodyScore,
+              observations: report.bodyObservations || [],
+            }}
+            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
+            disabled={isCompleted}
+          />
+        )}
+        {activeSection === "summary" && report && (
+          <SummarySection
+            inspection={inspection}
+            report={report}
+            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
+            onComplete={() => router.refresh()}
+            disabled={isCompleted}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Info Section
+// ============================================
+function InfoSection({
+  inspection,
+  report,
+  onUpdate,
+  disabled,
+}: {
+  inspection: InspectionData;
+  report: Report | null;
+  onUpdate: (data: Partial<Report>) => void;
+  disabled: boolean;
+}) {
+  const [mileage, setMileage] = useState(report?.mileageAtInspection?.toString() || "");
+  const [vinNumber, setVinNumber] = useState(report?.vinNumber || "");
+  const [engineNumber, setEngineNumber] = useState(report?.engineNumber || "");
+  const [actualColor, setActualColor] = useState(report?.actualColor || "");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!report) return;
+    setSaving(true);
+
+    try {
+      const res = await fetch(`/api/reports/${report.id}/sections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "vehicle",
+          data: {
+            mileageAtInspection: mileage ? parseInt(mileage) : null,
+            vinNumber: vinNumber || null,
+            engineNumber: engineNumber || null,
+            actualColor: actualColor || null,
+          },
+        }),
+      });
+
+      if (res.ok) {
+        onUpdate({
+          mileageAtInspection: mileage ? parseInt(mileage) : null,
+          vinNumber: vinNumber || null,
+          engineNumber: engineNumber || null,
+          actualColor: actualColor || null,
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("es-PE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>Información de la Inspección</h2>
+
+      {/* Datos de la cita */}
+      <div className={styles.infoGrid}>
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Cliente</h3>
+          <p className={styles.infoCardValue}>{inspection.client.name}</p>
+          {inspection.client.phone && (
+            <a href={`tel:${inspection.client.phone}`} className={styles.infoCardLink}>
+              {inspection.client.phone}
+            </a>
+          )}
+        </div>
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Fecha y Hora</h3>
+          <p className={styles.infoCardValue}>{formatDate(inspection.date)}</p>
+          <p className={styles.infoCardSubvalue}>{formatTime(inspection.timeSlot)}</p>
+        </div>
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Tipo de Inspección</h3>
+          <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
+        </div>
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Vehículo</h3>
+          <p className={styles.infoCardValue}>
+            {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
+          </p>
+          <p className={styles.infoCardSubvalue}>{inspection.vehicle.plate || "Sin placa"}</p>
+        </div>
+      </div>
+
+      {/* Items del plan */}
+      <div className={styles.planItems}>
+        <h3 className={styles.planItemsTitle}>Puntos a revisar</h3>
+        <ul className={styles.planItemsList}>
+          {inspection.inspectionPlan.items.map((item, index) => (
+            <li key={index}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Datos verificados del vehículo */}
+      <div className={styles.formSection}>
+        <h3 className={styles.formSectionTitle}>Datos Verificados del Vehículo</h3>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Kilometraje actual</label>
+            <input
+              type="number"
+              value={mileage}
+              onChange={(e) => setMileage(e.target.value)}
+              placeholder="Ej: 45000"
+              className={styles.input}
+              disabled={disabled}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Número VIN</label>
+            <input
+              type="text"
+              value={vinNumber}
+              onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
+              placeholder="17 caracteres"
+              maxLength={17}
+              className={styles.input}
+              disabled={disabled}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Número de motor</label>
+            <input
+              type="text"
+              value={engineNumber}
+              onChange={(e) => setEngineNumber(e.target.value.toUpperCase())}
+              placeholder="Número de motor"
+              className={styles.input}
+              disabled={disabled}
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Color real</label>
+            <input
+              type="text"
+              value={actualColor}
+              onChange={(e) => setActualColor(e.target.value)}
+              placeholder="Ej: Gris plata"
+              className={styles.input}
+              disabled={disabled}
+            />
+          </div>
+        </div>
+        {!disabled && (
+          <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
+            {saving ? "Guardando..." : "Guardar datos"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Legal Section
+// ============================================
+function LegalSection({
+  reportId,
+  data,
+  onUpdate,
+  disabled,
+}: {
+  reportId: number;
+  data: {
+    status: ResultStatus;
+    score: number | null;
+    observations: any[];
+    ownershipCardVerified: boolean;
+    soatValid: boolean;
+    soatExpiryDate: string | null;
+    technicalReviewValid: boolean;
+    technicalReviewExpiryDate: string | null;
+  };
+  onUpdate: (data: Partial<Report>) => void;
+  disabled: boolean;
+}) {
+  const [status, setStatus] = useState<ResultStatus>(data.status);
+  const [score, setScore] = useState(data.score?.toString() || "");
+  const [ownershipCardVerified, setOwnershipCardVerified] = useState(data.ownershipCardVerified);
+  const [soatValid, setSoatValid] = useState(data.soatValid);
+  const [technicalReviewValid, setTechnicalReviewValid] = useState(data.technicalReviewValid);
+  const [observations, setObservations] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      // Guardar sección legal
+      await fetch(`/api/reports/${reportId}/sections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "legal",
+          data: {
+            status,
+            score: score ? parseInt(score) : null,
+            observations: observations ? [{ note: observations }] : [],
+          },
+        }),
+      });
+
+      // Guardar documentos
+      await fetch(`/api/reports/${reportId}/sections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "documents",
+          data: {
+            ownershipCardVerified,
+            soatValid,
+            technicalReviewValid,
+          },
+        }),
+      });
+
+      onUpdate({
+        legalStatus: status,
+        legalScore: score ? parseInt(score) : null,
+        ownershipCardVerified,
+        soatValid,
+        technicalReviewValid,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>Revisión Legal</h2>
+
+      {/* Estado y puntaje */}
+      <div className={styles.statusRow}>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Estado</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ResultStatus)}
+            className={styles.select}
+            disabled={disabled}
+          >
+            <option value="PENDING">Pendiente</option>
+            <option value="OK">Aprobado</option>
+            <option value="WARNING">Con observaciones</option>
+            <option value="CRITICAL">Crítico</option>
+          </select>
+        </div>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Puntaje (0-100)</label>
+          <input
+            type="number"
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+            min="0"
+            max="100"
+            className={styles.input}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      {/* Verificación de documentos */}
+      <div className={styles.checkboxGroup}>
+        <h3 className={styles.checkboxGroupTitle}>Verificación de Documentos</h3>
+        <label className={styles.checkbox}>
+          <input
+            type="checkbox"
+            checked={ownershipCardVerified}
+            onChange={(e) => setOwnershipCardVerified(e.target.checked)}
+            disabled={disabled}
+          />
+          <span>Tarjeta de propiedad verificada</span>
+        </label>
+        <label className={styles.checkbox}>
+          <input
+            type="checkbox"
+            checked={soatValid}
+            onChange={(e) => setSoatValid(e.target.checked)}
+            disabled={disabled}
+          />
+          <span>SOAT vigente</span>
+        </label>
+        <label className={styles.checkbox}>
+          <input
+            type="checkbox"
+            checked={technicalReviewValid}
+            onChange={(e) => setTechnicalReviewValid(e.target.checked)}
+            disabled={disabled}
+          />
+          <span>Revisión técnica vigente</span>
+        </label>
+      </div>
+
+      {/* Observaciones */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Observaciones</label>
+        <textarea
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+          placeholder="Ingrese observaciones legales..."
+          className={styles.textarea}
+          rows={4}
+          disabled={disabled}
+        />
+      </div>
+
+      {!disabled && (
+        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
+          {saving ? "Guardando..." : "Guardar sección legal"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// Mechanical Section
+// ============================================
+function MechanicalSection({
+  reportId,
+  data,
+  onUpdate,
+  disabled,
+}: {
+  reportId: number;
+  data: {
+    status: ResultStatus;
+    score: number | null;
+    observations: any[];
+  };
+  onUpdate: (data: Partial<Report>) => void;
+  disabled: boolean;
+}) {
+  const [status, setStatus] = useState<ResultStatus>(data.status);
+  const [score, setScore] = useState(data.score?.toString() || "");
+  const [observations, setObservations] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch(`/api/reports/${reportId}/sections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "mechanical",
+          data: {
+            status,
+            score: score ? parseInt(score) : null,
+            observations: observations ? [{ note: observations }] : [],
+          },
+        }),
+      });
+
+      onUpdate({
+        mechanicalStatus: status,
+        mechanicalScore: score ? parseInt(score) : null,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const mechanicalCategories = [
+    "Motor",
+    "Transmisión",
+    "Frenos",
+    "Suspensión",
+    "Dirección",
+    "Sistema eléctrico",
+    "Aire acondicionado",
+    "Sistema de escape",
+  ];
+
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>Revisión Mecánica</h2>
+
+      {/* Estado y puntaje */}
+      <div className={styles.statusRow}>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Estado</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ResultStatus)}
+            className={styles.select}
+            disabled={disabled}
+          >
+            <option value="PENDING">Pendiente</option>
+            <option value="OK">Aprobado</option>
+            <option value="WARNING">Con observaciones</option>
+            <option value="CRITICAL">Crítico</option>
+          </select>
+        </div>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Puntaje (0-100)</label>
+          <input
+            type="number"
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+            min="0"
+            max="100"
+            className={styles.input}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      {/* Categorías a revisar */}
+      <div className={styles.categoriesHint}>
+        <h3>Categorías a revisar:</h3>
+        <ul>
+          {mechanicalCategories.map((cat) => (
+            <li key={cat}>{cat}</li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Observaciones */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Observaciones mecánicas</label>
+        <textarea
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+          placeholder="Detalle las observaciones mecánicas encontradas..."
+          className={styles.textarea}
+          rows={6}
+          disabled={disabled}
+        />
+      </div>
+
+      {!disabled && (
+        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
+          {saving ? "Guardando..." : "Guardar sección mecánica"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// Body Section
+// ============================================
+function BodySection({
+  reportId,
+  data,
+  onUpdate,
+  disabled,
+}: {
+  reportId: number;
+  data: {
+    status: ResultStatus;
+    score: number | null;
+    observations: any[];
+  };
+  onUpdate: (data: Partial<Report>) => void;
+  disabled: boolean;
+}) {
+  const [status, setStatus] = useState<ResultStatus>(data.status);
+  const [score, setScore] = useState(data.score?.toString() || "");
+  const [observations, setObservations] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await fetch(`/api/reports/${reportId}/sections`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          section: "body",
+          data: {
+            status,
+            score: score ? parseInt(score) : null,
+            observations: observations ? [{ note: observations }] : [],
+          },
+        }),
+      });
+
+      onUpdate({
+        bodyStatus: status,
+        bodyScore: score ? parseInt(score) : null,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>Revisión de Carrocería</h2>
+
+      {/* Estado y puntaje */}
+      <div className={styles.statusRow}>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Estado</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as ResultStatus)}
+            className={styles.select}
+            disabled={disabled}
+          >
+            <option value="PENDING">Pendiente</option>
+            <option value="OK">Aprobado</option>
+            <option value="WARNING">Con observaciones</option>
+            <option value="CRITICAL">Crítico</option>
+          </select>
+        </div>
+        <div className={styles.formGroup}>
+          <label className={styles.label}>Puntaje (0-100)</label>
+          <input
+            type="number"
+            value={score}
+            onChange={(e) => setScore(e.target.value)}
+            min="0"
+            max="100"
+            className={styles.input}
+            disabled={disabled}
+          />
+        </div>
+      </div>
+
+      {/* Observaciones */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Observaciones de carrocería</label>
+        <textarea
+          value={observations}
+          onChange={(e) => setObservations(e.target.value)}
+          placeholder="Detalle daños en carrocería, pintura, abolladuras, rayones..."
+          className={styles.textarea}
+          rows={6}
+          disabled={disabled}
+        />
+      </div>
+
+      {!disabled && (
+        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
+          {saving ? "Guardando..." : "Guardar sección carrocería"}
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// Summary Section
+// ============================================
+function SummarySection({
+  inspection,
+  report,
+  onUpdate,
+  onComplete,
+  disabled,
+}: {
+  inspection: InspectionData;
+  report: Report;
+  onUpdate: (data: Partial<Report>) => void;
+  onComplete: () => void;
+  disabled: boolean;
+}) {
+  const [summary, setSummary] = useState(report.executiveSummary || "");
+  const [recommendations, setRecommendations] = useState(report.recommendations || "");
+  const [repairCost, setRepairCost] = useState(report.estimatedRepairCost?.toString() || "");
+  const [saving, setSaving] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const canComplete =
+    report.legalStatus !== "PENDING" &&
+    report.mechanicalStatus !== "PENDING" &&
+    report.bodyStatus !== "PENDING";
+
+  const handleSaveSummary = async () => {
+    setSaving(true);
+    try {
+      await fetch(`/api/reports/${report.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          executiveSummary: summary || null,
+          recommendations: recommendations || null,
+          estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
+        }),
+      });
+
+      onUpdate({
+        executiveSummary: summary || null,
+        recommendations: recommendations || null,
+        estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    if (!canComplete) {
+      setError("Debe completar todas las secciones antes de finalizar");
+      return;
+    }
+
+    setCompleting(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/reports/${report.id}/complete`, {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        onComplete();
+      } else {
+        setError(data.error || "Error al finalizar el informe");
+      }
+    } catch (err) {
+      setError("Error de conexión");
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const getStatusLabel = (status: ResultStatus) => {
+    const labels: Record<ResultStatus, { text: string; color: string }> = {
+      PENDING: { text: "Pendiente", color: "#9CA3AF" },
+      OK: { text: "Aprobado", color: "#22C55E" },
+      WARNING: { text: "Observaciones", color: "#F59E0B" },
+      CRITICAL: { text: "Crítico", color: "#EF4444" },
+    };
+    return labels[status];
+  };
+
+  return (
+    <div className={styles.section}>
+      <h2 className={styles.sectionTitle}>Resumen de la Inspección</h2>
+
+      {/* Resultados por sección */}
+      <div className={styles.resultsGrid}>
+        <div className={styles.resultCard}>
+          <span className={styles.resultLabel}>Legal</span>
+          <span
+            className={styles.resultValue}
+            style={{ color: getStatusLabel(report.legalStatus).color }}
+          >
+            {getStatusLabel(report.legalStatus).text}
+            {report.legalScore && ` (${report.legalScore}/100)`}
+          </span>
+        </div>
+        <div className={styles.resultCard}>
+          <span className={styles.resultLabel}>Mecánica</span>
+          <span
+            className={styles.resultValue}
+            style={{ color: getStatusLabel(report.mechanicalStatus).color }}
+          >
+            {getStatusLabel(report.mechanicalStatus).text}
+            {report.mechanicalScore && ` (${report.mechanicalScore}/100)`}
+          </span>
+        </div>
+        <div className={styles.resultCard}>
+          <span className={styles.resultLabel}>Carrocería</span>
+          <span
+            className={styles.resultValue}
+            style={{ color: getStatusLabel(report.bodyStatus).color }}
+          >
+            {getStatusLabel(report.bodyStatus).text}
+            {report.bodyScore && ` (${report.bodyScore}/100)`}
+          </span>
+        </div>
+      </div>
+
+      {/* Resumen ejecutivo */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Resumen ejecutivo</label>
+        <textarea
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          placeholder="Resumen general de la inspección..."
+          className={styles.textarea}
+          rows={4}
+          disabled={disabled}
+        />
+      </div>
+
+      {/* Recomendaciones */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Recomendaciones</label>
+        <textarea
+          value={recommendations}
+          onChange={(e) => setRecommendations(e.target.value)}
+          placeholder="Recomendaciones para el cliente..."
+          className={styles.textarea}
+          rows={4}
+          disabled={disabled}
+        />
+      </div>
+
+      {/* Costo estimado */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Costo estimado de reparaciones (S/)</label>
+        <input
+          type="number"
+          value={repairCost}
+          onChange={(e) => setRepairCost(e.target.value)}
+          placeholder="0.00"
+          className={styles.input}
+          disabled={disabled}
+        />
+      </div>
+
+      {error && <div className={styles.errorMessage}>{error}</div>}
+
+      {!disabled && (
+        <div className={styles.summaryActions}>
+          <button onClick={handleSaveSummary} disabled={saving} className={styles.saveButton}>
+            {saving ? "Guardando..." : "Guardar resumen"}
+          </button>
+          <button
+            onClick={handleComplete}
+            disabled={completing || !canComplete}
+            className={styles.completeButton}
+          >
+            {completing ? "Finalizando..." : "Finalizar inspección"}
+          </button>
+        </div>
+      )}
+
+      {disabled && (
+        <div className={styles.completedMessage}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" fill="#22C55E" fillOpacity="0.1" />
+            <path d="M8 12l3 3 5-6" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          <span>Este informe ha sido completado y no puede modificarse</span>
+        </div>
+      )}
+    </div>
+  );
+}

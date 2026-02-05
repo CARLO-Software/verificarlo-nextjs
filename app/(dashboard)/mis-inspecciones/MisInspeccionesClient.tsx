@@ -51,7 +51,7 @@ export function MisInspeccionesClient({ inspections }: MisInspeccionesClientProp
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filtrar inspecciones
+  // Filtrar bookings
   const filteredInspections = inspections.filter((inspection) => {
     // Filtro por estado
     if (statusFilter !== 'all') {
@@ -87,7 +87,7 @@ export function MisInspeccionesClient({ inspections }: MisInspeccionesClientProp
     // TODO: Implementar descarga de PDF
     console.log('Descargar PDF:', id);
   };
-
+  
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
