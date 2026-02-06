@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   try {
     const vehicles = await db.vehicle.findMany({
       where: {
-        userId: parseInt(session.user.id),
+        userId: session.user.id,
       },
       include: {
         model: {
@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
 
       if (existingVehicle) {
         // Si la placa existe pero pertenece a otro usuario
-        if (existingVehicle.userId !== parseInt(session.user.id)) {
+        if (existingVehicle.userId !== session.user.id) {
           return NextResponse.json(
             { error: "Esta placa ya está registrada por otro usuario" },
             { status: 409 }
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     // Crear nuevo vehículo
     const newVehicle = await db.vehicle.create({
       data: {
-        userId: parseInt(session.user.id),
+        userId: session.user.id,
         modelId,
         year,
         plate: normalizedPlate,

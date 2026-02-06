@@ -57,7 +57,7 @@ enum InspectionResultStatus {
 // ============================================
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            String       @id @default(cuid())
   name          String
   email         String    @unique
   phone         String?   // Para WhatsApp
@@ -93,7 +93,7 @@ model User {
 
 model Account {
   id                String  @id @default(cuid())
-  userId            Int
+  userId            String
   type              String
   provider          String
   providerAccountId String
@@ -113,7 +113,7 @@ model Account {
 model Session {
   id           String   @id @default(cuid())
   sessionToken String   @unique
-  userId       Int
+  userId       String
   expires      DateTime
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -181,7 +181,7 @@ model Model {
 // Vehículo del cliente (separado para reutilización)
 model Vehicle {
   id      Int     @id @default(autoincrement())
-  userId  Int
+  userId  String
   modelId Int
   year    Int
   plate   String? // Placa opcional
@@ -206,8 +206,8 @@ model Booking {
   id Int @id @default(autoincrement())
 
   // Relaciones principales
-  clientId         Int
-  inspectorId      Int?  // Se asigna después del pago
+  clientId         String
+  inspectorId      String?  // Se asigna después del pago
   inspectionPlanId Int
   vehicleId        Int
 
@@ -451,7 +451,7 @@ model BlockedDate {
   id        Int      @id @default(autoincrement())
   date      DateTime @unique @db.Date
   reason    String?  // "Feriado - Fiestas Patrias", "Mantenimiento", etc.
-  createdBy Int
+  createdBy String
   createdAt DateTime @default(now())
 
   admin User @relation(fields: [createdBy], references: [id])

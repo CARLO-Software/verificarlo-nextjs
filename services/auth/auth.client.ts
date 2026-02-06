@@ -15,6 +15,7 @@ export async function login(payload: LoginFormData) {
 
     return res.json();
 }
+
 export async function register(payload: RegisterFormData) {
     const res = await fetch("/api/register", {
         method: "POST",

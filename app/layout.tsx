@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals-CLEAN.css";
 import Script from "next/script";
-import NavBar from "./layout/navBar/NavBar";
-import Footer from "./layout/footer/Footer";
-import WhatsappFlotante from "./layout/whatsappFlotante/WhatsappFlotante";
-import PromotionalBanner from "./layout/promotionalBanner/PromotionalBanner";
+import { LayoutShell } from "./layout/LayoutShell";
 import { Providers } from "./providers";
-// REMOVED: getServerSession - bloqueaba el render de toda la página
+//* REMOVED: getServerSession - bloqueaba el render de toda la página
 
 // ===================== FONTS LOCALES =====================
 const geistSans = localFont({
@@ -135,19 +132,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* ================= APP CONTENT ================= */}
           {/* OPTIMIZADO: Providers sin session - se obtiene en cliente */}
           <Providers>
-            {/* Promotional banner */}
-            <PromotionalBanner />
-
-            {/* Main navigation */}
-            <NavBar />
-
-            {children}
-
-            {/*FOOTER */}
-            <Footer />
-
-            {/* Botón flotante de WhatsApp */}
-            <WhatsappFlotante />
+            <LayoutShell>
+              {children}
+            </LayoutShell>
           </Providers>
           {/* ================= SCRIPTS EXTERNOS (lazy load) ================= */}
           <Script

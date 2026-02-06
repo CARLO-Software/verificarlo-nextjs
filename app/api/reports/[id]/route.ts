@@ -68,7 +68,7 @@ export async function GET(
     }
 
     // Verificar acceso
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const isOwner = report.booking.clientId === userId;
     const isInspector = report.booking.inspectorId === userId;
     const isAdmin = session.user.role === "ADMIN";

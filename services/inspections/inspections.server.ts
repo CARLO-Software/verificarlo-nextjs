@@ -99,7 +99,7 @@ export async function getClientInspections(): Promise<BookingWithDetails[]> {
 
   const bookings = await db.booking.findMany({
     where: {
-      clientId: Number(session.user.id),
+      clientId: session.user.id,
     },
     include: {
       client: {
@@ -334,9 +334,9 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
   if (!booking) return null;
 
   // Verificar acceso: cliente solo puede ver las suyas, admin puede ver todas
-  const isOwner = booking.clientId === Number(session.user.id);
+  const isOwner = booking.clientId === session.user.id;
   const isAdmin = session.user.role === 'ADMIN';
-  const isInspector = booking.inspectorId === Number(session.user.id);
+  const isInspector = booking.inspectorId === session.user.id;
 
   if (!isOwner && !isAdmin && !isInspector) {
     throw new Error('No autorizado');
@@ -463,7 +463,7 @@ export async function updateInspectionNotes(
   }
 
   const isAdmin = session.user.role === 'ADMIN';
-  const isInspector = booking.inspectorId === Number(session.user.id);
+  const isInspector = booking.inspectorId === session.user.id;
 
   if (!isAdmin && !isInspector) {
     throw new Error('No autorizado');

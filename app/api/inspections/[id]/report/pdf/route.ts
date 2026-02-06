@@ -59,7 +59,7 @@ export async function GET(
     }
 
     // Verificar acceso
-    const userId = parseInt(session.user.id);
+    const userId = session.user.id;
     const user = await db.user.findUnique({
       where: { id: userId },
       select: { role: true },

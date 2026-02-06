@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     const vehicle = await db.vehicle.findFirst({
       where: {
         id: vehicleId,
-        userId: parseInt(session.user.id),
+        userId: session.user.id,
       },
     });
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     // Verificar que el usuario no tenga otra reserva pendiente de pago
     const existingPending = await db.booking.findFirst({
       where: {
-        clientId: parseInt(session.user.id),
+        clientId: session.user.id,
         status: "PENDING_PAYMENT",
       },
     });
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     const booking = await db.$transaction(async (tx) => {
       const newBooking = await tx.booking.create({
         data: {
-          clientId: parseInt(session.user.id),
+          clientId: session.user.id,
           inspectionPlanId,
           vehicleId,
           date: new Date(date),
@@ -165,7 +165,7 @@ export async function GET(req: NextRequest) {
   try {
     const bookings = await db.booking.findMany({
       where: {
-        clientId: parseInt(session.user.id),
+        clientId: session.user.id,
         ...(status && { status: status as any }),
       },
       include: {

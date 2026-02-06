@@ -23,7 +23,7 @@ export default async function InspectorPage() {
     redirect("/");
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
 
   // Obtener inspecciones asignadas al inspector
   const bookings = await db.booking.findMany({

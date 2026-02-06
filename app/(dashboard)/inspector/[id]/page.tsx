@@ -33,7 +33,7 @@ export default async function InspectionDetailPage({ params }: PageProps) {
     redirect("/inspector");
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
 
   // Obtener la inspección con todos los detalles
   const booking = await db.booking.findUnique({

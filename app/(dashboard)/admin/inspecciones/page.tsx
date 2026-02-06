@@ -1,9 +1,9 @@
-import { getAllInspections, getInspectionStats, getAvailableInspectors } from '@/services/inspections/inspections.server';
+import { getAllBookings, getInspectionStats, getAvailableInspectors } from '@/services/inspections/inspections.server';
 import { AdminInspeccionesClient } from './AdminInspeccionesClient';
 
 export default async function AdminInspeccionesPage() {
   const [inspections, stats, inspectors] = await Promise.all([
-    getAllInspections(),
+    getAllBookings(),
     getInspectionStats(),
     getAvailableInspectors(),
   ]);
@@ -29,7 +29,7 @@ export default async function AdminInspeccionesPage() {
       year: inspection.vehicle.year,
       plate: inspection.vehicle.plate,
     },
-    inspectionType: inspection.inspection.title,
+    inspectionType: inspection.inspectionPlan.title,
     inspector: inspection.inspector ? {
       id: inspection.inspector.id,
       name: inspection.inspector.name,

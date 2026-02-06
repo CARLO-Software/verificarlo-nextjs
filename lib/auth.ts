@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         return {
-          id: String(user.id),
+          id: user.id,
           email: user.email,
           name: user.name,
           role: user.role,
@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/login",
+    signIn: "/",
     error: "/login",
   },
 

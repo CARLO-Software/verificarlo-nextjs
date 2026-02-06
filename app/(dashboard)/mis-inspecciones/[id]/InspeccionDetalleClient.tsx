@@ -1,6 +1,8 @@
 "use client";
-
-import { useState, useEffect, useCallback } from "react";
+/**
+ * Culqi va a funcionar cuando se tenga la API_PUBLIC de ahí se obtiene la configuracion y
+ */
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import Link from "next/link";
@@ -68,7 +70,9 @@ interface InspeccionDetalleClientProps {
   inspection: InspectionData;
 }
 
-export function InspeccionDetalleClient({ inspection }: InspeccionDetalleClientProps) {
+export function InspeccionDetalleClient({
+  inspection,
+}: InspeccionDetalleClientProps) {
   const router = useRouter();
   const isPendingPayment = inspection.status === "PENDING_PAYMENT";
   const isCompleted = inspection.status === "COMPLETED";
@@ -128,7 +132,7 @@ function Header({ code }: { code: string }) {
     </header>
   );
 }
-
+//! Clic en la foto > mis inspecciones > pasar hasta el pago
 // ============================================
 // Pending Payment View
 // ============================================
@@ -139,7 +143,13 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [culqiReady, setCulqiReady] = useState(false);
 
-  const expiresAt = inspection.expiresAt ? new Date(inspection.expiresAt) : null;
+  // useMemo memoriza el resultado y solo lo recalcula si inspection.expiresAt cambia.
+  // Sin useMemo, cada re-render crea un nuevo objeto Date (nueva referencia en memoria),
+  // lo que hace que el useEffect se re-ejecute innecesariamente y duplique el intervalo.
+  const expiresAt = useMemo(
+    () => (inspection.expiresAt ? new Date(inspection.expiresAt) : null),
+    [inspection.expiresAt] // Solo recalcula si el string de expiración cambia
+  );
 
   // Calcular tiempo restante
   useEffect(() => {
@@ -237,6 +247,10 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
 
   const handleOpenCulqi = () => {
     if (window.Culqi && culqiReady) {
+      //Si no tiene la configuracion llamando a la API_PUBLIC entonces no va a funcionar
+      //Entonces no se va a habilitar
+      //Si no funciona entonces no se puede generar el token para enviar al servidor de CULQI
+      //! ES RECONTRA IMPORTANTE
       window.Culqi.open();
     }
   };
@@ -246,6 +260,7 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
 
   return (
     <>
+      {/*IMPORTANTE - AQUI COMIENZA*/}
       <Script src="https://checkout.culqi.com/js/v4" onLoad={handleCulqiLoad} />
 
       <div className={styles.content}>
@@ -258,13 +273,28 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
 
           {/* Timer */}
           {expiresAt && (
-            <div className={`${styles.timer} ${isUrgent ? styles.timerUrgent : ""}`}>
+            <div
+              className={`${styles.timer} ${isUrgent ? styles.timerUrgent : ""}`}
+            >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-                <path d="M10 6v4l3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M10 6v4l3 3"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
               <span>
-                {isExpired ? "Tiempo expirado" : `Tiempo restante: ${formatTime(timeLeft)}`}
+                {isExpired
+                  ? "Tiempo expirado"
+                  : `Tiempo restante: ${formatTime(timeLeft)}`}
               </span>
             </div>
           )}
@@ -273,8 +303,19 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           {error && (
             <div className={styles.error}>
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-                <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                />
+                <path
+                  d="M10 6v5M10 13.5v.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
               <span>{error}</span>
             </div>
@@ -287,10 +328,10 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           <div className={styles.paymentMethods}>
             <p className={styles.paymentMethodsLabel}>Aceptamos</p>
             <div className={styles.cards}>
-              <img src="/icons/visa.svg" alt="Visa" />
-              <img src="/icons/mastercard.svg" alt="Mastercard" />
-              <img src="/icons/amex.svg" alt="American Express" />
-              <img src="/icons/diners.svg" alt="Diners Club" />
+              <img src="assets/icons/visa.svg" alt="Visa" />
+              <img src="assets/icons/mastercard.svg" alt="Mastercard" />
+              <img src="assets/icons/amex.svg" alt="American Express" />
+              <img src="assets/icons/diners.svg" alt="Diners Club" />
             </div>
           </div>
 
@@ -312,7 +353,15 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
               ) : (
                 <>
                   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                    <rect
+                      x="2"
+                      y="5"
+                      width="16"
+                      height="10"
+                      rx="2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
                     <path d="M2 9h16" stroke="currentColor" strokeWidth="2" />
                   </svg>
                   Pagar S/ {inspection.inspectionPlan.price.toFixed(2)}
@@ -324,8 +373,21 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           {/* Security Note */}
           <p className={styles.securityNote}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect x="3" y="7" width="10" height="7" rx="2" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <rect
+                x="3"
+                y="7"
+                width="10"
+                height="7"
+                rx="2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M5 7V5a3 3 0 016 0v2"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
             </svg>
             Pago seguro procesado por Culqi
           </p>
@@ -363,11 +425,15 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
 
         <h2 className={styles.successTitle}>Pago completado</h2>
         <p className={styles.successMessage}>
-          Tu pago ha sido procesado exitosamente. Pronto recibirás la confirmación por correo.
+          Tu pago ha sido procesado exitosamente. Pronto recibirás la
+          confirmación por correo.
         </p>
 
         {/* Status Badge */}
-        <div className={styles.statusBadge} data-status={inspection.status.toLowerCase()}>
+        <div
+          className={styles.statusBadge}
+          data-status={inspection.status.toLowerCase()}
+        >
           <span className={styles.statusDot} />
           {statusLabels[inspection.status] || inspection.status}
         </div>
@@ -378,7 +444,8 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
             <div className={styles.paymentDetailItem}>
               <span className={styles.paymentDetailLabel}>N° de operación</span>
               <span className={styles.paymentDetailValue}>
-                {inspection.payment.receiptNumber || `#${inspection.payment.id}`}
+                {inspection.payment.receiptNumber ||
+                  `#${inspection.payment.id}`}
               </span>
             </div>
             <div className={styles.paymentDetailItem}>
@@ -391,13 +458,16 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
               <div className={styles.paymentDetailItem}>
                 <span className={styles.paymentDetailLabel}>Fecha de pago</span>
                 <span className={styles.paymentDetailValue}>
-                  {new Date(inspection.payment.paidAt).toLocaleDateString("es-PE", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(inspection.payment.paidAt).toLocaleDateString(
+                    "es-PE",
+                    {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
                 </span>
               </div>
             )}
@@ -412,7 +482,9 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
             </div>
             <div className={styles.inspectorInfo}>
               <p className={styles.inspectorLabel}>Inspector asignado</p>
-              <p className={styles.inspectorName}>{inspection.inspector.name || "Por asignar"}</p>
+              <p className={styles.inspectorName}>
+                {inspection.inspector.name || "Por asignar"}
+              </p>
             </div>
           </div>
         )}
@@ -448,7 +520,9 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
       }
 
       // Si no, generar el PDF on-demand
-      const response = await fetch(`/api/inspections/${inspection.id}/report/pdf`);
+      const response = await fetch(
+        `/api/inspections/${inspection.id}/report/pdf`,
+      );
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -511,12 +585,16 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           <div className={styles.resultsSummary}>
             <ResultItem
               label="Revisión Legal"
-              status={inspection.report?.legalStatus?.toLowerCase() || "pending"}
+              status={
+                inspection.report?.legalStatus?.toLowerCase() || "pending"
+              }
               score={inspection.report?.legalScore}
             />
             <ResultItem
               label="Revisión Mecánica"
-              status={inspection.report?.mechanicalStatus?.toLowerCase() || "pending"}
+              status={
+                inspection.report?.mechanicalStatus?.toLowerCase() || "pending"
+              }
               score={inspection.report?.mechanicalScore}
             />
             <ResultItem
@@ -530,7 +608,9 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           {inspection.report?.overallScore && (
             <div className={styles.overallScore}>
               <span className={styles.overallScoreLabel}>Puntaje General</span>
-              <span className={styles.overallScoreValue}>{inspection.report.overallScore}/100</span>
+              <span className={styles.overallScoreValue}>
+                {inspection.report.overallScore}/100
+              </span>
             </div>
           )}
 
@@ -538,7 +618,9 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           {inspection.report?.executiveSummary && (
             <div className={styles.summarySection}>
               <h4 className={styles.summaryTitle}>Resumen</h4>
-              <p className={styles.summaryText}>{inspection.report.executiveSummary}</p>
+              <p className={styles.summaryText}>
+                {inspection.report.executiveSummary}
+              </p>
             </div>
           )}
 
@@ -546,7 +628,9 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           {inspection.report?.recommendations && (
             <div className={styles.recommendationsSection}>
               <h4 className={styles.recommendationsTitle}>Recomendaciones</h4>
-              <p className={styles.recommendationsText}>{inspection.report.recommendations}</p>
+              <p className={styles.recommendationsText}>
+                {inspection.report.recommendations}
+              </p>
             </div>
           )}
 
@@ -596,7 +680,10 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
               <h4 className={styles.paymentInfoTitle}>Información del pago</h4>
               <div className={styles.paymentInfoItem}>
                 <span>N° de operación</span>
-                <span>{inspection.payment.receiptNumber || `#${inspection.payment.id}`}</span>
+                <span>
+                  {inspection.payment.receiptNumber ||
+                    `#${inspection.payment.id}`}
+                </span>
               </div>
               <div className={styles.paymentInfoItem}>
                 <span>Monto</span>
@@ -617,7 +704,9 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
               </div>
               <div className={styles.inspectorInfo}>
                 <p className={styles.inspectorLabel}>Inspeccionado por</p>
-                <p className={styles.inspectorName}>{inspection.inspector.name}</p>
+                <p className={styles.inspectorName}>
+                  {inspection.inspector.name}
+                </p>
               </div>
             </div>
           )}
@@ -646,12 +735,29 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
 // ============================================
 // Result Item Component
 // ============================================
-function ResultItem({ label, status, score }: { label: string; status: string; score?: number | null }) {
-  const statusConfig: Record<string, { icon: JSX.Element; color: string; text: string }> = {
+function ResultItem({
+  label,
+  status,
+  score,
+}: {
+  label: string;
+  status: string;
+  score?: number | null;
+}) {
+  const statusConfig: Record<
+    string,
+    { icon: JSX.Element; color: string; text: string }
+  > = {
     ok: {
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M4 8l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M4 8l3 3 5-6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       ),
       color: "#22C55E",
@@ -660,7 +766,12 @@ function ResultItem({ label, status, score }: { label: string; status: string; s
     warning: {
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8 5v4m0 2v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path
+            d="M8 5v4m0 2v.5"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       ),
       color: "#F59E0B",
@@ -669,7 +780,12 @@ function ResultItem({ label, status, score }: { label: string; status: string; s
     critical: {
       icon: (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M5 5l6 6m0-6l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          <path
+            d="M5 5l6 6m0-6l-6 6"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
         </svg>
       ),
       color: "#EF4444",
@@ -711,11 +827,13 @@ function CancelledView({ inspection }: { inspection: InspectionData }) {
   const statusLabels: Record<string, { title: string; message: string }> = {
     CANCELLED: {
       title: "Inspección cancelada",
-      message: "Esta inspección fue cancelada. Si tienes alguna consulta, contáctanos.",
+      message:
+        "Esta inspección fue cancelada. Si tienes alguna consulta, contáctanos.",
     },
     EXPIRED: {
       title: "Reserva expirada",
-      message: "El tiempo para completar el pago ha expirado. Puedes agendar una nueva inspección.",
+      message:
+        "El tiempo para completar el pago ha expirado. Puedes agendar una nueva inspección.",
     },
     NO_SHOW: {
       title: "No se presentó",
@@ -793,29 +911,38 @@ function BookingSummary({
 
       <div className={styles.summaryItem}>
         <span className={styles.summaryLabel}>Inspección</span>
-        <span className={styles.summaryValue}>{inspection.inspectionPlan.title}</span>
+        <span className={styles.summaryValue}>
+          {inspection.inspectionPlan.title}
+        </span>
       </div>
 
       <div className={styles.summaryItem}>
         <span className={styles.summaryLabel}>Vehículo</span>
         <span className={styles.summaryValue}>
-          {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
+          {inspection.vehicle.brand} {inspection.vehicle.model}{" "}
+          {inspection.vehicle.year}
         </span>
       </div>
 
       <div className={styles.summaryItem}>
         <span className={styles.summaryLabel}>Placa</span>
-        <span className={styles.summaryValue}>{inspection.vehicle.plate || "Sin placa"}</span>
+        <span className={styles.summaryValue}>
+          {inspection.vehicle.plate || "Sin placa"}
+        </span>
       </div>
 
       <div className={styles.summaryItem}>
         <span className={styles.summaryLabel}>Fecha</span>
-        <span className={styles.summaryValue}>{formatDate(inspection.date)}</span>
+        <span className={styles.summaryValue}>
+          {formatDate(inspection.date)}
+        </span>
       </div>
 
       <div className={styles.summaryItem}>
         <span className={styles.summaryLabel}>Hora</span>
-        <span className={styles.summaryValue}>{formatTimeSlot(inspection.timeSlot)}</span>
+        <span className={styles.summaryValue}>
+          {formatTimeSlot(inspection.timeSlot)}
+        </span>
       </div>
 
       {showPrice && (

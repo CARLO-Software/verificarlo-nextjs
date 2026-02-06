@@ -85,7 +85,7 @@ async function verifyInspectorAccess(bookingId: number) {
     throw new Error('Usuario no autenticado');
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
   const userRole = session.user.role;
 
   const booking = await db.booking.findUnique({
@@ -157,7 +157,7 @@ export async function getReportByBookingId(bookingId: number) {
     throw new Error('Usuario no autenticado');
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
   const userRole = session.user.role;
 
   const booking = await db.booking.findUnique({
@@ -608,7 +608,7 @@ export async function getInspectorPendingInspections() {
     throw new Error('No autorizado');
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
 
   const bookings = await db.booking.findMany({
     where: {
@@ -654,7 +654,7 @@ export async function getInspectorCompletedInspections() {
     throw new Error('No autorizado');
   }
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
 
   const bookings = await db.booking.findMany({
     where: {

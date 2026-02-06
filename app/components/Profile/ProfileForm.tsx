@@ -7,7 +7,7 @@ import { useToast } from '@/app/components/Toast';
 import { useProfile } from '@/app/(dashboard)/perfil/useProfile';
 import styles from './Profile.module.css';
 import type { UserProfile, Role } from '@/types/profile';
-import { LIMA_DISTRICTS, SERVICE_ZONES } from '@/types/profile';
+import { LIMA_DISTRICTS } from '@/types/profile';
 
 // ============================================
 // ProfileForm: Formulario editable según el rol

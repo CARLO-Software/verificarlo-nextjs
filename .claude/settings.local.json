@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(timeout /t 5 /nobreak)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm ls:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

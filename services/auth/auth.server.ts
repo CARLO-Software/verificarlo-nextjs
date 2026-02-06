@@ -11,7 +11,7 @@ export async function loginUser(payload: LoginFormData) {
   if (!user || !user.password) {
     return null;
   }
-
+  
   // Comparar password
   const isPasswordValid = await bcrypt.compare(payload.password, user.password);
 

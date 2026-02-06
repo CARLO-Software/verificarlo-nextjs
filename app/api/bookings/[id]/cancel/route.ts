@@ -38,7 +38,7 @@ export async function POST(
     });
 
     // Verificar que existe y pertenece al usuario
-    if (!booking || booking.clientId !== parseInt(session.user.id)) {
+    if (!booking || booking.clientId !== session.user.id) {
       return NextResponse.json(
         { error: "Reserva no encontrada" },
         { status: 404 }

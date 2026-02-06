@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   // Verificar que sea inspector
   const user = await db.user.findUnique({
-    where: { id: parseInt(session.user.id) },
+    where: { id: session.user.id },
     select: { role: true, name: true },
   });
 
@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
 
     const bookings = await db.booking.findMany({
       where: {
-        inspectorId: parseInt(session.user.id),
+        inspectorId: session.user.id,
         status: { in: ["CONFIRMED", "COMPLETED"] },
         startTime: {
           gte: startDate,
@@ -155,7 +155,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const user = await db.user.findUnique({
-    where: { id: parseInt(session.user.id) },
+    where: { id: session.user.id },
     select: { role: true },
   });
 
@@ -180,7 +180,7 @@ export async function PATCH(req: NextRequest) {
     const booking = await db.booking.findFirst({
       where: {
         id: bookingId,
-        inspectorId: parseInt(session.user.id),
+        inspectorId: session.user.id,
       },
     });
 

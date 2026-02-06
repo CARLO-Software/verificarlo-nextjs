@@ -61,7 +61,7 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
         throw new Error('Faltan campos requeridos');
     }
 
-    const userId = Number(session.user.id);
+    const userId = session.user.id;
     const plateValue = payload.plate?.trim().toUpperCase() || null;
 
     let vehicle;

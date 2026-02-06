@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (booking.clientId !== parseInt(session.user.id)) {
+    if (booking.clientId !== session.user.id) {
       return NextResponse.json(
         { error: "No tiene acceso a esta reserva" },
         { status: 403 }

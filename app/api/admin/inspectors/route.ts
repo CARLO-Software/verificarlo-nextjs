@@ -20,7 +20,7 @@ async function verifyAdmin(session: any) {
   }
 
   const user = await db.user.findUnique({
-    where: { id: parseInt(session.user.id) },
+    where: { id: session.user.id },
     select: { role: true },
   });
 
