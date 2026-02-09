@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
 
     await db.user.update({
       where: { id: userId },
-      data: { role: "INSPECTOR", isActive: true },
+      data: { role: "INSPECTOR", isInspectorAvailable: true },
     });
 
     return NextResponse.json({

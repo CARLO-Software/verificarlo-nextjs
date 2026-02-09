@@ -362,7 +362,7 @@ export async function getAvailableInspectors() {
   return db.user.findMany({
     where: {
       role: 'INSPECTOR',
-      isActive: true,
+      isInspectorAvailable: true,
     },
     select: {
       id: true,

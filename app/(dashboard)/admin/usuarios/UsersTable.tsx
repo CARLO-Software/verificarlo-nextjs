@@ -14,6 +14,7 @@ interface User {
   role: "ADMIN" | "CLIENT" | "INSPECTOR";
   createdAt: string;
   status: UserProfile;
+  phone: number;
 }
 
 export function UsersTable() {
@@ -63,6 +64,7 @@ export function UsersTable() {
               <th className="px-4 py-3">Email</th>
               <th className="px-4 py-3">Rol</th>
               <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3">Celular</th>
               <th className="px-4 py-3">3</th>
             </tr>
           </thead>
@@ -86,6 +88,7 @@ export function UsersTable() {
                   <UserRoleBadge role={user.role} />
                 </td>
                 <td className="px-4 py-3 text-gray-500">{user.status}</td>
+                <td className="px-4 py-3 text-gray-500">{user.phone}</td>
                 <td className="px-4 py-3 text-right">
                   <UserActions
                     userId={user.id}
