@@ -1,12 +1,25 @@
-import { useState } from "react";
-import { signIn } from "next-auth/react";
+"use client" //si no se ponia era use client de todas maneras, porque se está haciendo uso del useState
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { LoginFormData, FormErrors } from "./types";
 import { useToast } from "@/app/components/Toast";
 
+
 export function useLogin() {
     const router = useRouter();
     const { showToast } = useToast();
+    const { data: session, status } = useSession();
+
+    useEffect(() => {
+        if (status !== "authenticated") return;
+
+        const role = session.user.role;
+        showToast("Bienvenido!", "success");
+        
+        router.replace(role === "ADMIN" ? "/admin" : "/");
+    }, [status]);
+
 
     const [formData, setFormData] = useState<LoginFormData>({
         email: "",
@@ -86,11 +99,12 @@ export function useLogin() {
             ...prev,
             [name]: error,
         }));
-    }
+    };
+
 
     async function handleSubmit(event: React.FormEvent) {
         event.preventDefault();
-        
+
         if (isSubmitting) return;
 
         if (!validateForm()) return;
@@ -99,6 +113,7 @@ export function useLogin() {
             setIsSubmitting(true);
             setGeneralError(null);
 
+            //Este signIn es parte de nextAuth
             const result = await signIn("credentials", {
                 email: formData.email.trim().toLowerCase(),
                 password: formData.password,
@@ -111,11 +126,6 @@ export function useLogin() {
             }
 
             showToast("Bienvenido! Has iniciado sesión correctamente.", "success");
-
-            setTimeout(() => {
-                router.push("/");
-                router.refresh();
-            }, 1000);
 
         } catch (err) {
             setGeneralError(

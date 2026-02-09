@@ -3,6 +3,7 @@
 // ============================================
 
 export type Role = 'CLIENT' | 'INSPECTOR' | 'ADMIN';
+export type UserStatus = "ACTIVE" | "SUSPENDED";
 
 // Datos del usuario que vienen de la sesión/BD
 export interface UserProfile {
@@ -12,9 +13,9 @@ export interface UserProfile {
   phone: string | null;
   image: string | null;
   role: Role;
-  isActive: boolean;
+  isInspectorAvailable: boolean;
   createdAt: Date;
-
+  status: UserStatus;
   // Campos específicos de INSPECTOR
   availability: Record<string, string[]> | null; // {"lunes": ["09:00-13:00"], ...}
 

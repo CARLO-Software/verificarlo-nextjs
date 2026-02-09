@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
   },
 
   pages: {
-    signIn: "/",
+    signIn: "/login",
     error: "/login",
   },
 
@@ -67,7 +67,7 @@ export const authOptions: NextAuthOptions = {
         const existingUser = await db.user.findUnique({
           where: { email: user.email! },
         });
-
+        
         if (existingUser) {
           // Actualizar imagen si cambió o no existe
           if (user.image && existingUser.image !== user.image) {

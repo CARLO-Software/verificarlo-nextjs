@@ -187,13 +187,13 @@ async function main() {
       where: { email: "inspector@verificarlo.pe" },
       update: {
         role: "INSPECTOR",
-        isActive: true,
+        isInspectorAvailable: true,
       },
       create: {
         name: "Inspector de Prueba",
         email: "inspector@verificarlo.pe",
         role: "INSPECTOR",
-        isActive: true,
+        isInspectorAvailable: true,
       },
     });
 

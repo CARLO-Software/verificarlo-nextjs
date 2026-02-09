@@ -65,7 +65,10 @@ model User {
   image         String?
   password      String?
   role          Role      @default(CLIENT)
-  isActive      Boolean   @default(true) // Para desactivar inspectores
+  isInspectorAvailable Boolean   @default(true) // Para desactivar inspectores
+  
+  // Estado de la cuenta (soft delete / bloqueo)
+  status        UserStatus @default(ACTIVE) //Activo - Suspendido (Esto se hace para evitar la eliminacion de una)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -89,6 +92,11 @@ model User {
   clientBookings   Booking[]     @relation("ClientBookings")
   inspectorBookings Booking[]    @relation("InspectorBookings")
   blockedDates     BlockedDate[]
+}
+
+enum UserStatus{
+  ACTIVE
+  SUSPENDED
 }
 
 model Account {
