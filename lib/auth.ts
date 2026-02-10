@@ -61,13 +61,23 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      // Solo aplicamos esta lógica para Google
+      // Verificar suspensión para CUALQUIER proveedor
+      if (user?.email) {
+        const dbUser = await db.user.findUnique({
+          where: { email: user.email },
+          select: { status: true },
+        });
+        if (dbUser?.status === "SUSPENDED") {
+          return "/login?suspended=true";
+        }
+      }
+
+      // Lógica específica para Google
       if (account?.provider === "google") {
-        // Buscar usuario existente por email
         const existingUser = await db.user.findUnique({
           where: { email: user.email! },
         });
-        
+
         if (existingUser) {
           // Actualizar imagen si cambió o no existe
           if (user.image && existingUser.image !== user.image) {

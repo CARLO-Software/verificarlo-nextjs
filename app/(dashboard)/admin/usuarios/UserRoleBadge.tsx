@@ -6,7 +6,9 @@ export default function UserRoleBadge({ role }: Props) {
   const styles =
     role === "ADMIN"
       ? "bg-yellow-100 text-yellow-800"
-      : "bg-gray-100 text-gray-700";
+      : role === "INSPECTOR"
+        ? "bg-blue-100 text-blue-700"
+        : "bg-gray-100 text-gray-700";
 
   return (
     <span

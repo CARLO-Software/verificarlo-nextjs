@@ -4,7 +4,15 @@
       "Bash(timeout /t 5 /nobreak)",
       "Bash(ls:*)",
       "Bash(npm ls:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx prisma db pull:*)",
+      "Bash(del \"\\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul\")",
+      "Bash(cmd.exe /c 'del \"\"\\\\\\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul\"\"')",
+      "Bash(cmd.exe /c \"del /f /q \\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul\")",
+      "Bash(cmd.exe /c \"if exist \\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul echo EXISTS\")",
+      "Bash(powershell:*)",
+      "Bash(git add:*)"
     ]
   }
 }

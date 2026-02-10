@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
         name: true,
         email: true,
         phone: true,
-        isActive: true,
+        isInspectorAvailable: true,
         createdAt: true,
       },
       orderBy: { name: "asc" },
@@ -203,16 +203,16 @@ export async function PATCH(req: NextRequest) {
 
     // Activar/desactivar
     if (action === "activate" || action === "deactivate") {
-      const isActive = action === "activate";
+      const isInspectorAvailable = action === "activate";
 
       await db.user.update({
         where: { id: inspectorId },
-        data: { isActive },
+        data: { isInspectorAvailable },
       });
 
       return NextResponse.json({
         success: true,
-        message: `Inspector ${isActive ? "activado" : "desactivado"} exitosamente`,
+        message: `Inspector ${isInspectorAvailable ? "activado" : "desactivado"} exitosamente`,
       });
     }
 

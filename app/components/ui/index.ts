@@ -10,3 +10,4 @@ export { ProgressBar } from './ProgressBar/ProgressBar';
 export { ResultIndicator } from './ResultIndicator/ResultIndicator';
 export { EmptyState } from './EmptyState/EmptyState';
 export { InspectionCardSkeleton } from './Skeleton/InspectionCardSkeleton';
+export { Modal } from './Modal';

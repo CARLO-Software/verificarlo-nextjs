@@ -16,8 +16,12 @@ export function useLogin() {
 
         const role = session.user.role;
         showToast("Bienvenido!", "success");
-        
-        router.replace(role === "ADMIN" ? "/admin" : "/");
+
+        const redirectMap: Record<string, string> = {
+            ADMIN: "/admin",
+            INSPECTOR: "/inspector",
+        };
+        router.replace(redirectMap[role] || "/perfil");
     }, [status]);
 
 
@@ -119,6 +123,12 @@ export function useLogin() {
                 password: formData.password,
                 redirect: false,
             });
+
+            // Usuario suspendido: el signIn callback redirige con ?suspended=true
+            if (result?.url?.includes("suspended=true")) {
+                router.replace("/login?suspended=true");
+                return;
+            }
 
             if (result?.error) {
                 setGeneralError("Credenciales incorrectas. Por favor, verifica tu email y contraseña.");

@@ -56,7 +56,7 @@ export async function assignInspector(
   const inspectors = await db.user.findMany({
     where: {
       role: "INSPECTOR",
-      isActive: true,
+      isInspectorAvailable: true,
     },
     select: { id: true, name: true },
   });
@@ -171,7 +171,7 @@ export async function reassignInspectorBookings(
     const otherInspector = await db.user.findFirst({
       where: {
         role: "INSPECTOR",
-        isActive: true,
+        isInspectorAvailable: true,
         id: { not: inspectorId },
         inspectorBookings: {
           none: {
@@ -228,7 +228,7 @@ export async function getInspectorsWorkload(date: Date) {
   const inspectors = await db.user.findMany({
     where: {
       role: "INSPECTOR",
-      isActive: true,
+      isInspectorAvailable: true,
     },
     select: { id: true, name: true },
   });
@@ -266,7 +266,7 @@ export async function getInspectorsWorkload(date: Date) {
 
 export async function toggleInspectorActive(
   inspectorId: number,
-  isActive: boolean
+  isInspectorAvailable: boolean
 ): Promise<{ success: boolean; error?: string }> {
   const inspector = await db.user.findUnique({
     where: { id: inspectorId },
@@ -278,7 +278,7 @@ export async function toggleInspectorActive(
 
   await db.user.update({
     where: { id: inspectorId },
-    data: { isActive },
+    data: { isInspectorAvailable },
   });
 
   return { success: true };

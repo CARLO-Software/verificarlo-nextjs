@@ -110,7 +110,7 @@ export async function getActiveInspectorsCount(): Promise<number> {
   return db.user.count({
     where: {
       role: "INSPECTOR",
-      isActive: true,
+      isInspectorAvailable: true,
     },
   });
 }

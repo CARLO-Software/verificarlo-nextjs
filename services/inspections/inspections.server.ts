@@ -420,7 +420,7 @@ export async function assignInspector(bookingId: number, inspectorId: number) {
     where: {
       id: inspectorId,
       role: 'INSPECTOR',
-      isActive: true,
+      isInspectorAvailable: true,
     },
   });
 

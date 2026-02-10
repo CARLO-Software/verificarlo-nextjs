@@ -7,7 +7,7 @@ export type UserStatus = "ACTIVE" | "SUSPENDED";
 
 // Datos del usuario que vienen de la sesión/BD
 export interface UserProfile {
-  id: number;
+  id: string;
   name: string;
   email: string;
   phone: string | null;

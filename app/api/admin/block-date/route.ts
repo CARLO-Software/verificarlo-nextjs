@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
       data: {
         date: startOfDay(parsedDate),
         reason: reason || null,
-        createdBy: parseInt(session!.user!.id),
+        createdBy: (session!.user!.id),
       },
     });
 
