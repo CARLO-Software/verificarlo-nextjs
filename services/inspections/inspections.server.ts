@@ -20,7 +20,7 @@ export interface BookingWithDetails {
   inspectorNotes: string | null;
   adminNotes: string | null;
   client: {
-    id: number;
+    id: string;
     name: string;
     email: string;
     image: string | null;
@@ -47,19 +47,19 @@ export interface BookingWithDetails {
     price: number;
   };
   inspector: {
-    id: number;
+    id: string;
     name: string;
     email: string;
     image: string | null;
   } | null;
-  payment: {
+  payment?: {
     id: number;
     status: string;
     amount: number;
     paidAt: Date | null;
     receiptNumber: string | null;
   } | null;
-  report: {
+  report?: {
     id: number;
     legalStatus: InspectionResultStatus;
     legalScore: number | null;
@@ -408,7 +408,7 @@ export async function updateInspectionStatus(
 // PUT - Asignar inspector (Admin)
 // ============================================
 
-export async function assignInspector(bookingId: number, inspectorId: number) {
+export async function assignInspector(bookingId: number, inspectorId: string, autoConfirm = false) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -428,13 +428,21 @@ export async function assignInspector(bookingId: number, inspectorId: number) {
     throw new Error('Inspector no válido');
   }
 
+  // Solo asignar inspector, sin cambiar el estado automáticamente
+  // El estado se maneja por separado con updateInspectionStatus
+  const updateData: { inspectorId: string; status?: 'CONFIRMED'; confirmedAt?: Date } = {
+    inspectorId,
+  };
+
+  // Solo confirmar automáticamente si se indica explícitamente
+  if (autoConfirm) {
+    updateData.status = 'CONFIRMED';
+    updateData.confirmedAt = new Date();
+  }
+
   return db.booking.update({
     where: { id: bookingId },
-    data: {
-      inspectorId,
-      status: 'CONFIRMED',
-      confirmedAt: new Date(),
-    },
+    data: updateData,
   });
 }
 

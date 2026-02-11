@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { formatearFechaHoraCorta } from '@/app/domain/datetime';
 import { BookingStatus } from '@prisma/client';
-import { updateStatusAction, assignInspectorAction } from './actions';
+import { saveInspectionChangesAction } from './actions';
 
 interface Inspection {
   id: number;
@@ -16,7 +16,7 @@ interface Inspection {
   timeSlot: string;
   createdAt: Date;
   client: {
-    id: number;
+    id: string;
     name: string;
     email: string;
     avatar: string | null;
@@ -29,7 +29,7 @@ interface Inspection {
   };
   inspectionType: string;
   inspector: {
-    id: number;
+    id: string;
     name: string;
     avatar: string | null;
   } | null;
@@ -39,7 +39,7 @@ interface Inspection {
 }
 
 interface Inspector {
-  id: number;
+  id: string;
   name: string;
   email: string;
   image: string | null;
@@ -108,32 +108,70 @@ function InspectionDetailPanel({
   inspection,
   inspectors,
   onClose,
-  onStatusChange,
-  onAssignInspector,
+  onSaveSuccess,
 }: {
   inspection: Inspection;
   inspectors: Inspector[];
   onClose: () => void;
-  onStatusChange: (status: BookingStatus) => void;
-  onAssignInspector: (inspectorId: number) => void;
+  onSaveSuccess: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<'details' | 'checklist' | 'evidence' | 'history'>('details');
   const [isPending, startTransition] = useTransition();
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newStatus = e.target.value as BookingStatus;
-    startTransition(() => {
-      onStatusChange(newStatus);
-    });
-  };
+  // Estado local para ediciones
+  const [editedStatus, setEditedStatus] = useState<BookingStatus>(inspection.status);
+  const [editedInspectorId, setEditedInspectorId] = useState<string | null>(
+    inspection.inspector?.id ?? null
+  );
+  const [editedNotes, setEditedNotes] = useState<string>(inspection.adminNotes || '');
 
-  const handleAssignInspector = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const inspectorId = Number(e.target.value);
-    if (inspectorId) {
-      startTransition(() => {
-        onAssignInspector(inspectorId);
-      });
-    }
+  // Estado para feedback
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Detectar si hay cambios
+  const hasChanges =
+    editedStatus !== inspection.status ||
+    editedInspectorId !== (inspection.inspector?.id ?? null) ||
+    editedNotes !== (inspection.adminNotes || '');
+
+  const handleSave = () => {
+    setSaveMessage(null);
+
+    startTransition(async () => {
+      const changes: {
+        status?: BookingStatus;
+        inspectorId?: string;
+        adminNotes?: string;
+      } = {};
+
+      if (editedStatus !== inspection.status) {
+        changes.status = editedStatus;
+      }
+
+      if (editedInspectorId && editedInspectorId !== (inspection.inspector?.id ?? null)) {
+        changes.inspectorId = editedInspectorId;
+      }
+
+      if (editedNotes !== (inspection.adminNotes || '')) {
+        changes.adminNotes = editedNotes;
+      }
+
+      if (Object.keys(changes).length === 0) {
+        setSaveMessage({ type: 'error', text: 'No hay cambios para guardar' });
+        return;
+      }
+
+      const result = await saveInspectionChangesAction(inspection.id, changes);
+
+      if (result.success) {
+        setSaveMessage({ type: 'success', text: 'Cambios guardados correctamente' });
+        setTimeout(() => {
+          onSaveSuccess();
+        }, 1000);
+      } else {
+        setSaveMessage({ type: 'error', text: result.error || 'Error al guardar' });
+      }
+    });
   };
 
   return (
@@ -160,8 +198,13 @@ function InspectionDetailPanel({
               <h2 className="text-lg font-semibold text-[#2D2D2D]">
                 Inspección {inspection.code}
               </h2>
-              <div className="mt-2">
-                <StatusBadge status={inspection.status} />
+              <div className="mt-2 flex items-center gap-2">
+                <StatusBadge status={editedStatus} />
+                {hasChanges && (
+                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                    Sin guardar
+                  </span>
+                )}
               </div>
             </div>
             <button
@@ -228,7 +271,7 @@ function InspectionDetailPanel({
               {/* Inspection info */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspección</h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-gray-500">Fecha</span>
                     <span className="font-medium">{formatearFechaHoraCorta(inspection.startTime)}</span>
@@ -240,16 +283,18 @@ function InspectionDetailPanel({
                   <div className="flex justify-between items-center">
                     <span className="text-gray-500">Estado</span>
                     <select
-                      value={inspection.status}
-                      onChange={handleStatusChange}
+                      value={editedStatus}
+                      onChange={(e) => setEditedStatus(e.target.value as BookingStatus)}
                       disabled={isPending}
-                      className="text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-[#FFE14C]"
+                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                     >
                       <option value="PENDING_PAYMENT">Pendiente de pago</option>
                       <option value="PAID">Pagado</option>
                       <option value="CONFIRMED">Confirmado</option>
                       <option value="COMPLETED">Completado</option>
                       <option value="CANCELLED">Cancelado</option>
+                      <option value="NO_SHOW">No se presentó</option>
+                      <option value="EXPIRED">Expirado</option>
                     </select>
                   </div>
                 </div>
@@ -258,49 +303,74 @@ function InspectionDetailPanel({
               {/* Inspector assignment */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspector asignado</h3>
-                {inspection.inspector ? (
-                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg">
-                    <Avatar name={inspection.inspector.name} size="sm" />
-                    <span className="font-medium">{inspection.inspector.name}</span>
-                    <select
-                      value={inspection.inspector.id}
-                      onChange={handleAssignInspector}
-                      disabled={isPending}
-                      className="ml-auto text-sm border border-gray-200 rounded px-2 py-1 focus:outline-none focus:border-[#FFE14C]"
-                    >
-                      {inspectors.map((inspector) => (
-                        <option key={inspector.id} value={inspector.id}>
-                          {inspector.name}
-                        </option>
-                      ))}
-                    </select>
+                <select
+                  value={editedInspectorId || ''}
+                  onChange={(e) => setEditedInspectorId(e.target.value || null)}
+                  disabled={isPending}
+                  className={`
+                    w-full p-3 rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50
+                    ${editedInspectorId
+                      ? 'border border-gray-200 focus:border-[#FFE14C]'
+                      : 'border-2 border-dashed border-gray-200 text-gray-500 hover:border-[#FFE14C]'
+                    }
+                  `}
+                >
+                  <option value="">+ Seleccionar inspector</option>
+                  {inspectors.map((inspector) => (
+                    <option key={inspector.id} value={inspector.id}>
+                      {inspector.name}
+                    </option>
+                  ))}
+                </select>
+                {editedInspectorId && (
+                  <div className="flex items-center gap-3 mt-3 p-3 bg-gray-50 rounded-lg">
+                    <Avatar
+                      name={inspectors.find((i) => i.id === editedInspectorId)?.name || '?'}
+                      size="sm"
+                    />
+                    <span className="font-medium text-sm">
+                      {inspectors.find((i) => i.id === editedInspectorId)?.name}
+                    </span>
                   </div>
-                ) : (
-                  <select
-                    value=""
-                    onChange={handleAssignInspector}
-                    disabled={isPending}
-                    className="w-full p-3 border-2 border-dashed border-gray-200 rounded-lg text-gray-500 hover:border-[#FFE14C] transition-colors focus:outline-none"
-                  >
-                    <option value="">+ Seleccionar inspector</option>
-                    {inspectors.map((inspector) => (
-                      <option key={inspector.id} value={inspector.id}>
-                        {inspector.name}
-                      </option>
-                    ))}
-                  </select>
                 )}
               </div>
 
               {/* Notes */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Notas</h3>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                  Notas del administrador
+                </h3>
                 <textarea
                   placeholder="Agregar notas del administrador..."
-                  defaultValue={inspection.adminNotes || ''}
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none h-24 focus:outline-none focus:border-[#FFE14C]"
+                  value={editedNotes}
+                  onChange={(e) => setEditedNotes(e.target.value)}
+                  disabled={isPending}
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none h-28 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                 />
               </div>
+
+              {/* Notas del cliente e inspector (solo lectura) */}
+              {inspection.clientNotes && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                    Notas del cliente
+                  </h3>
+                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                    {inspection.clientNotes}
+                  </p>
+                </div>
+              )}
+
+              {inspection.inspectorNotes && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                    Notas del inspector
+                  </h3>
+                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+                    {inspection.inspectorNotes}
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -342,16 +412,39 @@ function InspectionDetailPanel({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200 flex gap-3">
-          <button
-            disabled={isPending}
-            className="flex-1 px-4 py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors disabled:opacity-50"
-          >
-            {isPending ? 'Guardando...' : 'Guardar cambios'}
-          </button>
-          <button className="flex-1 px-4 py-2.5 bg-[#2D2D2D] text-white font-semibold rounded-lg hover:bg-[#1a1a1a] transition-colors">
-            Publicar informe
-          </button>
+        <div className="p-6 border-t border-gray-200">
+          {/* Mensaje de feedback */}
+          {saveMessage && (
+            <div
+              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
+                saveMessage.type === 'success'
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-red-50 text-red-700'
+              }`}
+            >
+              {saveMessage.text}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleSave}
+              disabled={isPending || !hasChanges}
+              className={`
+                flex-1 px-4 py-2.5 font-semibold rounded-lg transition-all
+                ${hasChanges
+                  ? 'bg-[#FFE14C] text-[#2D2D2D] hover:bg-[#FFD700]'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }
+                disabled:opacity-50
+              `}
+            >
+              {isPending ? 'Guardando...' : 'Guardar cambios'}
+            </button>
+            <button className="flex-1 px-4 py-2.5 bg-[#2D2D2D] text-white font-semibold rounded-lg hover:bg-[#1a1a1a] transition-colors">
+              Publicar informe
+            </button>
+          </div>
         </div>
       </div>
     </>
@@ -367,7 +460,6 @@ export function AdminInspeccionesClient({
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
-  const [isPending, startTransition] = useTransition();
 
   const filteredInspections = inspections.filter((inspection) => {
     if (filter !== 'all') {
@@ -388,22 +480,9 @@ export function AdminInspeccionesClient({
     return true;
   });
 
-  const handleStatusChange = async (status: BookingStatus) => {
-    if (!selectedInspection) return;
-
-    startTransition(async () => {
-      await updateStatusAction(selectedInspection.id, status);
-      router.refresh();
-    });
-  };
-
-  const handleAssignInspector = async (inspectorId: number) => {
-    if (!selectedInspection) return;
-
-    startTransition(async () => {
-      await assignInspectorAction(selectedInspection.id, inspectorId);
-      router.refresh();
-    });
+  const handleSaveSuccess = () => {
+    setSelectedInspection(null);
+    router.refresh();
   };
 
   return (
@@ -574,8 +653,7 @@ export function AdminInspeccionesClient({
           inspection={selectedInspection}
           inspectors={inspectors}
           onClose={() => setSelectedInspection(null)}
-          onStatusChange={handleStatusChange}
-          onAssignInspector={handleAssignInspector}
+          onSaveSuccess={handleSaveSuccess}
         />
       )}
     </div>

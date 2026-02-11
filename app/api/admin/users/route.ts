@@ -51,6 +51,73 @@ export async function GET(_req: NextRequest) {
 }
 
 // ============================================
+// POST - Crear usuario
+// ============================================
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  const authCheck = await verifyAdmin(session);
+
+  if ("error" in authCheck) {
+    return NextResponse.json(
+      { error: authCheck.error },
+      { status: authCheck.status }
+    );
+  }
+
+  const body = await req.json();
+  const { name, email, phone, password, role } = body;
+
+  if (!name || !email || !password || !role) {
+    return NextResponse.json(
+      { error: "Nombre, email, contraseña y rol son obligatorios" },
+      { status: 400 }
+    );
+  }
+
+  if (!["CLIENT", "INSPECTOR"].includes(role)) {
+    return NextResponse.json(
+      { error: "Rol inválido. Solo CLIENT o INSPECTOR" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const existing = await db.user.findUnique({ where: { email } });
+
+    if (existing) {
+      return NextResponse.json(
+        { error: "Ya existe un usuario con ese email" },
+        { status: 409 }
+      );
+    }
+
+    const bcrypt = (await import("bcryptjs")).default;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await db.user.create({
+      data: {
+        name,
+        email,
+        phone: phone || null,
+        password: hashedPassword,
+        role,
+        isInspectorAvailable: role === "INSPECTOR",
+      },
+    });
+
+    const { password: _, ...userWithoutPassword } = newUser;
+    return NextResponse.json(userWithoutPassword, { status: 201 });
+  } catch (error) {
+    console.error("Error creando usuario:", error);
+    return NextResponse.json(
+      { error: "Error al crear el usuario" },
+      { status: 500 }
+    );
+  }
+}
+
+// ============================================
 // PATCH - Cambiar rol, suspender, reactivar
 // ============================================
 
