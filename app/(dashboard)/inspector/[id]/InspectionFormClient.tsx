@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./InspectionForm.module.css";
+import { InspectionChecklist } from "./components";
+import { type InspectionResults } from "./inspectionData";
 
 type ResultStatus = "PENDING" | "OK" | "WARNING" | "CRITICAL";
 
@@ -26,6 +28,10 @@ interface Report {
   bodyStatus: ResultStatus;
   bodyScore: number | null;
   bodyObservations: any;
+  interiorStatus?: ResultStatus;
+  interiorScore?: number | null;
+  interiorObservations?: any;
+  checklistResults?: InspectionResults;
   mileageAtInspection: number | null;
   vinNumber: string | null;
   engineNumber: string | null;
@@ -76,7 +82,7 @@ interface InspectionFormClientProps {
   inspection: InspectionData;
 }
 
-type Section = "info" | "legal" | "mechanical" | "body" | "summary";
+type Section = "info" | "checklist" | "summary";
 
 export function InspectionFormClient({ inspection }: InspectionFormClientProps) {
   const router = useRouter();
@@ -85,7 +91,7 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isCompleted = report?.completedAt !== null;
+  const isCompleted = report !== null && report.completedAt !== null;
 
   // Crear informe si no existe
   useEffect(() => {
@@ -141,33 +147,13 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
       ),
     },
     {
-      id: "legal",
-      label: "Legal",
+      id: "checklist",
+      label: "Inspección",
       icon: (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M6 3h8a2 2 0 012 2v10a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" stroke="currentColor" strokeWidth="2" />
-          <path d="M7 7h6M7 10h6M7 13h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
-      ),
-    },
-    {
-      id: "mechanical",
-      label: "Mecánica",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 6v8M6 10h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="2" />
-        </svg>
-      ),
-    },
-    {
-      id: "body",
-      label: "Carrocería",
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <rect x="3" y="6" width="14" height="8" rx="2" stroke="currentColor" strokeWidth="2" />
-          <circle cx="6" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.5" />
-          <circle cx="14" cy="14" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M7 8l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M7 14h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       ),
     },
@@ -190,12 +176,10 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
     switch (section) {
       case "info":
         return report.mileageAtInspection ? "complete" : "pending";
-      case "legal":
-        return report.legalStatus !== "PENDING" ? "complete" : "pending";
-      case "mechanical":
-        return report.mechanicalStatus !== "PENDING" ? "complete" : "pending";
-      case "body":
-        return report.bodyStatus !== "PENDING" ? "complete" : "pending";
+      case "checklist":
+        // Verificar si hay algún resultado en el checklist
+        const hasResults = report.checklistResults && Object.keys(report.checklistResults).length > 0;
+        return hasResults ? "complete" : "pending";
       case "summary":
         return report.executiveSummary ? "complete" : "pending";
       default:
@@ -267,50 +251,22 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
             disabled={isCompleted}
           />
         )}
-        {activeSection === "legal" && report && (
-          <LegalSection
-            reportId={report.id}
-            data={{
-              status: report.legalStatus,
-              score: report.legalScore,
-              observations: report.legalObservations || [],
-              ownershipCardVerified: report.ownershipCardVerified,
-              soatValid: report.soatValid,
-              soatExpiryDate: report.soatExpiryDate,
-              technicalReviewValid: report.technicalReviewValid,
-              technicalReviewExpiryDate: report.technicalReviewExpiryDate,
-            }}
-            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
-            disabled={isCompleted}
-          />
-        )}
-        {activeSection === "mechanical" && report && (
-          <MechanicalSection
-            reportId={report.id}
-            data={{
-              status: report.mechanicalStatus,
-              score: report.mechanicalScore,
-              observations: report.mechanicalObservations || [],
-            }}
-            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
-            disabled={isCompleted}
-          />
-        )}
-        {activeSection === "body" && report && (
-          <BodySection
-            reportId={report.id}
-            data={{
-              status: report.bodyStatus,
-              score: report.bodyScore,
-              observations: report.bodyObservations || [],
-            }}
-            onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
-            disabled={isCompleted}
-          />
+        {activeSection === "checklist" && (
+          report ? (
+            <ChecklistSection
+              reportId={report.id}
+              initialResults={report.checklistResults || {}}
+              onUpdate={(results) => setReport((prev) => prev ? { ...prev, checklistResults: results } : prev)}
+              disabled={isCompleted}
+            />
+          ) : (
+            <div style={{ padding: 20, textAlign: "center" }}>
+              <p>Cargando checklist...</p>
+            </div>
+          )
         )}
         {activeSection === "summary" && report && (
           <SummarySection
-            inspection={inspection}
             report={report}
             onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
             onComplete={() => router.refresh()}
@@ -497,399 +453,44 @@ function InfoSection({
 }
 
 // ============================================
-// Legal Section
+// Checklist Section - Nuevo sistema de inspección
 // ============================================
-function LegalSection({
+function ChecklistSection({
   reportId,
-  data,
+  initialResults,
   onUpdate,
   disabled,
 }: {
   reportId: number;
-  data: {
-    status: ResultStatus;
-    score: number | null;
-    observations: any[];
-    ownershipCardVerified: boolean;
-    soatValid: boolean;
-    soatExpiryDate: string | null;
-    technicalReviewValid: boolean;
-    technicalReviewExpiryDate: string | null;
-  };
-  onUpdate: (data: Partial<Report>) => void;
+  initialResults: InspectionResults;
+  onUpdate: (results: InspectionResults) => void;
   disabled: boolean;
 }) {
-  const [status, setStatus] = useState<ResultStatus>(data.status);
-  const [score, setScore] = useState(data.score?.toString() || "");
-  const [ownershipCardVerified, setOwnershipCardVerified] = useState(data.ownershipCardVerified);
-  const [soatValid, setSoatValid] = useState(data.soatValid);
-  const [technicalReviewValid, setTechnicalReviewValid] = useState(data.technicalReviewValid);
-  const [observations, setObservations] = useState<string>("");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
+  const handleSave = async (results: InspectionResults) => {
     try {
-      // Guardar sección legal
-      await fetch(`/api/reports/${reportId}/sections`, {
+      const res = await fetch(`/api/reports/${reportId}/sections`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          section: "legal",
-          data: {
-            status,
-            score: score ? parseInt(score) : null,
-            observations: observations ? [{ note: observations }] : [],
-          },
+          section: "checklist",
+          data: { checklistResults: results },
         }),
       });
 
-      // Guardar documentos
-      await fetch(`/api/reports/${reportId}/sections`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          section: "documents",
-          data: {
-            ownershipCardVerified,
-            soatValid,
-            technicalReviewValid,
-          },
-        }),
-      });
-
-      onUpdate({
-        legalStatus: status,
-        legalScore: score ? parseInt(score) : null,
-        ownershipCardVerified,
-        soatValid,
-        technicalReviewValid,
-      });
+      if (res.ok) {
+        onUpdate(results);
+      }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
+      console.error("Error al guardar checklist:", err);
     }
   };
 
   return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Revisión Legal</h2>
-
-      {/* Estado y puntaje */}
-      <div className={styles.statusRow}>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Estado</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ResultStatus)}
-            className={styles.select}
-            disabled={disabled}
-          >
-            <option value="PENDING">Pendiente</option>
-            <option value="OK">Aprobado</option>
-            <option value="WARNING">Con observaciones</option>
-            <option value="CRITICAL">Crítico</option>
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Puntaje (0-100)</label>
-          <input
-            type="number"
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-            min="0"
-            max="100"
-            className={styles.input}
-            disabled={disabled}
-          />
-        </div>
-      </div>
-
-      {/* Verificación de documentos */}
-      <div className={styles.checkboxGroup}>
-        <h3 className={styles.checkboxGroupTitle}>Verificación de Documentos</h3>
-        <label className={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={ownershipCardVerified}
-            onChange={(e) => setOwnershipCardVerified(e.target.checked)}
-            disabled={disabled}
-          />
-          <span>Tarjeta de propiedad verificada</span>
-        </label>
-        <label className={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={soatValid}
-            onChange={(e) => setSoatValid(e.target.checked)}
-            disabled={disabled}
-          />
-          <span>SOAT vigente</span>
-        </label>
-        <label className={styles.checkbox}>
-          <input
-            type="checkbox"
-            checked={technicalReviewValid}
-            onChange={(e) => setTechnicalReviewValid(e.target.checked)}
-            disabled={disabled}
-          />
-          <span>Revisión técnica vigente</span>
-        </label>
-      </div>
-
-      {/* Observaciones */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Observaciones</label>
-        <textarea
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-          placeholder="Ingrese observaciones legales..."
-          className={styles.textarea}
-          rows={4}
-          disabled={disabled}
-        />
-      </div>
-
-      {!disabled && (
-        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
-          {saving ? "Guardando..." : "Guardar sección legal"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ============================================
-// Mechanical Section
-// ============================================
-function MechanicalSection({
-  reportId,
-  data,
-  onUpdate,
-  disabled,
-}: {
-  reportId: number;
-  data: {
-    status: ResultStatus;
-    score: number | null;
-    observations: any[];
-  };
-  onUpdate: (data: Partial<Report>) => void;
-  disabled: boolean;
-}) {
-  const [status, setStatus] = useState<ResultStatus>(data.status);
-  const [score, setScore] = useState(data.score?.toString() || "");
-  const [observations, setObservations] = useState<string>("");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await fetch(`/api/reports/${reportId}/sections`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          section: "mechanical",
-          data: {
-            status,
-            score: score ? parseInt(score) : null,
-            observations: observations ? [{ note: observations }] : [],
-          },
-        }),
-      });
-
-      onUpdate({
-        mechanicalStatus: status,
-        mechanicalScore: score ? parseInt(score) : null,
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const mechanicalCategories = [
-    "Motor",
-    "Transmisión",
-    "Frenos",
-    "Suspensión",
-    "Dirección",
-    "Sistema eléctrico",
-    "Aire acondicionado",
-    "Sistema de escape",
-  ];
-
-  return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Revisión Mecánica</h2>
-
-      {/* Estado y puntaje */}
-      <div className={styles.statusRow}>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Estado</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ResultStatus)}
-            className={styles.select}
-            disabled={disabled}
-          >
-            <option value="PENDING">Pendiente</option>
-            <option value="OK">Aprobado</option>
-            <option value="WARNING">Con observaciones</option>
-            <option value="CRITICAL">Crítico</option>
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Puntaje (0-100)</label>
-          <input
-            type="number"
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-            min="0"
-            max="100"
-            className={styles.input}
-            disabled={disabled}
-          />
-        </div>
-      </div>
-
-      {/* Categorías a revisar */}
-      <div className={styles.categoriesHint}>
-        <h3>Categorías a revisar:</h3>
-        <ul>
-          {mechanicalCategories.map((cat) => (
-            <li key={cat}>{cat}</li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Observaciones */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Observaciones mecánicas</label>
-        <textarea
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-          placeholder="Detalle las observaciones mecánicas encontradas..."
-          className={styles.textarea}
-          rows={6}
-          disabled={disabled}
-        />
-      </div>
-
-      {!disabled && (
-        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
-          {saving ? "Guardando..." : "Guardar sección mecánica"}
-        </button>
-      )}
-    </div>
-  );
-}
-
-// ============================================
-// Body Section
-// ============================================
-function BodySection({
-  reportId,
-  data,
-  onUpdate,
-  disabled,
-}: {
-  reportId: number;
-  data: {
-    status: ResultStatus;
-    score: number | null;
-    observations: any[];
-  };
-  onUpdate: (data: Partial<Report>) => void;
-  disabled: boolean;
-}) {
-  const [status, setStatus] = useState<ResultStatus>(data.status);
-  const [score, setScore] = useState(data.score?.toString() || "");
-  const [observations, setObservations] = useState<string>("");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await fetch(`/api/reports/${reportId}/sections`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          section: "body",
-          data: {
-            status,
-            score: score ? parseInt(score) : null,
-            observations: observations ? [{ note: observations }] : [],
-          },
-        }),
-      });
-
-      onUpdate({
-        bodyStatus: status,
-        bodyScore: score ? parseInt(score) : null,
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Revisión de Carrocería</h2>
-
-      {/* Estado y puntaje */}
-      <div className={styles.statusRow}>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Estado</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as ResultStatus)}
-            className={styles.select}
-            disabled={disabled}
-          >
-            <option value="PENDING">Pendiente</option>
-            <option value="OK">Aprobado</option>
-            <option value="WARNING">Con observaciones</option>
-            <option value="CRITICAL">Crítico</option>
-          </select>
-        </div>
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Puntaje (0-100)</label>
-          <input
-            type="number"
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-            min="0"
-            max="100"
-            className={styles.input}
-            disabled={disabled}
-          />
-        </div>
-      </div>
-
-      {/* Observaciones */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Observaciones de carrocería</label>
-        <textarea
-          value={observations}
-          onChange={(e) => setObservations(e.target.value)}
-          placeholder="Detalle daños en carrocería, pintura, abolladuras, rayones..."
-          className={styles.textarea}
-          rows={6}
-          disabled={disabled}
-        />
-      </div>
-
-      {!disabled && (
-        <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
-          {saving ? "Guardando..." : "Guardar sección carrocería"}
-        </button>
-      )}
-    </div>
+    <InspectionChecklist
+      initialResults={initialResults}
+      disabled={disabled}
+      onSave={handleSave}
+    />
   );
 }
 
@@ -897,13 +498,11 @@ function BodySection({
 // Summary Section
 // ============================================
 function SummarySection({
-  inspection,
   report,
   onUpdate,
   onComplete,
   disabled,
 }: {
-  inspection: InspectionData;
   report: Report;
   onUpdate: (data: Partial<Report>) => void;
   onComplete: () => void;

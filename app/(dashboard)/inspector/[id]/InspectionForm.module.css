@@ -151,6 +151,13 @@
   padding: 24px;
 }
 
+/* Checklist section - sin bordes ni padding extra */
+.section:has(.checklistContainer) {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
 .sectionTitle {
   font-family: 'DM Sans', sans-serif;
   font-size: 20px;

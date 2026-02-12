@@ -1,0 +1,234 @@
+/**
+ * Estilos para InspectionItemCard
+ * Diseño profesional tipo segmented control para estados de inspección
+ */
+
+.card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  border-color: #D1D5DB;
+}
+
+.cardDisabled {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.cardContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Status Buttons - Segmented Control */
+.statusButtons {
+  display: flex;
+  background: #F3F4F6;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.statusButton {
+  padding: 8px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6B7280;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.statusButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.statusButton:disabled {
+  cursor: not-allowed;
+}
+
+/* Labels responsive */
+.statusLabelShort {
+  display: none;
+}
+
+/* Status Colors - Active State */
+.statusButton--green.statusButtonActive {
+  background: #22C55E;
+  color: white;
+  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
+}
+
+.statusButton--yellow.statusButtonActive {
+  background: #F59E0B;
+  color: white;
+  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+}
+
+.statusButton--red.statusButtonActive {
+  background: #EF4444;
+  color: white;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+}
+
+.statusButton--gray.statusButtonActive {
+  background: #6B7280;
+  color: white;
+  box-shadow: 0 1px 3px rgba(107, 114, 128, 0.3);
+}
+
+/* Hover states when not active */
+.statusButton--green:hover:not(.statusButtonActive):not(:disabled) {
+  color: #22C55E;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.statusButton--yellow:hover:not(.statusButtonActive):not(:disabled) {
+  color: #F59E0B;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.statusButton--red:hover:not(.statusButtonActive):not(:disabled) {
+  color: #EF4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.statusButton--gray:hover:not(.statusButtonActive):not(:disabled) {
+  color: #6B7280;
+  background: rgba(107, 114, 128, 0.1);
+}
+
+/* Add Comment Button */
+.addCommentButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9CA3AF;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.addCommentButton:hover:not(:disabled) {
+  color: #6B7280;
+}
+
+.addCommentButton svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Comment Section */
+.commentSection {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #F3F4F6;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.commentInput {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #374151;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  resize: vertical;
+  min-height: 60px;
+  transition: all 0.2s;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: #FFE14C;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(255, 225, 76, 0.15);
+}
+
+.commentInput:disabled {
+  background: #F3F4F6;
+  cursor: not-allowed;
+}
+
+.commentInput::placeholder {
+  color: #9CA3AF;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .cardContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .statusButtons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .statusButton {
+    flex: 1;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .statusLabel {
+    display: none;
+  }
+
+  .statusLabelShort {
+    display: inline;
+  }
+}
+
+@media (max-width: 400px) {
+  .card {
+    padding: 12px;
+  }
+
+  .statusButton {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+}

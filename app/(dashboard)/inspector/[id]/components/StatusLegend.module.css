@@ -1,0 +1,137 @@
+/**
+ * Estilos para StatusLegend
+ * Diseño discreto e informativo para la leyenda de estados
+ */
+
+.legend {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.legendHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.legendIcon {
+  color: #94A3B8;
+}
+
+.legendTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.legendGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 24px;
+}
+
+.legendItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.dot--green {
+  background: #22C55E;
+}
+
+.dot--yellow {
+  background: #F59E0B;
+}
+
+.dot--red {
+  background: #EF4444;
+}
+
+.dot--gray {
+  background: #9CA3AF;
+}
+
+.legendText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.legendLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.legendDescription {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #6B7280;
+  line-height: 1.4;
+}
+
+/* Compact version for mobile or inline use */
+.legendCompact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.legendItemCompact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.labelCompact {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .legend {
+    padding: 10px 12px;
+  }
+
+  .legendGrid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .legendDescription {
+    font-size: 11px;
+  }
+
+  .legendCompact {
+    gap: 8px 16px;
+  }
+
+  .labelCompact {
+    font-size: 11px;
+  }
+}
