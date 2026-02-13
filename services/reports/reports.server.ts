@@ -385,6 +385,41 @@ export async function updateVehicleData(
 }
 
 // ============================================
+// UPDATE - Actualizar checklist de inspección
+// ============================================
+
+export interface ChecklistItemResult {
+  status: "OK" | "OBSERVACION" | "DEFECTO" | "NO_APLICA" | null;
+  comment?: string;
+}
+
+export type ChecklistResults = Record<string, ChecklistItemResult>;
+
+export async function updateChecklistResults(
+  reportId: number,
+  data: {
+    checklistResults: ChecklistResults;
+  }
+) {
+  const report = await db.inspectionReport.findUnique({
+    where: { id: reportId },
+    select: { bookingId: true, completedAt: true },
+  });
+
+  if (!report) throw new Error('Informe no encontrado');
+  if (report.completedAt) throw new Error('El informe ya está finalizado');
+
+  await verifyInspectorAccess(report.bookingId);
+
+  return db.inspectionReport.update({
+    where: { id: reportId },
+    data: {
+      checklistResults: data.checklistResults,
+    },
+  });
+}
+
+// ============================================
 // UPDATE - Actualizar documentos verificados
 // ============================================
 
@@ -418,18 +453,114 @@ export async function updateDocumentsVerification(
 // COMPLETE - Finalizar informe
 // ============================================
 
+// Categorías del checklist para validación
+const CHECKLIST_CATEGORIES = ['legal', 'mecanica', 'carroceria', 'interior'];
+
+// Mapeo de prefijos de items a categorías
+const CATEGORY_PREFIXES: Record<string, string> = {
+  'legal-': 'legal',
+  'mec-': 'mecanica',
+  'car-': 'carroceria',
+  'int-': 'interior',
+};
+
+function calculateScoresFromChecklist(checklistResults: ChecklistResults): {
+  byCategory: Record<string, { score: number; status: InspectionResultStatus; completed: number }>;
+  overall: { score: number; status: InspectionResultStatus };
+} {
+  const byCategory: Record<string, { ok: number; obs: number; def: number; completed: number }> = {
+    legal: { ok: 0, obs: 0, def: 0, completed: 0 },
+    mecanica: { ok: 0, obs: 0, def: 0, completed: 0 },
+    carroceria: { ok: 0, obs: 0, def: 0, completed: 0 },
+    interior: { ok: 0, obs: 0, def: 0, completed: 0 },
+  };
+
+  // Contar resultados por categoría
+  for (const [itemId, result] of Object.entries(checklistResults)) {
+    if (!result || result.status === null) continue;
+
+    // Determinar categoría del item
+    let category = 'legal';
+    for (const [prefix, cat] of Object.entries(CATEGORY_PREFIXES)) {
+      if (itemId.startsWith(prefix)) {
+        category = cat;
+        break;
+      }
+    }
+
+    byCategory[category].completed++;
+
+    switch (result.status) {
+      case 'OK':
+        byCategory[category].ok++;
+        break;
+      case 'OBSERVACION':
+        byCategory[category].obs++;
+        break;
+      case 'DEFECTO':
+        byCategory[category].def++;
+        break;
+      // NO_APLICA no cuenta para el score
+    }
+  }
+
+  // Calcular score y status por categoría
+  const categoryResults: Record<string, { score: number; status: InspectionResultStatus; completed: number }> = {};
+
+  for (const [catId, counts] of Object.entries(byCategory)) {
+    const aplicables = counts.ok + counts.obs + counts.def;
+    const score = aplicables > 0
+      ? Math.round(((counts.ok * 100) + (counts.obs * 50)) / aplicables)
+      : 0;
+
+    let status: InspectionResultStatus = 'PENDING';
+    if (counts.completed > 0) {
+      if (counts.def > 0) {
+        status = 'CRITICAL';
+      } else if (counts.obs > 0) {
+        status = 'WARNING';
+      } else if (counts.ok > 0) {
+        status = 'OK';
+      }
+    }
+
+    categoryResults[catId] = { score, status, completed: counts.completed };
+  }
+
+  // Calcular score general (promedio de categorías con items)
+  const categoriesWithItems = Object.values(categoryResults).filter(c => c.completed > 0);
+  const overallScore = categoriesWithItems.length > 0
+    ? Math.round(categoriesWithItems.reduce((sum, c) => sum + c.score, 0) / categoriesWithItems.length)
+    : 0;
+
+  // Status general es el peor de todos
+  let overallStatus: InspectionResultStatus = 'OK';
+  for (const cat of categoriesWithItems) {
+    if (cat.status === 'CRITICAL') {
+      overallStatus = 'CRITICAL';
+      break;
+    } else if (cat.status === 'WARNING') {
+      overallStatus = 'WARNING';
+    }
+  }
+
+  if (categoriesWithItems.length === 0) {
+    overallStatus = 'PENDING';
+  }
+
+  return {
+    byCategory: categoryResults,
+    overall: { score: overallScore, status: overallStatus },
+  };
+}
+
 export async function completeReport(reportId: number) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: {
       bookingId: true,
       completedAt: true,
-      legalStatus: true,
-      mechanicalStatus: true,
-      bodyStatus: true,
-      legalScore: true,
-      mechanicalScore: true,
-      bodyScore: true,
+      checklistResults: true,
     },
   });
 
@@ -438,43 +569,32 @@ export async function completeReport(reportId: number) {
 
   const { userId } = await verifyInspectorAccess(report.bookingId);
 
-  // Validar que todas las secciones estén completadas
-  if (report.legalStatus === 'PENDING') {
-    throw new Error('La sección legal no ha sido completada');
-  }
-  if (report.mechanicalStatus === 'PENDING') {
-    throw new Error('La sección mecánica no ha sido completada');
-  }
-  if (report.bodyStatus === 'PENDING') {
-    throw new Error('La sección de carrocería no ha sido completada');
+  // Validar que haya resultados del checklist
+  const checklistResults = (report.checklistResults as ChecklistResults) || {};
+
+  if (Object.keys(checklistResults).length === 0) {
+    throw new Error('No se han completado items del checklist');
   }
 
-  // Calcular puntaje general (promedio ponderado)
-  const legalWeight = 0.2;
-  const mechanicalWeight = 0.5;
-  const bodyWeight = 0.3;
+  // Calcular scores desde el checklist
+  const scores = calculateScoresFromChecklist(checklistResults);
 
-  const overallScore = Math.round(
-    (report.legalScore || 0) * legalWeight +
-    (report.mechanicalScore || 0) * mechanicalWeight +
-    (report.bodyScore || 0) * bodyWeight
-  );
-
-  // Determinar estado general
-  let overallStatus: InspectionResultStatus = 'OK';
-  if (
-    report.legalStatus === 'CRITICAL' ||
-    report.mechanicalStatus === 'CRITICAL' ||
-    report.bodyStatus === 'CRITICAL'
-  ) {
-    overallStatus = 'CRITICAL';
-  } else if (
-    report.legalStatus === 'WARNING' ||
-    report.mechanicalStatus === 'WARNING' ||
-    report.bodyStatus === 'WARNING'
-  ) {
-    overallStatus = 'WARNING';
+  // Validar que todas las categorías tengan al menos algunos items completados
+  for (const catId of CHECKLIST_CATEGORIES) {
+    const catScore = scores.byCategory[catId];
+    if (!catScore || catScore.completed === 0) {
+      const categoryNames: Record<string, string> = {
+        legal: 'Legal',
+        mecanica: 'Mecánica',
+        carroceria: 'Carrocería',
+        interior: 'Interior',
+      };
+      throw new Error(`La sección ${categoryNames[catId]} no ha sido completada`);
+    }
   }
+
+  const overallScore = scores.overall.score;
+  const overallStatus = scores.overall.status;
 
   // Obtener nombre del inspector para la firma
   const inspector = await db.user.findUnique({
@@ -487,6 +607,14 @@ export async function completeReport(reportId: number) {
     db.inspectionReport.update({
       where: { id: reportId },
       data: {
+        // Scores por categoría (para compatibilidad)
+        legalStatus: scores.byCategory.legal?.status || 'PENDING',
+        legalScore: scores.byCategory.legal?.score || 0,
+        mechanicalStatus: scores.byCategory.mecanica?.status || 'PENDING',
+        mechanicalScore: scores.byCategory.mecanica?.score || 0,
+        bodyStatus: scores.byCategory.carroceria?.status || 'PENDING',
+        bodyScore: scores.byCategory.carroceria?.score || 0,
+        // Score general
         overallScore,
         overallStatus,
         completedAt: new Date(),

@@ -291,7 +291,7 @@ export function calculateProgress(results: InspectionResults): {
 }
 
 // ============================================
-// Función Helper: Calcular scoring
+// Función Helper: Calcular scoring general
 // ============================================
 export function calculateScore(results: InspectionResults): {
   total: number;
@@ -336,4 +336,111 @@ export function calculateScore(results: InspectionResults): {
     score,
     status,
   };
+}
+
+// ============================================
+// Función Helper: Calcular scoring POR CATEGORÍA
+// ============================================
+export type CategoryScore = {
+  total: number;
+  completed: number;
+  ok: number;
+  observaciones: number;
+  defectos: number;
+  noAplica: number;
+  score: number;
+  status: "PENDING" | "OK" | "WARNING" | "CRITICAL";
+};
+
+export function calculateScoreByCategory(results: InspectionResults): Record<string, CategoryScore> {
+  const scoreByCategory: Record<string, CategoryScore> = {};
+
+  INSPECTION_CATEGORIES.forEach(category => {
+    // Obtener todos los IDs de items de esta categoría
+    const categoryItemIds: string[] = [];
+    category.sections.forEach(section => {
+      section.items.forEach(item => {
+        categoryItemIds.push(item.id);
+      });
+    });
+
+    // Filtrar resultados de esta categoría
+    const categoryResults = categoryItemIds
+      .map(id => results[id])
+      .filter(r => r !== undefined);
+
+    const total = categoryItemIds.length;
+    const completed = categoryResults.filter(r => r?.status !== null).length;
+    const ok = categoryResults.filter(r => r?.status === "OK").length;
+    const observaciones = categoryResults.filter(r => r?.status === "OBSERVACION").length;
+    const defectos = categoryResults.filter(r => r?.status === "DEFECTO").length;
+    const noAplica = categoryResults.filter(r => r?.status === "NO_APLICA").length;
+
+    const aplicables = ok + observaciones + defectos;
+
+    // Scoring: OK = 100%, OBSERVACION = 50%, DEFECTO = 0%
+    const score = aplicables > 0
+      ? Math.round(((ok * 100) + (observaciones * 50)) / aplicables)
+      : 0;
+
+    let status: "PENDING" | "OK" | "WARNING" | "CRITICAL" = "PENDING";
+
+    // Solo calcular status si hay al menos algunos items completados
+    if (completed > 0) {
+      if (defectos > 0) {
+        status = "CRITICAL";
+      } else if (observaciones > 0) {
+        status = "WARNING";
+      } else if (ok > 0) {
+        status = "OK";
+      }
+    }
+
+    scoreByCategory[category.id] = {
+      total,
+      completed,
+      ok,
+      observaciones,
+      defectos,
+      noAplica,
+      score,
+      status,
+    };
+  });
+
+  return scoreByCategory;
+}
+
+// ============================================
+// Función Helper: Calcular score general desde checklistResults
+// ============================================
+export function calculateOverallScore(results: InspectionResults): {
+  score: number;
+  status: "PENDING" | "OK" | "WARNING" | "CRITICAL";
+} {
+  const byCategory = calculateScoreByCategory(results);
+  const categories = Object.values(byCategory);
+
+  // Verificar si todas las categorías tienen items completados
+  const allStarted = categories.every(c => c.completed > 0);
+  if (!allStarted) {
+    return { score: 0, status: "PENDING" };
+  }
+
+  // Calcular promedio de scores
+  const totalScore = categories.reduce((sum, c) => sum + c.score, 0);
+  const avgScore = Math.round(totalScore / categories.length);
+
+  // El status general es el peor de todos
+  let overallStatus: "PENDING" | "OK" | "WARNING" | "CRITICAL" = "OK";
+  for (const cat of categories) {
+    if (cat.status === "CRITICAL") {
+      overallStatus = "CRITICAL";
+      break;
+    } else if (cat.status === "WARNING" && overallStatus !== "CRITICAL") {
+      overallStatus = "WARNING";
+    }
+  }
+
+  return { score: avgScore, status: overallStatus };
 }

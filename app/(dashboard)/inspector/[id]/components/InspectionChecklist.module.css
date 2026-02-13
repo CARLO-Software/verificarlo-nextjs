@@ -9,6 +9,91 @@
   gap: 0;
 }
 
+/* ============================================
+   Mobile Header - Categoría actual visible
+   ============================================ */
+
+.mobileHeader {
+  display: none;
+  background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  color: white;
+}
+
+.mobileHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mobileHeaderCategory {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobileHeaderIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 225, 76, 0.2);
+  border-radius: 10px;
+  color: #FFE14C;
+}
+
+.mobileHeaderLabel {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mobileHeaderTitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 2px 0 0 0;
+}
+
+.mobileHeaderProgress {
+  text-align: right;
+}
+
+.mobileHeaderPercentage {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFE14C;
+}
+
+.mobileHeaderProgressLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mobileProgressBar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.mobileProgressFill {
+  height: 100%;
+  background: #FFE14C;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
 /* Progress Section */
 .progressSection {
   background: white;
@@ -141,20 +226,89 @@
   padding: 20px;
 }
 
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.sectionIndex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #F3F4F6;
+  color: #6B7280;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.sectionIndex svg {
+  color: #22C55E;
+}
+
+.section:has(.sectionIndex svg) .sectionIndex {
+  background: #D1FAE5;
+}
+
+.sectionTitleWrapper {
+  flex: 1;
+}
+
 .sectionTitle {
   font-family: 'DM Sans', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #1F2937;
-  margin: 0 0 16px 0;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #F3F4F6;
+  margin: 0;
+}
+
+.sectionProgress {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 2px;
 }
 
 .itemsList {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* Indicador móvil de categoría completada */
+.categoryCheckMobile {
+  display: none;
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  background: #22C55E;
+  color: white;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+}
+
+.categoryTab {
+  position: relative;
+}
+
+.categoryTabComplete {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.categoryTabComplete .categoryIcon {
+  color: #22C55E;
 }
 
 /* Save Section */
@@ -223,27 +377,68 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* Mostrar header móvil */
+  .mobileHeader {
+    display: block;
+  }
+
+  /* Ocultar progreso desktop */
+  .progressSection {
+    display: none;
+  }
+
   .categoryTabs {
     gap: 6px;
-    padding: 3px;
+    padding: 4px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
   }
 
   .categoryTab {
     min-width: auto;
-    padding: 10px 12px;
+    padding: 12px;
     font-size: 12px;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .categoryTabActive {
+    background: #FFFBEB;
+    border: 1px solid #FFE14C;
   }
 
   .categoryTitle {
-    display: none;
+    display: block;
+    font-size: 10px;
+    text-align: center;
   }
 
   .categoryIcon {
     margin: 0;
   }
 
+  .categoryBadge {
+    display: none;
+  }
+
+  .categoryCheckMobile {
+    display: flex;
+  }
+
   .section {
     padding: 16px;
+  }
+
+  .sectionHeader {
+    gap: 10px;
+  }
+
+  .sectionIndex {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
   }
 
   .saveSection {
@@ -259,19 +454,40 @@
 }
 
 @media (max-width: 480px) {
-  .progressSection {
-    padding: 12px;
+  .mobileHeader {
+    padding: 14px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  .mobileHeaderIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobileHeaderTitle {
+    font-size: 16px;
+  }
+
+  .mobileHeaderPercentage {
+    font-size: 20px;
+  }
+
+  .categoryTabs {
+    padding: 3px;
+    gap: 4px;
   }
 
   .categoryTab {
-    padding: 8px 10px;
-    flex: none;
-    min-width: 60px;
-    justify-content: center;
+    padding: 10px 8px;
   }
 
-  .categoryBadge {
-    display: none;
+  .categoryTitle {
+    font-size: 9px;
+  }
+
+  .content {
+    gap: 16px;
   }
 
   .section {
@@ -281,8 +497,10 @@
 
   .sectionTitle {
     font-size: 14px;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
+  }
+
+  .sectionProgress {
+    font-size: 11px;
   }
 
   .itemsList {

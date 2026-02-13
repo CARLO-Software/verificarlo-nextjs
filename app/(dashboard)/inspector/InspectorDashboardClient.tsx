@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import styles from "./Inspector.module.css";
 
 interface Inspection {
@@ -39,14 +40,90 @@ interface InspectorDashboardClientProps {
   pendingInspections: Inspection[];
   completedInspections: Inspection[];
   inspectorName: string;
+  inspectorImage?: string | null;
 }
 
 export function InspectorDashboardClient({
   pendingInspections,
   completedInspections,
   inspectorName,
+  inspectorImage,
 }: InspectorDashboardClientProps) {
   const [activeTab, setActiveTab] = useState<"pending" | "completed">("pending");
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Cerrar menú al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Obtener iniciales del nombre
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Formatear fecha actual
+  const getCurrentDate = () => {
+    return new Date().toLocaleDateString("es-PE", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    });
+  };
+
+  // Obtener inspecciones de hoy
+  const getTodayInspections = () => {
+    const today = new Date().toDateString();
+    return pendingInspections.filter(
+      (i) => new Date(i.date).toDateString() === today
+    );
+  };
+
+  // Obtener próxima inspección
+  const getNextInspection = () => {
+    const now = new Date();
+    const upcoming = pendingInspections
+      .filter((i) => new Date(i.startTime) > now)
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    return upcoming[0] || null;
+  };
+
+  const todayInspections = getTodayInspections();
+  const nextInspection = getNextInspection();
+
+  // Verificar si una inspección es urgente (en menos de 1 hora)
+  const isUrgent = (startTime: string) => {
+    const now = new Date();
+    const start = new Date(startTime);
+    const diffMs = start.getTime() - now.getTime();
+    const diffMins = diffMs / (1000 * 60);
+    return diffMins > 0 && diffMins <= 60;
+  };
+
+  // Tiempo restante para próxima inspección
+  const getTimeUntil = (startTime: string) => {
+    const now = new Date();
+    const start = new Date(startTime);
+    const diffMs = start.getTime() - now.getTime();
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMins < 0) return "Ahora";
+    if (diffMins < 60) return `En ${diffMins} min`;
+    const hours = Math.floor(diffMins / 60);
+    return `En ${hours}h ${diffMins % 60}min`;
+  };
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -57,21 +134,11 @@ export function InspectorDashboardClient({
     });
   };
 
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":");
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
-
   const isToday = (dateStr: string) => {
     const date = new Date(dateStr);
     const today = new Date();
     return date.toDateString() === today.toDateString();
   };
-
-  const inspections = activeTab === "pending" ? pendingInspections : completedInspections;
 
   // Agrupar inspecciones pendientes por fecha
   const groupedPending = pendingInspections.reduce((acc, inspection) => {
@@ -85,23 +152,94 @@ export function InspectorDashboardClient({
 
   return (
     <div className={styles.container}>
-      {/* Header */}
+      {/* Navbar fijo */}
+      <nav className={styles.navbar}>
+        <div className={styles.navbarContent}>
+          {/* Logo/Brand */}
+          <div className={styles.navbarBrand}>
+            <span className={styles.navbarLogo}>VerifiCARLO</span>
+            <span className={styles.navbarBadge}>Inspector</span>
+          </div>
+
+          {/* Avatar y menú */}
+          <div className={styles.userMenuContainer} ref={menuRef}>
+            <button
+              className={styles.avatarButton}
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              aria-label="Menú de usuario"
+            >
+              {inspectorImage ? (
+                <img
+                  src={inspectorImage}
+                  alt={inspectorName}
+                  className={styles.avatarImage}
+                />
+              ) : (
+                <span className={styles.avatarInitials}>
+                  {getInitials(inspectorName)}
+                </span>
+              )}
+            </button>
+
+            {/* Dropdown menu */}
+            {showUserMenu && (
+              <div className={styles.userMenu}>
+                <div className={styles.userMenuHeader}>
+                  <p className={styles.userMenuName}>{inspectorName}</p>
+                  <p className={styles.userMenuRole}>Inspector</p>
+                </div>
+                <div className={styles.userMenuDivider} />
+                <button
+                  className={styles.userMenuItem}
+                  onClick={() => signOut({ callbackUrl: "/login" })}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3M11 11l3-3-3-3M14 8H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Cerrar sesión
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Header con stats */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <div>
-            <p className={styles.greeting}>Hola, {inspectorName}</p>
-            <h1 className={styles.title}>Mis Inspecciones</h1>
-          </div>
-          <div className={styles.stats}>
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>{pendingInspections.length}</span>
-              <span className={styles.statLabel}>Pendientes</span>
+          <div className={styles.headerTop}>
+            <div>
+              <p className={styles.greeting}>Hola, {inspectorName.split(" ")[0]}</p>
+              <p className={styles.currentDate}>{getCurrentDate()}</p>
             </div>
-            <div className={styles.statItem}>
-              <span className={styles.statValue}>{completedInspections.length}</span>
-              <span className={styles.statLabel}>Completadas</span>
+            <div className={styles.stats}>
+              <div className={styles.statItem} data-type="today">
+                <span className={styles.statValue}>{todayInspections.length}</span>
+                <span className={styles.statLabel}>Hoy</span>
+              </div>
+              <div className={styles.statItem}>
+                <span className={styles.statValue}>{pendingInspections.length}</span>
+                <span className={styles.statLabel}>Pendientes</span>
+              </div>
             </div>
           </div>
+
+          {/* Próxima inspección compacta */}
+          {nextInspection && (
+            <Link href={`/inspector/${nextInspection.id}`} className={styles.nextInspection}>
+              <div className={styles.nextInspectionLeft}>
+                <span className={styles.nextInspectionTime}>
+                  {getTimeUntil(nextInspection.startTime)}
+                </span>
+                <span className={styles.nextInspectionVehicle}>
+                  {nextInspection.vehicle.brand} {nextInspection.vehicle.model} • {nextInspection.client.name}
+                </span>
+              </div>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M7.5 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -165,6 +303,7 @@ export function InspectorDashboardClient({
                           key={inspection.id}
                           inspection={inspection}
                           isPending={true}
+                          isUrgent={isUrgent(inspection.startTime)}
                         />
                       ))}
                   </div>
@@ -202,14 +341,16 @@ export function InspectorDashboardClient({
 }
 
 // ============================================
-// Inspection Card Component
+// Inspection Card Component (Compacto)
 // ============================================
 function InspectionCard({
   inspection,
   isPending,
+  isUrgent,
 }: {
   inspection: Inspection;
   isPending: boolean;
+  isUrgent?: boolean;
 }) {
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(":");
@@ -220,83 +361,79 @@ function InspectionCard({
   };
 
   const getStatusBadge = () => {
-    if (!inspection.report) {
-      return { text: "Sin iniciar", color: "gray" };
-    }
-    if (inspection.report.completedAt) {
-      return { text: "Completado", color: "green" };
-    }
+    if (!inspection.report) return { text: "Pendiente", color: "gray" };
+    if (inspection.report.completedAt) return { text: "Completado", color: "green" };
     return { text: "En progreso", color: "yellow" };
   };
 
   const statusBadge = getStatusBadge();
 
+  const formatWhatsAppNumber = (phone: string) => {
+    const cleaned = phone.replace(/\D/g, "");
+    return cleaned.startsWith("51") ? cleaned : `51${cleaned}`;
+  };
+
   return (
-    <div className={styles.card}>
-      <div className={styles.cardHeader}>
-        <div className={styles.cardTime}>
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
-            <path d="M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          {formatTime(inspection.timeSlot)}
+    <div className={`${styles.card} ${isUrgent ? styles.cardUrgent : ""}`}>
+      {/* Contenido principal */}
+      <div className={styles.cardMain}>
+        {/* Hora */}
+        <div className={styles.cardTimeBlock}>
+          <span className={styles.cardTimeValue}>{formatTime(inspection.timeSlot)}</span>
+          {isUrgent && <span className={styles.cardUrgentDot} />}
         </div>
-        <span
-          className={styles.statusBadge}
-          data-color={statusBadge.color}
-        >
+
+        {/* Info del vehículo */}
+        <div className={styles.cardInfo}>
+          <h4 className={styles.cardTitle}>
+            {inspection.vehicle.brand} {inspection.vehicle.model}
+            <span className={styles.cardYear}>{inspection.vehicle.year}</span>
+          </h4>
+          <p className={styles.cardMeta}>
+            {inspection.client.name} • {inspection.inspectionPlan.title}
+          </p>
+        </div>
+
+        {/* Estado */}
+        <span className={styles.statusBadge} data-color={statusBadge.color}>
           {statusBadge.text}
         </span>
       </div>
 
-      <div className={styles.cardBody}>
-        <h4 className={styles.cardTitle}>
-          {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
-        </h4>
-        <p className={styles.cardPlate}>
-          {inspection.vehicle.plate || "Sin placa"}
-        </p>
-
-        <div className={styles.cardDetails}>
-          <div className={styles.cardDetail}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M7 7a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM2 12.5c0-2.5 2.239-4.5 5-4.5s5 2 5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
-            <span>{inspection.client.name}</span>
-          </div>
-          {inspection.client.phone && (
-            <div className={styles.cardDetail}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M2.5 2h3l1 3-1.5 1a7 7 0 003 3l1-1.5 3 1v3a1 1 0 01-1 1A10 10 0 012 2.5a1 1 0 011-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Acciones */}
+      <div className={styles.cardActions}>
+        {isPending && inspection.client.phone && (
+          <>
+            <a
+              href={`tel:${inspection.client.phone}`}
+              className={styles.actionIcon}
+              title="Llamar"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M3.5 2.5H6.5L8 6L6 7.25a9 9 0 004.75 4.75L12 10l3.5 1.5V15a1 1 0 01-1 1A12 12 0 012 4a1 1 0 011-1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <a href={`tel:${inspection.client.phone}`} className={styles.phoneLink}>
-                {inspection.client.phone}
-              </a>
-            </div>
-          )}
-          <div className={styles.cardDetail}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="2" y="3" width="10" height="8" rx="1" stroke="currentColor" strokeWidth="1.5" />
-              <path d="M2 6h10" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
-            <span>{inspection.inspectionPlan.title}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.cardFooter}>
-        <span className={styles.cardCode}>{inspection.code}</span>
+            </a>
+            <a
+              href={`https://wa.me/${formatWhatsAppNumber(inspection.client.phone)}?text=Hola ${inspection.client.name}, soy el inspector de VerifiCARLO para tu ${inspection.vehicle.brand} ${inspection.vehicle.model}.`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${styles.actionIcon} ${styles.actionWhatsapp}`}
+              title="WhatsApp"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 1.5a7.5 7.5 0 00-6.5 11.25L1.5 16.5l3.9-.975A7.5 7.5 0 109 1.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6.5 7.5h0M9 7.5h0M11.5 7.5h0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </a>
+          </>
+        )}
         <Link
           href={`/inspector/${inspection.id}`}
-          className={`${styles.cardButton} ${isPending ? styles.cardButtonPrimary : styles.cardButtonSecondary}`}
+          className={styles.cardButton}
         >
-          {isPending ? (
-            inspection.report ? "Continuar" : "Iniciar inspección"
-          ) : (
-            "Ver informe"
-          )}
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {isPending ? (inspection.report ? "Continuar" : "Iniciar") : "Ver"}
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
       </div>

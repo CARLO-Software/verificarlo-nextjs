@@ -163,7 +163,14 @@
   font-size: 20px;
   font-weight: 600;
   color: #1F2937;
-  margin: 0 0 24px 0;
+  margin: 0 0 8px 0;
+}
+
+.sectionSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0 0 20px 0;
 }
 
 /* Info Grid */
@@ -258,6 +265,13 @@
   font-size: 16px;
   font-weight: 600;
   color: #1F2937;
+  margin: 0 0 4px 0;
+}
+
+.formSectionSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #9CA3AF;
   margin: 0 0 16px 0;
 }
 
@@ -513,6 +527,166 @@
   color: #166534;
 }
 
+/* ============================================
+   Overall Score - Puntaje General
+   ============================================ */
+.overallScore {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px;
+  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.overallScoreCircle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 4px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+.overallScoreCircle[data-status="OK"] {
+  border-color: #22C55E;
+}
+
+.overallScoreCircle[data-status="WARNING"] {
+  border-color: #F59E0B;
+}
+
+.overallScoreCircle[data-status="CRITICAL"] {
+  border-color: #EF4444;
+}
+
+.overallScoreValue {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1F2937;
+  line-height: 1;
+}
+
+.overallScoreLabel {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 2px;
+}
+
+.overallScoreInfo {
+  flex: 1;
+}
+
+.overallScoreStatus {
+  display: block;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.overallScoreHint {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* ============================================
+   Result Cards - Tarjetas de Resultados
+   ============================================ */
+.resultCard {
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.resultCard[data-status="OK"] {
+  border-color: #BBF7D0;
+  background: #F0FDF4;
+}
+
+.resultCard[data-status="WARNING"] {
+  border-color: #FDE68A;
+  background: #FFFBEB;
+}
+
+.resultCard[data-status="CRITICAL"] {
+  border-color: #FECACA;
+  background: #FEF2F2;
+}
+
+.resultCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.resultProgress {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #9CA3AF;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.resultCardBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resultScore {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.resultBreakdown {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.resultOk,
+.resultWarning,
+.resultCritical {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.resultOk {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.resultWarning {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.resultCritical {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .header {
@@ -549,7 +723,8 @@
   }
 
   .resultsGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .summaryActions {
@@ -558,5 +733,78 @@
 
   .categoriesHint ul {
     columns: 1;
+  }
+
+  /* Overall Score Mobile */
+  .overallScore {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .overallScoreCircle {
+    width: 90px;
+    height: 90px;
+  }
+
+  .overallScoreValue {
+    font-size: 28px;
+  }
+
+  .overallScoreStatus {
+    font-size: 18px;
+  }
+
+  /* Result Cards Mobile */
+  .resultCard {
+    padding: 12px;
+  }
+
+  .resultLabel {
+    font-size: 11px;
+  }
+
+  .resultValue {
+    font-size: 14px;
+  }
+
+  .resultScore {
+    font-size: 12px;
+  }
+
+  .resultBreakdown {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .resultOk,
+  .resultWarning,
+  .resultCritical {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .resultsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .overallScoreCircle {
+    width: 80px;
+    height: 80px;
+  }
+
+  .overallScoreValue {
+    font-size: 24px;
+  }
+
+  .overallScoreStatus {
+    font-size: 16px;
+  }
+
+  .overallScoreHint {
+    font-size: 13px;
   }
 }

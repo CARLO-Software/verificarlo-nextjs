@@ -1,72 +1,280 @@
 /* ============================================
-   Inspector Dashboard Styles
+   Inspector Dashboard - Estilos Compactos
    ============================================ */
 
 .container {
   min-height: 100vh;
-  background: #FAFAFA;
+  background: #F5F5F7;
 }
 
-/* Header */
-.header {
-  background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
-  padding: 24px;
-  color: white;
+/* ============================================
+   Navbar
+   ============================================ */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #1F2937;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.headerContent {
-  max-width: 800px;
+.navbarContent {
+  max-width: 900px;
   margin: 0 auto;
+  padding: 12px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.greeting {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 4px 0;
+.navbarBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.title {
+.navbarLogo {
   font-family: 'DM Sans', sans-serif;
-  font-size: 24px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFE14C;
+}
+
+.navbarBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+}
+
+/* User Menu */
+.userMenuContainer {
+  position: relative;
+}
+
+.avatarButton {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  background: none;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.avatarButton:hover {
+  border-color: #FFE14C;
+}
+
+.avatarImage {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatarInitials {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFE14C;
+  color: #1F2937;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 50%;
+}
+
+.userMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 100;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.userMenuHeader {
+  padding: 12px 16px;
+  background: #F9FAFB;
+}
+
+.userMenuName {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
   margin: 0;
+}
+
+.userMenuRole {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #6B7280;
+  margin: 0;
+}
+
+.userMenuDivider {
+  height: 1px;
+  background: #E5E7EB;
+}
+
+.userMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #DC2626;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.userMenuItem:hover {
+  background: #FEF2F2;
+}
+
+/* ============================================
+   Header
+   ============================================ */
+
+.header {
+  background: #1F2937;
+  padding: 16px;
+  padding-top: 8px;
+}
+
+.headerContent {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.greeting {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.currentDate {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 4px 0 0 0;
+  text-transform: capitalize;
 }
 
 .stats {
   display: flex;
-  gap: 24px;
+  gap: 12px;
 }
 
 .statItem {
   text-align: center;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.statItem[data-type="today"] {
+  background: rgba(255, 225, 76, 0.2);
 }
 
 .statValue {
   display: block;
   font-family: 'DM Sans', sans-serif;
-  font-size: 28px;
+  font-size: 20px;
   font-weight: 700;
   color: #FFE14C;
 }
 
 .statLabel {
   font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+}
+
+/* Próxima inspección */
+.nextInspection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255, 225, 76, 0.15);
+  border: 1px solid rgba(255, 225, 76, 0.25);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.nextInspection:hover {
+  background: rgba(255, 225, 76, 0.25);
+}
+
+.nextInspectionLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nextInspectionTime {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFE14C;
+}
+
+.nextInspectionVehicle {
+  font-family: 'Inter', sans-serif;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* Tabs */
+.nextInspection svg {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ============================================
+   Tabs
+   ============================================ */
+
 .tabs {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 16px 16px 0;
   display: flex;
   gap: 8px;
-  transform: translateY(-20px);
 }
 
 .tab {
@@ -74,21 +282,26 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 14px 20px;
+  gap: 6px;
+  padding: 10px 16px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: #6B7280;
   background: white;
   border: 1px solid #E5E7EB;
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .tab:hover {
   border-color: #D1D5DB;
+}
+
+.tab svg {
+  width: 16px;
+  height: 16px;
 }
 
 .tabActive {
@@ -98,97 +311,151 @@
 }
 
 .tabActive svg {
-  color: #FFE14C;
+  color: #F59E0B;
 }
 
-/* Content */
+/* ============================================
+   Content
+   ============================================ */
+
 .content {
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 24px 24px;
+  padding: 16px;
 }
 
-/* Date Group */
 .dateGroup {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .dateHeader {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  color: #374151;
-  margin: 0 0 12px 0;
-  text-transform: capitalize;
+  color: #6B7280;
+  margin: 0 0 8px 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .todayBadge {
   background: #FFE14C;
   color: #1F2937;
-  padding: 4px 12px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
 }
 
 .dateCount {
   font-weight: 400;
   color: #9CA3AF;
+  text-transform: none;
 }
 
-/* Inspections List */
 .inspectionsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-/* Card */
+/* ============================================
+   Card (Compacta)
+   ============================================ */
+
 .card {
   background: white;
   border: 1px solid #E5E7EB;
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
 .card:hover {
-  border-color: #FFE14C;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #D1D5DB;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.cardHeader {
+.cardUrgent {
+  border-color: #FECACA;
+  background: linear-gradient(to right, #FEF2F2, white);
+}
+
+.cardMain {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 12px 16px;
-  background: #F9FAFB;
-  border-bottom: 1px solid #E5E7EB;
 }
 
-.cardTime {
+.cardTimeBlock {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 70px;
+}
+
+.cardTimeValue {
   font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #1F2937;
 }
 
-.cardTime svg {
+.cardUrgentDot {
+  width: 6px;
+  height: 6px;
+  background: #EF4444;
+  border-radius: 50%;
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.cardInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardYear {
+  font-weight: 400;
+  color: #9CA3AF;
+  margin-left: 4px;
+}
+
+.cardMeta {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
   color: #6B7280;
+  margin: 2px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .statusBadge {
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 100px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .statusBadge[data-color="gray"] {
@@ -206,100 +473,69 @@
   color: #065F46;
 }
 
-.cardBody {
-  padding: 16px;
-}
-
-.cardTitle {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 4px 0;
-}
-
-.cardPlate {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #6B7280;
-  margin: 0 0 12px 0;
-}
-
-.cardDetails {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.cardDetail {
+/* Card Actions */
+.cardActions {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #FAFAFA;
+  border-top: 1px solid #F3F4F6;
+}
+
+.actionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
   color: #6B7280;
-}
-
-.cardDetail svg {
-  color: #9CA3AF;
-}
-
-.phoneLink {
-  color: #2563EB;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
   text-decoration: none;
+  transition: all 0.15s;
 }
 
-.phoneLink:hover {
-  text-decoration: underline;
+.actionIcon:hover {
+  background: #F3F4F6;
+  color: #1F2937;
 }
 
-.cardFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-top: 1px solid #E5E7EB;
+.actionWhatsapp {
+  color: #22C55E;
+  border-color: #BBF7D0;
+  background: #F0FDF4;
 }
 
-.cardCode {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: #9CA3AF;
+.actionWhatsapp:hover {
+  background: #DCFCE7;
 }
 
 .cardButton {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  gap: 4px;
+  margin-left: auto;
+  padding: 8px 14px;
   font-family: 'DM Sans', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  color: #1F2937;
+  background: #FFE14C;
   border-radius: 8px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.15s;
 }
 
-.cardButtonPrimary {
-  background: #FFE14C;
-  color: #1F2937;
+.cardButton:hover {
+  background: #FCD34D;
 }
 
-.cardButtonPrimary:hover {
-  background: #FFD700;
-  transform: translateX(2px);
-}
+/* ============================================
+   Empty State
+   ============================================ */
 
-.cardButtonSecondary {
-  background: #F3F4F6;
-  color: #374151;
-}
-
-.cardButtonSecondary:hover {
-  background: #E5E7EB;
-}
-
-/* Empty State */
 .emptyState {
   text-align: center;
   padding: 48px 24px;
@@ -307,53 +543,120 @@
 
 .emptyIcon {
   color: #D1D5DB;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .emptyTitle {
   font-family: 'DM Sans', sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #374151;
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
 }
 
 .emptyDescription {
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   color: #9CA3AF;
   margin: 0;
 }
 
-/* Responsive */
+/* ============================================
+   Responsive
+   ============================================ */
+
 @media (max-width: 640px) {
-  .headerContent {
+  .navbarContent {
+    padding: 10px 16px;
+  }
+
+  .navbarLogo {
+    font-size: 16px;
+  }
+
+  .header {
+    padding: 12px 16px;
+  }
+
+  .headerTop {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 12px;
   }
 
   .stats {
     width: 100%;
-    justify-content: space-around;
+  }
+
+  .statItem {
+    flex: 1;
+    padding: 8px 12px;
+  }
+
+  .statValue {
+    font-size: 18px;
   }
 
   .tabs {
-    flex-direction: column;
+    padding: 12px 12px 0;
+    gap: 6px;
   }
 
-  .cardDetails {
-    flex-direction: column;
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .card {
+    border-radius: 10px;
+  }
+
+  .cardMain {
+    flex-wrap: wrap;
+    padding: 10px 12px;
     gap: 8px;
   }
 
-  .cardFooter {
-    flex-direction: column;
-    gap: 12px;
+  .cardTimeBlock {
+    min-width: auto;
+  }
+
+  .cardInfo {
+    flex: 1 1 60%;
+  }
+
+  .statusBadge {
+    order: -1;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+
+  .cardActions {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  .actionIcon {
+    width: 40px;
+    height: 40px;
   }
 
   .cardButton {
-    width: 100%;
-    justify-content: center;
+    padding: 10px 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbarBadge {
+    display: none;
+  }
+
+  .statLabel {
+    font-size: 9px;
   }
 }

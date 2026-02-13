@@ -1,11 +1,11 @@
 /**
  * InspectionChecklist - Componente principal que renderiza dinámicamente
  * las secciones e ítems de inspección según la categoría seleccionada.
- * Maneja el estado de todos los ítems y permite guardar los resultados.
+ * Maneja el estado de todos los ítems con AUTOGUARDADO.
  */
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   INSPECTION_CATEGORIES,
   type InspectionStatus,
@@ -36,6 +36,11 @@ export function InspectionChecklist({
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Ref para el timeout del autoguardado
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref para trackear si hay cambios pendientes
+  const hasUnsavedChanges = useRef(false);
+
   // Obtener categoría activa
   const currentCategory = useMemo(() => {
     return INSPECTION_CATEGORIES.find((c) => c.id === activeCategory);
@@ -46,7 +51,23 @@ export function InspectionChecklist({
     return calculateProgress(results);
   }, [results]);
 
-  // Manejar cambio de estado de un ítem
+  // Función de autoguardado
+  const autoSave = useCallback(async (newResults: InspectionResults) => {
+    if (!onSave || saving || disabled) return;
+
+    setSaving(true);
+    try {
+      await onSave(newResults);
+      setLastSaved(new Date());
+      hasUnsavedChanges.current = false;
+    } catch (error) {
+      console.error("Error al autoguardar:", error);
+    } finally {
+      setSaving(false);
+    }
+  }, [onSave, saving, disabled]);
+
+  // Manejar cambio de estado de un ítem (con autoguardado)
   const handleStatusChange = useCallback(
     (itemId: string, status: InspectionStatus, comment?: string) => {
       setResults((prev) => {
@@ -61,11 +82,37 @@ export function InspectionChecklist({
           };
         }
 
+        // Marcar que hay cambios pendientes
+        hasUnsavedChanges.current = true;
+
+        // Cancelar timeout anterior si existe
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Programar autoguardado después de 1 segundo de inactividad
+        saveTimeoutRef.current = setTimeout(() => {
+          autoSave(newResults);
+        }, 1000);
+
         return newResults;
       });
     },
-    []
+    [autoSave]
   );
+
+  // Guardar al desmontar el componente si hay cambios pendientes
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Guardar inmediatamente si hay cambios pendientes
+      if (hasUnsavedChanges.current && onSave) {
+        onSave(results);
+      }
+    };
+  }, [results, onSave]);
 
   // Manejar cambio de categoría
   const handleCategoryChange = (categoryId: string) => {
@@ -73,14 +120,20 @@ export function InspectionChecklist({
     onCategoryChange?.(categoryId);
   };
 
-  // Guardar resultados
+  // Guardar resultados manualmente
   const handleSave = async () => {
     if (!onSave || saving) return;
+
+    // Cancelar autoguardado pendiente
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
 
     setSaving(true);
     try {
       await onSave(results);
       setLastSaved(new Date());
+      hasUnsavedChanges.current = false;
     } catch (error) {
       console.error("Error al guardar:", error);
     } finally {
@@ -160,7 +213,34 @@ export function InspectionChecklist({
 
   return (
     <div className={`${styles.container} checklistContainer`}>
-      {/* Progress Bar */}
+      {/* Header móvil con categoría activa */}
+      <div className={styles.mobileHeader}>
+        <div className={styles.mobileHeaderTop}>
+          <div className={styles.mobileHeaderCategory}>
+            <span className={styles.mobileHeaderIcon}>
+              {getCategoryIcon(currentCategory?.icon || "document")}
+            </span>
+            <div>
+              <span className={styles.mobileHeaderLabel}>Categoría actual</span>
+              <h2 className={styles.mobileHeaderTitle}>{currentCategory?.title}</h2>
+            </div>
+          </div>
+          <div className={styles.mobileHeaderProgress}>
+            <span className={styles.mobileHeaderPercentage}>
+              {progress.byCategory[activeCategory]?.percentage || 0}%
+            </span>
+            <span className={styles.mobileHeaderProgressLabel}>completado</span>
+          </div>
+        </div>
+        <div className={styles.mobileProgressBar}>
+          <div
+            className={styles.mobileProgressFill}
+            style={{ width: `${progress.byCategory[activeCategory]?.percentage || 0}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Progress Bar (desktop) */}
       <div className={styles.progressSection}>
         <div className={styles.progressHeader}>
           <span className={styles.progressLabel}>Progreso general</span>
@@ -181,13 +261,15 @@ export function InspectionChecklist({
         {INSPECTION_CATEGORIES.map((category) => {
           const categoryProgress = progress.byCategory[category.id];
           const isActive = activeCategory === category.id;
+          const isComplete = categoryProgress?.percentage === 100;
 
           return (
             <button
               key={category.id}
               type="button"
-              className={`${styles.categoryTab} ${isActive ? styles.categoryTabActive : ""}`}
+              className={`${styles.categoryTab} ${isActive ? styles.categoryTabActive : ""} ${isComplete ? styles.categoryTabComplete : ""}`}
               onClick={() => handleCategoryChange(category.id)}
+              aria-label={`${category.title} - ${categoryProgress?.completed || 0} de ${categoryProgress?.total || 0}`}
             >
               <span className={styles.categoryIcon}>
                 {getCategoryIcon(category.icon)}
@@ -195,11 +277,19 @@ export function InspectionChecklist({
               <span className={styles.categoryTitle}>{category.title}</span>
               <span
                 className={`${styles.categoryBadge} ${
-                  categoryProgress?.percentage === 100 ? styles.categoryBadgeComplete : ""
+                  isComplete ? styles.categoryBadgeComplete : ""
                 }`}
               >
                 {categoryProgress?.completed || 0}/{categoryProgress?.total || 0}
               </span>
+              {/* Indicador móvil de completado */}
+              {isComplete && (
+                <span className={styles.categoryCheckMobile}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              )}
             </button>
           );
         })}
@@ -211,27 +301,50 @@ export function InspectionChecklist({
         <StatusLegend />
 
         {/* Sections */}
-        {currentCategory?.sections.map((section) => (
-          <div key={section.id} className={styles.section}>
-            <h3 className={styles.sectionTitle}>{section.title}</h3>
-            <div className={styles.itemsList}>
-              {section.items.map((item) => {
-                const itemResult = results[item.id];
-                return (
-                  <InspectionItemCard
-                    key={item.id}
-                    id={item.id}
-                    label={item.label}
-                    status={itemResult?.status || null}
-                    comment={itemResult?.comment}
-                    disabled={disabled}
-                    onStatusChange={handleStatusChange}
-                  />
-                );
-              })}
+        {currentCategory?.sections.map((section, index) => {
+          // Calcular progreso de la sección
+          const sectionItemIds = section.items.map(item => item.id);
+          const completedInSection = sectionItemIds.filter(id => results[id]).length;
+          const totalInSection = section.items.length;
+
+          return (
+            <div key={section.id} className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <div className={styles.sectionIndex}>
+                  {completedInSection === totalInSection ? (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M3 8l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  ) : (
+                    <span>{index + 1}</span>
+                  )}
+                </div>
+                <div className={styles.sectionTitleWrapper}>
+                  <h3 className={styles.sectionTitle}>{section.title}</h3>
+                  <span className={styles.sectionProgress}>
+                    {completedInSection} de {totalInSection} items
+                  </span>
+                </div>
+              </div>
+              <div className={styles.itemsList}>
+                {section.items.map((item) => {
+                  const itemResult = results[item.id];
+                  return (
+                    <InspectionItemCard
+                      key={item.id}
+                      id={item.id}
+                      label={item.label}
+                      status={itemResult?.status || null}
+                      comment={itemResult?.comment}
+                      disabled={disabled}
+                      onStatusChange={handleStatusChange}
+                    />
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Save Button */}
         {!disabled && onSave && (

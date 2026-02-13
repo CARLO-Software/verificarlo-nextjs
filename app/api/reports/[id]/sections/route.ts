@@ -9,6 +9,7 @@ import {
   updateBodySection,
   updateVehicleData,
   updateDocumentsVerification,
+  updateChecklistResults,
 } from "@/services/reports/reports.server";
 
 export async function PATCH(
@@ -58,6 +59,10 @@ export async function PATCH(
         result = await updateDocumentsVerification(reportId, data);
         break;
 
+      case "checklist":
+        result = await updateChecklistResults(reportId, data);
+        break;
+
       default:
         return NextResponse.json(
           { error: "Sección no válida" },
@@ -69,11 +74,10 @@ export async function PATCH(
       success: true,
       report: result,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error actualizando sección:", error);
-    return NextResponse.json(
-      { error: error.message || "Error al actualizar la sección" },
-      { status: error.message?.includes("autorizado") ? 403 : 500 }
-    );
+    const errorMessage = error instanceof Error ? error.message : "Error al actualizar la sección";
+    const status = errorMessage.includes("autorizado") ? 403 : 500;
+    return NextResponse.json({ error: errorMessage }, { status });
   }
 }

@@ -113,6 +113,7 @@ export default async function InspectorPage() {
       pendingInspections={pendingInspections}
       completedInspections={completedInspections}
       inspectorName={session.user.name || "Inspector"}
+      inspectorImage={session.user.image}
     />
   );
 }

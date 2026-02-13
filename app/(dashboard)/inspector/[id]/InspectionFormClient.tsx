@@ -21,16 +21,16 @@ interface Report {
   id: number;
   legalStatus: ResultStatus;
   legalScore: number | null;
-  legalObservations: any;
+  legalObservations: Record<string, unknown> | null;
   mechanicalStatus: ResultStatus;
   mechanicalScore: number | null;
-  mechanicalObservations: any;
+  mechanicalObservations: Record<string, unknown> | null;
   bodyStatus: ResultStatus;
   bodyScore: number | null;
-  bodyObservations: any;
+  bodyObservations: Record<string, unknown> | null;
   interiorStatus?: ResultStatus;
   interiorScore?: number | null;
-  interiorObservations?: any;
+  interiorObservations?: Record<string, unknown> | null;
   checklistResults?: InspectionResults;
   mileageAtInspection: number | null;
   vinNumber: string | null;
@@ -88,52 +88,32 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   const router = useRouter();
   const [activeSection, setActiveSection] = useState<Section>("info");
   const [report, setReport] = useState<Report | null>(inspection.report);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isCompleted = report !== null && report.completedAt !== null;
 
   // Crear informe si no existe
   useEffect(() => {
-    if (!report && !isCompleted) {
-      createReport();
-    }
-  }, []);
-
-  const createReport = async () => {
-    try {
-      const res = await fetch(`/api/bookings/${inspection.id}/report`, {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (data.success) {
-        setReport({
-          ...data.report,
-          photos: [],
-        });
+    const createReportIfNeeded = async () => {
+      if (!report && !isCompleted) {
+        try {
+          const res = await fetch(`/api/bookings/${inspection.id}/report`, {
+            method: "POST",
+          });
+          const data = await res.json();
+          if (data.success) {
+            setReport({
+              ...data.report,
+              photos: [],
+            });
+          }
+        } catch {
+          setError("Error al crear el informe");
+        }
       }
-    } catch (err) {
-      setError("Error al crear el informe");
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("es-PE", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
-  const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(":");
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-    return `${hour12}:${minutes} ${ampm}`;
-  };
+    };
+    createReportIfNeeded();
+  }, [report, isCompleted, inspection.id]);
 
   const sections: { id: Section; label: string; icon: JSX.Element }[] = [
     {
@@ -292,7 +272,6 @@ function InfoSection({
   onUpdate: (data: Partial<Report>) => void;
   disabled: boolean;
 }) {
-  const [mileage, setMileage] = useState(report?.mileageAtInspection?.toString() || "");
   const [vinNumber, setVinNumber] = useState(report?.vinNumber || "");
   const [engineNumber, setEngineNumber] = useState(report?.engineNumber || "");
   const [actualColor, setActualColor] = useState(report?.actualColor || "");
@@ -309,7 +288,7 @@ function InfoSection({
         body: JSON.stringify({
           section: "vehicle",
           data: {
-            mileageAtInspection: mileage ? parseInt(mileage) : null,
+            mileageAtInspection: inspection.vehicle.mileage,
             vinNumber: vinNumber || null,
             engineNumber: engineNumber || null,
             actualColor: actualColor || null,
@@ -319,7 +298,7 @@ function InfoSection({
 
       if (res.ok) {
         onUpdate({
-          mileageAtInspection: mileage ? parseInt(mileage) : null,
+          mileageAtInspection: inspection.vehicle.mileage,
           vinNumber: vinNumber || null,
           engineNumber: engineNumber || null,
           actualColor: actualColor || null,
@@ -349,12 +328,48 @@ function InfoSection({
     return `${hour12}:${minutes} ${ampm}`;
   };
 
+  const formatMileage = (value: number | null) => {
+    if (!value) return "No especificado";
+    return value.toLocaleString("es-PE") + " km";
+  };
+
   return (
     <div className={styles.section}>
-      <h2 className={styles.sectionTitle}>Información de la Inspección</h2>
+      {/* Datos ingresados por el cliente */}
+      <h2 className={styles.sectionTitle}>Datos de la Reserva</h2>
+      <p className={styles.sectionSubtitle}>Información proporcionada por el cliente</p>
+
+      <div className={styles.infoGrid}>
+        {/* Vehículo - Datos del cliente */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Vehículo</h3>
+          <p className={styles.infoCardValue}>
+            {inspection.vehicle.brand} {inspection.vehicle.model}
+          </p>
+          <p className={styles.infoCardSubvalue}>Año: {inspection.vehicle.year}</p>
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Placa</h3>
+          <p className={styles.infoCardValue}>
+            {inspection.vehicle.plate || "No especificada"}
+          </p>
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Kilometraje</h3>
+          <p className={styles.infoCardValue}>{formatMileage(inspection.vehicle.mileage)}</p>
+          <p className={styles.infoCardSubvalue}>Declarado por cliente</p>
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Tipo de Inspección</h3>
+          <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
+        </div>
+      </div>
 
       {/* Datos de la cita */}
-      <div className={styles.infoGrid}>
+      <div className={styles.infoGrid} style={{ marginTop: "16px" }}>
         <div className={styles.infoCard}>
           <h3 className={styles.infoCardTitle}>Cliente</h3>
           <p className={styles.infoCardValue}>{inspection.client.name}</p>
@@ -369,17 +384,6 @@ function InfoSection({
           <p className={styles.infoCardValue}>{formatDate(inspection.date)}</p>
           <p className={styles.infoCardSubvalue}>{formatTime(inspection.timeSlot)}</p>
         </div>
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Tipo de Inspección</h3>
-          <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
-        </div>
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Vehículo</h3>
-          <p className={styles.infoCardValue}>
-            {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
-          </p>
-          <p className={styles.infoCardSubvalue}>{inspection.vehicle.plate || "Sin placa"}</p>
-        </div>
       </div>
 
       {/* Items del plan */}
@@ -392,21 +396,11 @@ function InfoSection({
         </ul>
       </div>
 
-      {/* Datos verificados del vehículo */}
+      {/* Datos verificados por el inspector */}
       <div className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Datos Verificados del Vehículo</h3>
+        <h3 className={styles.formSectionTitle}>Verificación del Inspector</h3>
+        <p className={styles.formSectionSubtitle}>Datos que debes verificar físicamente</p>
         <div className={styles.formGrid}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Kilometraje actual</label>
-            <input
-              type="number"
-              value={mileage}
-              onChange={(e) => setMileage(e.target.value)}
-              placeholder="Ej: 45000"
-              className={styles.input}
-              disabled={disabled}
-            />
-          </div>
           <div className={styles.formGroup}>
             <label className={styles.label}>Número VIN</label>
             <input
@@ -431,12 +425,12 @@ function InfoSection({
             />
           </div>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Color real</label>
+            <label className={styles.label}>Color real del vehículo</label>
             <input
               type="text"
               value={actualColor}
               onChange={(e) => setActualColor(e.target.value)}
-              placeholder="Ej: Gris plata"
+              placeholder="Ej: Gris plata metálico"
               className={styles.input}
               disabled={disabled}
             />
@@ -444,7 +438,7 @@ function InfoSection({
         </div>
         {!disabled && (
           <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
-            {saving ? "Guardando..." : "Guardar datos"}
+            {saving ? "Guardando..." : "Guardar verificación"}
           </button>
         )}
       </div>
@@ -497,6 +491,8 @@ function ChecklistSection({
 // ============================================
 // Summary Section
 // ============================================
+import { calculateScoreByCategory, calculateOverallScore, INSPECTION_CATEGORIES } from "./inspectionData";
+
 function SummarySection({
   report,
   onUpdate,
@@ -515,10 +511,16 @@ function SummarySection({
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const canComplete =
-    report.legalStatus !== "PENDING" &&
-    report.mechanicalStatus !== "PENDING" &&
-    report.bodyStatus !== "PENDING";
+  // Calcular scores desde checklistResults
+  const checklistResults = report.checklistResults || {};
+  const scoresByCategory = calculateScoreByCategory(checklistResults);
+  const overallResult = calculateOverallScore(checklistResults);
+
+  // Verificar si se puede completar (todas las categorías tienen items)
+  const allCategoriesStarted = INSPECTION_CATEGORIES.every(
+    cat => scoresByCategory[cat.id]?.completed > 0
+  );
+  const canComplete = allCategoriesStarted && overallResult.status !== "PENDING";
 
   const handleSaveSummary = async () => {
     setSaving(true);
@@ -538,8 +540,8 @@ function SummarySection({
         recommendations: recommendations || null,
         estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
       });
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Error al guardar resumen:", error);
     } finally {
       setSaving(false);
     }
@@ -566,7 +568,7 @@ function SummarySection({
       } else {
         setError(data.error || "Error al finalizar el informe");
       }
-    } catch (err) {
+    } catch {
       setError("Error de conexión");
     } finally {
       setCompleting(false);
@@ -587,38 +589,62 @@ function SummarySection({
     <div className={styles.section}>
       <h2 className={styles.sectionTitle}>Resumen de la Inspección</h2>
 
-      {/* Resultados por sección */}
+      {/* Puntaje general */}
+      <div className={styles.overallScore}>
+        <div className={styles.overallScoreCircle} data-status={overallResult.status}>
+          <span className={styles.overallScoreValue}>{overallResult.score}</span>
+          <span className={styles.overallScoreLabel}>/ 100</span>
+        </div>
+        <div className={styles.overallScoreInfo}>
+          <span
+            className={styles.overallScoreStatus}
+            style={{ color: getStatusLabel(overallResult.status).color }}
+          >
+            {getStatusLabel(overallResult.status).text}
+          </span>
+          <span className={styles.overallScoreHint}>
+            {overallResult.status === "PENDING" && "Completa el checklist para ver el resultado"}
+            {overallResult.status === "OK" && "El vehículo está en buen estado"}
+            {overallResult.status === "WARNING" && "El vehículo tiene observaciones menores"}
+            {overallResult.status === "CRITICAL" && "El vehículo tiene defectos importantes"}
+          </span>
+        </div>
+      </div>
+
+      {/* Resultados por categoría */}
       <div className={styles.resultsGrid}>
-        <div className={styles.resultCard}>
-          <span className={styles.resultLabel}>Legal</span>
-          <span
-            className={styles.resultValue}
-            style={{ color: getStatusLabel(report.legalStatus).color }}
-          >
-            {getStatusLabel(report.legalStatus).text}
-            {report.legalScore && ` (${report.legalScore}/100)`}
-          </span>
-        </div>
-        <div className={styles.resultCard}>
-          <span className={styles.resultLabel}>Mecánica</span>
-          <span
-            className={styles.resultValue}
-            style={{ color: getStatusLabel(report.mechanicalStatus).color }}
-          >
-            {getStatusLabel(report.mechanicalStatus).text}
-            {report.mechanicalScore && ` (${report.mechanicalScore}/100)`}
-          </span>
-        </div>
-        <div className={styles.resultCard}>
-          <span className={styles.resultLabel}>Carrocería</span>
-          <span
-            className={styles.resultValue}
-            style={{ color: getStatusLabel(report.bodyStatus).color }}
-          >
-            {getStatusLabel(report.bodyStatus).text}
-            {report.bodyScore && ` (${report.bodyScore}/100)`}
-          </span>
-        </div>
+        {INSPECTION_CATEGORIES.map(category => {
+          const catScore = scoresByCategory[category.id];
+          return (
+            <div key={category.id} className={styles.resultCard} data-status={catScore?.status}>
+              <div className={styles.resultCardHeader}>
+                <span className={styles.resultLabel}>{category.title}</span>
+                <span className={styles.resultProgress}>
+                  {catScore?.completed || 0}/{catScore?.total || 0}
+                </span>
+              </div>
+              <div className={styles.resultCardBody}>
+                <span
+                  className={styles.resultValue}
+                  style={{ color: getStatusLabel(catScore?.status || "PENDING").color }}
+                >
+                  {getStatusLabel(catScore?.status || "PENDING").text}
+                </span>
+                {catScore?.status !== "PENDING" && (
+                  <span className={styles.resultScore}>{catScore?.score}/100</span>
+                )}
+              </div>
+              {/* Mini desglose */}
+              {catScore && catScore.completed > 0 && (
+                <div className={styles.resultBreakdown}>
+                  {catScore.ok > 0 && <span className={styles.resultOk}>{catScore.ok} OK</span>}
+                  {catScore.observaciones > 0 && <span className={styles.resultWarning}>{catScore.observaciones} Obs</span>}
+                  {catScore.defectos > 0 && <span className={styles.resultCritical}>{catScore.defectos} Def</span>}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Resumen ejecutivo */}

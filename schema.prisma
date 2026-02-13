@@ -332,6 +332,14 @@ model InspectionReport {
   // Estructura: [{ area: "Puerta delantera izquierda", issue: "Rayón leve", severity: "minor" }, ...]
 
   // ============================================
+  // CHECKLIST DE INSPECCIÓN (NUEVO SISTEMA)
+  // ============================================
+
+  // Resultados del checklist dinámico
+  // Estructura: { "item-id": { "status": "OK" | "OBSERVACION" | "DEFECTO" | "NO_APLICA", "comment": "..." }, ... }
+  checklistResults Json?
+
+  // ============================================
   // DATOS ADICIONALES DEL VEHÍCULO
   // ============================================
 

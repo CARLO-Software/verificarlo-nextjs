@@ -5,11 +5,22 @@ import BenefitsSection from "./landing/benefits/BenefitsSection";
 import EligeTranquiloSection from "./landing/eligeTranquilo/EligeTranquiloSection";
 import CentroInspeccionSection from "./landing/centroInspeccion/CentroInspeccionSection";
 import FAQ from "./landing/faq/FAQ";
-// import { getServerSession } from "next-auth";
-// import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
+import { authOptions } from "@/lib/auth";
 
 export default async function Home() {
-  
+  const session = await getServerSession(authOptions);
+
+  if (session?.user) {
+    const role = session.user.role;
+    const redirectMap: Record<string, string> = {
+      ADMIN: "/admin",
+      INSPECTOR: "/inspector",
+    };
+    redirect(redirectMap[role] || "/perfil");
+  }
+
   return (
     <>
 
