@@ -11,7 +11,17 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.googleusercontent.com', // Otros subdominios de Google
       },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com', // Imágenes de Cloudinary
+      },
     ],
+  },
+  // Configuración para @react-pdf/renderer
+  webpack: (config) => {
+    config.resolve.alias.canvas = false;
+    config.resolve.alias.encoding = false;
+    return config;
   },
 };
 

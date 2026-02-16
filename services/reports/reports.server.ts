@@ -2,6 +2,8 @@ import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { InspectionResultStatus, PhotoCategory } from '@prisma/client';
+import { generateInspectionPDF, uploadPDFToCloudinary } from '@/lib/pdf';
+import { isCloudinaryConfigured } from '@/lib/cloudinary';
 
 // ============================================
 // Tipos
@@ -100,7 +102,7 @@ async function verifyInspectorAccess(bookingId: number) {
   if (!booking) {
     throw new Error('Reserva no encontrada');
   }
-
+  
   // Solo el inspector asignado o un admin pueden modificar el informe
   const isAssignedInspector = booking.inspectorId === userId;
   const isAdmin = userRole === 'ADMIN';
@@ -630,7 +632,41 @@ export async function completeReport(reportId: number) {
     }),
   ]);
 
+  // Generar PDF en segundo plano (no bloquea la respuesta)
+  if (isCloudinaryConfigured()) {
+    generateAndUploadPDF(reportId).catch((error) => {
+      console.error('Error generando/subiendo PDF:', error);
+    });
+  }
+
   return updatedReport;
+}
+
+// Función auxiliar para generar y subir PDF
+async function generateAndUploadPDF(reportId: number): Promise<void> {
+  try {
+    console.log(`Generando PDF para reporte ${reportId}...`);
+
+    const { buffer, hash } = await generateInspectionPDF(reportId);
+    console.log(`PDF generado (${buffer.length} bytes, hash: ${hash.substring(0, 16)}...)`);
+
+    const { public_id } = await uploadPDFToCloudinary(buffer, reportId);
+    console.log(`PDF subido a Cloudinary. Public ID: ${public_id}`);
+
+    // Guardamos el public_id para generar URLs firmadas después
+    await db.inspectionReport.update({
+      where: { id: reportId },
+      data: {
+        pdfUrl: public_id,
+        pdfHash: hash,
+      },
+    });
+
+    console.log(`Public ID del PDF guardado en la base de datos para reporte ${reportId}`);
+  } catch (error) {
+    console.error(`Error en generateAndUploadPDF para reporte ${reportId}:`, error);
+    throw error;
+  }
 }
 
 // ============================================

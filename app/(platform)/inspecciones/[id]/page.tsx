@@ -9,6 +9,7 @@
  * - Descarga de informe (solo si está completado)
  * - Timeline de eventos
  */
+"use server";
 import { notFound } from 'next/navigation';
 import { getInspectionById } from '@/services/inspections/inspections.server';
 import { InspectionDetailClient } from './InspectionDetailClient';
@@ -17,6 +18,7 @@ interface Props {
   params: { id: string };
 }
 
+//* Cuando el usuario accede a /inspecciones/[id], esta función se ejecuta en el servidor para obtener los datos de la inspección y luego renderizar el componente cliente con esos datos.
 export default async function InspectionDetailPage({ params }: Props) {
   const inspectionId = parseInt(params.id);
 

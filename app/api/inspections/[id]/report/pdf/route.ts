@@ -1,11 +1,14 @@
 // ============================================
-// GET /api/inspections/[id]/report/pdf - Generar PDF del informe
+// GET /api/inspections/[id]/report/pdf - Obtener PDF del informe
+// POST /api/inspections/[id]/report/pdf - Regenerar PDF
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { generateInspectionPDF, generatePDFOnDemand, uploadPDFToCloudinary, generateSignedPdfUrl } from "@/lib/pdf";
+import { isCloudinaryConfigured } from "@/lib/cloudinary";
 
 export async function GET(
   req: NextRequest,
@@ -33,21 +36,13 @@ export async function GET(
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
       include: {
-        client: {
-          select: { id: true, name: true, email: true },
-        },
-        inspector: {
-          select: { id: true, name: true },
-        },
-        vehicle: {
-          include: {
-            model: {
-              include: { brand: true },
-            },
+        report: {
+          select: {
+            id: true,
+            pdfUrl: true,
+            pdfHash: true,
           },
         },
-        inspectionPlan: true,
-        payment: true,
       },
     });
 
@@ -84,87 +79,159 @@ export async function GET(
       );
     }
 
-    // TODO: Implementar generación real del PDF
-    // Por ahora retornamos un placeholder
-    // En producción se usaría una librería como @react-pdf/renderer, pdfkit, o puppeteer
+    // Si existe pdfUrl (public_id) en Cloudinary, generar URL firmada y redirigir
+    if (booking.report?.pdfUrl) {
+      // pdfUrl contiene el public_id, generamos URL firmada sin expiración
+      const signedUrl = generateSignedPdfUrl(booking.report.pdfUrl);
+      return NextResponse.redirect(signedUrl);
+    }
 
-    const pdfContent = generatePlaceholderPdf(booking);
+    // Si no existe pdfUrl, generar PDF on-demand
+    try {
+      const pdfBuffer = await generatePDFOnDemand(bookingId);
 
-    return new NextResponse(pdfContent, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="informe-INS-${booking.id}.pdf"`,
-      },
-    });
+      const year = booking.createdAt.getFullYear();
+      const code = `INS-${year}-${String(booking.id).padStart(4, "0")}`;
+
+      // Convertir Buffer a Uint8Array para NextResponse
+      const uint8Array = new Uint8Array(pdfBuffer);
+
+      return new NextResponse(uint8Array, {
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": `attachment; filename="informe-${code}.pdf"`,
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+      });
+    } catch (pdfError) {
+      console.error("Error generando PDF on-demand:", pdfError);
+      return NextResponse.json(
+        { error: "Error al generar el informe PDF" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error("Error generando PDF:", error);
+    console.error("Error obteniendo PDF:", error);
     return NextResponse.json(
-      { error: "Error al generar el informe" },
+      { error: "Error al obtener el informe" },
       { status: 500 }
     );
   }
 }
 
-// Placeholder PDF generator - En producción usar una librería real
-function generatePlaceholderPdf(booking: any): Buffer {
-  // PDF mínimo válido con texto
-  const year = booking.createdAt.getFullYear();
-  const code = `#INS-${year}-${String(booking.id).padStart(4, "0")}`;
+// ============================================
+// POST - Regenerar PDF del informe
+// ============================================
 
-  // Este es un PDF muy básico - en producción usar pdfkit, react-pdf, etc.
-  const pdfHeader = "%PDF-1.4\n";
-  const content = `
-1 0 obj
-<< /Type /Catalog /Pages 2 0 R >>
-endobj
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
 
-2 0 obj
-<< /Type /Pages /Kids [3 0 R] /Count 1 >>
-endobj
+  if (!session?.user?.id) {
+    return NextResponse.json(
+      { error: "Debe iniciar sesión" },
+      { status: 401 }
+    );
+  }
 
-3 0 obj
-<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
-endobj
+  const bookingId = parseInt(params.id);
 
-4 0 obj
-<< /Length 200 >>
-stream
-BT
-/F1 24 Tf
-100 700 Td
-(INFORME DE INSPECCION) Tj
-/F1 14 Tf
-0 -40 Td
-(Codigo: ${code}) Tj
-0 -25 Td
-(Vehiculo: ${booking.vehicle.model.brand.name} ${booking.vehicle.model.name}) Tj
-0 -25 Td
-(Placa: ${booking.vehicle.plate || "Sin placa"}) Tj
-0 -25 Td
-(Estado: Completado) Tj
-ET
-endstream
-endobj
+  if (isNaN(bookingId)) {
+    return NextResponse.json(
+      { error: "ID de inspección inválido" },
+      { status: 400 }
+    );
+  }
 
-5 0 obj
-<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
-endobj
+  try {
+    // Verificar permisos (solo admin o inspector asignado)
+    const userId = session.user.id;
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
 
-xref
-0 6
-0000000000 65535 f
-0000000009 00000 n
-0000000058 00000 n
-0000000115 00000 n
-0000000266 00000 n
-0000000518 00000 n
+    const booking = await db.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        report: {
+          select: { id: true },
+        },
+      },
+    });
 
-trailer
-<< /Size 6 /Root 1 0 R >>
-startxref
-593
-%%EOF`;
+    if (!booking) {
+      return NextResponse.json(
+        { error: "Inspección no encontrada" },
+        { status: 404 }
+      );
+    }
 
-  return Buffer.from(pdfHeader + content, "utf-8");
+    const isAssignedInspector = booking.inspectorId === userId;
+    const isAdmin = user?.role === "ADMIN";
+
+    if (!isAssignedInspector && !isAdmin) {
+      return NextResponse.json(
+        { error: "Solo el inspector asignado o un administrador puede regenerar el PDF" },
+        { status: 403 }
+      );
+    }
+
+    // Verificar que la inspección esté completada
+    if (booking.status !== "COMPLETED") {
+      return NextResponse.json(
+        { error: "Solo se puede generar PDF de inspecciones completadas" },
+        { status: 400 }
+      );
+    }
+
+    if (!booking.report) {
+      return NextResponse.json(
+        { error: "No existe un informe para esta inspección" },
+        { status: 404 }
+      );
+    }
+
+    // Generar PDF
+    console.log(`Regenerando PDF para reporte ${booking.report.id}...`);
+    const { buffer, hash } = await generateInspectionPDF(booking.report.id);
+    console.log(`PDF regenerado (${buffer.length} bytes)`);
+
+    let publicId: string | null = null;
+    let signedUrl: string | null = null;
+
+    // Subir a Cloudinary si está configurado
+    if (isCloudinaryConfigured()) {
+      const result = await uploadPDFToCloudinary(buffer, booking.report.id);
+      publicId = result.public_id;
+      signedUrl = generateSignedPdfUrl(publicId);
+      console.log(`PDF subido a Cloudinary. Public ID: ${publicId}`);
+
+      // Guardar public_id en pdfUrl para generar URLs firmadas después
+      await db.inspectionReport.update({
+        where: { id: booking.report.id },
+        data: {
+          pdfUrl: publicId,
+          pdfHash: hash,
+        },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "PDF regenerado exitosamente",
+      pdfUrl: signedUrl,
+      publicId: publicId,
+      pdfHash: hash,
+    });
+  } catch (error) {
+    console.error("Error regenerando PDF:", error);
+    return NextResponse.json(
+      { error: "Error al regenerar el PDF" },
+      { status: 500 }
+    );
+  }
 }
