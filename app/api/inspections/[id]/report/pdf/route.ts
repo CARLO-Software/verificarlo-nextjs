@@ -79,14 +79,7 @@ export async function GET(
       );
     }
 
-    // Si existe pdfUrl (public_id) en Cloudinary, generar URL firmada y redirigir
-    if (booking.report?.pdfUrl) {
-      // pdfUrl contiene el public_id, generamos URL firmada sin expiración
-      const signedUrl = generateSignedPdfUrl(booking.report.pdfUrl);
-      return NextResponse.redirect(signedUrl);
-    }
-
-    // Si no existe pdfUrl, generar PDF on-demand
+    // Siempre generar PDF on-demand (Cloudinary bloqueado por cuenta untrusted)
     try {
       const pdfBuffer = await generatePDFOnDemand(bookingId);
 

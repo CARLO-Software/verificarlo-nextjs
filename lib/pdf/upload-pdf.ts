@@ -9,12 +9,12 @@ export interface UploadPDFResult {
   public_id: string;
 }
 
-// Generar URL firmada para un PDF (sin expiración)
+// Generar URL pública para un PDF
 export function generateSignedPdfUrl(publicId: string): string {
-  return cloudinary.url(`${publicId}.pdf`, {
+  // Usar el public_id exactamente como está guardado en la BD
+  return cloudinary.url(publicId, {
     resource_type: 'raw',
-    type: 'authenticated',
-    sign_url: true,
+    type: 'upload',
     secure: true,
   });
 }
@@ -29,13 +29,14 @@ export async function uploadPDFToCloudinary(
   }
 
   const timestamp = Date.now();
-  const publicId = `informe-${reportId}-${timestamp}`;
+  // Incluir .pdf en el public_id para que Cloudinary lo reconozca como PDF
+  const publicId = `informe-${reportId}-${timestamp}.pdf`;
 
   return new Promise((resolve, reject) => {
     cloudinary.uploader.upload_stream(
       {
         resource_type: 'raw',
-        type: 'authenticated',
+        type: 'upload',
         public_id: publicId,
         folder: 'verificarlo/reports',
         overwrite: true,

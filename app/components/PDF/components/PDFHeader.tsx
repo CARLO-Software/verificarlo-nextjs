@@ -1,5 +1,5 @@
 // ============================================
-// PDFHeader - Logo y encabezado del informe
+// PDFHeader - Cabecera del informe
 // ============================================
 
 import React from 'react';
@@ -12,80 +12,75 @@ interface PDFHeaderProps {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  container: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-    paddingBottom: 15,
+    paddingBottom: 12,
     borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
+    borderBottomColor: colors.brand,
   },
   logoSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   logoBox: {
-    width: 40,
-    height: 40,
-    backgroundColor: colors.primary,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    backgroundColor: colors.brand,
+    borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   logoText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
-    color: colors.white,
+    color: colors.graphite,
   },
   brandName: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.graphite,
+    letterSpacing: 0.5,
   },
   brandTagline: {
-    fontSize: 8,
-    color: colors.gray[500],
-    marginTop: 2,
+    fontSize: 7,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   infoSection: {
     alignItems: 'flex-end',
   },
   reportCode: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.graphite,
+    marginBottom: 2,
   },
-  reportDate: {
-    fontSize: 9,
-    color: colors.gray[500],
-    marginTop: 4,
-  },
-  title: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: colors.gray[700],
-    marginTop: 2,
+  date: {
+    fontSize: 8,
+    color: colors.slate,
   },
 });
 
 export default function PDFHeader({ reportCode, date }: PDFHeaderProps) {
   return (
-    <View style={styles.header}>
+    <View style={styles.container}>
       <View style={styles.logoSection}>
         <View style={styles.logoBox}>
           <Text style={styles.logoText}>V</Text>
         </View>
         <View>
           <Text style={styles.brandName}>VerifiCARLO</Text>
-          <Text style={styles.brandTagline}>Inspecciones Vehiculares Profesionales</Text>
+          <Text style={styles.brandTagline}>Inspección Vehicular</Text>
         </View>
       </View>
       <View style={styles.infoSection}>
         <Text style={styles.reportCode}>{reportCode}</Text>
-        <Text style={styles.title}>INFORME DE INSPECCION</Text>
-        <Text style={styles.reportDate}>{date}</Text>
+        <Text style={styles.date}>{date}</Text>
       </View>
     </View>
   );

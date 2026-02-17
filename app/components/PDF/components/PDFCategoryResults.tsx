@@ -1,15 +1,19 @@
 // ============================================
-// PDFCategoryResults - Resultados por categoría
+// PDFCategoryResults - Resumen visual por categoría
+// Sistema de semáforo sin puntajes numéricos
 // ============================================
 
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
-import { colors, getStatusColor, getStatusText } from '../styles/pdfStyles';
+import { colors, getCategoryIndicator } from '../styles/pdfStyles';
 
 interface CategoryResult {
   name: string;
   score: number;
   status: string;
+  itemsOk?: number;
+  itemsObs?: number;
+  itemsDef?: number;
 }
 
 interface PDFCategoryResultsProps {
@@ -18,122 +22,108 @@ interface PDFCategoryResultsProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
-    color: colors.primary,
+    color: colors.graphite,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 10,
   },
-  table: {
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  categoryCard: {
+    width: '48%',
     borderWidth: 1,
-    borderColor: colors.gray[200],
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    backgroundColor: colors.gray[100],
+    borderColor: colors.borderGray,
+    borderRadius: 6,
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
+    backgroundColor: colors.white,
   },
-  headerCell: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: colors.gray[600],
-    textTransform: 'uppercase',
-  },
-  row: {
+  categoryHeader: {
     flexDirection: 'row',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-  },
-  rowAlt: {
-    flexDirection: 'row',
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-    backgroundColor: colors.gray[50],
-  },
-  rowLast: {
-    flexDirection: 'row',
-    padding: 10,
-  },
-  cellCategory: {
-    flex: 2,
-  },
-  cellScore: {
-    flex: 1,
     alignItems: 'center',
+    marginBottom: 6,
   },
-  cellStatus: {
-    flex: 1.5,
-    alignItems: 'flex-end',
+  indicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
   },
-  categoryText: {
+  categoryName: {
     fontSize: 10,
-    color: colors.gray[800],
     fontWeight: 'bold',
+    color: colors.graphite,
   },
-  scoreText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
+  statusLabel: {
     fontSize: 8,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    gap: 3,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  dotFilled: {
+    // color se aplica dinámicamente
+  },
+  dotEmpty: {
+    backgroundColor: colors.borderGray,
   },
 });
+
+// Calcular dots basado en el score (5 dots)
+function getScoreDots(score: number): number {
+  if (score >= 90) return 5;
+  if (score >= 75) return 4;
+  if (score >= 60) return 3;
+  if (score >= 40) return 2;
+  if (score > 0) return 1;
+  return 0;
+}
 
 export default function PDFCategoryResults({ categories }: PDFCategoryResultsProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>RESULTADOS POR CATEGORIA</Text>
-      <View style={styles.table}>
-        <View style={styles.headerRow}>
-          <View style={styles.cellCategory}>
-            <Text style={styles.headerCell}>Categoria</Text>
-          </View>
-          <View style={styles.cellScore}>
-            <Text style={styles.headerCell}>Puntaje</Text>
-          </View>
-          <View style={styles.cellStatus}>
-            <Text style={styles.headerCell}>Estado</Text>
-          </View>
-        </View>
-        {categories.map((category, index) => {
-          const isLast = index === categories.length - 1;
-          const isAlt = index % 2 === 1;
-          const statusColors = getStatusColor(category.status);
-          const statusText = getStatusText(category.status);
+      <Text style={styles.title}>Resumen por Categoría</Text>
+      <View style={styles.grid}>
+        {categories.map((category) => {
+          const indicator = getCategoryIndicator(category.status);
+          const filledDots = getScoreDots(category.score);
 
           return (
-            <View
-              key={category.name}
-              style={isLast ? styles.rowLast : isAlt ? styles.rowAlt : styles.row}
-            >
-              <View style={styles.cellCategory}>
-                <Text style={styles.categoryText}>{category.name}</Text>
+            <View key={category.name} style={styles.categoryCard}>
+              <View style={styles.categoryHeader}>
+                <View
+                  style={[styles.indicator, { backgroundColor: indicator.color }]}
+                />
+                <Text style={styles.categoryName}>{category.name}</Text>
               </View>
-              <View style={styles.cellScore}>
-                <Text style={styles.scoreText}>{category.score}/100</Text>
-              </View>
-              <View style={styles.cellStatus}>
-                <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                  <Text style={[styles.statusText, { color: statusColors.text }]}>
-                    {statusText}
-                  </Text>
-                </View>
+              <Text style={[styles.statusLabel, { color: indicator.color }]}>
+                {indicator.label}
+              </Text>
+              <View style={styles.dotsContainer}>
+                {[1, 2, 3, 4, 5].map((dotIndex) => (
+                  <View
+                    key={dotIndex}
+                    style={[
+                      styles.dot,
+                      dotIndex <= filledDots
+                        ? { backgroundColor: indicator.color }
+                        : styles.dotEmpty,
+                    ]}
+                  />
+                ))}
               </View>
             </View>
           );

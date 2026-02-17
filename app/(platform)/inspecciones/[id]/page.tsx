@@ -72,7 +72,8 @@ export default async function InspectionDetailPage({ params }: Props) {
           bodyStatus: inspection.report.bodyStatus,
           executiveSummary: inspection.report.executiveSummary,
           recommendations: inspection.report.recommendations,
-          pdfUrl: inspection.report.pdfUrl,
+          // Usar API de Next.js para servir el PDF (no Cloudinary)
+          pdfUrl: null,
           completedAt: inspection.report.completedAt,
         }
       : null,

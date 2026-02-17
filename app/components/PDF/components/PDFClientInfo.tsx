@@ -1,10 +1,10 @@
 // ============================================
-// PDFClientInfo - Datos del cliente
+// PDFClientInfo - Datos del cliente (compacto)
 // ============================================
 
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
-import { colors, typography } from '../styles/pdfStyles';
+import { colors } from '../styles/pdfStyles';
 
 interface PDFClientInfoProps {
   name: string;
@@ -15,29 +15,26 @@ interface PDFClientInfoProps {
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: colors.gray[200],
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
+    borderColor: colors.borderGray,
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 12,
   },
   item: {
     flex: 1,
   },
   label: {
-    ...typography.label,
+    fontSize: 7,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   value: {
-    fontSize: 10,
-    color: colors.gray[800],
-  },
-  title: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 8,
+    fontSize: 9,
+    color: colors.graphite,
   },
 });
 
@@ -53,8 +50,8 @@ export default function PDFClientInfo({ name, email, phone }: PDFClientInfoProps
         <Text style={styles.value}>{email}</Text>
       </View>
       <View style={styles.item}>
-        <Text style={styles.label}>Telefono</Text>
-        <Text style={styles.value}>{phone || 'No registrado'}</Text>
+        <Text style={styles.label}>Teléfono</Text>
+        <Text style={styles.value}>{phone || '-'}</Text>
       </View>
     </View>
   );

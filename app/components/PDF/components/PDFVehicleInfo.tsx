@@ -1,10 +1,10 @@
 // ============================================
-// PDFVehicleInfo - Datos del vehículo
+// PDFVehicleInfo - Datos del vehículo (compacto)
 // ============================================
 
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
-import { colors, typography } from '../styles/pdfStyles';
+import { colors } from '../styles/pdfStyles';
 
 interface PDFVehicleInfoProps {
   brand: string;
@@ -19,40 +19,54 @@ interface PDFVehicleInfoProps {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.gray[50],
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
+    backgroundColor: colors.offWhite,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 16,
   },
-  title: {
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderGray,
+  },
+  vehicleName: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.graphite,
+  },
+  plate: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 12,
+    color: colors.graphite,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 4,
   },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
   },
   item: {
-    width: '33%',
-    marginBottom: 10,
-  },
-  itemWide: {
-    width: '50%',
-    marginBottom: 10,
+    width: '25%',
   },
   label: {
-    ...typography.label,
+    fontSize: 7,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 2,
   },
   value: {
-    ...typography.value,
-  },
-  vehicleName: {
-    fontSize: 16,
+    fontSize: 9,
+    color: colors.charcoal,
     fontWeight: 'bold',
-    color: colors.gray[800],
-    marginBottom: 12,
   },
 });
 
@@ -67,36 +81,34 @@ export default function PDFVehicleInfo({
   engineNumber,
 }: PDFVehicleInfoProps) {
   const formatMileage = (km: number | null) => {
-    if (!km) return 'No registrado';
+    if (!km) return '-';
     return `${km.toLocaleString('es-PE')} km`;
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>DATOS DEL VEHICULO</Text>
-      <Text style={styles.vehicleName}>
-        {brand} {model} {year}
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.vehicleName}>
+          {brand} {model} {year}
+        </Text>
+        <Text style={styles.plate}>{plate || 'SIN PLACA'}</Text>
+      </View>
       <View style={styles.grid}>
-        <View style={styles.item}>
-          <Text style={styles.label}>Placa</Text>
-          <Text style={styles.value}>{plate || 'Sin placa'}</Text>
-        </View>
         <View style={styles.item}>
           <Text style={styles.label}>Kilometraje</Text>
           <Text style={styles.value}>{formatMileage(mileage)}</Text>
         </View>
         <View style={styles.item}>
           <Text style={styles.label}>Color</Text>
-          <Text style={styles.value}>{color || 'No especificado'}</Text>
+          <Text style={styles.value}>{color || '-'}</Text>
         </View>
-        <View style={styles.itemWide}>
-          <Text style={styles.label}>VIN / Chasis</Text>
-          <Text style={styles.value}>{vin || 'No registrado'}</Text>
+        <View style={styles.item}>
+          <Text style={styles.label}>VIN</Text>
+          <Text style={styles.value}>{vin ? vin.slice(-8) : '-'}</Text>
         </View>
-        <View style={styles.itemWide}>
-          <Text style={styles.label}>Numero de Motor</Text>
-          <Text style={styles.value}>{engineNumber || 'No registrado'}</Text>
+        <View style={styles.item}>
+          <Text style={styles.label}>Motor</Text>
+          <Text style={styles.value}>{engineNumber ? engineNumber.slice(-8) : '-'}</Text>
         </View>
       </View>
     </View>

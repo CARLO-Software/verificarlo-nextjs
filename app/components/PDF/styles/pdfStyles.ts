@@ -1,33 +1,131 @@
 // ============================================
 // Estilos compartidos para componentes PDF
+// Paleta: Amarillo VerifiCARLO, Gris Grafito, Negro, Blanco
 // ============================================
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Colores de marca VerifiCARLO
+// Colores de marca VerifiCARLO - Paleta profesional
 export const colors = {
-  primary: '#1E3A8A',      // Azul oscuro
-  primaryLight: '#3B82F6', // Azul claro
-  secondary: '#10B981',    // Verde
-  accent: '#F59E0B',       // Naranja/Amarillo
-  danger: '#EF4444',       // Rojo
-  warning: '#F59E0B',      // Amarillo
-  success: '#10B981',      // Verde
-  gray: {
-    50: '#F9FAFB',
-    100: '#F3F4F6',
-    200: '#E5E7EB',
-    300: '#D1D5DB',
-    400: '#9CA3AF',
-    500: '#6B7280',
-    600: '#4B5563',
-    700: '#374151',
-    800: '#1F2937',
-    900: '#111827',
-  },
+  // Primarios
+  brand: '#F5D849',           // Amarillo VerifiCARLO
+  brandDark: '#D4B83D',       // Amarillo oscuro
+
+  // Neutros
+  graphite: '#2D2D2D',        // Gris grafito (títulos)
+  charcoal: '#404040',        // Gris carbón (texto principal)
+  slate: '#6B7280',           // Gris pizarra (texto secundario)
+  silver: '#9CA3AF',          // Gris plata (texto terciario)
+
+  // Fondos
   white: '#FFFFFF',
+  offWhite: '#FAFAFA',
+  lightGray: '#F3F4F6',
+  borderGray: '#E5E7EB',
+
+  // Estados semánticos (sutiles)
+  success: '#059669',         // Verde esmeralda
+  successBg: '#ECFDF5',
+  warning: '#D97706',         // Ámbar
+  warningBg: '#FFFBEB',
+  danger: '#DC2626',          // Rojo
+  dangerBg: '#FEF2F2',
+
   black: '#000000',
 };
+
+// Función helper para obtener colores de veredicto
+export function getVerdictConfig(status: string): {
+  label: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+} {
+  switch (status) {
+    case 'OK':
+      return {
+        label: 'RECOMENDADO',
+        description: 'Este vehículo cumple con los estándares de seguridad y funcionamiento. Puede proceder con la compra con confianza.',
+        color: colors.success,
+        bgColor: colors.successBg,
+        borderColor: colors.success,
+      };
+    case 'WARNING':
+      return {
+        label: 'RECOMENDADO CON RESERVAS',
+        description: 'Este vehículo presenta observaciones menores que no afectan la seguridad inmediata. Recomendamos negociar las reparaciones antes de la compra.',
+        color: colors.warning,
+        bgColor: colors.warningBg,
+        borderColor: colors.warning,
+      };
+    case 'CRITICAL':
+      return {
+        label: 'NO RECOMENDADO',
+        description: 'Este vehículo presenta defectos que comprometen la seguridad o requieren reparaciones significativas. No recomendamos la compra en las condiciones actuales.',
+        color: colors.danger,
+        bgColor: colors.dangerBg,
+        borderColor: colors.danger,
+      };
+    default:
+      return {
+        label: 'PENDIENTE',
+        description: 'La inspección no ha sido completada.',
+        color: colors.slate,
+        bgColor: colors.lightGray,
+        borderColor: colors.borderGray,
+      };
+  }
+}
+
+// Función helper para obtener color de categoría (semáforo)
+export function getCategoryIndicator(status: string): {
+  color: string;
+  label: string;
+} {
+  switch (status) {
+    case 'OK':
+      return { color: colors.success, label: 'Sin problemas' };
+    case 'WARNING':
+    case 'OBSERVACION':
+      return { color: colors.warning, label: 'Observaciones' };
+    case 'CRITICAL':
+    case 'DEFECTO':
+      return { color: colors.danger, label: 'Requiere atención' };
+    default:
+      return { color: colors.silver, label: 'Pendiente' };
+  }
+}
+
+// Función para badges de checklist
+export function getStatusColor(status: string): { bg: string; text: string } {
+  switch (status) {
+    case 'OK':
+      return { bg: colors.successBg, text: colors.success };
+    case 'WARNING':
+    case 'OBSERVACION':
+      return { bg: colors.warningBg, text: colors.warning };
+    case 'CRITICAL':
+    case 'DEFECTO':
+      return { bg: colors.dangerBg, text: colors.danger };
+    default:
+      return { bg: colors.lightGray, text: colors.slate };
+  }
+}
+
+// Función legacy para compatibilidad
+export function getStatusText(status: string): string {
+  switch (status) {
+    case 'OK':
+      return 'OK';
+    case 'WARNING':
+      return 'OBS';
+    case 'CRITICAL':
+      return 'DEF';
+    default:
+      return '-';
+  }
+}
 
 // Estilos base del documento
 export const baseStyles = StyleSheet.create({
@@ -52,207 +150,42 @@ export const baseStyles = StyleSheet.create({
 // Estilos de tipografía
 export const typography = StyleSheet.create({
   h1: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
-  },
-  h2: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.gray[800],
+    color: colors.graphite,
     marginBottom: 8,
   },
-  h3: {
+  h2: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: colors.gray[700],
+    color: colors.graphite,
     marginBottom: 6,
   },
+  h3: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: colors.charcoal,
+    marginBottom: 4,
+  },
   body: {
-    fontSize: 10,
-    color: colors.gray[700],
-    lineHeight: 1.4,
+    fontSize: 9,
+    color: colors.charcoal,
+    lineHeight: 1.5,
   },
   small: {
     fontSize: 8,
-    color: colors.gray[500],
+    color: colors.slate,
   },
   label: {
-    fontSize: 9,
-    color: colors.gray[500],
+    fontSize: 8,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 2,
   },
   value: {
-    fontSize: 11,
-    color: colors.gray[800],
-    fontWeight: 'bold',
-  },
-});
-
-// Estilos de tablas
-export const tableStyles = StyleSheet.create({
-  table: {
-    width: '100%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    borderColor: colors.gray[200],
-    borderRadius: 4,
-  },
-  tableHeader: {
-    flexDirection: 'row',
-    backgroundColor: colors.gray[100],
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[200],
-    padding: 8,
-  },
-  tableHeaderCell: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: colors.gray[700],
-    textTransform: 'uppercase',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-    padding: 8,
-  },
-  tableRowAlt: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-    padding: 8,
-    backgroundColor: colors.gray[50],
-  },
-  tableCell: {
-    fontSize: 9,
-    color: colors.gray[700],
-  },
-});
-
-// Estilos de badges de estado
-export const badgeStyles = StyleSheet.create({
-  badgeBase: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 8,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    textAlign: 'center',
-  },
-  badgeOk: {
-    backgroundColor: '#D1FAE5',
-    color: colors.success,
-  },
-  badgeWarning: {
-    backgroundColor: '#FEF3C7',
-    color: '#D97706',
-  },
-  badgeCritical: {
-    backgroundColor: '#FEE2E2',
-    color: colors.danger,
-  },
-  badgePending: {
-    backgroundColor: colors.gray[100],
-    color: colors.gray[500],
-  },
-});
-
-// Estilos de tarjetas
-export const cardStyles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.gray[200],
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 10,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
-  },
-  cardTitle: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.gray[800],
-  },
-});
-
-// Estilos del score card
-export const scoreCardStyles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    marginBottom: 15,
-  },
-  scoreCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  scoreText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: colors.primary,
-  },
-  scoreLabel: {
     fontSize: 10,
-    color: colors.white,
-    opacity: 0.9,
-  },
-  statusBadge: {
-    marginTop: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 11,
+    color: colors.graphite,
     fontWeight: 'bold',
-    textTransform: 'uppercase',
   },
 });
-
-// Función helper para obtener color según estado
-export function getStatusColor(status: string): { bg: string; text: string } {
-  switch (status) {
-    case 'OK':
-      return { bg: '#D1FAE5', text: colors.success };
-    case 'WARNING':
-    case 'OBSERVACION':
-      return { bg: '#FEF3C7', text: '#D97706' };
-    case 'CRITICAL':
-    case 'DEFECTO':
-      return { bg: '#FEE2E2', text: colors.danger };
-    default:
-      return { bg: colors.gray[100], text: colors.gray[500] };
-  }
-}
-
-// Función helper para obtener texto de estado
-export function getStatusText(status: string): string {
-  switch (status) {
-    case 'OK':
-      return 'APROBADO';
-    case 'WARNING':
-      return 'OBSERVACIONES';
-    case 'CRITICAL':
-      return 'NO APROBADO';
-    default:
-      return 'PENDIENTE';
-  }
-}

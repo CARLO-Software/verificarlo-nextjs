@@ -1,5 +1,5 @@
 // ============================================
-// PDFSummary - Resumen y recomendaciones
+// PDFSummary - Resumen ejecutivo y documentos
 // ============================================
 
 import React from 'react';
@@ -18,162 +18,157 @@ interface PDFSummaryProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   section: {
     marginBottom: 12,
   },
   title: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
-  },
-  subtitle: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: colors.gray[700],
-    marginBottom: 6,
+    color: colors.graphite,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  card: {
+    backgroundColor: colors.offWhite,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    borderRadius: 6,
+    padding: 10,
   },
   text: {
     fontSize: 9,
-    color: colors.gray[600],
+    color: colors.charcoal,
     lineHeight: 1.5,
   },
-  card: {
-    backgroundColor: colors.gray[50],
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-  },
-  documentsContainer: {
+  documentsGrid: {
     flexDirection: 'row',
     gap: 10,
   },
   documentCard: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.gray[200],
-    borderRadius: 8,
+    borderRadius: 6,
     padding: 10,
   },
   documentValid: {
     borderColor: colors.success,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: colors.successBg,
   },
   documentInvalid: {
     borderColor: colors.danger,
-    backgroundColor: '#FEF2F2',
+    backgroundColor: colors.dangerBg,
+  },
+  documentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  documentIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
   },
   documentTitle: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: colors.gray[700],
-    marginBottom: 4,
+    color: colors.graphite,
   },
   documentStatus: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: 'bold',
-  },
-  documentStatusValid: {
-    color: colors.success,
-  },
-  documentStatusInvalid: {
-    color: colors.danger,
+    marginBottom: 2,
   },
   documentExpiry: {
-    fontSize: 8,
-    color: colors.gray[500],
-    marginTop: 4,
-  },
-  costCard: {
-    backgroundColor: '#FEF3C7',
-    borderRadius: 8,
-    padding: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  costLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#92400E',
-  },
-  costValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#92400E',
+    fontSize: 7,
+    color: colors.slate,
   },
 });
 
 export default function PDFSummary({
   executiveSummary,
   recommendations,
-  estimatedRepairCost,
   soatValid,
   soatExpiryDate,
   technicalReviewValid,
   technicalReviewExpiryDate,
 }: PDFSummaryProps) {
-  const formatCurrency = (amount: number) => {
-    return `S/ ${amount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
-  };
+  // Solo mostrar documentos si hay al menos uno configurado
+  const showDocuments = soatValid !== undefined || technicalReviewValid !== undefined;
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>RESUMEN DE LA INSPECCION</Text>
-
       {/* Estado de documentos */}
-      <View style={styles.section}>
-        <Text style={styles.subtitle}>Estado de Documentos</Text>
-        <View style={styles.documentsContainer}>
-          <View
-            style={[
-              styles.documentCard,
-              soatValid ? styles.documentValid : styles.documentInvalid,
-            ]}
-          >
-            <Text style={styles.documentTitle}>SOAT</Text>
-            <Text
+      {showDocuments && (
+        <View style={styles.section}>
+          <Text style={styles.title}>Documentación</Text>
+          <View style={styles.documentsGrid}>
+            <View
               style={[
-                styles.documentStatus,
-                soatValid ? styles.documentStatusValid : styles.documentStatusInvalid,
+                styles.documentCard,
+                soatValid ? styles.documentValid : styles.documentInvalid,
               ]}
             >
-              {soatValid ? 'VIGENTE' : 'NO VIGENTE'}
-            </Text>
-            {soatExpiryDate && (
-              <Text style={styles.documentExpiry}>Vence: {soatExpiryDate}</Text>
-            )}
-          </View>
-          <View
-            style={[
-              styles.documentCard,
-              technicalReviewValid ? styles.documentValid : styles.documentInvalid,
-            ]}
-          >
-            <Text style={styles.documentTitle}>Revision Tecnica</Text>
-            <Text
+              <View style={styles.documentHeader}>
+                <View
+                  style={[
+                    styles.documentIndicator,
+                    { backgroundColor: soatValid ? colors.success : colors.danger },
+                  ]}
+                />
+                <Text style={styles.documentTitle}>SOAT</Text>
+              </View>
+              <Text
+                style={[
+                  styles.documentStatus,
+                  { color: soatValid ? colors.success : colors.danger },
+                ]}
+              >
+                {soatValid ? 'Vigente' : 'No vigente'}
+              </Text>
+              {soatExpiryDate && (
+                <Text style={styles.documentExpiry}>Vence: {soatExpiryDate}</Text>
+              )}
+            </View>
+
+            <View
               style={[
-                styles.documentStatus,
-                technicalReviewValid
-                  ? styles.documentStatusValid
-                  : styles.documentStatusInvalid,
+                styles.documentCard,
+                technicalReviewValid ? styles.documentValid : styles.documentInvalid,
               ]}
             >
-              {technicalReviewValid ? 'VIGENTE' : 'NO VIGENTE'}
-            </Text>
-            {technicalReviewExpiryDate && (
-              <Text style={styles.documentExpiry}>Vence: {technicalReviewExpiryDate}</Text>
-            )}
+              <View style={styles.documentHeader}>
+                <View
+                  style={[
+                    styles.documentIndicator,
+                    { backgroundColor: technicalReviewValid ? colors.success : colors.danger },
+                  ]}
+                />
+                <Text style={styles.documentTitle}>Revisión Técnica</Text>
+              </View>
+              <Text
+                style={[
+                  styles.documentStatus,
+                  { color: technicalReviewValid ? colors.success : colors.danger },
+                ]}
+              >
+                {technicalReviewValid ? 'Vigente' : 'No vigente'}
+              </Text>
+              {technicalReviewExpiryDate && (
+                <Text style={styles.documentExpiry}>Vence: {technicalReviewExpiryDate}</Text>
+              )}
+            </View>
           </View>
         </View>
-      </View>
+      )}
 
       {/* Resumen ejecutivo */}
       {executiveSummary && (
         <View style={styles.section}>
-          <Text style={styles.subtitle}>Resumen Ejecutivo</Text>
+          <Text style={styles.title}>Observaciones del Inspector</Text>
           <View style={styles.card}>
             <Text style={styles.text}>{executiveSummary}</Text>
           </View>
@@ -183,18 +178,10 @@ export default function PDFSummary({
       {/* Recomendaciones */}
       {recommendations && (
         <View style={styles.section}>
-          <Text style={styles.subtitle}>Recomendaciones</Text>
+          <Text style={styles.title}>Recomendaciones</Text>
           <View style={styles.card}>
             <Text style={styles.text}>{recommendations}</Text>
           </View>
-        </View>
-      )}
-
-      {/* Costo estimado */}
-      {estimatedRepairCost !== null && estimatedRepairCost !== undefined && estimatedRepairCost > 0 && (
-        <View style={styles.costCard}>
-          <Text style={styles.costLabel}>Costo Estimado de Reparaciones</Text>
-          <Text style={styles.costValue}>{formatCurrency(estimatedRepairCost)}</Text>
         </View>
       )}
     </View>

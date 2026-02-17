@@ -1,5 +1,6 @@
 // ============================================
 // InspectionReportPDF - Documento principal del informe
+// Nueva estructura: Veredicto claro + Hallazgos críticos prominentes
 // ============================================
 
 import React from 'react';
@@ -8,9 +9,10 @@ import { colors } from './styles/pdfStyles';
 import PDFHeader from './components/PDFHeader';
 import PDFVehicleInfo from './components/PDFVehicleInfo';
 import PDFClientInfo from './components/PDFClientInfo';
-import PDFScoreCard from './components/PDFScoreCard';
+import PDFVerdict from './components/PDFVerdict';
+import PDFCriticalFindings from './components/PDFCriticalFindings';
 import PDFCategoryResults from './components/PDFCategoryResults';
-import PDFChecklist, { transformChecklistResults } from './components/PDFChecklist';
+import PDFChecklist, { transformChecklistResults, extractCriticalFindings } from './components/PDFChecklist';
 import PDFSummary from './components/PDFSummary';
 import PDFFooter from './components/PDFFooter';
 
@@ -75,14 +77,11 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: colors.white,
     padding: 40,
-    paddingBottom: 100, // Espacio para el footer
+    paddingBottom: 100,
     fontFamily: 'Helvetica',
   },
   content: {
     flex: 1,
-  },
-  pageBreak: {
-    marginTop: 'auto',
   },
 });
 
@@ -92,20 +91,21 @@ interface InspectionReportPDFProps {
 
 export default function InspectionReportPDF({ data }: InspectionReportPDFProps) {
   const checklistCategories = transformChecklistResults(data.checklistResults || {});
+  const criticalFindings = extractCriticalFindings(data.checklistResults || {});
+  const hasCriticalFindings = criticalFindings.length > 0;
+  const totalPages = checklistCategories.length > 0 ? 2 : 1;
 
   return (
     <Document>
-      {/* Página 1 - Resumen General */}
+      {/* ============================================ */}
+      {/* PÁGINA 1 - VEREDICTO Y RESUMEN */}
+      {/* ============================================ */}
       <Page size="A4" style={styles.page}>
         <View style={styles.content}>
+          {/* Header con logo y código */}
           <PDFHeader reportCode={data.reportCode} date={data.date} />
 
-          <PDFClientInfo
-            name={data.client.name}
-            email={data.client.email}
-            phone={data.client.phone}
-          />
-
+          {/* Datos del vehículo (prominente) */}
           <PDFVehicleInfo
             brand={data.vehicle.brand}
             model={data.vehicle.model}
@@ -117,14 +117,24 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
             engineNumber={data.vehicle.engineNumber}
           />
 
-          <PDFScoreCard score={data.overallScore} status={data.overallStatus} />
+          {/* VEREDICTO PRINCIPAL - El elemento más importante */}
+          <PDFVerdict status={data.overallStatus} />
 
+          {/* Hallazgos críticos (solo si existen) */}
+          {hasCriticalFindings && (
+            <PDFCriticalFindings
+              findings={criticalFindings}
+              estimatedCost={data.estimatedRepairCost}
+            />
+          )}
+
+          {/* Resumen por categoría (semáforo visual) */}
           <PDFCategoryResults categories={data.categories} />
 
+          {/* Documentación y observaciones */}
           <PDFSummary
             executiveSummary={data.executiveSummary}
             recommendations={data.recommendations}
-            estimatedRepairCost={data.estimatedRepairCost}
             soatValid={data.soatValid}
             soatExpiryDate={data.soatExpiryDate}
             technicalReviewValid={data.technicalReviewValid}
@@ -136,16 +146,26 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
           inspectorName={data.inspectorName}
           completedAt={data.completedAt}
           pageNumber={1}
-          totalPages={checklistCategories.length > 0 ? 2 : 1}
+          totalPages={totalPages}
         />
       </Page>
 
-      {/* Página 2 - Checklist Detallado (solo si hay items) */}
+      {/* ============================================ */}
+      {/* PÁGINA 2 - DETALLE TÉCNICO (solo si hay items) */}
+      {/* ============================================ */}
       {checklistCategories.length > 0 && (
         <Page size="A4" style={styles.page}>
           <View style={styles.content}>
             <PDFHeader reportCode={data.reportCode} date={data.date} />
 
+            {/* Info del cliente (en página 2 para no saturar pág 1) */}
+            <PDFClientInfo
+              name={data.client.name}
+              email={data.client.email}
+              phone={data.client.phone}
+            />
+
+            {/* Checklist detallado */}
             <PDFChecklist categories={checklistCategories} />
           </View>
 

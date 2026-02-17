@@ -1,5 +1,5 @@
 // ============================================
-// PDFChecklist - Checklist detallado
+// PDFChecklist - Checklist detallado (Página 2)
 // ============================================
 
 import React from 'react';
@@ -24,91 +24,107 @@ interface PDFChecklistProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 15,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: colors.primary,
-    marginBottom: 10,
-  },
-  category: {
-    marginBottom: 12,
-  },
-  categoryTitle: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: colors.gray[700],
-    backgroundColor: colors.gray[100],
-    padding: 8,
+    color: colors.graphite,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  category: {
+    marginBottom: 10,
+  },
+  categoryTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.white,
+    backgroundColor: colors.graphite,
+    padding: 6,
     borderRadius: 4,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   itemsContainer: {
-    paddingLeft: 8,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
   item: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 4,
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[100],
+    borderBottomColor: colors.borderGray,
+  },
+  itemLast: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+  },
+  itemAlt: {
+    backgroundColor: colors.offWhite,
   },
   itemName: {
     flex: 3,
-    fontSize: 9,
-    color: colors.gray[700],
+    fontSize: 8,
+    color: colors.charcoal,
   },
   itemStatus: {
-    flex: 1,
+    width: 40,
     alignItems: 'center',
   },
   statusBadge: {
-    paddingHorizontal: 6,
+    paddingHorizontal: 5,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 4,
   },
   statusText: {
-    fontSize: 7,
+    fontSize: 6,
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
   itemComment: {
     flex: 2,
-    fontSize: 8,
-    color: colors.gray[500],
+    fontSize: 7,
+    color: colors.slate,
     fontStyle: 'italic',
+    textAlign: 'right',
   },
 });
 
-// Mapeo de nombres de items para mostrar
+// Mapeo de nombres de items
 const ITEM_NAMES: Record<string, string> = {
   // Legal
   'legal-tarjeta-propiedad': 'Tarjeta de propiedad',
   'legal-soat': 'SOAT vigente',
-  'legal-revision-tecnica': 'Revision tecnica',
-  'legal-placas': 'Placas del vehiculo',
+  'legal-revision-tecnica': 'Revisión técnica',
+  'legal-placas': 'Placas del vehículo',
   'legal-siniestros': 'Registro de siniestros',
-  // Mecanica
+  // Mecánica
   'mec-motor': 'Estado del motor',
-  'mec-transmision': 'Transmision',
+  'mec-transmision': 'Transmisión',
   'mec-frenos': 'Sistema de frenos',
-  'mec-suspension': 'Suspension',
-  'mec-direccion': 'Direccion',
+  'mec-suspension': 'Suspensión',
+  'mec-direccion': 'Dirección',
   'mec-escape': 'Sistema de escape',
-  'mec-refrigeracion': 'Sistema de refrigeracion',
-  'mec-bateria': 'Bateria',
+  'mec-refrigeracion': 'Sistema de refrigeración',
+  'mec-bateria': 'Batería',
   'mec-luces': 'Sistema de luces',
   'mec-llantas': 'Llantas',
-  // Carroceria
+  // Carrocería
   'car-pintura': 'Pintura general',
   'car-golpes': 'Golpes y abolladuras',
-  'car-oxidacion': 'Oxidacion',
+  'car-oxidacion': 'Oxidación',
   'car-parabrisas': 'Parabrisas',
   'car-vidrios': 'Vidrios laterales',
   'car-espejos': 'Espejos',
   'car-puertas': 'Puertas',
-  'car-capo': 'Capo',
+  'car-capo': 'Capó',
   'car-maletero': 'Maletero',
   // Interior
   'int-tablero': 'Tablero',
@@ -120,7 +136,6 @@ const ITEM_NAMES: Record<string, string> = {
   'int-tapizado': 'Tapizado',
   'int-limpieza': 'Limpieza general',
 };
-
 
 function getItemName(id: string): string {
   return ITEM_NAMES[id] || id;
@@ -144,15 +159,24 @@ function getStatusLabel(status: string): string {
 export default function PDFChecklist({ categories }: PDFChecklistProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>CHECKLIST DE INSPECCION</Text>
+      <Text style={styles.title}>Detalle de Inspección</Text>
       {categories.map((category) => (
         <View key={category.name} style={styles.category}>
           <Text style={styles.categoryTitle}>{category.name}</Text>
           <View style={styles.itemsContainer}>
-            {category.items.map((item) => {
+            {category.items.map((item, index) => {
+              const isLast = index === category.items.length - 1;
+              const isAlt = index % 2 === 1;
               const statusColors = getStatusColor(item.status);
+
               return (
-                <View key={item.id} style={styles.item}>
+                <View
+                  key={item.id}
+                  style={[
+                    isLast ? styles.itemLast : styles.item,
+                    isAlt && styles.itemAlt,
+                  ]}
+                >
                   <Text style={styles.itemName}>{getItemName(item.id)}</Text>
                   <View style={styles.itemStatus}>
                     <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
@@ -180,8 +204,8 @@ export function transformChecklistResults(
 ): ChecklistCategory[] {
   const categoriesMap: Record<string, ChecklistItem[]> = {
     'Legal': [],
-    'Mecanica': [],
-    'Carroceria': [],
+    'Mecánica': [],
+    'Carrocería': [],
     'Interior': [],
   };
 
@@ -189,8 +213,8 @@ export function transformChecklistResults(
     if (!result || !result.status) continue;
 
     let categoryName = 'Legal';
-    if (itemId.startsWith('mec-')) categoryName = 'Mecanica';
-    else if (itemId.startsWith('car-')) categoryName = 'Carroceria';
+    if (itemId.startsWith('mec-')) categoryName = 'Mecánica';
+    else if (itemId.startsWith('car-')) categoryName = 'Carrocería';
     else if (itemId.startsWith('int-')) categoryName = 'Interior';
 
     categoriesMap[categoryName].push({
@@ -204,4 +228,40 @@ export function transformChecklistResults(
   return Object.entries(categoriesMap)
     .filter(([, items]) => items.length > 0)
     .map(([name, items]) => ({ name, items }));
+}
+
+// Extraer hallazgos críticos del checklist
+export function extractCriticalFindings(
+  checklistResults: Record<string, { status: string; comment?: string }>
+): Array<{ category: string; item: string; severity: 'DEFECTO' | 'OBSERVACION'; comment?: string }> {
+  const findings: Array<{ category: string; item: string; severity: 'DEFECTO' | 'OBSERVACION'; comment?: string }> = [];
+
+  const categoryNames: Record<string, string> = {
+    'legal-': 'Legal',
+    'mec-': 'Mecánica',
+    'car-': 'Carrocería',
+    'int-': 'Interior',
+  };
+
+  for (const [itemId, result] of Object.entries(checklistResults)) {
+    if (!result || !result.status) continue;
+    if (result.status !== 'DEFECTO' && result.status !== 'OBSERVACION') continue;
+
+    let categoryName = 'Legal';
+    for (const [prefix, name] of Object.entries(categoryNames)) {
+      if (itemId.startsWith(prefix)) {
+        categoryName = name;
+        break;
+      }
+    }
+
+    findings.push({
+      category: categoryName,
+      item: getItemName(itemId),
+      severity: result.status as 'DEFECTO' | 'OBSERVACION',
+      comment: result.comment,
+    });
+  }
+
+  return findings;
 }

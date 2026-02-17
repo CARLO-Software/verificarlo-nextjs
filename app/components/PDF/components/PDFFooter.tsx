@@ -23,70 +23,71 @@ const styles = StyleSheet.create({
   signatureSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
-    paddingTop: 15,
+    marginBottom: 12,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.gray[200],
+    borderTopColor: colors.borderGray,
   },
   signatureBox: {
     width: '45%',
   },
   signatureLine: {
     borderBottomWidth: 1,
-    borderBottomColor: colors.gray[400],
-    marginBottom: 8,
-    height: 30,
+    borderBottomColor: colors.charcoal,
+    marginBottom: 6,
+    height: 24,
   },
   signatureLabel: {
-    fontSize: 8,
-    color: colors.gray[500],
-    textAlign: 'center',
+    fontSize: 7,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   signatureValue: {
     fontSize: 9,
-    color: colors.gray[700],
-    textAlign: 'center',
-    marginTop: 4,
+    color: colors.graphite,
+    fontWeight: 'bold',
+    marginTop: 2,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 10,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.gray[100],
+    borderTopColor: colors.borderGray,
   },
   footerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   footerLogo: {
-    width: 16,
-    height: 16,
-    backgroundColor: colors.primary,
-    borderRadius: 4,
+    width: 14,
+    height: 14,
+    backgroundColor: colors.brand,
+    borderRadius: 3,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 6,
   },
   footerLogoText: {
-    fontSize: 10,
+    fontSize: 8,
     fontWeight: 'bold',
-    color: colors.white,
+    color: colors.graphite,
   },
   footerText: {
     fontSize: 7,
-    color: colors.gray[400],
+    color: colors.slate,
   },
   pageNumber: {
-    fontSize: 8,
-    color: colors.gray[400],
+    fontSize: 7,
+    color: colors.slate,
   },
   disclaimer: {
-    fontSize: 7,
-    color: colors.gray[400],
+    fontSize: 6,
+    color: colors.silver,
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 6,
     lineHeight: 1.4,
   },
 });
@@ -99,17 +100,17 @@ export default function PDFFooter({
 }: PDFFooterProps) {
   return (
     <View style={styles.container}>
-      {/* Sección de firma - solo en la última página si hay múltiples */}
+      {/* Sección de firma - solo en la última página */}
       {(!totalPages || pageNumber === totalPages) && (
         <View style={styles.signatureSection}>
           <View style={styles.signatureBox}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Firma del Inspector</Text>
+            <Text style={styles.signatureLabel}>Inspector</Text>
             <Text style={styles.signatureValue}>{inspectorName}</Text>
           </View>
           <View style={styles.signatureBox}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Fecha y Hora</Text>
+            <Text style={styles.signatureLabel}>Fecha de Inspección</Text>
             <Text style={styles.signatureValue}>{completedAt}</Text>
           </View>
         </View>
@@ -121,19 +122,19 @@ export default function PDFFooter({
             <Text style={styles.footerLogoText}>V</Text>
           </View>
           <Text style={styles.footerText}>
-            VerifiCARLO - Inspecciones Vehiculares Profesionales | www.verificarlo.pe
+            VerifiCARLO | www.verificarlo.pe
           </Text>
         </View>
         {pageNumber && totalPages && (
           <Text style={styles.pageNumber}>
-            Pagina {pageNumber} de {totalPages}
+            {pageNumber} / {totalPages}
           </Text>
         )}
       </View>
 
       <Text style={styles.disclaimer}>
-        Este informe es valido unicamente para el vehiculo y fecha indicados.
-        La inspeccion se realizo siguiendo los estandares de calidad de VerifiCARLO.
+        Este informe refleja el estado del vehículo al momento de la inspección.
+        VerifiCARLO no se responsabiliza por cambios posteriores.
       </Text>
     </View>
   );

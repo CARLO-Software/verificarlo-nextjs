@@ -152,6 +152,7 @@ export function InspectionDetailClient({ inspection }: Props) {
   const isCompleted = inspection.status === 'COMPLETED';
   const isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);
 
+
   // Formatear fecha
   const formattedDate = format(new Date(inspection.startTime), "EEEE, d 'de' MMMM yyyy", { locale: es });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
@@ -305,10 +306,10 @@ export function InspectionDetailClient({ inspection }: Props) {
             </div>
 
             {/* Botón de descarga */}
-            {inspection.report.pdfUrl && (
+            {inspection.report.completedAt && (
               <div className="p-4 bg-gray-50 border-t border-gray-100">
                 <a
-                  href={inspection.report.pdfUrl}
+                  href={`/api/inspections/${inspection.id}/report/pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="
@@ -326,15 +327,6 @@ export function InspectionDetailClient({ inspection }: Props) {
                   <Download size={20} />
                   Descargar Informe PDF
                 </a>
-              </div>
-            )}
-
-            {!inspection.report.pdfUrl && inspection.report.completedAt && (
-              <div className="p-4 bg-amber-50 border-t border-amber-100">
-                <p className="text-sm text-amber-700 text-center flex items-center justify-center gap-2">
-                  <Loader2 size={16} className="animate-spin" />
-                  Generando informe PDF...
-                </p>
               </div>
             )}
           </div>
