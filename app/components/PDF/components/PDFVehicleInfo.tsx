@@ -23,8 +23,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.borderGray,
     borderRadius: 6,
-    padding: 12,
-    marginBottom: 16,
+    padding: 10,
+    marginBottom: 10,
   },
   header: {
     flexDirection: 'row',

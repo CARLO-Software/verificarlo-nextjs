@@ -1,5 +1,6 @@
 // ============================================
-// PDFSummary - Resumen ejecutivo y documentos
+// PDFSummary - Documentación y observaciones (compacto)
+// Rediseño: Más conciso, documentos en línea
 // ============================================
 
 import React from 'react';
@@ -9,7 +10,6 @@ import { colors } from '../styles/pdfStyles';
 interface PDFSummaryProps {
   executiveSummary?: string | null;
   recommendations?: string | null;
-  estimatedRepairCost?: number | null;
   soatValid?: boolean;
   soatExpiryDate?: string | null;
   technicalReviewValid?: boolean;
@@ -18,19 +18,69 @@ interface PDFSummaryProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   section: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   title: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.graphite,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: 6,
   },
+  // Documentos en formato horizontal compacto
+  documentsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  documentCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: 8,
+  },
+  documentValid: {
+    borderColor: colors.successBorder,
+    backgroundColor: colors.successBg,
+  },
+  documentInvalid: {
+    borderColor: colors.dangerBorder,
+    backgroundColor: colors.dangerBg,
+  },
+  documentIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 8,
+  },
+  documentContent: {
+    flex: 1,
+  },
+  documentTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.graphite,
+  },
+  documentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  documentStatus: {
+    fontSize: 7,
+    fontWeight: 'bold',
+  },
+  documentExpiry: {
+    fontSize: 7,
+    color: colors.slate,
+    marginLeft: 4,
+  },
+  // Observaciones
   card: {
     backgroundColor: colors.offWhite,
     borderWidth: 1,
@@ -39,52 +89,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   text: {
-    fontSize: 9,
+    fontSize: 8,
     color: colors.charcoal,
     lineHeight: 1.5,
-  },
-  documentsGrid: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  documentCard: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 10,
-  },
-  documentValid: {
-    borderColor: colors.success,
-    backgroundColor: colors.successBg,
-  },
-  documentInvalid: {
-    borderColor: colors.danger,
-    backgroundColor: colors.dangerBg,
-  },
-  documentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  documentIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  documentTitle: {
-    fontSize: 9,
-    fontWeight: 'bold',
-    color: colors.graphite,
-  },
-  documentStatus: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    marginBottom: 2,
-  },
-  documentExpiry: {
-    fontSize: 7,
-    color: colors.slate,
   },
 });
 
@@ -96,76 +103,90 @@ export default function PDFSummary({
   technicalReviewValid,
   technicalReviewExpiryDate,
 }: PDFSummaryProps) {
-  // Solo mostrar documentos si hay al menos uno configurado
   const showDocuments = soatValid !== undefined || technicalReviewValid !== undefined;
+  const hasContent = showDocuments || executiveSummary || recommendations;
+
+  if (!hasContent) return null;
 
   return (
     <View style={styles.container}>
-      {/* Estado de documentos */}
+      {/* Estado de documentos (formato horizontal compacto) */}
       {showDocuments && (
         <View style={styles.section}>
           <Text style={styles.title}>Documentación</Text>
-          <View style={styles.documentsGrid}>
+          <View style={styles.documentsRow}>
+            {/* SOAT */}
             <View
               style={[
                 styles.documentCard,
                 soatValid ? styles.documentValid : styles.documentInvalid,
               ]}
             >
-              <View style={styles.documentHeader}>
-                <View
-                  style={[
-                    styles.documentIndicator,
-                    { backgroundColor: soatValid ? colors.success : colors.danger },
-                  ]}
-                />
-                <Text style={styles.documentTitle}>SOAT</Text>
-              </View>
-              <Text
+              <View
                 style={[
-                  styles.documentStatus,
-                  { color: soatValid ? colors.success : colors.danger },
+                  styles.documentIndicator,
+                  { backgroundColor: soatValid ? colors.success : colors.danger },
                 ]}
-              >
-                {soatValid ? 'Vigente' : 'No vigente'}
-              </Text>
-              {soatExpiryDate && (
-                <Text style={styles.documentExpiry}>Vence: {soatExpiryDate}</Text>
-              )}
+              />
+              <View style={styles.documentContent}>
+                <Text style={styles.documentTitle}>SOAT</Text>
+                <View style={styles.documentInfo}>
+                  <Text
+                    style={[
+                      styles.documentStatus,
+                      { color: soatValid ? colors.success : colors.danger },
+                    ]}
+                  >
+                    {soatValid ? 'Vigente' : 'No vigente'}
+                  </Text>
+                  {soatExpiryDate && (
+                    <Text style={styles.documentExpiry}>• Vence: {soatExpiryDate}</Text>
+                  )}
+                </View>
+              </View>
             </View>
 
+            {/* Revisión Técnica */}
             <View
               style={[
                 styles.documentCard,
                 technicalReviewValid ? styles.documentValid : styles.documentInvalid,
               ]}
             >
-              <View style={styles.documentHeader}>
-                <View
-                  style={[
-                    styles.documentIndicator,
-                    { backgroundColor: technicalReviewValid ? colors.success : colors.danger },
-                  ]}
-                />
-                <Text style={styles.documentTitle}>Revisión Técnica</Text>
-              </View>
-              <Text
+              <View
                 style={[
-                  styles.documentStatus,
-                  { color: technicalReviewValid ? colors.success : colors.danger },
+                  styles.documentIndicator,
+                  {
+                    backgroundColor: technicalReviewValid
+                      ? colors.success
+                      : colors.danger,
+                  },
                 ]}
-              >
-                {technicalReviewValid ? 'Vigente' : 'No vigente'}
-              </Text>
-              {technicalReviewExpiryDate && (
-                <Text style={styles.documentExpiry}>Vence: {technicalReviewExpiryDate}</Text>
-              )}
+              />
+              <View style={styles.documentContent}>
+                <Text style={styles.documentTitle}>Revisión Técnica</Text>
+                <View style={styles.documentInfo}>
+                  <Text
+                    style={[
+                      styles.documentStatus,
+                      { color: technicalReviewValid ? colors.success : colors.danger },
+                    ]}
+                  >
+                    {technicalReviewValid ? 'Vigente' : 'No vigente'}
+                  </Text>
+                  {technicalReviewExpiryDate && (
+                    <Text style={styles.documentExpiry}>
+                      • Vence: {technicalReviewExpiryDate}
+                    </Text>
+                  )}
+                </View>
+              </View>
             </View>
           </View>
         </View>
       )}
 
-      {/* Resumen ejecutivo */}
+      {/* Observaciones del inspector */}
       {executiveSummary && (
         <View style={styles.section}>
           <Text style={styles.title}>Observaciones del Inspector</Text>

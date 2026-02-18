@@ -1,10 +1,11 @@
 // ============================================
-// PDFChecklist - Checklist detallado (Página 2)
+// PDFChecklist - Detalle de inspección (formato compacto)
+// Rediseño: OBS/DEF con detalle, OK en texto corrido
 // ============================================
 
 import React from 'react';
 import { View, Text, StyleSheet } from '@react-pdf/renderer';
-import { colors, getStatusColor } from '../styles/pdfStyles';
+import { colors } from '../styles/pdfStyles';
 
 interface ChecklistItem {
   id: string;
@@ -35,88 +36,256 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   category: {
-    marginBottom: 10,
+    marginBottom: 14,
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: colors.graphite,
+    padding: 8,
+    borderRadius: 4,
+    marginBottom: 8,
   },
   categoryTitle: {
     fontSize: 9,
     fontWeight: 'bold',
     color: colors.white,
-    backgroundColor: colors.graphite,
-    padding: 6,
-    borderRadius: 4,
-    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
-  itemsContainer: {
-    borderWidth: 1,
-    borderColor: colors.borderGray,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  item: {
+  categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderGray,
-  },
-  itemLast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 5,
-    paddingHorizontal: 8,
-  },
-  itemAlt: {
-    backgroundColor: colors.offWhite,
-  },
-  itemName: {
-    flex: 3,
-    fontSize: 8,
-    color: colors.charcoal,
-  },
-  itemStatus: {
-    width: 40,
-    alignItems: 'center',
-  },
-  statusBadge: {
-    paddingHorizontal: 5,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  statusText: {
+  categoryBadgeText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.graphite,
+  },
+  // Hallazgos (defectos y observaciones)
+  findingsContainer: {
+    marginBottom: 8,
+  },
+  findingRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: colors.offWhite,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  findingBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 8,
+    marginTop: 3,
+  },
+  bulletDefecto: {
+    backgroundColor: colors.danger,
+  },
+  bulletObservacion: {
+    backgroundColor: colors.warning,
+  },
+  findingContent: {
+    flex: 1,
+  },
+  findingName: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.graphite,
+    marginBottom: 2,
+  },
+  findingComment: {
+    fontSize: 7,
+    color: colors.charcoal,
+    fontStyle: 'italic',
+  },
+  findingSeverity: {
     fontSize: 6,
     fontWeight: 'bold',
     textTransform: 'uppercase',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 2,
   },
-  itemComment: {
-    flex: 2,
+  severityDefecto: {
+    backgroundColor: colors.dangerBg,
+    color: colors.danger,
+  },
+  severityObservacion: {
+    backgroundColor: colors.warningBg,
+    color: colors.warning,
+  },
+  // Items OK (texto corrido)
+  okSection: {
+    backgroundColor: colors.successBg,
+    borderRadius: 4,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: colors.successBorder,
+  },
+  okHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  okIcon: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  okIconText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  okTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.success,
+  },
+  okText: {
     fontSize: 7,
-    color: colors.slate,
-    fontStyle: 'italic',
-    textAlign: 'right',
+    color: colors.charcoal,
+    lineHeight: 1.6,
+  },
+  // Cuando todo está OK
+  allOkSection: {
+    backgroundColor: colors.successBg,
+    borderRadius: 4,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: colors.successBorder,
+  },
+  allOkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  allOkIcon: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  allOkIconText: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  allOkTitle: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: colors.success,
+  },
+  allOkText: {
+    fontSize: 7,
+    color: colors.charcoal,
+    lineHeight: 1.6,
   },
 });
 
 // Mapeo de nombres de items
 const ITEM_NAMES: Record<string, string> = {
-  // Legal
+  // Legal - Documentación
   'legal-tarjeta-propiedad': 'Tarjeta de propiedad',
-  'legal-soat': 'SOAT vigente',
   'legal-revision-tecnica': 'Revisión técnica',
+  'legal-soat': 'SOAT vigente',
+  'legal-permiso-lunas': 'Permiso de lunas',
+  'legal-manual-instrucciones': 'Manual de instrucciones',
+  'legal-cartilla-servicio': 'Cartilla de servicio',
+  // Legal - Identificación
+  'legal-vin-placa': 'Coincidencia VIN/placa',
+  'legal-numero-motor': 'Número de motor',
+  // Legal - Accesorios
+  'legal-llaves': '2 llaves',
+  'legal-llanta-repuesto': 'Llanta de repuesto',
+  'legal-tapa-maletera': 'Tapa de maletera',
+  'legal-seguro-aros': 'Seguro de aros',
+  // Mecánica - Motor
+  'mec-sonidos-motor': 'Sonidos del motor',
+  'mec-fugas-aceite': 'Fugas de aceite',
+  'mec-fugas-refrigerante': 'Fugas de refrigerante',
+  'mec-nivel-aceite-motor': 'Nivel de aceite motor',
+  'mec-nivel-aceite-caja': 'Nivel de aceite de caja',
+  'mec-nivel-refrigerante': 'Nivel de refrigerante',
+  'mec-sin-manipulacion': 'Motor sin manipulación',
+  'mec-estado-bateria': 'Estado de batería',
+  // Mecánica - Parte inferior
+  'mec-fugas-inferiores': 'Fugas inferiores',
+  'mec-golpes-suspension': 'Golpes en suspensión',
+  'mec-tubo-escape': 'Tubo de escape',
+  'mec-oxido-estructural': 'Óxido estructural',
+  // Mecánica - Suspensión y dirección
+  'mec-funcionamiento-suspension': 'Suspensión',
+  'mec-direccion': 'Dirección',
+  // Mecánica - Frenos
+  'mec-funcionamiento-frenos': 'Funcionamiento de frenos',
+  'mec-vibracion-ruido-freno': 'Vibración al frenar',
+  // Mecánica - Transmisión
+  'mec-funcionamiento-caja': 'Transmisión',
+  // Mecánica - Prueba de manejo
+  'mec-comportamiento-conduccion': 'Conducción general',
+  // Carrocería - Estructura
+  'car-alineacion-puertas': 'Alineación de puertas',
+  'car-senales-accidentes': 'Señales de accidentes',
+  'car-soldaduras-intervenciones': 'Soldaduras/intervenciones',
+  // Carrocería - Pintura
+  'car-estado-pintura': 'Estado de pintura',
+  'car-rayones-golpes': 'Rayones o golpes',
+  // Carrocería - Lunas
+  'car-estado-parabrisas': 'Parabrisas',
+  'car-lunas-laterales-trasera': 'Lunas laterales/trasera',
+  // Carrocería - Luces
+  'car-faros-delanteros': 'Faros delanteros',
+  'car-luces-traseras': 'Luces traseras',
+  'car-direccionales': 'Direccionales',
+  // Carrocería - Neumáticos
+  'car-estado-neumaticos': 'Neumáticos',
+  'car-estado-aros': 'Aros',
+  // Interior - Sistemas
+  'int-revision-scanner': 'Revisión de scanner',
+  'int-panel-multimedia': 'Panel multimedia',
+  'int-comando-luces': 'Comando de luces',
+  'int-aire-acondicionado': 'Aire acondicionado',
+  'int-elevalunas': 'Elevalunas',
+  'int-limpia-parabrisas': 'Limpia parabrisas',
+  'int-asientos': 'Asientos',
+  // Interior - Seguridad
+  'int-cinturones': 'Cinturones de seguridad',
+  'int-testigos-airbag': 'Testigos de airbag',
+  // Interior - Estética
+  'int-estado-molduras': 'Molduras',
+  'int-desgaste-asientos': 'Desgaste de asientos',
+  'int-estado-alfombra': 'Alfombra',
+  'int-estado-techo': 'Techo',
+  'int-olor-interior': 'Olor interior',
+  // Legacy mappings
   'legal-placas': 'Placas del vehículo',
   'legal-siniestros': 'Registro de siniestros',
-  // Mecánica
   'mec-motor': 'Estado del motor',
   'mec-transmision': 'Transmisión',
   'mec-frenos': 'Sistema de frenos',
   'mec-suspension': 'Suspensión',
-  'mec-direccion': 'Dirección',
   'mec-escape': 'Sistema de escape',
   'mec-refrigeracion': 'Sistema de refrigeración',
   'mec-bateria': 'Batería',
   'mec-luces': 'Sistema de luces',
   'mec-llantas': 'Llantas',
-  // Carrocería
   'car-pintura': 'Pintura general',
   'car-golpes': 'Golpes y abolladuras',
   'car-oxidacion': 'Oxidación',
@@ -126,11 +295,7 @@ const ITEM_NAMES: Record<string, string> = {
   'car-puertas': 'Puertas',
   'car-capo': 'Capó',
   'car-maletero': 'Maletero',
-  // Interior
   'int-tablero': 'Tablero',
-  'int-asientos': 'Asientos',
-  'int-cinturones': 'Cinturones de seguridad',
-  'int-aire-acondicionado': 'Aire acondicionado',
   'int-audio': 'Sistema de audio',
   'int-ventanas': 'Elevalunas',
   'int-tapizado': 'Tapizado',
@@ -141,59 +306,111 @@ function getItemName(id: string): string {
   return ITEM_NAMES[id] || id;
 }
 
-function getStatusLabel(status: string): string {
-  switch (status) {
-    case 'OK':
-      return 'OK';
-    case 'OBSERVACION':
-      return 'OBS';
-    case 'DEFECTO':
-      return 'DEF';
-    case 'NO_APLICA':
-      return 'N/A';
-    default:
-      return '-';
-  }
-}
-
 export default function PDFChecklist({ categories }: PDFChecklistProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Detalle de Inspección</Text>
-      {categories.map((category) => (
-        <View key={category.name} style={styles.category}>
-          <Text style={styles.categoryTitle}>{category.name}</Text>
-          <View style={styles.itemsContainer}>
-            {category.items.map((item, index) => {
-              const isLast = index === category.items.length - 1;
-              const isAlt = index % 2 === 1;
-              const statusColors = getStatusColor(item.status);
 
-              return (
-                <View
-                  key={item.id}
-                  style={[
-                    isLast ? styles.itemLast : styles.item,
-                    isAlt && styles.itemAlt,
-                  ]}
-                >
-                  <Text style={styles.itemName}>{getItemName(item.id)}</Text>
-                  <View style={styles.itemStatus}>
-                    <View style={[styles.statusBadge, { backgroundColor: statusColors.bg }]}>
-                      <Text style={[styles.statusText, { color: statusColors.text }]}>
-                        {getStatusLabel(item.status)}
-                      </Text>
+      {categories.map((category) => {
+        // Separar items por estado
+        const defectos = category.items.filter((i) => i.status === 'DEFECTO');
+        const observaciones = category.items.filter((i) => i.status === 'OBSERVACION');
+        const okItems = category.items.filter((i) => i.status === 'OK');
+        const noAplica = category.items.filter((i) => i.status === 'NO_APLICA');
+
+        const hasProblems = defectos.length > 0 || observaciones.length > 0;
+        const totalRevisados = defectos.length + observaciones.length + okItems.length;
+
+        // Construir badge descriptivo
+        const buildBadgeText = () => {
+          const parts: string[] = [];
+
+          if (defectos.length > 0) {
+            parts.push(`${defectos.length} defecto${defectos.length > 1 ? 's' : ''}`);
+          }
+          if (observaciones.length > 0) {
+            parts.push(`${observaciones.length} obs.`);
+          }
+
+          if (parts.length === 0) {
+            return `Todo OK de ${totalRevisados} revisados`;
+          }
+
+          return `${parts.join(' + ')} de ${totalRevisados} revisados`;
+        };
+
+        return (
+          <View key={category.name} style={styles.category}>
+            {/* Header de categoría */}
+            <View style={styles.categoryHeader}>
+              <Text style={styles.categoryTitle}>
+                {category.name}
+                {noAplica.length > 0 && ` (${noAplica.length} no aplica)`}
+              </Text>
+              <View style={styles.categoryBadge}>
+                <Text style={styles.categoryBadgeText}>
+                  {buildBadgeText()}
+                </Text>
+              </View>
+            </View>
+
+            {/* Defectos y observaciones con detalle */}
+            {hasProblems && (
+              <View style={styles.findingsContainer}>
+                {defectos.map((item) => (
+                  <View key={item.id} style={styles.findingRow}>
+                    <View style={[styles.findingBullet, styles.bulletDefecto]} />
+                    <View style={styles.findingContent}>
+                      <Text style={styles.findingName}>{item.name}</Text>
+                      {item.comment && (
+                        <Text style={styles.findingComment}>{item.comment}</Text>
+                      )}
                     </View>
+                    <Text style={[styles.findingSeverity, styles.severityDefecto]}>
+                      DEF
+                    </Text>
                   </View>
-                  <Text style={styles.itemComment}>
-                    {item.comment || ''}
+                ))}
+                {observaciones.map((item) => (
+                  <View key={item.id} style={styles.findingRow}>
+                    <View style={[styles.findingBullet, styles.bulletObservacion]} />
+                    <View style={styles.findingContent}>
+                      <Text style={styles.findingName}>{item.name}</Text>
+                      {item.comment && (
+                        <Text style={styles.findingComment}>{item.comment}</Text>
+                      )}
+                    </View>
+                    <Text style={[styles.findingSeverity, styles.severityObservacion]}>
+                      OBS
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Items OK en texto corrido */}
+            {okItems.length > 0 && (
+              <View style={hasProblems ? styles.okSection : styles.allOkSection}>
+                <View style={hasProblems ? styles.okHeader : styles.allOkHeader}>
+                  <View style={hasProblems ? styles.okIcon : styles.allOkIcon}>
+                    <Text style={hasProblems ? styles.okIconText : styles.allOkIconText}>
+                      ✓
+                    </Text>
+                  </View>
+                  <Text style={hasProblems ? styles.okTitle : styles.allOkTitle}>
+                    {hasProblems
+                      ? `En buen estado (${okItems.length})`
+                      : `Los ${okItems.length} puntos se encuentran en buen estado`}
                   </Text>
                 </View>
-              );
-            })}
+                <Text style={hasProblems ? styles.okText : styles.allOkText}>
+                  {okItems.map((item) => item.name).join(' • ')}
+                </Text>
+              </View>
+            )}
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -203,10 +420,10 @@ export function transformChecklistResults(
   checklistResults: Record<string, { status: string; comment?: string }>
 ): ChecklistCategory[] {
   const categoriesMap: Record<string, ChecklistItem[]> = {
-    'Legal': [],
-    'Mecánica': [],
-    'Carrocería': [],
-    'Interior': [],
+    Legal: [],
+    Mecánica: [],
+    Carrocería: [],
+    Interior: [],
   };
 
   for (const [itemId, result] of Object.entries(checklistResults)) {
@@ -233,8 +450,18 @@ export function transformChecklistResults(
 // Extraer hallazgos críticos del checklist
 export function extractCriticalFindings(
   checklistResults: Record<string, { status: string; comment?: string }>
-): Array<{ category: string; item: string; severity: 'DEFECTO' | 'OBSERVACION'; comment?: string }> {
-  const findings: Array<{ category: string; item: string; severity: 'DEFECTO' | 'OBSERVACION'; comment?: string }> = [];
+): Array<{
+  category: string;
+  item: string;
+  severity: 'DEFECTO' | 'OBSERVACION';
+  comment?: string;
+}> {
+  const findings: Array<{
+    category: string;
+    item: string;
+    severity: 'DEFECTO' | 'OBSERVACION';
+    comment?: string;
+  }> = [];
 
   const categoryNames: Record<string, string> = {
     'legal-': 'Legal',
@@ -264,4 +491,41 @@ export function extractCriticalFindings(
   }
 
   return findings;
+}
+
+// Helper para calcular resumen por categoría
+export function calculateCategorySummary(
+  checklistResults: Record<string, { status: string; comment?: string }>
+): Array<{
+  name: string;
+  total: number;
+  ok: number;
+  observaciones: number;
+  defectos: number;
+  noAplica: number;
+  status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+}> {
+  const categories = transformChecklistResults(checklistResults);
+
+  return categories.map((category) => {
+    const ok = category.items.filter((i) => i.status === 'OK').length;
+    const observaciones = category.items.filter((i) => i.status === 'OBSERVACION').length;
+    const defectos = category.items.filter((i) => i.status === 'DEFECTO').length;
+    const noAplica = category.items.filter((i) => i.status === 'NO_APLICA').length;
+    const total = category.items.length;
+
+    let status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' = 'OK';
+    if (defectos > 0) status = 'CRITICAL';
+    else if (observaciones > 0) status = 'WARNING';
+
+    return {
+      name: category.name,
+      total,
+      ok,
+      observaciones,
+      defectos,
+      noAplica,
+      status,
+    };
+  });
 }

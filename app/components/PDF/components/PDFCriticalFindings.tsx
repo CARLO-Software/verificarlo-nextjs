@@ -1,6 +1,6 @@
 // ============================================
 // PDFCriticalFindings - Hallazgos que requieren atención
-// Muestra defectos y observaciones importantes de forma prominente
+// Rediseño: Costo prominente + lista compacta de problemas
 // ============================================
 
 import React from 'react';
@@ -22,22 +22,53 @@ interface PDFCriticalFindingsProps {
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+  },
+  // Sección de costo (prominente)
+  costSection: {
+    backgroundColor: colors.graphite,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  costLabel: {
+    fontSize: 8,
+    color: colors.silver,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
+  costValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.brand,
+    marginBottom: 4,
+  },
+  costHint: {
+    fontSize: 8,
+    color: colors.white,
+    textAlign: 'center',
+  },
+  // Sección de hallazgos
+  findingsSection: {
     borderWidth: 1,
     borderColor: colors.borderGray,
     borderRadius: 8,
     overflow: 'hidden',
   },
-  header: {
-    backgroundColor: colors.graphite,
+  findingsHeader: {
+    backgroundColor: colors.offWhite,
     padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderGray,
     flexDirection: 'row',
     alignItems: 'center',
   },
   headerIcon: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: colors.brand,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.warning,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -45,35 +76,36 @@ const styles = StyleSheet.create({
   headerIconText: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: colors.graphite,
+    color: colors.white,
   },
   headerTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 'bold',
-    color: colors.white,
+    color: colors.graphite,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
-  content: {
+  findingsContent: {
     padding: 12,
-    backgroundColor: colors.offWhite,
   },
   findingRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: colors.borderGray,
   },
   findingRowLast: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     paddingVertical: 8,
   },
   bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 8,
-    marginTop: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
+    marginTop: 2,
   },
   bulletDefecto: {
     backgroundColor: colors.danger,
@@ -84,70 +116,52 @@ const styles = StyleSheet.create({
   findingContent: {
     flex: 1,
   },
-  findingCategory: {
-    fontSize: 7,
-    color: colors.slate,
-    textTransform: 'uppercase',
+  findingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 2,
   },
   findingItem: {
     fontSize: 9,
     fontWeight: 'bold',
     color: colors.graphite,
-    marginBottom: 2,
+    flex: 1,
+  },
+  findingCategory: {
+    fontSize: 7,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    marginLeft: 8,
   },
   findingComment: {
     fontSize: 8,
     color: colors.charcoal,
     fontStyle: 'italic',
+    lineHeight: 1.4,
   },
-  severityBadge: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  severityDefecto: {
-    backgroundColor: colors.dangerBg,
-  },
-  severityObservacion: {
-    backgroundColor: colors.warningBg,
-  },
-  severityText: {
-    fontSize: 7,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-  },
-  severityTextDefecto: {
-    color: colors.danger,
-  },
-  severityTextObservacion: {
-    color: colors.warning,
-  },
-  costSection: {
-    marginTop: 12,
-    paddingTop: 12,
+  // Leyenda
+  legend: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: colors.borderGray,
+  },
+  legendItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  costLabel: {
-    fontSize: 9,
-    color: colors.charcoal,
+  legendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
   },
-  costValue: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.graphite,
-  },
-  emptyState: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 9,
+  legendText: {
+    fontSize: 7,
     color: colors.slate,
   },
 });
@@ -156,7 +170,6 @@ export default function PDFCriticalFindings({
   findings,
   estimatedCost,
 }: PDFCriticalFindingsProps) {
-  // Solo mostrar si hay hallazgos
   if (!findings || findings.length === 0) {
     return null;
   }
@@ -168,69 +181,82 @@ export default function PDFCriticalFindings({
     return 0;
   });
 
+  const defectosCount = findings.filter((f) => f.severity === 'DEFECTO').length;
+  const observacionesCount = findings.filter((f) => f.severity === 'OBSERVACION').length;
+
   const formatCurrency = (amount: number) => {
     return `S/ ${amount.toLocaleString('es-PE', { minimumFractionDigits: 2 })}`;
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Text style={styles.headerIconText}>!</Text>
+      {/* Costo estimado prominente */}
+      {estimatedCost !== null && estimatedCost !== undefined && estimatedCost > 0 && (
+        <View style={styles.costSection}>
+          <Text style={styles.costLabel}>Costo Estimado de Reparaciones</Text>
+          <Text style={styles.costValue}>{formatCurrency(estimatedCost)}</Text>
+          <Text style={styles.costHint}>
+            Use este monto como base de negociación con el vendedor
+          </Text>
         </View>
-        <Text style={styles.headerTitle}>Hallazgos que requieren atención</Text>
-      </View>
+      )}
 
-      <View style={styles.content}>
-        {sortedFindings.map((finding, index) => {
-          const isLast = index === sortedFindings.length - 1;
-          const isDefecto = finding.severity === 'DEFECTO';
-
-          return (
-            <View
-              key={`${finding.category}-${finding.item}-${index}`}
-              style={isLast ? styles.findingRowLast : styles.findingRow}
-            >
-              <View
-                style={[
-                  styles.bullet,
-                  isDefecto ? styles.bulletDefecto : styles.bulletObservacion,
-                ]}
-              />
-              <View style={styles.findingContent}>
-                <Text style={styles.findingCategory}>{finding.category}</Text>
-                <Text style={styles.findingItem}>{finding.item}</Text>
-                {finding.comment && (
-                  <Text style={styles.findingComment}>{finding.comment}</Text>
-                )}
-              </View>
-              <View
-                style={[
-                  styles.severityBadge,
-                  isDefecto ? styles.severityDefecto : styles.severityObservacion,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.severityText,
-                    isDefecto
-                      ? styles.severityTextDefecto
-                      : styles.severityTextObservacion,
-                  ]}
-                >
-                  {isDefecto ? 'Defecto' : 'Observación'}
-                </Text>
-              </View>
-            </View>
-          );
-        })}
-
-        {estimatedCost !== null && estimatedCost !== undefined && estimatedCost > 0 && (
-          <View style={styles.costSection}>
-            <Text style={styles.costLabel}>Costo estimado de reparaciones:</Text>
-            <Text style={styles.costValue}>{formatCurrency(estimatedCost)}</Text>
+      {/* Lista de hallazgos */}
+      <View style={styles.findingsSection}>
+        <View style={styles.findingsHeader}>
+          <View style={styles.headerIcon}>
+            <Text style={styles.headerIconText}>!</Text>
           </View>
-        )}
+          <Text style={styles.headerTitle}>
+            Hallazgos que requieren atención ({findings.length})
+          </Text>
+        </View>
+
+        <View style={styles.findingsContent}>
+          {sortedFindings.map((finding, index) => {
+            const isLast = index === sortedFindings.length - 1;
+            const isDefecto = finding.severity === 'DEFECTO';
+
+            return (
+              <View
+                key={`${finding.category}-${finding.item}-${index}`}
+                style={isLast ? styles.findingRowLast : styles.findingRow}
+              >
+                <View
+                  style={[
+                    styles.bullet,
+                    isDefecto ? styles.bulletDefecto : styles.bulletObservacion,
+                  ]}
+                />
+                <View style={styles.findingContent}>
+                  <View style={styles.findingHeader}>
+                    <Text style={styles.findingItem}>{finding.item}</Text>
+                    <Text style={styles.findingCategory}>{finding.category}</Text>
+                  </View>
+                  {finding.comment && (
+                    <Text style={styles.findingComment}>{finding.comment}</Text>
+                  )}
+                </View>
+              </View>
+            );
+          })}
+
+          {/* Leyenda */}
+          <View style={styles.legend}>
+            {defectosCount > 0 && (
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: colors.danger }]} />
+                <Text style={styles.legendText}>Defecto ({defectosCount})</Text>
+              </View>
+            )}
+            {observacionesCount > 0 && (
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: colors.warning }]} />
+                <Text style={styles.legendText}>Observación ({observacionesCount})</Text>
+              </View>
+            )}
+          </View>
+        </View>
       </View>
     </View>
   );

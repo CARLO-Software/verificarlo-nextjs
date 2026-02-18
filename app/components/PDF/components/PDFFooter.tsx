@@ -1,5 +1,6 @@
 // ============================================
-// PDFFooter - Firma y pie de página
+// PDFFooter - Firma y pie de página (credibilidad reforzada)
+// Rediseño: Más elementos de autoridad y verificabilidad
 // ============================================
 
 import React from 'react';
@@ -11,43 +12,67 @@ interface PDFFooterProps {
   completedAt: string;
   pageNumber?: number;
   totalPages?: number;
+  reportCode?: string;
 }
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
+    bottom: 20,
+    left: 30,
+    right: 30,
   },
   signatureSection: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.borderGray,
+    marginBottom: 8,
+    paddingTop: 8,
+    borderTopWidth: 2,
+    borderTopColor: colors.brand,
   },
   signatureBox: {
-    width: '45%',
+    width: '30%',
   },
   signatureLine: {
     borderBottomWidth: 1,
     borderBottomColor: colors.charcoal,
-    marginBottom: 6,
-    height: 24,
+    marginBottom: 4,
+    height: 16,
   },
   signatureLabel: {
-    fontSize: 7,
+    fontSize: 6,
     color: colors.slate,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   signatureValue: {
-    fontSize: 9,
+    fontSize: 8,
     color: colors.graphite,
     fontWeight: 'bold',
     marginTop: 2,
+  },
+  // Sección de verificación
+  verificationBox: {
+    width: '30%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.offWhite,
+    borderRadius: 4,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+  },
+  verificationLabel: {
+    fontSize: 5,
+    color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: 2,
+  },
+  verificationUrl: {
+    fontSize: 6,
+    color: colors.graphite,
+    fontWeight: 'bold',
   },
   footer: {
     flexDirection: 'row',
@@ -79,15 +104,21 @@ const styles = StyleSheet.create({
     fontSize: 7,
     color: colors.slate,
   },
+  footerContact: {
+    fontSize: 6,
+    color: colors.silver,
+    marginLeft: 8,
+  },
   pageNumber: {
     fontSize: 7,
     color: colors.slate,
+    fontWeight: 'bold',
   },
   disclaimer: {
-    fontSize: 6,
+    fontSize: 5,
     color: colors.silver,
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: 4,
     lineHeight: 1.4,
   },
 });
@@ -98,20 +129,28 @@ export default function PDFFooter({
   pageNumber,
   totalPages,
 }: PDFFooterProps) {
+  const isLastPage = !totalPages || pageNumber === totalPages;
+
   return (
     <View style={styles.container}>
       {/* Sección de firma - solo en la última página */}
-      {(!totalPages || pageNumber === totalPages) && (
+      {isLastPage && (
         <View style={styles.signatureSection}>
           <View style={styles.signatureBox}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Inspector</Text>
+            <Text style={styles.signatureLabel}>Inspector Certificado</Text>
             <Text style={styles.signatureValue}>{inspectorName}</Text>
           </View>
+
           <View style={styles.signatureBox}>
             <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Fecha de Inspección</Text>
+            <Text style={styles.signatureLabel}>Fecha y Hora</Text>
             <Text style={styles.signatureValue}>{completedAt}</Text>
+          </View>
+
+          <View style={styles.verificationBox}>
+            <Text style={styles.verificationLabel}>Verificar este informe en</Text>
+            <Text style={styles.verificationUrl}>verificarlo.pe/validar</Text>
           </View>
         </View>
       )}
@@ -121,20 +160,21 @@ export default function PDFFooter({
           <View style={styles.footerLogo}>
             <Text style={styles.footerLogoText}>V</Text>
           </View>
-          <Text style={styles.footerText}>
-            VerifiCARLO | www.verificarlo.pe
-          </Text>
+          <Text style={styles.footerText}>VerifiCARLO</Text>
+          <Text style={styles.footerContact}>soporte@verificarlo.pe</Text>
         </View>
         {pageNumber && totalPages && (
           <Text style={styles.pageNumber}>
-            {pageNumber} / {totalPages}
+            Página {pageNumber} de {totalPages}
           </Text>
         )}
       </View>
 
       <Text style={styles.disclaimer}>
-        Este informe refleja el estado del vehículo al momento de la inspección.
-        VerifiCARLO no se responsabiliza por cambios posteriores.
+        Este informe refleja las condiciones del vehículo al momento de la inspección
+        visual. VerifiCARLO no se responsabiliza por defectos ocultos no detectables sin
+        desmontaje, ni por cambios posteriores al vehículo. Inspección realizada según
+        protocolo estandarizado de 50 puntos.
       </Text>
     </View>
   );

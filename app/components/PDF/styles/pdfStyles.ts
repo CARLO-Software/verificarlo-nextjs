@@ -1,79 +1,96 @@
 // ============================================
 // Estilos compartidos para componentes PDF
 // Paleta: Amarillo VerifiCARLO, Gris Grafito, Negro, Blanco
+// Rediseño estratégico: Enfoque en decisión y claridad económica
 // ============================================
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Colores de marca VerifiCARLO - Paleta profesional
+// Colores de marca VerifiCARLO - Paleta profesional refinada
 export const colors = {
-  // Primarios
-  brand: '#F5D849',           // Amarillo VerifiCARLO
-  brandDark: '#D4B83D',       // Amarillo oscuro
+  // PRIMARIOS
+  brand: '#F5D849',              // Amarillo VerifiCARLO
+  brandDark: '#C9A900',          // Amarillo para texto sobre blanco
+  graphite: '#1F2937',           // Gris grafito principal (más oscuro)
 
-  // Neutros
-  graphite: '#2D2D2D',        // Gris grafito (títulos)
-  charcoal: '#404040',        // Gris carbón (texto principal)
-  slate: '#6B7280',           // Gris pizarra (texto secundario)
-  silver: '#9CA3AF',          // Gris plata (texto terciario)
+  // NEUTROS
+  charcoal: '#374151',           // Gris carbón (texto principal)
+  slate: '#6B7280',              // Gris pizarra (texto secundario)
+  silver: '#9CA3AF',             // Gris plata (texto terciario)
 
-  // Fondos
+  // FONDOS
   white: '#FFFFFF',
-  offWhite: '#FAFAFA',
+  offWhite: '#F9FAFB',
   lightGray: '#F3F4F6',
   borderGray: '#E5E7EB',
 
-  // Estados semánticos (sutiles)
-  success: '#059669',         // Verde esmeralda
+  // ESTADOS SEMÁNTICOS (protagonistas del informe)
+  success: '#047857',            // Verde más profundo
   successBg: '#ECFDF5',
-  warning: '#D97706',         // Ámbar
+  successBorder: '#A7F3D0',
+
+  warning: '#B45309',            // Ámbar más oscuro (legibilidad)
   warningBg: '#FFFBEB',
-  danger: '#DC2626',          // Rojo
+  warningBorder: '#FDE68A',
+
+  danger: '#B91C1C',             // Rojo más profundo
   dangerBg: '#FEF2F2',
+  dangerBorder: '#FECACA',
 
   black: '#000000',
 };
 
 // Función helper para obtener colores de veredicto
-export function getVerdictConfig(status: string): {
+// Rediseñado: Mensajes orientados a ACCIÓN, no solo estados
+export function getVerdictConfig(status: string, estimatedCost?: number | null): {
   label: string;
+  subtitle: string;
   description: string;
   color: string;
   bgColor: string;
   borderColor: string;
+  icon: string;
 } {
   switch (status) {
     case 'OK':
       return {
-        label: 'RECOMENDADO',
-        description: 'Este vehículo cumple con los estándares de seguridad y funcionamiento. Puede proceder con la compra con confianza.',
+        label: 'COMPRA SEGURA',
+        subtitle: 'Puede proceder con confianza',
+        description: 'Sin reparaciones urgentes detectadas. El vehículo cumple con los estándares de seguridad y funcionamiento.',
         color: colors.success,
         bgColor: colors.successBg,
-        borderColor: colors.success,
+        borderColor: colors.successBorder,
+        icon: '✓',
       };
     case 'WARNING':
       return {
-        label: 'RECOMENDADO CON RESERVAS',
-        description: 'Este vehículo presenta observaciones menores que no afectan la seguridad inmediata. Recomendamos negociar las reparaciones antes de la compra.',
+        label: 'COMPRA CON NEGOCIACIÓN',
+        subtitle: estimatedCost ? `Negocie S/ ${estimatedCost.toLocaleString('es-PE')} de descuento` : 'Negocie el precio antes de comprar',
+        description: 'El vehículo presenta observaciones que no afectan la seguridad inmediata, pero requieren correcciones. Use el costo estimado como base de negociación.',
         color: colors.warning,
         bgColor: colors.warningBg,
-        borderColor: colors.warning,
+        borderColor: colors.warningBorder,
+        icon: '!',
       };
     case 'CRITICAL':
       return {
-        label: 'NO RECOMENDADO',
-        description: 'Este vehículo presenta defectos que comprometen la seguridad o requieren reparaciones significativas. No recomendamos la compra en las condiciones actuales.',
+        label: 'NO COMPRAR',
+        subtitle: estimatedCost ? `Riesgo de gastos mayores a S/ ${estimatedCost.toLocaleString('es-PE')}` : 'No recomendamos esta compra',
+        description: 'El vehículo presenta defectos que comprometen la seguridad o requieren reparaciones significativas. No recomendamos la compra en las condiciones actuales.',
         color: colors.danger,
         bgColor: colors.dangerBg,
-        borderColor: colors.danger,
+        borderColor: colors.dangerBorder,
+        icon: '✕',
       };
     default:
       return {
         label: 'PENDIENTE',
+        subtitle: 'Inspección en proceso',
         description: 'La inspección no ha sido completada.',
         color: colors.slate,
         bgColor: colors.lightGray,
         borderColor: colors.borderGray,
+        icon: '?',
       };
   }
 }
