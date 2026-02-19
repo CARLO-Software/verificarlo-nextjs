@@ -1,7 +1,36 @@
 // ============================================
 // InspectionReportPDF - Documento principal del informe
-// Rediseño estratégico: Máximo 2 páginas, orientado a decisión
+// Rediseño estratégico: Páginas dinámicas, orientado a decisión
 // Estructura: Veredicto > Costo > Cobertura > Detalle compacto
+// ============================================
+//
+// 📚 GUÍA DE APRENDIZAJE REACT/NEXT.JS - CONCEPTOS EN ESTE ARCHIVO:
+//
+// 1. COMPONENTES FUNCIONALES:
+//    - En React, los componentes son funciones que retornan JSX (como HTML)
+//    - Este archivo exporta un componente llamado `InspectionReportPDF`
+//    - Sintaxis: export default function NombreComponente({ props }) { return (<JSX/>) }
+//
+// 2. PROPS (PROPIEDADES):
+//    - Los props son datos que un componente padre pasa a un componente hijo
+//    - Ejemplo: <PDFHeader reportCode={data.reportCode} /> pasa `reportCode` como prop
+//    - TypeScript: Definimos interfaces para tipar los props (PDFReportData, PDFFooterProps)
+//
+// 3. RENDERIZADO CONDICIONAL:
+//    - {condicion && <Componente />} - Renderiza solo si condicion es true
+//    - {condicion ? <A /> : <B />} - Renderiza A si true, B si false
+//    - Ejemplo aquí: {hasEstimatedCost && <PDFEstimatedCost ... />}
+//
+// 4. COMPOSICIÓN DE COMPONENTES:
+//    - Un componente grande se divide en componentes pequeños y reutilizables
+//    - Este archivo importa: PDFHeader, PDFVehicleInfo, PDFVerdict, etc.
+//    - Cada uno tiene su responsabilidad específica
+//
+// 5. REACT-PDF:
+//    - Librería para generar PDFs con componentes React
+//    - Usa componentes especiales: Document, Page, View, Text (no div, span)
+//    - StyleSheet.create() crea estilos similares a CSS-in-JS
+//
 // ============================================
 
 import React from 'react';
@@ -92,6 +121,7 @@ interface InspectionReportPDFProps {
   data: PDFReportData;
 }
 
+//! Nota: Este componente es el núcleo del PDF, se encarga de organizar toda la información
 export default function InspectionReportPDF({ data }: InspectionReportPDFProps) {
   // Procesar datos del checklist
   const checklistCategories = transformChecklistResults(data.checklistResults || {});
@@ -108,7 +138,9 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
 
   // Determinar si necesitamos página 2 (solo si hay datos de checklist)
   const needsSecondPage = hasChecklistData;
-  const totalPages = needsSecondPage ? 2 : 1;
+  // 📚 NOTA: Ya no calculamos totalPages manualmente porque react-pdf
+  // puede generar más páginas si el contenido es largo. El footer usa
+  // la función render para obtener el número real de páginas.
 
   return (
     <Document>
@@ -164,17 +196,18 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
           />
         </View>
 
+        {/* 📚 CONCEPTO REACT - Lógica condicional en props:
+            La firma solo aparece en página 1 si NO hay página de checklist */}
         <PDFFooter
           inspectorName={data.inspectorName}
           completedAt={data.completedAt}
-          pageNumber={1}
-          totalPages={totalPages}
+          showSignature={!needsSecondPage}
         />
       </Page>
 
       {/* ============================================ */}
-      {/* PÁGINA 2 - DETALLE TÉCNICO COMPACTO */}
-      {/* Aquí se muestran los hallazgos con detalle */}
+      {/* PÁGINA 2+ - DETALLE TÉCNICO COMPACTO */}
+      {/* Si el contenido es muy largo, react-pdf crea páginas adicionales */}
       {/* Formato: Problemas con comentarios, OK en texto corrido */}
       {/* ============================================ */}
       {needsSecondPage && (
@@ -187,11 +220,11 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
             <PDFChecklist categories={checklistCategories} />
           </View>
 
+          {/* 📚 CONCEPTO REACT: showSignature={true} porque esta es la última página */}
           <PDFFooter
             inspectorName={data.inspectorName}
             completedAt={data.completedAt}
-            pageNumber={2}
-            totalPages={2}
+            showSignature={true}
           />
         </Page>
       )}

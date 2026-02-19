@@ -1,6 +1,12 @@
 // ============================================
 // PDFFooter - Firma y pie de página (credibilidad reforzada)
 // Rediseño: Más elementos de autoridad y verificabilidad
+//
+// 📚 CONCEPTO REACT-PDF - Paginación Dinámica:
+// react-pdf permite usar `render` prop en <Text> para acceder a
+// pageNumber y totalPages dinámicamente. Esto es útil cuando
+// el contenido puede generar múltiples páginas automáticamente.
+// Sintaxis: <Text render={({ pageNumber, totalPages }) => `Página ${pageNumber} de ${totalPages}`} />
 // ============================================
 
 import React from 'react';
@@ -13,10 +19,22 @@ interface PDFFooterProps {
   pageNumber?: number;
   totalPages?: number;
   reportCode?: string;
+  // 📚 CONCEPTO REACT - Props booleanos opcionales:
+  // En lugar de calcular si es última página, pasamos explícitamente
+  // si queremos mostrar la firma. Esto es más claro y predecible.
+  showSignature?: boolean;
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // Contenedor para la firma (posición arriba del footer básico)
+  signatureContainer: {
+    position: 'absolute',
+    bottom: 65, // Arriba del footer básico
+    left: 30,
+    right: 30,
+  },
+  // Contenedor para el footer básico (se repite en todas las páginas con fixed)
+  basicFooterContainer: {
     position: 'absolute',
     bottom: 20,
     left: 30,
@@ -126,56 +144,66 @@ const styles = StyleSheet.create({
 export default function PDFFooter({
   inspectorName,
   completedAt,
-  pageNumber,
-  totalPages,
+  showSignature = false,
 }: PDFFooterProps) {
-  const isLastPage = !totalPages || pageNumber === totalPages;
+  // 📚 CONCEPTO REACT - Valores por defecto en destructuración:
+  // showSignature = false significa que si no se pasa, será false
 
   return (
-    <View style={styles.container}>
-      {/* Sección de firma - solo en la última página */}
-      {isLastPage && (
-        <View style={styles.signatureSection}>
-          <View style={styles.signatureBox}>
-            <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Inspector Certificado</Text>
-            <Text style={styles.signatureValue}>{inspectorName}</Text>
+    <>
+      {/* 📚 CONCEPTO REACT-PDF - Prop `fixed`:
+          El footer básico es fixed para que aparezca en TODAS las páginas
+          generadas automáticamente (incluyendo las de wrap) */}
+      <View style={styles.basicFooterContainer} fixed>
+        <View style={styles.footer}>
+          <View style={styles.footerLeft}>
+            <View style={styles.footerLogo}>
+              <Text style={styles.footerLogoText}>V</Text>
+            </View>
+            <Text style={styles.footerText}>VerifiCARLO</Text>
+            <Text style={styles.footerContact}>soporte@verificarlo.pe</Text>
           </View>
+          {/* 📚 CONCEPTO REACT-PDF - Función render:
+              Usamos `render` para obtener pageNumber y totalPages dinámicamente */}
+          <Text
+            style={styles.pageNumber}
+            render={({ pageNumber: pn, totalPages: tp }) =>
+              `Página ${pn} de ${tp}`
+            }
+          />
+        </View>
 
-          <View style={styles.signatureBox}>
-            <View style={styles.signatureLine} />
-            <Text style={styles.signatureLabel}>Fecha y Hora</Text>
-            <Text style={styles.signatureValue}>{completedAt}</Text>
-          </View>
+        <Text style={styles.disclaimer}>
+          Este informe refleja las condiciones del vehículo al momento de la inspección
+          visual. VerifiCARLO no se responsabiliza por defectos ocultos no detectables sin
+          desmontaje, ni por cambios posteriores al vehículo. Inspección realizada según
+          protocolo estandarizado de 50 puntos.
+        </Text>
+      </View>
 
-          <View style={styles.verificationBox}>
-            <Text style={styles.verificationLabel}>Verificar este informe en</Text>
-            <Text style={styles.verificationUrl}>verificarlo.pe/validar</Text>
+      {/* Sección de firma - NO es fixed, solo aparece una vez al final de la última página */}
+      {showSignature && (
+        <View style={styles.signatureContainer}>
+          <View style={styles.signatureSection}>
+            <View style={styles.signatureBox}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Inspector Certificado</Text>
+              <Text style={styles.signatureValue}>{inspectorName}</Text>
+            </View>
+
+            <View style={styles.signatureBox}>
+              <View style={styles.signatureLine} />
+              <Text style={styles.signatureLabel}>Fecha y Hora</Text>
+              <Text style={styles.signatureValue}>{completedAt}</Text>
+            </View>
+
+            <View style={styles.verificationBox}>
+              <Text style={styles.verificationLabel}>Verificar este informe en</Text>
+              <Text style={styles.verificationUrl}>verificarlo.pe/validar</Text>
+            </View>
           </View>
         </View>
       )}
-
-      <View style={styles.footer}>
-        <View style={styles.footerLeft}>
-          <View style={styles.footerLogo}>
-            <Text style={styles.footerLogoText}>V</Text>
-          </View>
-          <Text style={styles.footerText}>VerifiCARLO</Text>
-          <Text style={styles.footerContact}>soporte@verificarlo.pe</Text>
-        </View>
-        {pageNumber && totalPages && (
-          <Text style={styles.pageNumber}>
-            Página {pageNumber} de {totalPages}
-          </Text>
-        )}
-      </View>
-
-      <Text style={styles.disclaimer}>
-        Este informe refleja las condiciones del vehículo al momento de la inspección
-        visual. VerifiCARLO no se responsabiliza por defectos ocultos no detectables sin
-        desmontaje, ni por cambios posteriores al vehículo. Inspección realizada según
-        protocolo estandarizado de 50 puntos.
-      </Text>
-    </View>
+    </>
   );
 }

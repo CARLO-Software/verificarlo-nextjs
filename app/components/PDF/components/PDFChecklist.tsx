@@ -39,13 +39,17 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   categoryHeader: {
+    // 📚 CONCEPTO CSS - Flex wrap:
+    // Cambiamos a wrap para que si el contenido es largo, baje a la siguiente línea
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.graphite,
     padding: 8,
     borderRadius: 4,
     marginBottom: 8,
+    gap: 4,
   },
   categoryTitle: {
     fontSize: 9,
@@ -53,6 +57,8 @@ const styles = StyleSheet.create({
     color: colors.white,
     textTransform: 'uppercase',
     letterSpacing: 0.3,
+    // Ancho mínimo para evitar que el badge lo aplaste
+    minWidth: 80,
   },
   categoryBadge: {
     flexDirection: 'row',
@@ -61,6 +67,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    // Flex shrink para que se ajuste si no hay espacio
+    flexShrink: 1,
   },
   categoryBadgeText: {
     fontSize: 7,
@@ -197,6 +205,44 @@ const styles = StyleSheet.create({
     color: colors.charcoal,
     lineHeight: 1.6,
   },
+  // Estilos para items "No Aplica"
+  noAplicaSection: {
+    backgroundColor: colors.lightGray,
+    borderRadius: 4,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    marginTop: 6,
+  },
+  noAplicaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  noAplicaIcon: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: colors.silver,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 6,
+  },
+  noAplicaIconText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  noAplicaTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: colors.slate,
+  },
+  noAplicaText: {
+    fontSize: 7,
+    color: colors.slate,
+    lineHeight: 1.6,
+  },
 });
 
 // Mapeo de nombres de items
@@ -210,7 +256,6 @@ const ITEM_NAMES: Record<string, string> = {
   'legal-cartilla-servicio': 'Cartilla de servicio',
   // Legal - Identificación
   'legal-vin-placa': 'Coincidencia VIN/placa',
-  'legal-numero-motor': 'Número de motor',
   // Legal - Accesorios
   'legal-llaves': '2 llaves',
   'legal-llanta-repuesto': 'Llanta de repuesto',
@@ -231,14 +276,13 @@ const ITEM_NAMES: Record<string, string> = {
   'mec-tubo-escape': 'Tubo de escape',
   'mec-oxido-estructural': 'Óxido estructural',
   // Mecánica - Suspensión y dirección
-  'mec-funcionamiento-suspension': 'Suspensión',
+  'mec-funcionamiento-suspension': 'Estado de suspensión',
   'mec-direccion': 'Dirección',
   // Mecánica - Frenos
   'mec-funcionamiento-frenos': 'Funcionamiento de frenos',
+  // Prueba de Ruta (se mueven de Mecánica a su propia categoría)
   'mec-vibracion-ruido-freno': 'Vibración al frenar',
-  // Mecánica - Transmisión
   'mec-funcionamiento-caja': 'Transmisión',
-  // Mecánica - Prueba de manejo
   'mec-comportamiento-conduccion': 'Conducción general',
   // Carrocería - Estructura
   'car-alineacion-puertas': 'Alineación de puertas',
@@ -252,8 +296,7 @@ const ITEM_NAMES: Record<string, string> = {
   'car-lunas-laterales-trasera': 'Lunas laterales/trasera',
   // Carrocería - Luces
   'car-faros-delanteros': 'Faros delanteros',
-  'car-luces-traseras': 'Luces traseras',
-  'car-direccionales': 'Direccionales',
+  'car-faros-traseros': 'Faros traseros',
   // Carrocería - Neumáticos
   'car-estado-neumaticos': 'Neumáticos',
   'car-estado-aros': 'Aros',
@@ -264,16 +307,15 @@ const ITEM_NAMES: Record<string, string> = {
   'int-aire-acondicionado': 'Aire acondicionado',
   'int-elevalunas': 'Elevalunas',
   'int-limpia-parabrisas': 'Limpia parabrisas',
-  'int-asientos': 'Asientos',
+  'int-asientos': 'Funcionalidad de asientos',
   // Interior - Seguridad
   'int-cinturones': 'Cinturones de seguridad',
-  'int-testigos-airbag': 'Testigos de airbag',
+  'int-testigos-airbag': 'Testigos de tablero',
   // Interior - Estética
   'int-estado-molduras': 'Molduras',
   'int-desgaste-asientos': 'Desgaste de asientos',
   'int-estado-alfombra': 'Alfombra',
   'int-estado-techo': 'Techo',
-  'int-olor-interior': 'Olor interior',
   // Legacy mappings
   'legal-placas': 'Placas del vehículo',
   'legal-siniestros': 'Registro de siniestros',
@@ -342,10 +384,11 @@ export default function PDFChecklist({ categories }: PDFChecklistProps) {
         return (
           <View key={category.name} style={styles.category}>
             {/* Header de categoría */}
+            {/* 📚 CONCEPTO REACT - Estilos en línea con arreglos:
+                En react-pdf puedes combinar estilos pasando un array [estilo1, estilo2] */}
             <View style={styles.categoryHeader}>
               <Text style={styles.categoryTitle}>
                 {category.name}
-                {noAplica.length > 0 && ` (${noAplica.length} no aplica)`}
               </Text>
               <View style={styles.categoryBadge}>
                 <Text style={styles.categoryBadgeText}>
@@ -408,6 +451,24 @@ export default function PDFChecklist({ categories }: PDFChecklistProps) {
                 </Text>
               </View>
             )}
+
+            {/* 📚 CONCEPTO REACT - Renderizado condicional con && */}
+            {/* Solo mostramos esta sección si hay items que no aplican */}
+            {noAplica.length > 0 && (
+              <View style={styles.noAplicaSection}>
+                <View style={styles.noAplicaHeader}>
+                  <View style={styles.noAplicaIcon}>
+                    <Text style={styles.noAplicaIconText}>–</Text>
+                  </View>
+                  <Text style={styles.noAplicaTitle}>
+                    No aplica ({noAplica.length})
+                  </Text>
+                </View>
+                <Text style={styles.noAplicaText}>
+                  {noAplica.map((item) => item.name).join(' • ')}
+                </Text>
+              </View>
+            )}
           </View>
         );
       })}
@@ -415,24 +476,45 @@ export default function PDFChecklist({ categories }: PDFChecklistProps) {
   );
 }
 
+// Items que pertenecen a la categoría "Prueba de Ruta"
+// 📚 CONCEPTO JAVASCRIPT - Set para búsquedas rápidas:
+// Usamos Set en lugar de Array porque .has() es O(1) vs .includes() que es O(n)
+const PRUEBA_RUTA_ITEMS = new Set([
+  'mec-vibracion-ruido-freno',
+  'mec-funcionamiento-caja',
+  'mec-comportamiento-conduccion',
+]);
+
 // Helper para transformar checklistResults al formato esperado
 export function transformChecklistResults(
   checklistResults: Record<string, { status: string; comment?: string }>
 ): ChecklistCategory[] {
+  // 📚 CONCEPTO REACT - Organización de datos:
+  // Definimos el orden de las categorías aquí
   const categoriesMap: Record<string, ChecklistItem[]> = {
     Legal: [],
     Mecánica: [],
     Carrocería: [],
     Interior: [],
+    'Prueba de Ruta': [], // Nueva categoría
   };
 
   for (const [itemId, result] of Object.entries(checklistResults)) {
     if (!result || !result.status) continue;
 
+    // Determinar la categoría del item
     let categoryName = 'Legal';
-    if (itemId.startsWith('mec-')) categoryName = 'Mecánica';
-    else if (itemId.startsWith('car-')) categoryName = 'Carrocería';
-    else if (itemId.startsWith('int-')) categoryName = 'Interior';
+
+    // Primero verificamos si es un item de Prueba de Ruta
+    if (PRUEBA_RUTA_ITEMS.has(itemId)) {
+      categoryName = 'Prueba de Ruta';
+    } else if (itemId.startsWith('mec-')) {
+      categoryName = 'Mecánica';
+    } else if (itemId.startsWith('car-')) {
+      categoryName = 'Carrocería';
+    } else if (itemId.startsWith('int-')) {
+      categoryName = 'Interior';
+    }
 
     categoriesMap[categoryName].push({
       id: itemId,
@@ -442,6 +524,7 @@ export function transformChecklistResults(
     });
   }
 
+  // Retornamos las categorías en el orden definido, filtrando las vacías
   return Object.entries(categoriesMap)
     .filter(([, items]) => items.length > 0)
     .map(([name, items]) => ({ name, items }));
@@ -463,23 +546,20 @@ export function extractCriticalFindings(
     comment?: string;
   }> = [];
 
-  const categoryNames: Record<string, string> = {
-    'legal-': 'Legal',
-    'mec-': 'Mecánica',
-    'car-': 'Carrocería',
-    'int-': 'Interior',
-  };
-
   for (const [itemId, result] of Object.entries(checklistResults)) {
     if (!result || !result.status) continue;
     if (result.status !== 'DEFECTO' && result.status !== 'OBSERVACION') continue;
 
+    // Determinar categoría (misma lógica que transformChecklistResults)
     let categoryName = 'Legal';
-    for (const [prefix, name] of Object.entries(categoryNames)) {
-      if (itemId.startsWith(prefix)) {
-        categoryName = name;
-        break;
-      }
+    if (PRUEBA_RUTA_ITEMS.has(itemId)) {
+      categoryName = 'Prueba de Ruta';
+    } else if (itemId.startsWith('mec-')) {
+      categoryName = 'Mecánica';
+    } else if (itemId.startsWith('car-')) {
+      categoryName = 'Carrocería';
+    } else if (itemId.startsWith('int-')) {
+      categoryName = 'Interior';
     }
 
     findings.push({

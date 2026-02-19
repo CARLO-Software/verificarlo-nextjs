@@ -35,9 +35,11 @@ export interface ItemResult {
 export type InspectionResults = Record<string, ItemResult>;
 
 // ============================================
-// Datos de Inspección - Categorías Completas
+// Datos de Inspección - 5 Categorías para el Inspector
+// Orden: Legal > Mecánica > Prueba de Ruta > Carrocería > Interior
 // ============================================
 export const INSPECTION_CATEGORIES: InspectionCategory[] = [
+  // ========== 1. LEGAL ==========
   {
     id: "legal",
     title: "Legal",
@@ -60,7 +62,6 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         title: "Identificación",
         items: [
           { id: "legal-vin-placa", label: "Coincidencia VIN / placa" },
-          { id: "legal-numero-motor", label: "Número de motor visible" },
         ],
       },
       {
@@ -75,6 +76,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
       },
     ],
   },
+  // ========== 2. MECÁNICA ==========
   {
     id: "mecanica",
     title: "Mecánica",
@@ -108,7 +110,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         id: "mecanica-suspension-direccion",
         title: "Suspensión y dirección",
         items: [
-          { id: "mec-funcionamiento-suspension", label: "Funcionamiento de suspensión" },
+          { id: "mec-funcionamiento-suspension", label: "Estado de suspensión" },
           { id: "mec-direccion", label: "Dirección" },
         ],
       },
@@ -117,25 +119,28 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         title: "Sistema de frenos",
         items: [
           { id: "mec-funcionamiento-frenos", label: "Funcionamiento de frenos" },
+        ],
+      },
+    ],
+  },
+  // ========== 3. PRUEBA DE RUTA ==========
+  {
+    id: "prueba-ruta",
+    title: "Prueba de Ruta",
+    icon: "road",
+    sections: [
+      {
+        id: "prueba-ruta-conduccion",
+        title: "Evaluación en conducción",
+        items: [
           { id: "mec-vibracion-ruido-freno", label: "Vibración o ruido al frenar" },
-        ],
-      },
-      {
-        id: "mecanica-transmision",
-        title: "Transmisión",
-        items: [
-          { id: "mec-funcionamiento-caja", label: "Funcionamiento de caja" },
-        ],
-      },
-      {
-        id: "mecanica-prueba-manejo",
-        title: "Prueba de manejo",
-        items: [
+          { id: "mec-funcionamiento-caja", label: "Funcionamiento de transmisión" },
           { id: "mec-comportamiento-conduccion", label: "Comportamiento general en conducción" },
         ],
       },
     ],
   },
+  // ========== 4. CARROCERÍA ==========
   {
     id: "carroceria",
     title: "Carrocería",
@@ -171,8 +176,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         title: "Luces exteriores",
         items: [
           { id: "car-faros-delanteros", label: "Faros delanteros" },
-          { id: "car-luces-traseras", label: "Luces traseras" },
-          { id: "car-direccionales", label: "Direccionales" },
+          { id: "car-faros-traseros", label: "Faros traseros" },
         ],
       },
       {
@@ -185,6 +189,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
       },
     ],
   },
+  // ========== 5. INTERIOR ==========
   {
     id: "interior",
     title: "Interior",
@@ -200,7 +205,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
           { id: "int-aire-acondicionado", label: "Funcionamiento de aire acondicionado" },
           { id: "int-elevalunas", label: "Funcionamiento de elevalunas" },
           { id: "int-limpia-parabrisas", label: "Funcionamiento de limpia parabrisas" },
-          { id: "int-asientos", label: "Funcionalidad de asientos delanteros y traseros" },
+          { id: "int-asientos", label: "Funcionalidad de asientos" },
         ],
       },
       {
@@ -208,7 +213,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         title: "Seguridad interior",
         items: [
           { id: "int-cinturones", label: "Cinturones de seguridad" },
-          { id: "int-testigos-airbag", label: "Testigos de airbag en tablero" },
+          { id: "int-testigos-airbag", label: "Testigos de tablero" },
         ],
       },
       {
@@ -219,7 +224,6 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
           { id: "int-desgaste-asientos", label: "Desgaste de asientos" },
           { id: "int-estado-alfombra", label: "Estado de alfombra" },
           { id: "int-estado-techo", label: "Estado de techo" },
-          { id: "int-olor-interior", label: "Olor interior" },
         ],
       },
     ],
