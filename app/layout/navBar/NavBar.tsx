@@ -6,6 +6,8 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import styles from "./NavBar.module.css";
 
+import { Menu, X, User } from "lucide-react";
+
 export default function NavBar() {
   const { data: session, status } = useSession();
   const pathname = usePathname();
@@ -99,15 +101,17 @@ export default function NavBar() {
         className={`w-layout-blockcontainer container ${styles["nav-container"]} w-container`}
       >
         <div className={styles["div-block"]}>
-          <Link href="/" aria-label="Ir al inicio">
-            <img
-              loading="lazy"
-              src="assets/images/image6.svg"
-              alt="Logo VerifiCARLO"
-              className="image-9"
-            />
+          <Link href="/" aria-label="Ir al inicio" className={styles["logo-link"]}>
+            <span className={styles["logo-text"]}>
+              <span className={styles["logo-verifi"]}>VERIFI</span>
+              <span className={styles["logo-carlo"]}>CARLO</span>
+            </span>
           </Link>
         </div>
+
+        <Link href="/login" className={styles["user-icon-button"]} aria-label="Iniciar sesión">
+          <User size={20} strokeWidth={1.5} />
+        </Link>
 
         {/* Botón hamburguesa para móvil - se oculta cuando el menú está abierto */}
         {!isMobileMenuOpen && (
@@ -118,9 +122,7 @@ export default function NavBar() {
             aria-expanded={isMobileMenuOpen}
             aria-label="Abrir menú de navegación"
           >
-            <span className={styles["hamburger-line"]}></span>
-            <span className={styles["hamburger-line"]}></span>
-            <span className={styles["hamburger-line"]}></span>
+            <Menu size={17}></Menu>
           </button>
         )}
 

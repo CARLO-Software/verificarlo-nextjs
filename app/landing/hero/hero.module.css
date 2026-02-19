@@ -1,634 +1,447 @@
-/* ============================================
-   Hero Section - Bold & Eye-catching Design
-   ============================================ */
+/**
+ * ============================================
+ * Hero - Estilos Pixel-Perfect (Diseño Figma)
+ * ============================================
+ *
+ * Colores de marca:
+ * - brand-yellow: #F5D849
+ * - graphite: #1F2937
+ * - white: #FFFFFF
+ * - shield-green: #22C55E
+ */
 
+/* ============================================
+   Hero Section
+   ============================================ */
 .heroSection {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    background: var(--shark--950);
-    padding-top: calc(var(--banner-height, 42px) + 80px); /* Banner + Navbar */
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding-top: 120px; /* Espacio para Banner + Navbar */
+}
+
+/* Background Image + Overlay */
+.heroBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center;
 }
 
 /* ============================================
    Video Background
    ============================================ */
-
 .videoContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  overflow: hidden;
 }
 
 .videoBackground {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .videoOverlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.85) 0%,
-        rgba(0, 0, 0, 0.6) 50%,
-        rgba(0, 0, 0, 0.4) 100%
-    );
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0.6) 100%
+  );
 }
 
-/* ============================================
-   Hero Container
-   ============================================ */
+.heroOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
 
+/* Hero Container */
 .heroContainer {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 60px;
-    max-width: 1400px;
-    width: 100%;
-    padding: 40px 5%;
-    /* OPTIMIZADO: Sin animación para mejor LCP - contenido visible inmediatamente */
+  flex: 1;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding: 24px 20px;
 }
 
-/* ============================================
-   Hero Content (Left Side)
-   ============================================ */
-
+/* Hero Content */
 .heroContent {
-    flex: 1;
-    max-width: 650px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
 }
 
-/* Badge */
-.heroBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(253, 191, 18, 0.15);
-    border: 1px solid var(--bright-sun--400);
-    border-radius: 100px;
-    padding: 8px 20px;
-    margin-bottom: 24px;
-    /* Sin animación - visible inmediatamente */
+/* ============================================
+   Hero Title
+   ============================================ */
+.heroTitle {
+  /* margin: 0 0 20px 0; */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.15;
 }
 
-.heroBadge span:last-child {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--bright-sun--400);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.titleLine1 {
+  display: block;
+  font-size: 32px;
+  font-weight: 500;
+  color: #FFFFFF;
+  /* margin-bottom: 4px; */
 }
 
-.badgePulse {
-    width: 10px;
-    height: 10px;
-    background: var(--bright-sun--400);
-    border-radius: 50%;
-    animation: pulse 2s ease-in-out infinite;
+.titleLine2 {
+  display: block;
+  position: relative;
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
+  font-style: italic;
 }
 
-@keyframes pulse {
-    0%, 100% {
-        box-shadow: 0 0 0 0 rgba(253, 191, 18, 0.7);
-    }
-    50% {
-        box-shadow: 0 0 0 10px rgba(253, 191, 18, 0);
-    }
+/* Brush/Marker Underline Effect */
+.brushUnderline {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 216, 73, 0.4) 10%,
+    rgba(245, 216, 73, 0.4) 90%,
+    transparent 100%
+  );
+  border-radius: 4px;
+  transform: skewX(-5deg);
 }
 
-/* Heading */
-.heroHeading {
-    display: flex;
-    flex-direction: column;
-    margin: 0 0 24px 0;
-    font-family: 'Inter', sans-serif;
-    line-height: 1.1;
-}
-
-.headingLine1 {
-    font-size: 28px;
-    font-weight: 400;
-    color: var(--shark--300);
-    /* Sin animación - visible inmediatamente para mejor LCP */
-}
-
-.headingHighlight {
-    font-size: 64px;
-    font-weight: 800;
-    color: var(--basics--white);
-    text-transform: uppercase;
-    /* OPTIMIZADO: Sin delay para mejorar LCP - este es el elemento más grande */
-    background: linear-gradient(135deg, var(--basics--white) 0%, var(--bright-sun--300) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.headingLine2 {
-    font-size: 48px;
-    font-weight: 700;
-    color: var(--bright-sun--400);
-    text-transform: uppercase;
-    font-style: italic;
-    /* Sin animación - visible inmediatamente para mejor LCP */
-}
-
-/* Description */
+/* ============================================
+   Hero Description
+   ============================================ */
 .heroDescription {
-    font-family: 'Inter', sans-serif;
-    font-size: 18px;
-    font-weight: 400;
-    color: var(--shark--300);
-    line-height: 1.6;
-    margin: 0 0 32px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  /* margin: 0 0 28px 0; */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  padding: 10px;
+}
+
+.shieldIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #22C55E;
+}
+
+.highlightText {
+  position: relative;
+  font-weight: 500;
+}
+
+.highlightText::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #F5D849;
+  opacity: 0.7;
+}
+
+/* ============================================
+   CTA Button (Blanco)
+   ============================================ */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 28px;
+  background: #FFFFFF;
+  color: #1F2937;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.ctaButton:hover {
+  background: #F8F8F8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+}
+
+.ctaButton:focus-visible {
+  outline: 2px solid #F5D849;
+  outline-offset: 3px;
+}
+
+.ctaButton:active {
+  transform: translateY(0);
+}
+
+/* ============================================
+   "¿Qué revisamos?" Section (Fondo Amarillo)
+   ============================================ */
+.queRevisamosSection {
+  border-radius: 24px 24px 0 0;
+  padding: 0px 16px 20px;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap:8px;
+  justify-content: center;
+}
+
+/* Botón Negro con ícono de auto */
+.queRevisamosButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 24px;
+  background: #131211;
+  color: #FFFFFF;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.queRevisamosButton:hover {
+  background: #374151;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.queRevisamosButton:focus-visible {
+  outline: 2px solid #1F2937;
+  outline-offset: 3px;
+}
+
+.queRevisamosButton:active {
+  transform: translateY(0);
+}
+
+.queRevisamosButton svg:last-child {
+  animation: bounceDown 2s ease-in-out infinite;
+}
+
+@keyframes bounceDown {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(4px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Tablet (768px+)
+   ============================================ */
+@media screen and (min-width: 768px) {
+  .heroSection {
+    padding-top: 130px;
+  }
+
+  .heroContainer {
+    padding: 40px 32px;
+  }
+
+  .heroContent {
     max-width: 500px;
-    animation: fadeInUp 0.6s ease 0.6s both;
-}
+  }
 
-.heroDescription strong {
-    color: var(--bright-sun--400);
-    font-weight: 600;
-}
+  .titleLine1 {
+    font-size: 32px;
+  }
 
-/* Price Section */
-.priceSection {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 32px;
-    animation: fadeInUp 0.6s ease 0.7s both;
-}
+  .titleLine2 {
+    font-size: 38px;
+  }
 
-.priceLabel {
-    font-family: 'Inter', sans-serif;
+  .brushUnderline {
+    height: 10px;
+  }
+
+  .heroDescription {
     font-size: 16px;
-    color: var(--shark--400);
+  }
+
+  .ctaButton {
+    padding: 18px 36px;
+    font-size: 16px;
+  }
+
+  .queRevisamosSection {
+    padding: 20px 24px 24px;
+    border-radius: 32px 32px 0 0;
+  }
+
+  .queRevisamosButton {
+    padding: 16px 28px;
+    font-size: 16px;
+    gap: 10px;
+  }
 }
 
-.priceAmount {
-    font-family: 'Inter', sans-serif;
+/* ============================================
+   RESPONSIVE - Desktop (1024px+)
+   ============================================ */
+@media screen and (min-width: 1024px) {
+  .heroSection {
+    padding-top: 140px;
+  }
+
+  .heroContainer {
+    padding: 60px 48px;
+  }
+
+  .heroContent {
+    max-width: 600px;
+  }
+
+  .titleLine1 {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  .titleLine2 {
     font-size: 48px;
-    font-weight: 800;
-    color: var(--basics--white);
-}
+  }
 
-.priceBadge {
-    background: var(--bright-sun--400);
-    color: var(--shark--950);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 100px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
+  .brushUnderline {
+    height: 12px;
+    bottom: -4px;
+  }
 
-/* CTA Buttons */
-.ctaContainer {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 40px;
-    animation: fadeInUp 0.6s ease 0.8s both;
-}
+  .heroDescription {
+    font-size: 18px;
+    margin-bottom: 36px;
+  }
 
-.primaryCta {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--bright-sun--400);
-    color: var(--shark--950);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
+  .ctaButton {
+    padding: 20px 44px;
+    font-size: 17px;
+    gap: 12px;
+  }
+
+  .queRevisamosSection {
+    padding: 24px 40px 28px;
+  }
+
+  .queRevisamosButton {
     padding: 18px 32px;
-    border-radius: 100px;
-    text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(253, 191, 18, 0.4);
-}
+    font-size: 17px;
+  }
 
-.primaryCta:hover {
-    background: var(--bright-sun--300);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(253, 191, 18, 0.5);
-}
+  .queRevisamosButton svg:last-child {
+    animation: none;
+    transition: transform 0.2s ease;
+  }
 
-.whatsappCta {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: #25D366;
-    color: white;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    padding: 18px 32px;
-    border-radius: 100px;
-    text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(37, 211, 102, 0.3);
-}
-
-.whatsappCta:hover {
-    background: #20bd5a;
-    transform: translateY(-3px);
-    box-shadow: 0 8px 30px rgba(37, 211, 102, 0.4);
-}
-
-/* Trust Badges */
-.trustBadges {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 24px;
-    animation: fadeInUp 0.6s ease 0.9s both;
-}
-
-.trustItem {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.trustItem span {
-    font-family: 'Inter', sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--shark--300);
+  .queRevisamosButton:hover svg:last-child {
+    transform: translateY(3px);
+  }
 }
 
 /* ============================================
-   Hero Image (Right Side)
+   RESPONSIVE - Large Desktop (1280px+)
    ============================================ */
+@media screen and (min-width: 1280px) {
+  .heroContent {
+    max-width: 700px;
+  }
 
-.heroImageContainer {
-    flex: 1;
-    max-width: 550px;
-    position: relative;
-    animation: fadeInRight 0.8s ease 0.5s both;
-}
+  .titleLine1 {
+    font-size: 40px;
+  }
 
-.heroImage {
-    width: 100%;
-    height: auto;
-    border-radius: 24px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
-}
+  .titleLine2 {
+    font-size: 56px;
+  }
 
-/* Floating Card */
-.floatingCard {
-    position: absolute;
-    bottom: -20px;
-    left: -40px;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    background: var(--basics--white);
-    padding: 20px 24px;
-    border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    animation: floatAnimation 3s ease-in-out infinite;
-}
+  .heroDescription {
+    font-size: 20px;
+  }
 
-.floatingCardIcon {
-    width: 56px;
-    height: 56px;
-    background: var(--bright-sun--100);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--bright-sun--500);
-}
-
-.floatingCardText {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.floatingCardTitle {
-    font-family: 'Inter', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--shark--950);
-}
-
-.floatingCardDesc {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    color: var(--shark--500);
-}
-
-@keyframes floatAnimation {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-/* ============================================
-   Scroll Indicator
-   ============================================ */
-
-.scrollIndicator {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    animation: fadeInUp 0.6s ease 1.2s both;
-}
-
-.scrollIndicator span {
-    font-family: 'Inter', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--shark--400);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.scrollArrow {
-    animation: bounce 2s ease-in-out infinite;
-    color: var(--bright-sun--400);
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(10px);
-    }
-    60% {
-        transform: translateY(5px);
-    }
-}
-
-/* ============================================
-   Animations
-   ============================================ */
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInRight {
-    from {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* ============================================
-   Responsive Styles
-   ============================================ */
-
-@media screen and (max-width: 1199px) {
-    .heroContainer {
-        gap: 40px;
-    }
-
-    .headingHighlight {
-        font-size: 52px;
-    }
-
-    .headingLine2 {
-        font-size: 40px;
-    }
-
-    .heroImageContainer {
-        max-width: 450px;
-    }
-}
-
-@media screen and (max-width: 991px) {
-    .heroSection {
-        min-height: auto;
-        padding: 100px 0 60px;
-    }
-
-    .heroContainer {
-        flex-direction: column;
-        text-align: center;
-        gap: 48px;
-    }
-
-    .heroContent {
-        max-width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .heroDescription {
-        max-width: 600px;
-    }
-
-    .trustBadges {
-        justify-content: center;
-    }
-
-    .heroImageContainer {
-        max-width: 500px;
-        width: 100%;
-    }
-
-    .floatingCard {
-        left: 50%;
-        transform: translateX(-50%);
-        bottom: -30px;
-    }
-
-    @keyframes floatAnimation {
-        0%, 100% {
-            transform: translateX(-50%) translateY(0);
-        }
-        50% {
-            transform: translateX(-50%) translateY(-10px);
-        }
-    }
-
-    .scrollIndicator {
-        display: none;
-    }
-}
-
-@media screen and (max-width: 767px) {
-    .heroSection {
-        padding: 80px 0 40px;
-    }
-
-    .headingLine1 {
-        font-size: 22px;
-    }
-
-    .headingHighlight {
-        font-size: 40px;
-    }
-
-    .headingLine2 {
-        font-size: 32px;
-    }
-
-    .heroDescription {
-        font-size: 16px;
-    }
-
-    .priceAmount {
-        font-size: 40px;
-    }
-
-    .ctaContainer {
-        flex-direction: column;
-        width: 100%;
-        max-width: 320px;
-    }
-
-    .primaryCta,
-    .whatsappCta {
-        width: 100%;
-        justify-content: center;
-        padding: 16px 24px;
-    }
-
-    .trustBadges {
-        flex-direction: column;
-        gap: 16px;
-    }
-
-    .heroImageContainer {
-        display: none;
-    }
-}
-
-@media screen and (max-width: 479px) {
-    .heroSection {
-        padding: 70px 0 30px;
-    }
-
-    .heroBadge {
-        padding: 6px 14px;
-    }
-
-    .heroBadge span:last-child {
-        font-size: 12px;
-    }
-
-    .headingLine1 {
-        font-size: 18px;
-    }
-
-    .headingHighlight {
-        font-size: 32px;
-    }
-
-    .headingLine2 {
-        font-size: 26px;
-    }
-
-    .heroDescription {
-        font-size: 15px;
-    }
-
-    .priceSection {
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .priceAmount {
-        font-size: 36px;
-    }
-
-    .priceBadge {
-        font-size: 11px;
-        padding: 5px 12px;
-    }
-
-    .primaryCta,
-    .whatsappCta {
-        font-size: 14px;
-        padding: 14px 20px;
-    }
-
-    .trustItem span {
-        font-size: 13px;
-    }
+  .ctaButton {
+    padding: 22px 52px;
+    font-size: 18px;
+  }
 }
 
 /* ============================================
    Reduced Motion
    ============================================ */
-
 @media (prefers-reduced-motion: reduce) {
-    .heroContainer,
-    .heroBadge,
-    .headingLine1,
-    .headingHighlight,
-    .headingLine2,
-    .heroDescription,
-    .priceSection,
-    .ctaContainer,
-    .trustBadges,
-    .heroImageContainer,
-    .scrollIndicator {
-        animation: none;
-        opacity: 1;
-        transform: none;
-    }
+  .queRevisamosButton svg:last-child {
+    animation: none;
+  }
 
-    .badgePulse,
-    .floatingCard,
-    .scrollArrow {
-        animation: none;
-    }
+  .ctaButton:hover,
+  .queRevisamosButton:hover {
+    transform: none;
+  }
 
-    .primaryCta:hover,
-    .whatsappCta:hover {
-        transform: none;
-    }
+  .ctaButton,
+  .queRevisamosButton {
+    transition: none;
+  }
 }

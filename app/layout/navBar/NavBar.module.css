@@ -48,7 +48,7 @@
 }
 
 .navbar:not(.navbarScrolled):not(.navbarSolid) .hamburger-line {
-  background-color: var(--basics--white);
+  background-color: black;
 }
 
 .navbar:not(.navbarScrolled):not(.navbarSolid) .login-button {
@@ -60,16 +60,44 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-/* Logo en modo transparente (solo en Hero) */
-.navbar:not(.navbarScrolled):not(.navbarSolid) .div-block img {
-  filter: brightness(0) invert(1);
-  transition: filter 0.4s ease;
+/* ============================================
+   LOGO STYLES
+   ============================================ */
+.logo-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 
-.navbarScrolled .div-block img,
-.navbarSolid .div-block img {
-  filter: none;
-  transition: filter 0.4s ease;
+.logo-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+}
+
+/* VERIFI - color crema */
+.logo-verifi {
+  color: #FFE14C;
+  transition: color 0.4s ease;
+}
+
+/* CARLO - color blanco */
+.logo-carlo {
+  color: #FFFFFF;
+  transition: color 0.4s ease;
+}
+
+/* Logo en modo con scroll o sólido (colores oscuros) */
+.navbarScrolled .logo-verifi,
+.navbarSolid .logo-verifi {
+  color: #C9A86C;
+}
+
+.navbarScrolled .logo-carlo,
+.navbarSolid .logo-carlo {
+  color: #1F2937;
 }
 
 /* User button en modo transparente (solo en Hero) */
@@ -90,8 +118,40 @@
 .navbar:not(.navbarScrolled):not(.navbarSolid) .dropdown-arrow {
   color: var(--basics--white);
 }
-.buenas{
-  background-color: red;
+
+/* ============================================
+   USER ICON BUTTON (Mobile - botón circular con persona)
+   ============================================ */
+.user-icon-button {
+  display: none; /* Oculto en PC */
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #FFFFFF;
+  transition: all 0.2s ease;
+}
+
+.user-icon-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* User icon en modo scrolled/solid */
+.navbarScrolled .user-icon-button,
+.navbarSolid .user-icon-button {
+  border-color: var(--shark--300);
+  color: var(--shark--700);
+}
+
+.navbarScrolled .user-icon-button:hover,
+.navbarSolid .user-icon-button:hover {
+  background: var(--shark--50);
+  border-color: var(--shark--400);
 }
 .navbar-box {
   flex: 1;
@@ -192,12 +252,24 @@
   padding: 24px 5.25% 24px 5%;
   display: flex;
   align-items: center;
+  gap: 12px;
 }
 
-/* En móvil: separar logo y hamburguesa */
+/* En móvil: separar elementos del navbar */
 @media screen and (max-width: 991px) {
   .nav-container {
     justify-content: space-between;
+  }
+
+  /* Contenedor para los botones de la derecha (usuario + hamburguesa) */
+  .div-block {
+    flex: 1;
+  }
+
+  /* Botones alineados a la derecha con gap */
+  .nav-container > .user-icon-button,
+  .nav-container > .hamburger-button {
+    flex-shrink: 0;
   }
 }
 
@@ -425,8 +497,9 @@
   gap: 5px;
   width: 44px;
   height: 44px;
-  background: transparent;
+  background: white;
   border: none;
+  border-radius: 25px;
   cursor: pointer;
   padding: 10px;
   z-index: 1001;
@@ -498,6 +571,11 @@
    MOBILE RESPONSIVE (max-width: 991px)
    ============================================ */
 @media screen and (max-width: 991px) {
+  /* Mostrar botón de usuario (persona) */
+  .user-icon-button {
+    display: flex;
+  }
+
   /* Mostrar hamburguesa */
   .hamburger-button {
     display: flex;
