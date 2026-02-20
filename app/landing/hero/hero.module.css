@@ -19,7 +19,7 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding-top: 120px; /* Espacio para Banner + Navbar */
+  /* Banner y Navbar son position: absolute, no ocupan espacio */
 }
 
 /* Background Image + Overlay */
@@ -110,7 +110,7 @@
 .heroTitle {
   /* margin: 0 0 20px 0; */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.15;
+  line-height: 1.0;
 }
 
 .titleLine1 {
@@ -161,7 +161,7 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgb(219 219 219 / 90%);
   line-height: 1.5;
   padding: 10px;
 }
@@ -209,6 +209,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
 }
 
 .ctaButton:hover {
@@ -238,6 +239,7 @@
   flex-direction: column;
   gap:8px;
   justify-content: center;
+  width: 100%;
 }
 
 /* Botón Negro con ícono de auto */
@@ -246,11 +248,11 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 24px;
+  padding: 14px;
   background: #131211;
   color: #FFFFFF;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 15px;
+  /* font-size: 15px; */
   font-weight: 600;
   text-decoration: none;
   border-radius: 100px;
@@ -296,10 +298,6 @@
    RESPONSIVE - Tablet (768px+)
    ============================================ */
 @media screen and (min-width: 768px) {
-  .heroSection {
-    padding-top: 130px;
-  }
-
   .heroContainer {
     padding: 40px 32px;
   }
@@ -325,18 +323,17 @@
   }
 
   .ctaButton {
-    padding: 18px 36px;
+    padding: 14px;
     font-size: 16px;
   }
 
   .queRevisamosSection {
-    padding: 20px 24px 24px;
     border-radius: 32px 32px 0 0;
   }
 
   .queRevisamosButton {
-    padding: 16px 28px;
-    font-size: 16px;
+    /* padding: 16px 28px; */
+    /* font-size: 16px; */
     gap: 10px;
   }
 }
@@ -345,10 +342,6 @@
    RESPONSIVE - Desktop (1024px+)
    ============================================ */
 @media screen and (min-width: 1024px) {
-  .heroSection {
-    padding-top: 140px;
-  }
-
   .heroContainer {
     padding: 60px 48px;
   }
@@ -358,7 +351,7 @@
   }
 
   .titleLine1 {
-    font-size: 36px;
+    font-size: 48px;
     margin-bottom: 8px;
   }
 
@@ -371,26 +364,20 @@
     bottom: -4px;
   }
 
-  .heroDescription {
-    font-size: 18px;
-    margin-bottom: 36px;
-  }
-
   .ctaButton {
-    padding: 20px 44px;
-    font-size: 17px;
+     padding: 20px 14px;
+    font-size: 14px;
     gap: 12px;
   }
 
   .queRevisamosSection {
-    padding: 24px 40px 28px;
+    flex-direction: row;
+    padding: 0px 100px 20px;
   }
-
-  .queRevisamosButton {
-    padding: 18px 32px;
-    font-size: 17px;
+  .queRevisamosButton{
+    width: 70%;
+    padding: 20px 14px;
   }
-
   .queRevisamosButton svg:last-child {
     animation: none;
     transition: transform 0.2s ease;
@@ -410,21 +397,18 @@
   }
 
   .titleLine1 {
-    font-size: 40px;
+    font-size: 62px;
   }
 
   .titleLine2 {
-    font-size: 56px;
+    font-size: 62px;
   }
 
-  .heroDescription {
-    font-size: 20px;
-  }
-
-  .ctaButton {
+  /* .ctaButton {
     padding: 22px 52px;
     font-size: 18px;
-  }
+  } */
+   
 }
 
 /* ============================================

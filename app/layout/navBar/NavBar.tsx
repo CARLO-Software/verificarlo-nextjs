@@ -101,7 +101,11 @@ export default function NavBar() {
         className={`w-layout-blockcontainer container ${styles["nav-container"]} w-container`}
       >
         <div className={styles["div-block"]}>
-          <Link href="/" aria-label="Ir al inicio" className={styles["logo-link"]}>
+          <Link
+            href="/"
+            aria-label="Ir al inicio"
+            className={styles["logo-link"]}
+          >
             <span className={styles["logo-text"]}>
               <span className={styles["logo-verifi"]}>VERIFI</span>
               <span className={styles["logo-carlo"]}>CARLO</span>
@@ -109,8 +113,12 @@ export default function NavBar() {
           </Link>
         </div>
 
-        <Link href="/login" className={styles["user-icon-button"]} aria-label="Iniciar sesión">
-          <User size={20} strokeWidth={1.5} />
+        <Link
+          href="/login"
+          className={styles["user-icon-button"]}
+          aria-label="Iniciar sesión"
+        >
+                <User size={16} stroke="white" fill="white" />
         </Link>
 
         {/* Botón hamburguesa para móvil - se oculta cuando el menú está abierto */}
@@ -139,48 +147,44 @@ export default function NavBar() {
           ref={mobileMenuRef}
           className={`${styles["navbar-box"]} ${isMobileMenuOpen ? styles["navbar-box-open"] : ""}`}
         >
-          <div className={styles["navbar-item"]}>
-            <div className={styles["icon"]} aria-hidden="true">
-              <img loading="lazy" src="assets/images/image7.svg" alt="" />
-            </div>
-            <p className={styles["navbar-text"]}>
-              Cerro Azul 421, Santiago de Surco, Lima
-            </p>
-          </div>
-          <div className={styles["navbar-item"]}>
-            <div className={styles["icon"]} aria-hidden="true">
-              <img loading="lazy" src="assets/images/image8.svg" alt="" />
-            </div>
-            <p className={styles["navbar-text"]}>Telefono +51 934 140 010</p>
-          </div>
-
-          {/* Botón cerrar (X) - solo visible dentro del panel móvil */}
+          {/* Botón cerrar (X) */}
           <button
             className={styles["close-button"]}
             onClick={() => setIsMobileMenuOpen(false)}
             aria-label="Cerrar menú de navegación"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
+            <X size={20} strokeWidth={2} />
           </button>
 
-          <Link
-            href="/vehiculo"
-            className={`${styles["primary-cta"]} w-button`}
-            aria-label="Agendar inspeccion"
-          >
-            Agendar inspeccion
-          </Link>
+          {/* Título del menú */}
+          <p className={styles["sidebar-title"]}>Menú</p>
+
+          {/* Items del menú con navegación smooth */}
+          <nav className={styles["sidebar-nav"]}>
+            <a href="/#planes" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+              <span className={styles["navbar-text"]}>Planes</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="/#proceso" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+              <span className={styles["navbar-text"]}>Proceso</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="/#testimonios" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+              <span className={styles["navbar-text"]}>Testimonios</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="/#blog" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+              <span className={styles["navbar-text"]}>Blog</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+            <a href="/#faqs" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+              <span className={styles["navbar-text"]}>FAQs</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </nav>
+
+          {/* Separador */}
+          <div className={styles["sidebar-divider"]} />
 
           {/* OPTIMIZADO: Mostrar botones inmediatamente mientras carga
               La mayoría de visitantes no están logueados, así que mostramos
@@ -220,6 +224,7 @@ export default function NavBar() {
                   />
                 </svg>
               </button>
+
               {/*Si en caso ya está logueado */}
               {isDropdownOpen && (
                 <div className={styles["dropdown-menu"]} role="menu">
@@ -300,33 +305,12 @@ export default function NavBar() {
           ) : (
             <div className={styles["menuMovil"]}>
               <Link
-                href="/login"
-                className={`${styles["auth-button"]} ${styles["login-button"]}`}
-              >
-                Iniciar sesion
-              </Link>
-              <Link
                 href="/register"
                 className={`${styles["secondary-cta"]} w-button`}
               >
-                Registrarse
+                <User size={18} stroke="black" fill="black" />
+                Iniciar/Registrarse
               </Link>
-              <div className={styles["navbar-item"]}>
-                <div className={styles["icon"]} aria-hidden="true">
-                  <img loading="lazy" src="assets/images/image7.svg" alt="" />
-                </div>
-                <p className={styles["navbar-text"]}>
-                  Cerro Azul 421, Santiago de Surco, Lima
-                </p>
-              </div>
-              <div className={styles["navbar-item"]}>
-                <div className={styles["icon"]} aria-hidden="true">
-                  <img loading="lazy" src="assets/images/image8.svg" alt="" />
-                </div>
-                <p className={styles["navbar-text"]}>
-                  Telefono +51 934 140 010
-                </p>
-              </div>
             </div>
           )}
         </div>

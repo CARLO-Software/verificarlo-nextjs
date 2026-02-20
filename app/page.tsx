@@ -33,11 +33,20 @@ export default async function Home() {
         {/*Hero section */}
         <Hero />
 
+       
+
         {/* Process section */}
         <ProcessSection />
 
-        {/* Services section */}
+         {/* Services section -> Aqui deben de estar los planes*/}
         <ServicesSection />
+
+        {/* TODO: Testimonios */}
+
+
+        {/* TODO: Riesgos que pueden costar miles */}
+
+        {/* TODO: BLOG */}
 
         {/*Benefits section */}
         <BenefitsSection />

@@ -11,7 +11,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-
+  
   /* Banner height - updated by JS when banner is closed */
   --banner-height: 42px;
 
@@ -80,6 +80,8 @@ html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   font-family: sans-serif;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
 }
 
 * {

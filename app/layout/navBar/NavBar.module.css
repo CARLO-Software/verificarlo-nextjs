@@ -2,11 +2,11 @@
    NavBar Component Styles
    ============================================ */
 .navbar {
-  position: fixed;
+  position: absolute;
   top: var(--banner-height, 42px);
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 1002; /* Mayor que el banner (1001) */
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -19,12 +19,12 @@
 }
 
 /* Estado cuando el usuario hace scroll */
-.navbarScrolled {
+/* .navbarScrolled {
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-}
+} */
 
 /* Estado para páginas que NO son el Hero (texto negro por defecto) */
 .navbarSolid {
@@ -81,12 +81,18 @@
 .logo-verifi {
   color: #FFE14C;
   transition: color 0.4s ease;
+  font-size: 28px;
+  font-weight: 700;
+  font-style: italic;
 }
 
 /* CARLO - color blanco */
 .logo-carlo {
   color: #FFFFFF;
   transition: color 0.4s ease;
+  font-size: 28px;
+  font-weight: 500;
+  font-style: italic;
 }
 
 /* Logo en modo con scroll o sólido (colores oscuros) */
@@ -158,8 +164,8 @@
   text-decoration: none;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
+  justify-content: flex-end;
+  gap: 30px;
   margin-left: 16px;
 }
 
@@ -174,12 +180,12 @@
 
 .navbar-text {
   color: var(--shark--950);
-  letter-spacing: -.03em;
+  /* letter-spacing: -.03em; */
   white-space: pre-line;
   margin-top: 0;
   margin-bottom: 0;
   font-family: DM Sans, sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 500;
   line-height: 110%;
   text-decoration: none;
@@ -224,22 +230,21 @@
 
 /* CTA Secundario - Registrarse */
 .secondary-cta {
-  grid-column-gap: 10px;
-  background-color: var(--shark--950);
-  color: var(--bright-sun--50);
+  display: inline-flex;
+  gap: 10px;
+  background-color: var(--basics--white);
+  color: black;
   text-align: center;
   letter-spacing: -.03px;
   border-radius: 100px;
-  flex: 0 auto;
   justify-content: center;
   align-items: center;
   padding: 12px 20px;
   font-family: DM Sans, sans-serif;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 100%;
   text-decoration: none;
-  align-content: center;
 }
 
 .secondary-cta:hover {
@@ -254,25 +259,6 @@
   align-items: center;
   gap: 12px;
 }
-
-/* En móvil: separar elementos del navbar */
-@media screen and (max-width: 991px) {
-  .nav-container {
-    justify-content: space-between;
-  }
-
-  /* Contenedor para los botones de la derecha (usuario + hamburguesa) */
-  .div-block {
-    flex: 1;
-  }
-
-  /* Botones alineados a la derecha con gap */
-  .nav-container > .user-icon-button,
-  .nav-container > .hamburger-button {
-    flex-shrink: 0;
-  }
-}
-
 
 @media screen and (max-width: 1199px) {
   .nav-container {
@@ -294,10 +280,6 @@
     gap: 16px;
   }
 
-  /* Ocultar info de contacto en tablets (solo en navbar-box principal) */
-  .navbar-box > .navbar-item {
-    display: none;
-  }
 }
 
 /* ============================================
@@ -567,10 +549,49 @@
   display: none;
 }
 
+/* Ocultar elementos del sidebar en PC */
+.sidebar-title {
+  display: none;
+}
+
+.sidebar-nav {
+  display: contents; /* Los hijos se comportan como si no hubiera contenedor */
+}
+
+.sidebar-divider {
+  display: none;
+}
+
+/* Ocultar flechas de los items en PC */
+.navbar-item svg {
+  display: none;
+}
+
 /* ============================================
    MOBILE RESPONSIVE (max-width: 991px)
    ============================================ */
 @media screen and (max-width: 991px) {
+
+  /* Mostrar items del menú en móvil */
+  .navbar-box > .navbar-item {
+    display: flex;
+  }
+  
+.nav-container {
+    justify-content: space-between;
+  }
+
+  /* Contenedor para los botones de la derecha (usuario + hamburguesa) */
+  .div-block {
+    flex: 1;
+  }
+
+  /* Botones alineados a la derecha con gap */
+  .nav-container > .user-icon-button,
+  .nav-container > .hamburger-button {
+    flex-shrink: 0;
+  }
+
   /* Mostrar botón de usuario (persona) */
   .user-icon-button {
     display: flex;
@@ -581,14 +602,35 @@
     display: flex;
   }
 
-  /* Mostrar botón cerrar (X) */
+  /* Botón cerrar (X) - estilo premium */
   .close-button {
     display: flex;
     align-items: center;
     justify-content: center;
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border: none;
+    color: var(--shark--700);
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
-  /* Overlay visible */
+  .close-button:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--shark--950);
+    transform: rotate(90deg);
+  }
+
+  .close-button:active {
+    transform: rotate(90deg) scale(0.95);
+  }
+
+  /* Overlay con blur premium */
   .overlay {
     display: block;
     position: fixed;
@@ -596,8 +638,10 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 9998;
     animation: fadeIn 0.3s ease;
   }
 
@@ -606,26 +650,28 @@
     to { opacity: 1; }
   }
 
-  /* navbar-box se convierte en panel lateral */
+  /* navbar-box se convierte en panel lateral premium */
   .navbar-box {
     position: fixed;
     top: 0;
     right: 0;
-    width: 300px;
-    max-width: 85vw;
+    width: 320px;
+    max-width: 90vw;
     height: 100vh;
-    background: var(--basics--white, #ffffff);
+    height: 100dvh;
+    background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
     flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-    padding: 30px 24px 24px;
-    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 80px 20px 32px;
+    box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
+    z-index: 9999;
     overflow-y: auto;
 
-    /* Oculto por defecto (fuera de pantalla) */
+    /* Oculto por defecto */
     transform: translateX(100%);
-    transition: transform 0.3s ease;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Cuando está abierto */
@@ -633,10 +679,66 @@
     transform: translateX(0);
   }
 
-  /* Items de info en columna */
+  /* Título del sidebar - mostrar en móvil */
+  .sidebar-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--shark--400);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 8px 20px;
+  }
+
+  /* Contenedor de navegación - mostrar en móvil */
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+
+  /* Items del menú - estilo premium */
   .navbar-item {
     width: 100%;
-    justify-content: flex-start;
+    padding: 16px 20px;
+    border-radius: 12px;
+    background: transparent;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  /* Mostrar flechas en móvil */
+  .navbar-item svg {
+    display: block;
+    color: var(--shark--300);
+    transition: all 0.2s ease;
+  }
+
+  .navbar-item:hover {
+    background: rgba(0, 0, 0, 0.04);
+  }
+
+  .navbar-item:hover svg {
+    color: var(--bright-sun--600);
+    transform: translateX(4px);
+  }
+
+  .navbar-item:active {
+    background: rgba(0, 0, 0, 0.08);
+    transform: scale(0.98);
+  }
+
+  /* Separador - mostrar en móvil */
+  .sidebar-divider {
+    display: block;
+    width: calc(100% - 40px);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--shark--200), transparent);
+    margin: 16px 20px;
   }
 
   /* Mostrar navbar-items dentro de menuMovil */
@@ -651,8 +753,17 @@
     border-top: 1px solid var(--shark--200);
   }
 
-  .navbar-text {
-    font-size: 14px;
+  /* Texto del sidebar - estilo premium */
+  .navbar-box .navbar-text {
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--shark--950) !important;
+    letter-spacing: -0.01em;
+    transition: color 0.2s ease;
+  }
+
+  .navbar-item:hover .navbar-text {
+    color: var(--bright-sun--600) !important;
   }
 
   /* Botones CTA ocupan todo el ancho */
@@ -675,11 +786,9 @@
     text-align: center;
   }
 
-  /* Contenedor de botones auth en móvil */
+  /* Ocultar botón Iniciar/Registrarse en móvil */
   .menuMovil {
-    flex-direction: column;
-    width: 100%;
-    gap: 12px;
+    display: none;
   }
 
   /* User menu ajustes */

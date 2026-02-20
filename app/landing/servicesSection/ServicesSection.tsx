@@ -5,7 +5,7 @@ import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections"
 export default function ServicesSection() {
 
     return (
-        <section className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
+        <section id="planes" className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
             <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
                 <div className={styles['services-div']}>
                     <h2 id="services-heading" className={styles['heading-2']}>

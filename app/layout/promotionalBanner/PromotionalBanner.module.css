@@ -4,14 +4,14 @@
    ============================================ */
 
 .bannerWrapper {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1001; /* Above navbar */
     display: flex;
     align-items: center;
-    background: linear-gradient(90deg, var(--shark--950) 0%, #1a1a1a 100%);
+    background: var(--bright-sun--300);
     height: 42px;
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -27,12 +27,14 @@
     height: 100%;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .tickerContent {
     display: inline-flex;
-    animation: ticker 30s linear infinite;
+    /* animation: ticker 30s linear infinite; */
     white-space: nowrap;
+    text-align: center;
 }
 
 .tickerContent:hover {
@@ -63,7 +65,7 @@
 }
 
 .bannerText {
-    color: var(--basics--white);
+    color: black;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 500;
@@ -72,8 +74,16 @@
 }
 
 .highlight {
-    color: var(--bright-sun--400);
     font-weight: 700;
+    color: black;
+}
+
+.offerText {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: black;
+    font-weight: 500;
 }
 
 .separator {

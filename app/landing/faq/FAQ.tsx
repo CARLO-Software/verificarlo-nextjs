@@ -23,7 +23,7 @@ const FAQ = () => {
 
     return (
         <>
-            <section className={styles['faq-section']} aria-labelledby="faq-heading">
+            <section id="faqs" className={styles['faq-section']} aria-labelledby="faq-heading">
                 <div className={styles['faq-container']}>
                     <div className={styles['faq-inner-container']}>
                         <h2 id="faq-heading" className={styles['faq-heading']}>
