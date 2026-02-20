@@ -69,6 +69,12 @@
   align-items: center;
 }
 
+.logo-image {
+  height: 26px;
+  width: auto;
+  object-fit: contain;
+}
+
 .logo-text {
   font-family: 'DM Sans', sans-serif;
   font-size: 20px;

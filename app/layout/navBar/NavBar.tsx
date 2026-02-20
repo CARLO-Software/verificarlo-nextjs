@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
@@ -106,10 +107,14 @@ export default function NavBar() {
             aria-label="Ir al inicio"
             className={styles["logo-link"]}
           >
-            <span className={styles["logo-text"]}>
-              <span className={styles["logo-verifi"]}>VERIFI</span>
-              <span className={styles["logo-carlo"]}>CARLO</span>
-            </span>
+            <Image
+              src="/assets/images/verificarlo-logo.png"
+              alt="VerifiCARLO"
+              width={200}
+              height={60}
+              priority
+              className={styles["logo-image"]}
+            />
           </Link>
         </div>
 
