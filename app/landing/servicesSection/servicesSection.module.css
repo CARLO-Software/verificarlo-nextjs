@@ -50,6 +50,7 @@
   text-decoration: none;
   display: flex;
   position: relative;
+  gap:20px;
 }
 
 .services-box {
@@ -74,7 +75,7 @@
 
 .header-title {
   color: var(--shark--950);
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
   margin-top: 0;
   margin-bottom: 0;
   font-family: Inter, sans-serif;
@@ -312,7 +313,8 @@
 @media screen and (max-width: 991px) {
   .services-card {
     height: auto;
-    min-height: 280px;
+    min-height: auto;
+    padding: 24px 20px 20px;
   }
 }
 
@@ -335,4 +337,328 @@
   .heading-2 {
     font-size: 24px;
   }
+}
+
+/* ============================================
+   Versión Móvil - Planes en vertical
+   ============================================ */
+.mobile-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0 20px;
+  width: 100%;
+}
+
+.desktop-slider {
+  display: none;
+}
+
+@media screen and (min-width: 992px) {
+  .mobile-plans {
+    display: none;
+  }
+
+  .desktop-slider {
+    display: block;
+  }
+}
+
+/* ============================================
+   Botones Móviles - "Elegir este plan" y "Saber más"
+   ============================================ */
+.mobile-buttons {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.btn-primary-dark {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary-dark:hover {
+  background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  background: transparent;
+  color: var(--shark--950);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1.5px solid var(--shark--300);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--shark--100);
+  border-color: var(--shark--400);
+}
+
+@media screen and (min-width: 992px) {
+  .mobile-buttons {
+    display: none;
+  }
+}
+
+/* ============================================
+   Modal "Saber más" - Diseño con fondo oscuro
+   ============================================ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  max-height: 85vh;
+  background: #1a1a1a;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Imagen de fondo del modal */
+.modal-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 180px;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.modal-bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.modal-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(26, 26, 26, 0.3) 0%,
+    rgba(26, 26, 26, 0.6) 50%,
+    rgba(26, 26, 26, 1) 100%
+  );
+}
+
+/* Botón cerrar modal */
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  color: #FFFFFF;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: rotate(90deg);
+}
+
+/* Cuerpo del modal */
+.modal-body {
+  position: relative;
+  z-index: 1;
+  padding: 140px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+/* Botón Ver informe legal - Arriba */
+.btn-view-report {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  gap: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #FFFFFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto hover con capa blanca y borde ovalado */
+.btn-view-report:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-view-report svg {
+  flex-shrink: 0;
+}
+
+/* Header del modal - Alineado a la izquierda */
+.modal-header {
+  text-align: left;
+}
+
+.modal-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin: 0 0 12px 0;
+  line-height: 1.1;
+}
+
+.modal-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-price-inline {
+  color: #FFE14C;
+  font-weight: 600;
+}
+
+/* Lista de items del modal */
+.modal-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.4;
+}
+
+.check-icon {
+  flex-shrink: 0;
+}
+
+/* Botón CTA del modal */
+.modal-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  margin-top: 8px;
+  background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(255, 225, 76, 0.3);
+}
+
+.modal-cta:hover {
+  background: linear-gradient(135deg, #FDB515 0%, #F5A623 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(255, 225, 76, 0.4);
+}
+
+.modal-cta svg {
+  transition: transform 0.3s ease;
+}
+
+.modal-cta:hover svg {
+  transform: translateX(4px);
 }
