@@ -16,8 +16,6 @@
  * Responsive: Mobile-first approach
  */
 
-import Link from "next/link";
-import Image from "next/image";
 import styles from "./Hero.module.css";
 import { Car } from "@phosphor-icons/react";
 

@@ -35,7 +35,7 @@
 }
 
 .navbarLogo {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: #FFE14C;
@@ -88,7 +88,7 @@
   justify-content: center;
   background: #FFE14C;
   color: #1F2937;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 700;
   border-radius: 50%;
@@ -118,7 +118,7 @@
 }
 
 .userMenuName {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #1F2937;
@@ -179,7 +179,7 @@
 }
 
 .greeting {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 600;
   color: white;
@@ -212,7 +212,7 @@
 
 .statValue {
   display: block;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #FFE14C;
@@ -249,7 +249,7 @@
 }
 
 .nextInspectionTime {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: #FFE14C;
@@ -398,7 +398,7 @@
 }
 
 .cardTimeValue {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #1F2937;
@@ -423,7 +423,7 @@
 }
 
 .cardTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #1F2937;
@@ -518,7 +518,7 @@
   gap: 4px;
   margin-left: auto;
   padding: 8px 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
   color: #1F2937;
@@ -547,7 +547,7 @@
 }
 
 .emptyTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #374151;

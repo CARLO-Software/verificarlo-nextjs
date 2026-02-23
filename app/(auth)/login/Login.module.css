@@ -26,7 +26,7 @@
    - Colors: shark (grays), bright-sun (yellows)
    - Border Radius: 32px (cards), 100px (buttons), 12px (inputs)
    - Spacing: 8px, 12px, 20px, 24px, 40px
-   - Typography: DM Sans (buttons/labels), Inter (headings/body)
+   - Typography: Inter (buttons/labels), Inter (headings/body)
    ============================================ */
 
 /* ============================================
@@ -198,7 +198,7 @@
 
 /* Labels */
 .label {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 14px;
     font-weight: 600;
     color: var(--shark--800);
@@ -323,7 +323,7 @@
    ============================================ */
 
 .submitButton {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 15px;
     font-weight: 600;
     letter-spacing: -0.03em;

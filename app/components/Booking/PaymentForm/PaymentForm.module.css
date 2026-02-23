@@ -169,7 +169,7 @@
 
 .backButton {
   flex: 1;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.03em;
@@ -198,7 +198,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.03em;

@@ -37,7 +37,7 @@
 }
 
 .headerTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: #1F2937;
@@ -159,7 +159,7 @@
 }
 
 .sectionTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: #1F2937;
@@ -412,7 +412,7 @@
   align-items: center;
   justify-content: center;
   padding: 12px 24px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #1F2937;
@@ -459,7 +459,7 @@
 }
 
 .resultValue {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 600;
 }
@@ -479,7 +479,7 @@
   align-items: center;
   justify-content: center;
   padding: 14px 24px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: white;
@@ -567,7 +567,7 @@
 }
 
 .overallScoreValue {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 32px;
   font-weight: 700;
   color: #1F2937;
@@ -587,7 +587,7 @@
 
 .overallScoreStatus {
   display: block;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 4px;
@@ -648,7 +648,7 @@
 }
 
 .resultScore {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #374151;

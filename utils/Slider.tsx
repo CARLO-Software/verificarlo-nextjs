@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useId } from "react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css"; // estilos necesarios
 
@@ -12,6 +12,7 @@ type SliderProps = {
 export const Slider = ({ metodoSlider, children }: SliderProps) => {
     // ref al div .splide
     const splideRef = useRef<HTMLDivElement>(null);
+    const uniqueId = useId();
 
 
     useLayoutEffect(() => {
@@ -96,11 +97,11 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
         };
 
 
-    }, []);
+    }, [metodoSlider]);
 
     return (
         <>
-            <div ref={splideRef} className="splide" >
+            <div ref={splideRef} id={`splide-${metodoSlider}-${uniqueId}`} className="splide" >
                 {children}
             </div>
         </>

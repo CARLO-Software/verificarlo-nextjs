@@ -160,7 +160,7 @@
   /* margin: 0 0 28px 0; */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
-  font-weight: 400;
+  font-weight: 300;
   color: rgb(219 219 219 / 90%);
   line-height: 1.5;
   padding: 10px;
@@ -190,7 +190,7 @@
 }
 
 /* ============================================
-   CTA Button (Blanco)
+   CTA Button (Blanco) - Animaciones Premium
    ============================================ */
 .ctaButton {
   display: inline-flex;
@@ -198,24 +198,91 @@
   justify-content: center;
   gap: 10px;
   padding: 16px 28px;
-  background: #FFFFFF;
-  color: #1F2937;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8F8F8 100%);
+  color: black;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de brillo dorado diagonal que pasa continuamente */
+.ctaButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(255, 215, 0, 0.5) 45%,
+    rgba(255, 235, 100, 0.7) 50%,
+    rgba(255, 215, 0, 0.5) 55%,
+    transparent 70%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: shineGold 3s ease-in-out infinite;
+}
+
+@keyframes shineGold {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 150%;
+  }
+}
+
+.ctaButton:hover::before {
+  animation: shineGoldFast 0.6s ease-out forwards;
+}
+
+@keyframes shineGoldFast {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 150%;
+  }
 }
 
 .ctaButton:hover {
-  background: #F8F8F8;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 10px 40px rgba(253, 181, 21, 0.4),
+    0 0 0 3px rgba(255, 225, 76, 0.2);
+}
+
+/* Animación de la flecha */
+.ctaButton svg {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ctaButton:hover svg {
+  transform: translateX(6px);
+  animation: arrowPulse 1s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% {
+    transform: translateX(6px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
 }
 
 .ctaButton:focus-visible {
@@ -224,7 +291,8 @@
 }
 
 .ctaButton:active {
-  transform: translateY(0);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 6px 25px rgba(253, 181, 21, 0.3);
 }
 
 /* ============================================
@@ -242,42 +310,84 @@
   width: 100%;
 }
 
-/* Botón Negro con ícono de auto */
+/* Botón Negro con ícono de auto - Animaciones Premium */
 .queRevisamosButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 14px;
-  background: #131211;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: #FFFFFF;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  /* font-size: 15px; */
-  font-weight: 600;
+  font-weight: 400;
   text-decoration: none;
   border-radius: 100px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Efecto de brillo interno sutil */
+.queRevisamosButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.queRevisamosButton:hover::before {
+  opacity: 1;
 }
 
 .queRevisamosButton:hover {
-  background: #374151;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 225, 76, 0.3);
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 225, 76, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Animación del ícono del auto */
+.queRevisamosButton svg:first-child {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.queRevisamosButton:hover svg:first-child {
+  transform: translateX(3px) scale(1.1);
+  filter: drop-shadow(0 0 8px rgba(255, 225, 76, 0.5));
 }
 
 .queRevisamosButton:focus-visible {
-  outline: 2px solid #1F2937;
+  outline: 2px solid #FFE14C;
   outline-offset: 3px;
 }
 
 .queRevisamosButton:active {
-  transform: translateY(0);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* Animación de rebote para el ícono en móvil */
 .queRevisamosButton svg:last-child {
   animation: bounceDown 2s ease-in-out infinite;
 }
@@ -343,7 +453,7 @@
    ============================================ */
 @media screen and (min-width: 1024px) {
   .heroContainer {
-    padding: 60px 48px;
+    padding: 0px 48px 70px;
   }
 
   .heroContent {
@@ -365,7 +475,7 @@
   }
 
   .ctaButton {
-     padding: 20px 14px;
+     padding: 18px 14px;
     font-size: 14px;
     gap: 12px;
   }
@@ -374,17 +484,36 @@
     flex-direction: row;
     padding: 0px 100px 20px;
   }
-  .queRevisamosButton{
+  .queRevisamosButton {
     width: 70%;
-    padding: 20px 14px;
+    padding: 18px 14px;
   }
+
+  /* En desktop, desactivar animación de rebote y usar hover más sofisticado */
   .queRevisamosButton svg:last-child {
     animation: none;
-    transition: transform 0.2s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .queRevisamosButton:hover svg:last-child {
     transform: translateY(3px);
+  }
+
+  /* Hover mejorado para el ícono del auto en desktop */
+  .queRevisamosButton:hover svg:first-child {
+    animation: carDrive 0.6s ease-in-out;
+  }
+
+  @keyframes carDrive {
+    0% {
+      transform: translateX(0) scale(1);
+    }
+    50% {
+      transform: translateX(5px) scale(1.15);
+    }
+    100% {
+      transform: translateX(3px) scale(1.1);
+    }
   }
 }
 
@@ -412,11 +541,12 @@
 }
 
 /* ============================================
-   Reduced Motion
+   Reduced Motion - Respeta preferencias del usuario
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
-  .queRevisamosButton svg:last-child {
-    animation: none;
+  .queRevisamosButton svg:last-child,
+  .queRevisamosButton svg:first-child {
+    animation: none !important;
   }
 
   .ctaButton:hover,
@@ -426,6 +556,17 @@
 
   .ctaButton,
   .queRevisamosButton {
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ctaButton::before,
+  .queRevisamosButton::before {
+    display: none;
+  }
+
+  .ctaButton svg,
+  .queRevisamosButton svg {
+    animation: none !important;
     transition: none;
   }
 }

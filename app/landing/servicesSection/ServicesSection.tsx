@@ -9,7 +9,7 @@ export default function ServicesSection() {
             <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
                 <div className={styles['services-div']}>
                     <h2 id="services-heading" className={styles['heading-2']}>
-                        <strong>Elige la inspección para tu</strong> próximo auto seminuevo
+                        El plan que eliges <strong>define cuánto descubres</strong>
                     </h2>
                 </div>
                 <Slider metodoSlider="servicios">
@@ -22,10 +22,19 @@ export default function ServicesSection() {
                                     const itemsForInspection = inspectionPlanItems.find(
                                         ii => ii.inspectionPlanId === inspectionIndex + 1
                                     );
-                                    
+
+                                    // Determinar si es el plan Premium (tercer plan)
+                                    const isPremium = inspection.classType === "last";
+
                                     return (
                                         <li key={inspection.type} className="splide__slide">
-                                            <article className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]}`}>
+                                            <article className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
+                                                {/* Badge superior solo para el plan Premium */}
+                                                {isPremium && (
+                                                    <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
+                                                        9 de cada 10 eligen este
+                                                    </span>
+                                                )}
                                                 <div className={styles['services-box']}>
                                                     <header className={styles['card-header']}>
                                                         <h3 className={styles['header-title']}>{inspection.title}</h3>
@@ -35,7 +44,7 @@ export default function ServicesSection() {
                                                     </header>
                                                     <div className="flex justify-between items-center w-full">
                                                         <p className={styles['card-price']} aria-label={`Precio ${inspection.price} soles`}>S/ {inspection.price}</p>
-                                                        {inspection.classType === "last" &&
+                                                        {isPremium &&
                                                             <span className={styles['badge-popular']} aria-label="Más popular">POPULAR</span>
                                                         }
                                                     </div>

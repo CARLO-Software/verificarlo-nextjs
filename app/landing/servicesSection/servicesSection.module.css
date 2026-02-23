@@ -21,6 +21,7 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
+  background-color: white;
 }
 
 
@@ -107,6 +108,10 @@
   text-decoration: none;
 }
 
+/* Feature container (lista de items "Incluye:")
+   - En móvil: Se oculta para simplificar la visualización de las cards
+   - En PC (992px+): Se muestra con fondo de imagen y sombra interna para destacar visualmente
+*/
 .feature-container {
   grid-row-gap: 14px;
   flex-direction: column;
@@ -114,8 +119,24 @@
   align-items: flex-start;
   width: 100%;
   text-decoration: none;
-  display: flex;
+  display: none;
   color: black;
+}
+
+@media screen and (min-width: 992px) {
+  .feature-container {
+    display: flex;
+    /* Fondo con gradiente sutil - Si tienes imagen, agrégala en /public/assets/images/feature-bg.webp y descomenta la línea siguiente */
+    /* background-image: url('/assets/images/feature-bg.webp'); */
+    background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 16px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 -2px 8px rgba(0, 0, 0, 0.05);
+  }
 }
 
 .feature-header {
@@ -178,7 +199,7 @@
   justify-content: center;
   align-items: center;
   padding: 14px 24px;
-  font-family: DM Sans, sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 14px;
   font-weight: 600;
   line-height: 100%;
@@ -201,9 +222,43 @@
   border-radius: 5px;
   font-weight: bold;
   font-size: 12px;
-  display: inline-block;
+  display: none;
   font-family: 'Inter', sans-serif;
   line-height: 110%;
+}
+
+/* Plan Premium (tercer plan)
+   - Fondo color cremita (#FFF8E7) para diferenciarlo visualmente como el plan destacado
+   - Borde más grueso para reforzar la jerarquía visual
+*/
+.services-card-premium {
+  background-color: #FFF8E7;
+  border: 2px solid #E8D9B8;
+  position: relative;
+}
+
+/* Badge superior para el plan Premium
+   - Mensaje de prueba social: "9 de cada 10 eligen este"
+   - Posicionado en la parte superior de la card para captar atención inmediata
+*/
+.badge-top {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #2D3436 0%, #1a1a1a 100%);
+  color: #FFF8E7;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  line-height: 110%;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .section-background {
@@ -250,6 +305,14 @@
   .services-div {
     text-align: center;
     justify-content: flex-start;
+  }
+}
+
+/* Estilos móvil - Cards más compactas sin los items */
+@media screen and (max-width: 991px) {
+  .services-card {
+    height: auto;
+    min-height: 280px;
   }
 }
 

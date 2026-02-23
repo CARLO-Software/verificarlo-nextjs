@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     background: var(--bright-sun--300);
-    height: 42px;
+    height: 30px;
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
@@ -95,8 +95,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
+    width: 30px;
+    height: 30px;
     background: transparent;
     border: none;
     border-left: 1px solid var(--shark--800);

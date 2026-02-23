@@ -56,7 +56,7 @@
 }
 
 .mobileHeaderTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 18px;
   font-weight: 600;
   margin: 2px 0 0 0;
@@ -68,7 +68,7 @@
 
 .mobileHeaderPercentage {
   display: block;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 24px;
   font-weight: 700;
   color: #FFE14C;
@@ -243,7 +243,7 @@
   height: 28px;
   background: #F3F4F6;
   color: #6B7280;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 600;
   border-radius: 8px;
@@ -263,7 +263,7 @@
 }
 
 .sectionTitle {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 16px;
   font-weight: 600;
   color: #1F2937;
@@ -331,7 +331,7 @@
   justify-content: center;
   gap: 8px;
   padding: 14px 28px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: #1F2937;

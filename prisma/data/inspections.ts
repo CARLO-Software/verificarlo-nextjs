@@ -1,9 +1,10 @@
+//TODO: Subirlo a la base de datos y eliminar este archivo
 import { INSPECTION_PLAN } from "@/constants/inspection"
 
 export const inspectionPlans = [
-    { id: 1, type: INSPECTION_PLAN.legal, title: "Inspección Legal", description: "Cumple requisitos normativos", landingDescription: "Ideal para quienes saben de mecánica y quieren complementar con la verificación legal.", price: 49, classType: "first" },
-    { id: 2, type: INSPECTION_PLAN.basica, title: "Inspección Básica", description: "Revisión general del vehículo", landingDescription: "Revisamos los puntos clave en la mecánica, estética y legal del carro que quieres comprar.", price: 249, classType: "middle" },
-    { id: 3, type: INSPECTION_PLAN.completa, title: "Inspección Completa", description: "Revisión técnica y legal", landingDescription: "Para quienes buscan verificar hasta el alma del carro. Incluye soporte en el trámite notarial.", price: 299, classType: "last" },
+    { id: 1, type: INSPECTION_PLAN.legal, title: "Inspección Legal Express", description: "Cumple requisitos normativos", landingDescription: "Ideal si ya revisaste la mecánica y solo necesitas conocer su historial", price: 49, classType: "first" },
+    { id: 2, type: INSPECTION_PLAN.basica, title: "Inspección Completa 360°", description: "Revisión general del vehículo", landingDescription: "Verifica lo esencial antes de firmar. Mecánica, estética y legal", price: 249, classType: "middle" },
+    { id: 3, type: INSPECTION_PLAN.completa, title: "Inspección Premium Plus", description: "Revisión técnica y legal", landingDescription: "La verificación más completa y detallada del mercado que incluye videoscopia y asesoría.", price: 299, classType: "last" },
 ]
 
 export const inspectionPlanItems = [

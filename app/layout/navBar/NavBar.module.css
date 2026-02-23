@@ -76,7 +76,7 @@
 }
 
 .logo-text {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
   font-weight: 700;
   letter-spacing: 0.5px;
@@ -190,9 +190,9 @@
   white-space: pre-line;
   margin-top: 0;
   margin-bottom: 0;
-  font-family: DM Sans, sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 110%;
   text-decoration: none;
 }
@@ -221,7 +221,7 @@
   justify-content: center;
   align-items: center;
   padding: 12px 20px;
-  font-family: DM Sans, sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 15px;
   font-weight: 600;
   line-height: 100%;
@@ -234,7 +234,7 @@
   background-color: var(--bright-sun--500, #EAB308);
 }
 
-/* CTA Secundario - Registrarse */
+/* CTA Secundario - Registrarse (con animaciones premium) */
 .secondary-cta {
   display: inline-flex;
   gap: 10px;
@@ -246,21 +246,73 @@
   justify-content: center;
   align-items: center;
   padding: 12px 20px;
-  font-family: DM Sans, sans-serif;
+  font-family: Inter, sans-serif;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 100%;
   text-decoration: none;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Efecto shimmer - brillo que pasa por el botón */
+.secondary-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 225, 76, 0.4) 50%,
+    transparent 100%
+  );
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  50%, 100% {
+    left: 100%;
+  }
 }
 
 .secondary-cta:hover {
-  background-color: var(--shark--900);
+  background-color: var(--bright-sun--300);
+  color: var(--shark--950);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(255, 225, 76, 0.4);
+}
+
+.secondary-cta:hover::before {
+  animation: none;
+  opacity: 0;
+}
+
+/* Animación del ícono en hover */
+.secondary-cta svg {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.secondary-cta:hover svg {
+  transform: scale(1.15);
+}
+
+.secondary-cta:active {
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 4px 15px rgba(255, 225, 76, 0.3);
 }
 
 .nav-container {
   justify-content: flex-start;
   max-width: 1440px;
-  padding: 24px 5.25% 24px 5%;
+  padding: 10px 3.25% 24px 3.25%;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -342,7 +394,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 600;
   overflow: hidden;
@@ -355,7 +407,7 @@
 }
 
 .user-name {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--shark--950);
@@ -414,7 +466,7 @@
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--shark--800);
@@ -440,7 +492,7 @@
   padding: 12px 16px;
   background: transparent;
   border: none;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: #dc2626;
@@ -455,7 +507,7 @@
 /* Auth Buttons */
 .auth-button {
   padding: 10px 20px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
@@ -762,7 +814,7 @@
   /* Texto del sidebar - estilo premium */
   .navbar-box .navbar-text {
     font-size: 17px;
-    font-weight: 500;
+    font-weight: 400;
     color: var(--shark--950) !important;
     letter-spacing: -0.01em;
     transition: color 0.2s ease;
