@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Slider } from "@/utils/Slider";
 import styles from './ServicesSection.module.css';
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
-import { X, FileText } from "lucide-react";
+import { X, FileText, Play } from "lucide-react";
+import { title } from "process";
 
 type ModalData = {
     title: string;
@@ -12,25 +13,44 @@ type ModalData = {
     price: number;
     items: string[];
     whatsappLink: string;
+    planIndex: number;
+    videoId: string | null; // ID del video de YouTube (null para plan básico que usa PDF)
 } | null;
+
+// IDs de videos de YouTube para cada plan (reemplazar con los reales)
+const PLAN_VIDEO_IDS: Record<number, string | null> = {
+    0: null,           // Plan Básico: usa PDF, no video
+    1: "IRIAhxOg6hU",  // Plan Estándar: reemplazar con ID real
+    2: "tgBM9EGWLig", // Plan Premium: reemplazar con ID real
+};
 
 export default function ServicesSection() {
     const [modalData, setModalData] = useState<ModalData>(null);
+    // Controla si el video está reproduciéndose en el modal
+    const [isPlayingVideo, setIsPlayingVideo] = useState(false);
 
-    const openModal = (inspection: typeof inspectionPlans[0], items: string[]) => {
+    const openModal = (inspection: typeof inspectionPlans[0], items: string[], planIndex: number) => {
         setModalData({
             title: inspection.title,
             description: inspection.landingDescription,
             price: inspection.price,
             items,
-            whatsappLink: `https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20${encodeURIComponent(inspection.title)}.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98`
+            whatsappLink: `https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20${encodeURIComponent(inspection.title)}.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98`,
+            planIndex,
+            videoId: PLAN_VIDEO_IDS[planIndex] // Asigna el video según el plan
         });
         document.body.style.overflow = "hidden";
     };
 
     const closeModal = () => {
         setModalData(null);
+        setIsPlayingVideo(false); // Reset al cerrar
         document.body.style.overflow = "";
+    };
+
+    // Activa la reproducción del video
+    const handlePlayVideo = () => {
+        setIsPlayingVideo(true);
     };
 
     return (
@@ -38,7 +58,7 @@ export default function ServicesSection() {
             <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
                 <div className={styles['services-div']}>
                     <h2 id="services-heading" className={styles['heading-2']}>
-                        El plan que eliges <strong>define cuánto descubres</strong>
+                        El plan que eliges <span className={styles['negrita']}>define cuánto descubres</span>
                     </h2>
                 </div>
                 {/* Versión Móvil - Cards en vertical */}
@@ -53,7 +73,7 @@ export default function ServicesSection() {
                             <article key={inspection.type} className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
                                 {isPremium && (
                                     <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
-                                        9 de cada 10 eligen este
+                                        <img src="/assets/images/estrellita.png" alt="Badge top" /> 9 de cada 10 eligen este
                                     </span>
                                 )}
                                 <div className={styles['services-box']}>
@@ -78,7 +98,7 @@ export default function ServicesSection() {
                                     <button
                                         type="button"
                                         className={styles['btn-secondary']}
-                                        onClick={() => openModal(inspection, itemsForInspection?.label || [])}
+                                        onClick={() => openModal(inspection, itemsForInspection?.label || [], inspectionIndex)}
                                         aria-label={`Saber más sobre ${inspection.title}`}
                                     >
                                         Saber más
@@ -106,7 +126,7 @@ export default function ServicesSection() {
                                                 <article className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
                                                     {isPremium && (
                                                         <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
-                                                            9 de cada 10 eligen este
+                                                            <img src="/assets/images/estrellita.png" alt="Badge top" /> 9 de cada 10 eligen este
                                                         </span>
                                                     )}
                                                     <div className={styles['services-box']}>
@@ -151,18 +171,9 @@ export default function ServicesSection() {
             {/* Modal "Saber más" */}
             {modalData && (
                 <div className={styles['modal-overlay']} onClick={closeModal}>
-                    <div className={styles['modal-content']} onClick={(e) => e.stopPropagation()}>
-                        {/* Imagen de fondo */}
-                        <div className={styles['modal-background']}>
-                            <img
-                                src="/assets/images/modal-bg.webp"
-                                alt=""
-                                className={styles['modal-bg-image']}
-                            />
-                            <div className={styles['modal-bg-overlay']} />
-                        </div>
-
-                        {/* Botón cerrar */}
+                    {/* Wrapper para que la X no se corte por el overflow:hidden */}
+                    <div className={styles['modal-wrapper']} onClick={(e) => e.stopPropagation()}>
+                        {/* Botón cerrar - Fuera del modal-content para que no se corte */}
                         <button
                             className={styles['modal-close']}
                             onClick={closeModal}
@@ -171,23 +182,66 @@ export default function ServicesSection() {
                             <X size={20} />
                         </button>
 
+                        <div className={styles['modal-content']}>
+                            {/* Fondo del modal: muestra video o imagen según el estado */}
+                            <div className={`${styles['modal-background']} ${isPlayingVideo ? styles['modal-background-video'] : ''}`}>
+                                {isPlayingVideo && modalData.videoId ? (
+                                    // Iframe de YouTube cuando el usuario hace clic en "Ver video"
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${modalData.videoId}?autoplay=1&rel=0`}
+                                        title="Video del plan"
+                                        className={styles['modal-video']}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                ) : (
+                                    // Imagen de fondo por defecto
+                                    <>
+                                        <img
+                                            src="/assets/images/modal-bg.svg"
+                                            alt="foto de fondo modal"
+                                            className={styles['modal-bg-image']}
+                                        />
+                                        <div className={styles['modal-bg-overlay']} />
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Botón: PDF para plan básico, Video para otros planes */}
+                            {/* Se oculta cuando el video está reproduciéndose */}
+                            {!isPlayingVideo && (
+                                modalData.planIndex === 0 ? (
+                                    // Plan Básico: enlace al PDF
+                                    <a
+                                        href="/assets/docs/informe-legal-ejemplo.pdf"
+                                        target="_blank"
+                                        className={`${styles['btn-view-report']} ${styles['ripple-animation']}`}
+                                        aria-label="Ver informe legal de ejemplo"
+                                    >
+                                        <FileText size={18} color="black" />
+                                        <span>Ver informe legal</span>
+                                    </a>
+                                ) : (
+                                    // Planes 2 y 3: botón circular para reproducir video
+                                    <button
+                                        type="button"
+                                        onClick={handlePlayVideo}
+                                        className={`${styles['btn-view-report']} ${styles['btn-play-circle']} ${styles['ripple-animation']}`}
+                                        aria-label="Ver video"
+                                    >
+                                        <Play size={16} color="black" fill="black" />
+                                    </button>
+                                )
+                            )}
+
                         {/* Contenido del modal */}
-                        <div className={styles['modal-body']}>
-                            {/* Botón Ver informe legal - Arriba */}
-                            <a
-                                href="/assets/docs/informe-legal-ejemplo.pdf"
-                                target="_blank"
-                                className={styles['btn-view-report']}
-                                aria-label="Ver informe legal de ejemplo"
-                            >
-                                <FileText size={18} color="white" />
-                                <span>Ver informe legal</span>
-                            </a>
+                        <div className={`${styles['modal-body']} ${isPlayingVideo ? styles['modal-body-video'] : ''}`}>
+
 
                             <div className={styles['modal-header']}>
                                 <h3 className={styles['modal-title']}>{modalData.title}</h3>
                                 <p className={styles['modal-description']}>
-                                    {modalData.description} <span className={styles['modal-price-inline']}>por s/{modalData.price}.</span>
+                                    {modalData.description} <span className={styles['modal-price-inline']}>por S/{modalData.price}.</span>
                                 </p>
                             </div>
 
@@ -195,8 +249,7 @@ export default function ServicesSection() {
                                 {modalData.items.map((item, index) => (
                                     <li key={index} className={styles['modal-item']}>
                                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
-                                            <circle cx="12" cy="12" r="10" fill="#FFE14C" />
-                                            <path d="M8 12l3 3 5-5" stroke="#1a1a1a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                                            <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
                                         </svg>
                                         <span>{item}</span>
                                     </li>
@@ -216,7 +269,8 @@ export default function ServicesSection() {
                                 </svg>
                             </a>
                         </div>
-                    </div>
+                        </div>{/* cierre modal-content */}
+                    </div>{/* cierre modal-wrapper */}
                 </div>
             )}
         </section >

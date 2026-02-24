@@ -24,7 +24,6 @@
   background-color: white;
 }
 
-
 .services-div {
   flex: 0 auto;
   justify-content: center;
@@ -39,7 +38,6 @@
 
 .services-card {
   background-color: var(--shark--50);
-  border: .5px solid #d4d4d4;
   border-radius: 24px;
   flex-direction: column;
   justify-content: space-between;
@@ -50,7 +48,7 @@
   text-decoration: none;
   display: flex;
   position: relative;
-  gap:20px;
+  gap: 20px;
 }
 
 .services-box {
@@ -79,10 +77,11 @@
   margin-top: 0;
   margin-bottom: 0;
   font-family: Inter, sans-serif;
-  font-size: 19.5px;
+  font-size: 23.5px;
   font-weight: 700;
   line-height: 110%;
   text-decoration: none;
+  font-style: italic;
 }
 
 .card-description {
@@ -177,18 +176,21 @@
 .heading-2 {
   color: var(--shark--950);
   text-align: center;
-  text-transform: uppercase;
   width: 100%;
   margin-top: 0;
   margin-bottom: 0;
   margin-right: 0;
   font-family: Inter, sans-serif;
   font-size: 36px;
-  font-style: italic;
   font-weight: 400;
   line-height: 110%;
   text-decoration: none;
   display: inline-block;
+}
+
+.negrita {
+  font-weight: 700;
+  font-style: italic;
 }
 
 .primary-cta {
@@ -228,13 +230,30 @@
   line-height: 110%;
 }
 
+/* Plan Básico (primer plan)
+   - Fondo gris claro (#f8f7f7) para diferenciarlo del plan estándar
+   - Borde gris suave (#e7e6e6)
+*/
+.services-card-first {
+  background-color: #f8f7f7;
+  border: 1px solid #e7e6e6;
+}
+
+/* Plan Estándar (segundo plan)
+   - Fondo azul muy claro (#f2f9ff) para diferenciarlo del básico
+   - Borde azul claro (#bbe3ff)
+*/
+.services-card-middle {
+  background-color: #f2f9ff;
+  border: 1px solid #bbe3ff;
+}
+
 /* Plan Premium (tercer plan)
-   - Fondo color cremita (#FFF8E7) para diferenciarlo visualmente como el plan destacado
+   - Fondo color amarillo (#ffe14c) para diferenciarlo visualmente como el plan destacado
    - Borde más grueso para reforzar la jerarquía visual
 */
 .services-card-premium {
-  background-color: #FFF8E7;
-  border: 2px solid #E8D9B8;
+  background-color: #ffe14c;
   position: relative;
 }
 
@@ -247,19 +266,29 @@
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #2D3436 0%, #1a1a1a 100%);
-  color: #FFF8E7;
+  background: #ffe14c;
+  color: black;
   padding: 8px 16px;
   border-radius: 20px;
-  font-weight: 700;
-  font-size: 11px;
+  font-weight: 500;
+  font-size: 12px;
   font-family: 'Inter', sans-serif;
-  line-height: 110%;
+  line-height: 88%;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 10;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+}
+
+.badge-top img {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  margin-bottom: 1px;
 }
 
 .section-background {
@@ -314,7 +343,7 @@
   .services-card {
     height: auto;
     min-height: auto;
-    padding: 24px 20px 20px;
+    padding: 24px 24px 20px;
   }
 }
 
@@ -325,17 +354,11 @@
     padding-bottom: 100px;
   }
 
-  .services-card {
-    overflow: hidden;
-  }
+
 
   .services-div .heading-2 {
-    font-size: 26px;
+    font-size: 28px;
     max-width: 320px;
-  }
-
-  .heading-2 {
-    font-size: 24px;
   }
 }
 
@@ -382,8 +405,8 @@
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: #FFFFFF;
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
   border: none;
@@ -403,14 +426,13 @@
   align-items: center;
   justify-content: center;
   padding: 14px 16px;
-  background: transparent;
+  background: white;
   color: var(--shark--950);
   font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 13.5px;
+  font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
-  border: 1.5px solid var(--shark--300);
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -447,20 +469,32 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Wrapper del modal - permite que la X se vea fuera del contenido */
+.modal-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .modal-content {
   position: relative;
   width: 100%;
-  max-width: 380px;
   max-height: 85vh;
   background: #1a1a1a;
   border-radius: 24px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideUp {
@@ -468,6 +502,7 @@
     opacity: 0;
     transform: translateY(30px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -498,35 +533,49 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(26, 26, 26, 0.3) 0%,
-    rgba(26, 26, 26, 0.6) 50%,
-    rgba(26, 26, 26, 1) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(26, 26, 26, 0.3) 0%,
+      rgba(26, 26, 26, 0.6) 50%,
+      rgba(26, 26, 26, 1) 100%);
 }
 
-/* Botón cerrar modal */
+/* Video embebido de YouTube */
+.modal-video {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Cuando hay video, el contenedor crece para mostrarlo mejor */
+.modal-background-video {
+  position: relative;
+  height: 180px;
+  width: 100%;
+  z-index: 10;
+}
+
+/* Botón cerrar modal - Esquina superior derecha */
 .modal-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 36px;
-  height: 36px;
+  top: -12px;
+  right: -12px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #FFFFFF;
+  border: none;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 10;
+  z-index: 20;
   transition: all 0.2s ease;
-  color: #FFFFFF;
+  color: #000000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: #e0e0e0;
   transform: rotate(90deg);
 }
 
@@ -538,8 +587,25 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-height: 85vh;
-  overflow-y: auto;
+}
+
+/* Cuando hay video, reduce el padding-top */
+.modal-body-video {
+  padding-top: 24px;
+}
+
+/* Botón circular para solo icono de play */
+.btn-play-circle {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
 }
 
 /* Botón Ver informe legal - Arriba */
@@ -547,12 +613,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  align-self: flex-start;
   gap: 8px;
-  padding: 12px 20px;
-  background: rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  background-color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #FFFFFF;
+  color: #000000;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -560,15 +625,20 @@
   border-radius: 100px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  position: absolute;
+  overflow: visible;
+  left: 50%;
+  top: 50px;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: max-content;
 }
 
 /* Efecto hover con capa blanca y borde ovalado */
 .btn-view-report:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
 }
 
 .btn-view-report svg {
@@ -587,6 +657,7 @@
   color: #FFFFFF;
   margin: 0 0 12px 0;
   line-height: 1.1;
+  font-style: italic;
 }
 
 .modal-description {
@@ -661,4 +732,24 @@
 
 .modal-cta:hover svg {
   transform: translateX(4px);
+}
+
+/* ============================================
+   Animación de Gota de Agua (Ripple Effect con box-shadow)
+   ============================================ */
+.ripple-animation {
+  animation: ripple-shadow 2.5s ease-out infinite;
+}
+
+@keyframes ripple-shadow {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255, 255, 255, 0.5),
+      0 0 0 0 rgba(200, 200, 200, 0.4);
+  }
+  100% {
+    box-shadow:
+      0 0 0 18px rgba(255, 255, 255, 0),
+      0 0 0 30px rgba(180, 180, 180, 0);
+  }
 }
