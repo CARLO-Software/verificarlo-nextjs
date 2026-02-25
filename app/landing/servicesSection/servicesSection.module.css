@@ -5,7 +5,7 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  max-width: 1440px;
+  max-width: 100%;           /* Sin límite de ancho */
   padding-left: 20px;
   padding-right: 20px;
   text-decoration: none;
@@ -16,12 +16,30 @@
   z-index: 0;
   align-items: stretch;
   height: auto;
-  padding-top: 104px;
+  padding-top: 40px;
   padding-bottom: 164px;
   display: flex;
   flex-direction: column;
   gap: 40px;
   background-color: white;
+}
+
+/* Header que contiene título + flechas */
+.services-header {
+  display: flex;
+  flex-direction: column;     /* En móvil: vertical */
+  align-items: center;
+  width: 100%;
+  padding: 0 20px;
+}
+
+@media screen and (min-width: 992px) {
+  .services-header {
+    flex-direction: row;      /* En PC: horizontal */
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+  }
 }
 
 .services-div {
@@ -34,6 +52,20 @@
 .services-div .heading-2 {
   max-width: 572px;
   margin: 0 auto;
+}
+
+@media screen and (min-width: 992px) {
+  .services-div {
+    justify-content: flex-start;
+    width: auto;
+  }
+
+  .services-div .heading-2 {
+    margin: 0;
+    text-align: left;
+    font-size: 40px;
+    max-width: 600px;
+  }
 }
 
 .services-card {
@@ -669,9 +701,34 @@
   line-height: 1.5;
 }
 
+/* Precio inline - visible solo en móvil */
 .modal-price-inline {
   color: #FFE14C;
   font-weight: 600;
+}
+
+/* Precio grande - visible solo en PC */
+.modal-price-desktop {
+  display: none;             /* Oculto en móvil */
+  margin: 0;
+}
+
+@media screen and (min-width: 992px) {
+  /* En PC: ocultar precio inline */
+  .modal-price-inline {
+    display: none;
+  }
+
+  /* En PC: mostrar precio grande */
+  .modal-price-desktop {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 32px;
+    font-weight: 900;        /* Negrita extra */
+    color: #FFFFFF;          /* Blanco */
+    margin: 8px 0 0 0;
+    line-height: 1.1;
+  }
 }
 
 /* Lista de items del modal */
@@ -747,9 +804,313 @@
       0 0 0 0 rgba(255, 255, 255, 0.5),
       0 0 0 0 rgba(200, 200, 200, 0.4);
   }
+
   100% {
     box-shadow:
       0 0 0 18px rgba(255, 255, 255, 0),
       0 0 0 30px rgba(180, 180, 180, 0);
   }
+}
+
+/* ============================================
+   Desktop Carousel - Carrusel con Splide (≥992px)
+   ============================================ */
+
+/* Contenedor principal - oculto en móvil */
+.desktop-carousel {
+  display: none;
+}
+
+/* Solo visible en pantallas grandes */
+@media screen and (min-width: 992px) {
+  .desktop-carousel {
+    display: block;
+    width: 100%;
+    max-width: 100%;         /* Sin límite - ocupa todo el ancho */
+    margin: 0;
+    padding: 0;
+  }
+
+  .services-container {
+    padding-bottom: 0px;
+  }
+}
+
+/* ============================================
+   Flechas de navegación (junto al título)
+   ============================================ */
+.carousel-arrows {
+  display: none;             /* Ocultas en móvil */
+  gap: 8px;
+}
+
+@media screen and (min-width: 992px) {
+  .carousel-arrows {
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* Estilo base de cada flecha */
+.carousel-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 100px;      /* Forma de píldora */
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Flecha activa - Negra (puede navegar) */
+.carousel-arrow-active {
+  background: #1a1a1a;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.carousel-arrow-active:hover {
+  background: #333333;
+}
+
+/* Flecha deshabilitada - Gris (no puede navegar más) */
+.carousel-arrow-disabled {
+  background: #E5E5E5;
+  color: #999999;
+  cursor: not-allowed;
+}
+
+.carousel-arrow-disabled:hover {
+  background: #E5E5E5;        /* No cambia en hover */
+}
+
+.carousel-arrow:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ============================================
+   Slides del carrusel
+   ============================================ */
+
+/* Cada slide del carrusel */
+.carousel-slide {
+  width: 100%;
+  height: 450px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.carousel-slide:hover {
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+  transition: box-shadow 0.3s ease;
+}
+
+/* Slide destacado (Premium Plus) - borde amarillo */
+.carousel-slide-featured {
+  border: 8px solid #FFD700;
+  box-shadow: 0 10px 40px rgba(255, 215, 0, 0.3);
+}
+
+/* Hover para el slide destacado - sombra amarilla más intensa */
+.carousel-slide-featured:hover {
+  box-shadow: 0 15px 50px rgba(255, 215, 0, 0.4);
+}
+
+/* Fila del título con badge */
+.carousel-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Badge "MÁS POPULAR" */
+.badge-popular {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: #FFD700;
+  color: #000000;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Imagen de fondo - cubre todo el slide */
+.carousel-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  user-select: none;
+  pointer-events: none;      /* No bloquea el drag */
+}
+
+/* Degradado oscuro de IZQUIERDA a DERECHA (oscuro izq, claro der) */
+.carousel-gradient {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to right,
+      rgba(0, 0, 0, 0.95) 0%,
+      rgba(0, 0, 0, 0.85) 30%,
+      rgba(0, 0, 0, 0.4) 60%,
+      rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;      /* No bloquea el drag */
+}
+
+/* Contenido del plan - posicionado a la IZQUIERDA sobre la imagen */
+.carousel-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 452px;
+  height: 100%;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1;
+}
+
+/* Header del carrusel */
+.carousel-header {
+  text-align: left;
+}
+
+.carousel-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #FFFFFF;            /* Texto blanco */
+  margin: 0 0 8px 0;
+  line-height: 1.1;
+  font-style: italic;
+}
+
+.carousel-description {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.8);  /* Texto blanco semi-transparente */
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Precio grande del carrusel - estilo igual al modal en PC */
+.carousel-price-large {
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 900;          /* Negrita extra */
+  color: #FFFFFF;            /* Blanco */
+  margin: 8px 0 0 0;
+  line-height: 1.1;
+}
+
+/* Lista de items */
+.carousel-items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;                   /* Ocupa el espacio disponible */
+  overflow-y: auto;
+}
+
+.carousel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);  /* Texto blanco */
+  line-height: 1.3;
+}
+
+/* Botón CTA del carrusel */
+.carousel-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 225, 76, 0.3);
+}
+
+.carousel-cta:hover {
+  background: linear-gradient(135deg, #FDB515 0%, #F5A623 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 225, 76, 0.4);
+}
+
+.carousel-cta svg {
+  transition: transform 0.3s ease;
+}
+
+.carousel-cta:hover svg {
+  transform: translateX(4px);
+}
+
+/* Contenedor de los 2 botones del carrusel */
+.carousel-buttons {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+/* Botón secundario blanco ("Ver informe legal" / "Ver video") */
+.carousel-btn-secondary {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  background: #FFFFFF;
+  color: #1a1a1a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.carousel-btn-secondary:hover {
+  background: #f0f0f0;
+  transform: translateY(-2px);
+}
+
+/* Ajuste del botón CTA para que ocupe el mismo espacio que el secundario */
+.carousel-cta {
+  flex: 1;
 }

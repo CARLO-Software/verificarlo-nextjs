@@ -1,5 +1,5 @@
 "use client" //si no se ponia era use client de todas maneras, porque se está haciendo uso del useState
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { LoginFormData, FormErrors } from "./types";
@@ -10,10 +10,13 @@ export function useLogin() {
     const router = useRouter();
     const { showToast } = useToast();
     const { data: session, status } = useSession();
+    const hasShownToast = useRef(false);
 
     useEffect(() => {
         if (status !== "authenticated") return;
+        if (hasShownToast.current) return;
 
+        hasShownToast.current = true;
         const role = session.user.role;
         showToast("Bienvenido!", "success");
 
@@ -134,8 +137,6 @@ export function useLogin() {
                 setGeneralError("Credenciales incorrectas. Por favor, verifica tu email y contraseña.");
                 return;
             }
-
-            showToast("Bienvenido! Has iniciado sesión correctamente.", "success");
 
         } catch (err) {
             setGeneralError(
