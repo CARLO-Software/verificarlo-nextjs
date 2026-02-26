@@ -4,6 +4,7 @@ import ServicesSection from "./landing/servicesSection/ServicesSection";
 import BenefitsSection from "./landing/benefits/BenefitsSection";
 import EligeTranquiloSection from "./landing/eligeTranquilo/EligeTranquiloSection";
 import CentroInspeccionSection from "./landing/centroInspeccion/CentroInspeccionSection";
+import RiesgosSection from "./landing/riesgos_miles_soles/RiesgosSection";
 import FAQ from "./landing/faq/FAQ";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -43,6 +44,7 @@ export default async function Home() {
 
 
         {/* TODO: Riesgos que pueden costar miles */}
+        <RiesgosSection />
 
         {/* TODO: BLOG */}
 

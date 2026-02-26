@@ -24,6 +24,9 @@ export default function NavBar() {
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const hamburgerRef = useRef<HTMLButtonElement>(null);
 
+  // Estado para detectar cuando estamos en la sección de servicios
+  const [isInServicesSection, setIsInServicesSection] = useState(false);
+
   // Detectar scroll para cambiar el estilo del navbar
   useEffect(() => {
     function handleScroll() {
@@ -33,6 +36,54 @@ export default function NavBar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Detectar cuando llegamos a la sección de servicios (solo en PC)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkServicesSection = () => {
+      // Solo en PC (>= 992px)
+      if (window.innerWidth < 992) {
+        setIsInServicesSection(false);
+        return;
+      }
+
+      const servicesSection = document.getElementById("planes");
+      if (!servicesSection) return;
+
+      // Obtener la posición de la sección relativa al viewport
+      const rect = servicesSection.getBoundingClientRect();
+
+      // Si el top de la sección está por encima de 100px del viewport
+      // significa que hemos llegado o pasado la sección
+      if (rect.top <= 100) {
+        setIsInServicesSection(true);
+      } else {
+        setIsInServicesSection(false);
+      }
+    };
+
+    // Verificar al cargar
+    checkServicesSection();
+
+    // Verificar en cada scroll
+    window.addEventListener("scroll", checkServicesSection);
+    window.addEventListener("resize", checkServicesSection);
+
+    return () => {
+      window.removeEventListener("scroll", checkServicesSection);
+      window.removeEventListener("resize", checkServicesSection);
+    };
+  }, []);
+
+  // Actualizar atributo en el documento para que otros componentes lo detecten
+  useEffect(() => {
+    if (isInServicesSection) {
+      document.documentElement.setAttribute("data-in-services", "true");
+    } else {
+      document.documentElement.removeAttribute("data-in-services");
+    }
+  }, [isInServicesSection]);
 
   useEffect(() => {
     //Se ejecuta cada vez que haces click en cualquier parte del documento
@@ -94,7 +145,7 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""}`}
+      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""} ${isInServicesSection ? styles["navbarServices"] : ""}`}
       role="navigation"
       aria-label="Navegacion principal"
     >

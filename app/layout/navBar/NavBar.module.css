@@ -34,6 +34,60 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
+/* ============================================
+   Estado cuando llegamos a la sección de servicios (solo PC)
+   - Navbar se vuelve fixed (pegado arriba)
+   - Fondo blanco
+   - Texto negro
+   ============================================ */
+.navbarServices {
+  position: fixed;
+  top: 30px; /* Altura exacta del banner */
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+/* Ajustar padding para que esté pegado al banner */
+.navbarServices .nav-container {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Texto negro cuando estamos en la sección de servicios */
+.navbarServices .navbar-text {
+  color: var(--shark--950) !important;
+}
+
+/* Logo negro en modo servicios - usar filtro para oscurecer */
+.navbarServices .logo-image {
+  filter: brightness(0) saturate(100%);
+}
+
+/* User icon en modo servicios */
+.navbarServices .user-icon-button {
+  border-color: var(--shark--300);
+  color: var(--shark--700);
+}
+
+/* Hamburger en modo servicios */
+.navbarServices .hamburger-line {
+  background-color: var(--shark--950);
+}
+
 /* Cambiar colores de texto cuando es transparente (solo en Hero, sin scroll ni solid) */
 .navbar:not(.navbarScrolled):not(.navbarSolid) .navbar-text {
   color: var(--basics--white);

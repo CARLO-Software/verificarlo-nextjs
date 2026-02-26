@@ -1,0 +1,270 @@
+.riesgos-section{
+    background: url("/assets/images/riesgos_evitar.png");
+    padding: 60px 20px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.riesgos-section::before{
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.6) 40%,
+        rgba(0, 0, 0, 0.3) 70%,
+        rgba(0, 0, 0, 0.1) 100%
+    );
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Carrusel móvil - visible solo en móvil */
+.riesgos-carousel{
+    display: block;
+    margin-top: 40px;
+    margin-left: -20px;
+    margin-right: -20px;
+    overflow: hidden;
+}
+
+/* Grid desktop - oculto en móvil */
+.riesgos-flex{
+    display: none;
+    flex-direction: row;
+    gap: 20px;
+    margin-top: 60px;
+}
+.riesgos-header{
+    font-size: 34px;
+    margin-bottom: 20px;
+    text-align: left;
+    font-weight: 400;
+    color: white;
+    line-height: 1.3;
+}
+/* Responsive: tablet y desktop */
+@media screen and (min-width: 768px) {
+    .riesgos-carousel{
+        display: none;
+    }
+
+    .riesgos-flex{
+        display: flex;
+    }
+
+    .riesgos-header{
+        font-size: 44px;
+        margin-bottom: 40px;
+        text-align: center;
+    }
+
+    .riesgos-highlight{
+        display: block;
+    }
+}
+
+
+
+.riesgos-item{
+    padding: 20px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: white;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.riesgos-item:hover{
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: translateY(-4px);
+}
+
+.riesgos-button{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
+    color: #1a1a1a;
+    border: none;
+    padding: 16px 28px;
+    border-radius: 100px;
+    cursor: pointer;
+    margin-top: 40px;
+    font-weight: 600;
+    font-size: 15px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(253, 181, 21, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.riesgos-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 80%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent 0%,
+        transparent 30%,
+        rgba(255, 255, 255, 0.4) 45%,
+        rgba(255, 255, 255, 0.6) 50%,
+        rgba(255, 255, 255, 0.4) 55%,
+        transparent 70%,
+        transparent 100%
+    );
+    transform: skewX(-25deg);
+    animation: shineButton 3s ease-in-out infinite;
+}
+
+@keyframes shineButton {
+    0% {
+        left: -100%;
+    }
+    50%, 100% {
+        left: 150%;
+    }
+}
+
+.riesgos-button:hover {
+    background: linear-gradient(135deg, #FFF066 0%, #FFD000 100%);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 40px rgba(253, 181, 21, 0.5);
+}
+
+.riesgos-button:hover .riesgos-button-arrow {
+    transform: translateX(6px);
+}
+
+.riesgos-button-arrow {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.riesgos-highlight{
+    color: #FFD715;
+    display: inline;
+    font-style: italic;
+    padding-top: 10px;
+    font-weight: bold;
+}
+
+.riesgos-container{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.riesgos-icon-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.95);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 12px;
+}
+
+.riesgos-icon{
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+.riesgos-titulo{
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.riesgos-descripcion{
+    font-size: 15px;
+    font-weight: 300;
+    margin-top: 8px;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.85);
+}
+.riesgos-frecuencia{
+    font-size: 14px;
+    font-weight: 300;
+    margin-top: 10px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* ========================================
+   Estilos del carrusel Splide
+   ======================================== */
+
+/* Carrusel item para móvil - altura completa */
+.riesgos-carousel .riesgos-item{
+    height: 100%;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Evitar que se corte el hover con translateY */
+.riesgos-carousel :global(.splide) {
+    overflow: visible;
+    padding: 10px 0;
+}
+
+.riesgos-carousel :global(.splide__track) {
+    overflow: visible;
+}
+
+.riesgos-carousel :global(.splide__list) {
+    overflow: visible;
+}
+
+.riesgos-carousel :global(.splide__slide) {
+    overflow: visible;
+}
+
+/* Paginación de Splide */
+.riesgos-carousel :global(.splide__pagination) {
+    bottom: -30px;
+    padding: 0;
+    gap: 8px;
+}
+
+.riesgos-carousel :global(.splide__pagination__page) {
+    background: rgba(255, 255, 255, 0.4);
+    width: 8px;
+    height: 8px;
+    margin: 0;
+    opacity: 1;
+    transition: all 0.3s ease;
+}
+
+.riesgos-carousel :global(.splide__pagination__page.is-active) {
+    background: #FFE14C;
+    transform: scale(1.2);
+}
+
+/* Ajuste del padding del contenedor en móvil */
+@media screen and (max-width: 767px) {
+    .riesgos-container{
+        padding: 40px 20px 60px;
+    }
+
+    .riesgos-section{
+        padding: 40px 0;
+    }
+}

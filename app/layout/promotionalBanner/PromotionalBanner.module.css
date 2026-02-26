@@ -21,6 +21,27 @@
     opacity: 0;
 }
 
+/* ============================================
+   Estado fixed cuando llegamos a la sección de servicios
+   - El banner se vuelve fixed (pegado arriba)
+   - Aparece con animación
+   ============================================ */
+.bannerFixed {
+    position: fixed;
+    animation: slideDownBanner 0.3s ease-out;
+}
+
+@keyframes slideDownBanner {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 .tickerContainer {
     flex: 1;
     overflow: hidden;

@@ -6,6 +6,7 @@ import styles from "./PromotionalBanner.module.css";
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isInServicesSection, setIsInServicesSection] = useState(false);
 
   //   const handleClose = () => {
   //     setIsAnimating(true);
@@ -24,6 +25,25 @@ export default function PromotionalBanner() {
     }
   }, []);
 
+  // Escuchar cambios en el atributo data-in-services del documento
+  useEffect(() => {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === "data-in-services") {
+          const hasAttribute = document.documentElement.hasAttribute("data-in-services");
+          setIsInServicesSection(hasAttribute);
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-in-services"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   // Actualizar CSS variable para que otros componentes sepan la altura del banner
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -36,7 +56,7 @@ export default function PromotionalBanner() {
 
   return (
     <div
-      className={`${styles.bannerWrapper} ${isAnimating ? styles.bannerHiding : ""}`}
+      className={`${styles.bannerWrapper} ${isAnimating ? styles.bannerHiding : ""} ${isInServicesSection ? styles.bannerFixed : ""}`}
       role="banner"
       aria-label="Oferta promocional"
     >
