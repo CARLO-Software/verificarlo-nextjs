@@ -4,12 +4,20 @@ import { useLayoutEffect, useRef, useId } from "react";
 import Splide from "@splidejs/splide";
 import "@splidejs/splide/css"; // estilos necesarios
 
+export type SliderControls = {
+    goNext: () => void;
+    goPrev: () => void;
+    isAtStart: boolean;
+    isAtEnd: boolean;
+};
+
 type SliderProps = {
     metodoSlider: "proceso-inspeccion" | "servicios",
     children: React.ReactNode;
+    onControlsReady?: (controls: SliderControls) => void;
 };
 
-export const Slider = ({ metodoSlider, children }: SliderProps) => {
+export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps) => {
     // ref al div .splide
     const splideRef = useRef<HTMLDivElement>(null);
     const uniqueId = useId();
@@ -30,7 +38,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
                 arrows: false,
                 pagination: false,
                 drag: true,
-                padding: { left: "16px", right: "16px" },
+                padding: { left: "38px", right: "38px" },
                 rewind: false,
                 clampDrag: true,
                 autoWidth: false,
@@ -42,7 +50,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
                         perPage: 2.01,
                         perMove: 2,
                         gap: "20px",
-                        padding: { right: "20px", left: "20px" },
+                        padding: { right: "38px", left: "38px" },
                         focus: 0,
                     },
                     1200: {
@@ -90,6 +98,24 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
             }
         }
         const splide = new Splide(splideRef.current, options);
+
+        // Función para actualizar el estado de las flechas
+        const updateControls = () => {
+            const index = splide.index;
+            const endIndex = splide.Components.Controller.getEnd();
+            if (onControlsReady) {
+                onControlsReady({
+                    goNext: () => splide.go(">"),
+                    goPrev: () => splide.go("<"),
+                    isAtStart: index === 0,
+                    isAtEnd: index >= endIndex,
+                });
+            }
+        };
+
+        splide.on('moved', updateControls);
+        splide.on('mounted', updateControls);
+
         splide.mount(); // Aquí Splide agrega la clase "is-initialized"
 
         return () => {
@@ -97,7 +123,7 @@ export const Slider = ({ metodoSlider, children }: SliderProps) => {
         };
 
 
-    }, [metodoSlider]);
+    }, [metodoSlider, onControlsReady]);
 
     return (
         <>

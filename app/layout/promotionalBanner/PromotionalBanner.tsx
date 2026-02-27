@@ -63,23 +63,14 @@ export default function PromotionalBanner() {
       <div className={styles.tickerContainer}>
         <div className={styles.tickerContent}>
           <span className={styles.offerIcon}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2C10 5 7 7 7 11a5 5 0 0 0 10 0c0-3-2-5-3-7
-                    0 2-1 3-2 4-1-2-1-4 0-6z"
-                fill="black"
-                stroke="black"
-                strokeWidth="1.5"
-              />
-            </svg>
+            <img src="assets/icons/fueguito.svg" alt="iconito" />
           </span>
           <p className={styles.bannerText}>
             <span className={styles.offerText}>
-              <span className={styles.highlight}>Aprovecha el 3x2</span> en la
+              <span className={styles.highlight}> Aprovecha el 3x2</span> en la
               inspección Premium
             </span>
           </p>
-          <span className={styles.separator}>•</span>
         </div>
       </div>
     </div>

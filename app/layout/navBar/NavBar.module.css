@@ -6,7 +6,8 @@
   top: var(--banner-height, 42px);
   left: 0;
   right: 0;
-  z-index: 1002; /* Mayor que el banner (1001) */
+  z-index: 1002;
+  /* Mayor que el banner (1001) */
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -42,7 +43,8 @@
    ============================================ */
 .navbarServices {
   position: fixed;
-  top: 30px; /* Altura exacta del banner */
+  top: 30px;
+  /* Altura exacta del banner */
   background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -61,6 +63,7 @@
     transform: translateY(-100%);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;
@@ -189,7 +192,8 @@
    USER ICON BUTTON (Mobile - botón circular con persona)
    ============================================ */
 .user-icon-button {
-  display: none; /* Oculto en PC */
+  display: none;
+  /* Oculto en PC */
   align-items: center;
   justify-content: center;
   width: 40px;
@@ -219,6 +223,7 @@
   background: var(--shark--50);
   border-color: var(--shark--400);
 }
+
 .navbar-box {
   flex: 1;
   text-decoration: none;
@@ -246,7 +251,7 @@
   margin-bottom: 0;
   font-family: Inter, sans-serif;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 110%;
   text-decoration: none;
 }
@@ -319,12 +324,10 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 225, 76, 0.4) 50%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 225, 76, 0.4) 50%,
+      transparent 100%);
   animation: shimmer 3s ease-in-out infinite;
 }
 
@@ -332,7 +335,9 @@
   0% {
     left: -100%;
   }
-  50%, 100% {
+
+  50%,
+  100% {
     left: 100%;
   }
 }
@@ -363,6 +368,39 @@
   box-shadow: 0 4px 15px rgba(255, 225, 76, 0.3);
 }
 
+/* Botón negro con texto blanco cuando navbar tiene fondo blanco */
+.navbarScrolled .secondary-cta,
+.navbarSolid .secondary-cta,
+.navbarServices .secondary-cta {
+  background-color: var(--shark--950, #1a1a1a);
+  color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.navbarScrolled .secondary-cta:hover,
+.navbarSolid .secondary-cta:hover,
+.navbarServices .secondary-cta:hover {
+  background-color: var(--shark--800, #2d2d2d);
+  color: white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.navbarScrolled .secondary-cta::before,
+.navbarSolid .secondary-cta::before,
+.navbarServices .secondary-cta::before {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%);
+}
+
+/* Ícono de usuario blanco cuando el botón es negro */
+.navbarScrolled .secondary-cta .sidebar-user-icon-img,
+.navbarSolid .secondary-cta .sidebar-user-icon-img,
+.navbarServices .secondary-cta .sidebar-user-icon-img {
+  filter: brightness(0) invert(1);
+}
+
 .nav-container {
   justify-content: flex-start;
   max-width: 1440px;
@@ -370,6 +408,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+@media screen and (min-width: 1200px) {
+
+  /* Reducir espacio entre logo e items en PC */
+  .navbar-box {
+    margin-left: 40px;
+  }
 }
 
 @media screen and (max-width: 1199px) {
@@ -383,15 +429,10 @@
     margin: 0;
   }
 
-  .div-block img {
-    min-width: 100%;
-  }
-
   /* Reducir gap en tablets */
   .navbar-box {
     gap: 16px;
   }
-
 }
 
 /* ============================================
@@ -414,7 +455,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* User Menu */
@@ -494,6 +537,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -584,7 +628,8 @@
    HAMBURGER BUTTON (oculto en PC)
    ============================================ */
 .hamburger-button {
-  display: none; /* Oculto en PC */
+  display: none;
+  /* Oculto en PC */
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -625,7 +670,8 @@
    CLOSE BUTTON (botón X dentro del panel)
    ============================================ */
 .close-button {
-  display: none; /* Oculto en PC */
+  display: none;
+  /* Oculto en PC */
   top: 12px;
   right: 12px;
   width: 40px;
@@ -647,7 +693,8 @@
    OVERLAY (fondo oscuro al abrir menú móvil)
    ============================================ */
 .overlay {
-  display: none; /* Solo visible en móvil */
+  display: none;
+  /* Solo visible en móvil */
 }
 
 .menuMovil {
@@ -671,7 +718,8 @@
 }
 
 .sidebar-nav {
-  display: contents; /* Los hijos se comportan como si no hubiera contenedor */
+  display: contents;
+  /* Los hijos se comportan como si no hubiera contenedor */
 }
 
 .sidebar-divider {
@@ -687,17 +735,25 @@
   display: none;
 }
 
+.sidebar-user-icon-img {
+  filter: brightness(0);
+}
+
+
 /* ============================================
    MOBILE RESPONSIVE (max-width: 991px)
    ============================================ */
 @media screen and (max-width: 991px) {
+  .sidebar-user-icon-img {
+    filter: none;
+  }
 
   /* Mostrar items del menú en móvil */
-  .navbar-box > .navbar-item {
+  .navbar-box>.navbar-item {
     display: flex;
   }
-  
-.nav-container {
+
+  .nav-container {
     justify-content: space-between;
   }
 
@@ -707,8 +763,8 @@
   }
 
   /* Botones alineados a la derecha con gap */
-  .nav-container > .user-icon-button,
-  .nav-container > .hamburger-button {
+  .nav-container>.user-icon-button,
+  .nav-container>.hamburger-button {
     flex-shrink: 0;
   }
 
@@ -743,7 +799,7 @@
   }
 
   .sidebar-logo {
-    height: 24px;
+    height: 18px;
     width: auto;
     object-fit: contain;
   }
@@ -814,8 +870,13 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
 
   /* navbar-box se convierte en panel lateral premium */
@@ -942,7 +1003,7 @@
   }
 
   /* Auth buttons en columna */
-  .navbar-box > div.flex {
+  .navbar-box>div.flex {
     flex-direction: column;
     width: 100%;
     gap: 12px;
@@ -1073,5 +1134,13 @@
 
   .nav-container {
     padding: 16px;
+  }
+
+  .div-block img {
+    min-width: 66%;
+  }
+
+  .logo-image {
+    height: 18px;
   }
 }

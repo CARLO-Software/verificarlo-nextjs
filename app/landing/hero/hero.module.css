@@ -201,7 +201,7 @@
   background: linear-gradient(135deg, #FFFFFF 0%, #F8F8F8 100%);
   color: black;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
@@ -320,7 +320,8 @@
   background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   color: #FFFFFF;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 400;
+  font-weight: 500;
+  font-size: 14px;
   text-decoration: none;
   border-radius: 100px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -410,6 +411,7 @@
 @media screen and (min-width: 768px) {
   .heroContainer {
     padding: 40px 32px;
+    align-items: center;
   }
 
   .heroContent {
