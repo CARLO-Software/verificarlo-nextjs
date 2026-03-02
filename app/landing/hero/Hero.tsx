@@ -82,7 +82,7 @@ export default function Hero() {
             </a>
 
             {/* "¿Qué revisamos?" Button - Negro - Va a planes */}
-            <a href="#planes" className={styles.queRevisamosButton}>
+            <a href="#proceso" className={styles.queRevisamosButton}>
               <Car size={22} weight="fill" color="white" />
               <span>¿Qué revisamos?</span>
             </a>

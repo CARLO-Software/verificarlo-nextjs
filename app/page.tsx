@@ -9,6 +9,8 @@ import FAQ from "./landing/faq/FAQ";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import MetricasSection from "./landing/metricas/MetricasSection";
+import GoogleReviews from "./landing/googleReviews/GoogleReviews";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -24,7 +26,6 @@ export default async function Home() {
 
   return (
     <>
-
       {/* Skip to main content for accessibility */}
       <a href="#main-content" className="skip-link">
         Saltar al contenido principal
@@ -40,14 +41,17 @@ export default async function Home() {
         {/* Process section */}
         <ProcessSection />
 
-        {/* TODO: Testimonios */}
+        {/* TODO: Metricas */}
+        <MetricasSection />
 
+        {/* Google Reviews - Carrusel infinito de testimonios */}
+        <GoogleReviews />
 
         {/* TODO: Riesgos que pueden costar miles */}
         <RiesgosSection />
 
         {/* TODO: BLOG */}
-
+        
         {/*Benefits section */}
         <BenefitsSection />
 

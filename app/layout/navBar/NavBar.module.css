@@ -75,8 +75,9 @@
   color: var(--shark--950) !important;
 }
 
-/* Logo negro en modo servicios - usar filtro para oscurecer */
-.navbarServices .logo-image {
+/* Logo negro en modo servicios y solid - usar filtro para oscurecer */
+.navbarServices .logo-image,
+.navbarSolid .logo-image {
   filter: brightness(0) saturate(100%);
 }
 

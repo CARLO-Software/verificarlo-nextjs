@@ -1,0 +1,200 @@
+/* ============================================
+   Google Reviews Carousel - Carrusel Infinito
+   ============================================ */
+
+.section {
+  padding-bottom: 60px;
+  background-color: #f5f5f5;
+  overflow: hidden; /* Importante: oculta el contenido que se sale */
+}
+
+/* Contenedor del carrusel */
+.carouselWrapper {
+  width: 100%;
+  overflow: hidden; /* Oculta las tarjetas fuera del viewport */
+  padding: 20px 0;
+}
+
+/* Track: contiene todas las tarjetas y se mueve */
+.track {
+  display: flex;
+  gap: 24px;
+  /*
+    animation: nombre duración timing-function iteration-count
+    - scroll: nombre de la animación definida abajo
+    - 30s: duración total del ciclo
+    - linear: velocidad constante
+    - infinite: se repite para siempre
+  */
+  animation: scroll 30s linear infinite;
+  /* Ancho mínimo para que las tarjetas no se compriman */
+  width: max-content;
+}
+
+/* Pausa la animación cuando el usuario hace hover */
+.track:hover {
+  animation-play-state: paused;
+}
+
+/*
+  @keyframes define cómo cambia el elemento durante la animación
+  - 0%: estado inicial (posición original)
+  - 100%: estado final (movido a la izquierda 50%)
+
+  Usamos -50% porque duplicamos las tarjetas, así cuando llega
+  al 50% del recorrido, la segunda copia está exactamente donde
+  empezó la primera, creando el efecto infinito sin saltos
+*/
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* ============================================
+   Tarjeta de Reseña
+   ============================================ */
+
+.card {
+  flex-shrink: 0; /* Evita que la tarjeta se comprima */
+  width: 320px;
+  padding: 24px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ============================================
+   Estrellas
+   ============================================ */
+
+.stars {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.star {
+  width: 20px;
+  height: 20px;
+  color: #e0e0e0; /* Color gris para estrellas vacías */
+}
+
+.starFilled {
+  color: #FBBC05; /* Amarillo Google para estrellas llenas */
+}
+
+/* ============================================
+   Texto y Autor
+   ============================================ */
+
+.text {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #4a4a4a;
+  margin: 0 0 20px 0;
+  /* Limita el texto a 5 líneas máximo */
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.authorName {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.source {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #888;
+}
+
+/* ============================================
+   Logo de Google Reviews
+   ============================================ */
+
+.googleLogo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 18px;
+}
+
+.googleSvg {
+  width: 100px;
+  height: auto;
+}
+
+.reviewsBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reviewsText {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #666;
+}
+
+.reviewsStars {
+  display: flex;
+  gap: 1px;
+}
+
+.miniStar {
+  color: #FBBC05;
+  font-size: 12px;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media screen and (max-width: 768px) {
+  .card {
+    width: 280px;
+    padding: 20px;
+  }
+
+  .text {
+    font-size: 13px;
+  }
+
+  /* Más lento en móvil para mejor legibilidad */
+  .track {
+    animation-duration: 25s;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .card {
+    width: 260px;
+    padding: 18px;
+  }
+
+  .track {
+    gap: 16px;
+  }
+}
