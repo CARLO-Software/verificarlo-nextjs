@@ -15,11 +15,12 @@
    ============================================ */
 .heroSection {
   position: relative;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 110vh;
+  min-height: 110dvh;
   display: flex;
   flex-direction: column;
   /* Banner y Navbar son position: absolute, no ocupan espacio */
+  /* Extra height para que el video se vea detrás de la sección de servicios */
 }
 
 /* Background Image + Overlay */
@@ -96,6 +97,7 @@
   align-items: end;
   justify-content: center;
   padding: 24px 20px;
+  padding-bottom: 12vh;
 }
 
 /* Hero Content */

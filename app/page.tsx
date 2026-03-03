@@ -1,11 +1,7 @@
 import Hero from "./landing/hero/Hero";
 import ProcessSection from "./landing/processSection/ProcessSection";
 import ServicesSection from "./landing/servicesSection/ServicesSection";
-import BenefitsSection from "./landing/benefits/BenefitsSection";
-import EligeTranquiloSection from "./landing/eligeTranquilo/EligeTranquiloSection";
-import CentroInspeccionSection from "./landing/centroInspeccion/CentroInspeccionSection";
 import RiesgosSection from "./landing/riesgos_miles_soles/RiesgosSection";
-import FAQ from "./landing/faq/FAQ";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
@@ -53,16 +49,16 @@ export default async function Home() {
         {/* TODO: BLOG */}
         
         {/*Benefits section */}
-        <BenefitsSection />
+        {/* <BenefitsSection /> */}
 
         {/*EligeTranquiloSection*/}
-        <EligeTranquiloSection />
+        {/* <EligeTranquiloSection /> */}
 
         {/*Centro de inspección */}
-        <CentroInspeccionSection />
+        {/* <CentroInspeccionSection /> */}
 
         {/* FAQ section */}
-        <FAQ />
+        {/* <FAQ /> */}
       </main>
     </>
   );

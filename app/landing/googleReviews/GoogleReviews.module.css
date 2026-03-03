@@ -3,7 +3,7 @@
    ============================================ */
 
 .section {
-  padding-bottom: 60px;
+  padding-bottom: 90px;
   background-color: #f5f5f5;
   overflow: hidden; /* Importante: oculta el contenido que se sale */
 }

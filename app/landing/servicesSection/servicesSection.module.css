@@ -22,6 +22,8 @@
   flex-direction: column;
   gap: 40px;
   background-color: white;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
 }
 
 /* Header que contiene título + flechas */
@@ -129,13 +131,13 @@
 }
 
 .card-price {
-  color: var(--shark--950);
+  color: black;
   width: 100%;
   margin-top: 0;
   margin-bottom: 0;
   font-family: Inter, sans-serif;
-  font-size: 25.5px;
-  font-weight: 700;
+  font-size: 34px;
+  font-weight: 800;
   line-height: 110%;
   text-decoration: none;
 }
@@ -324,15 +326,17 @@
 }
 
 .section-background {
-  background-color: var(--bright-sun--300);
-  border-top-left-radius: 60px;
-  border-top-right-radius: 60px;
+  background-color: transparent;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
   justify-content: center;
   align-items: flex-start;
   display: flex;
   position: relative;
   bottom: 0;
   overflow: hidden;
+  margin-top: -10vh;
+  z-index: 1;
 }
 
 /* ============================================
@@ -527,6 +531,149 @@
   overflow-x: hidden;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ============================================
+   Modal PC - Diseño horizontal panorámico
+   ============================================ */
+@media screen and (min-width: 992px) {
+  .modal-wrapper {
+    max-width: 950px;
+    width: 95%;
+  }
+
+  .modal-content {
+    display: flex;
+    flex-direction: row;
+    max-height: 520px;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  /* Video ocupa el lado izquierdo */
+  .modal-background {
+    position: relative;
+    width: 55%;
+    height: auto;
+    min-height: 520px;
+    flex-shrink: 0;
+  }
+
+  .modal-background-video {
+    position: relative;
+    width: 55%;
+    height: 100%;
+    min-height: 520px;
+    flex-shrink: 0;
+  }
+
+  .modal-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .modal-bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .modal-bg-overlay {
+    background: linear-gradient(to right,
+        rgba(26, 26, 26, 0) 0%,
+        rgba(26, 26, 26, 0.3) 70%,
+        rgba(26, 26, 26, 0.8) 100%);
+  }
+
+  /* Botón play centrado en el video */
+  .btn-view-report {
+    top: 50%;
+    left: 27.5%;
+    transform: translate(-50%, -50%);
+  }
+
+  .btn-view-report:hover {
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+
+  .btn-play-circle {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+    min-height: 70px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  .btn-play-circle svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Contenido ocupa el lado derecho */
+  .modal-body {
+    width: 45%;
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24px;
+    background: #1a1a1a;
+  }
+
+  .modal-body-video {
+    padding: 40px 36px;
+  }
+
+  .modal-header {
+    text-align: left;
+  }
+
+  .modal-title {
+    font-size: 32px;
+    margin-bottom: 16px;
+  }
+
+  .modal-description {
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  .modal-items-list {
+    gap: 12px;
+  }
+
+  .modal-item {
+    font-size: 14px;
+  }
+
+  .modal-cta {
+    margin-top: auto;
+    padding: 18px 28px;
+    font-size: 16px;
+  }
+
+  /* Botón cerrar reposicionado */
+  .modal-close {
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+
+  .modal-close:hover {
+    background: #ffffff;
+    transform: rotate(90deg) scale(1.05);
+  }
 }
 
 @keyframes slideUp {
@@ -813,41 +960,114 @@
 }
 
 /* ============================================
-   Desktop Carousel - Carrusel con Splide (≥992px)
+   Desktop Plans Grid - 3 planes en fila (≥992px)
    ============================================ */
 
 /* Contenedor principal - oculto en móvil */
-.desktop-carousel {
+.desktop-plans {
+  display: none;
+}
+
+/* Flechas de navegación - ya no se necesitan en grid */
+.carousel-arrows {
   display: none;
 }
 
 /* Solo visible en pantallas grandes */
 @media screen and (min-width: 992px) {
-  .desktop-carousel {
-    display: block;
+  .desktop-plans {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 24px;
     width: 100%;
-    max-width: 100%;         /* Sin límite - ocupa todo el ancho */
-    margin: 0;
-    padding: 0;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 40px 60px 20px;
   }
 
   .services-container {
-    padding-bottom: 0px;
+    padding-bottom: 80px;
   }
 }
 
-/* ============================================
-   Flechas de navegación (junto al título)
-   ============================================ */
-.carousel-arrows {
-  display: none;             /* Ocultas en móvil */
-  gap: 8px;
+/* Cada plan en el grid desktop */
+.desktop-plan-card {
+  flex: 1;
+  min-width: 320px;
+  max-width: 500px;
+  height: 580px;
+  border-radius: 20px;
+  overflow: visible;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.92;
 }
 
-@media screen and (min-width: 992px) {
-  .carousel-arrows {
-    display: flex;
-    align-items: center;
+.desktop-plan-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  opacity: 1;
+}
+
+/* Plan destacado (Premium) - Diseño premium con elevación y glow */
+.desktop-plan-featured {
+  max-width: 520px;
+  height: 620px;
+  transform: scale(1.03);
+  border: 3px solid #FFD700;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.28),
+    0 0 40px rgba(255, 215, 0, 0.35),
+    0 0 80px rgba(255, 215, 0, 0.18);
+  z-index: 10;
+  opacity: 1;
+}
+
+.desktop-plan-featured:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.32),
+    0 0 50px rgba(255, 215, 0, 0.45),
+    0 0 100px rgba(255, 215, 0, 0.25);
+}
+
+/* Badge "RECOMENDADO" en la parte superior del plan Premium */
+.premium-badge-top {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #1a1a1a;
+  padding: 10px 20px;
+  border-radius: 100px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 20;
+  box-shadow:
+    0 4px 15px rgba(255, 165, 0, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  white-space: nowrap;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@keyframes pulse-badge {
+  0%, 100% {
+    box-shadow:
+      0 4px 15px rgba(255, 165, 0, 0.4),
+      0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 4px 20px rgba(255, 165, 0, 0.6),
+      0 2px 4px rgba(0, 0, 0, 0.1),
+      0 0 30px rgba(255, 215, 0, 0.3);
   }
 }
 
@@ -901,13 +1121,8 @@
   border-radius: 16px;
   overflow: hidden;
   position: relative;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
 }
 
-.carousel-slide:hover {
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
-  transition: box-shadow 0.3s ease;
-}
 
 /* Slide destacado (Premium Plus) - borde amarillo */
 .carousel-slide-featured {
@@ -953,22 +1168,24 @@
   object-fit: cover;
   object-position: center;
   user-select: none;
-  pointer-events: none;      /* No bloquea el drag */
+  pointer-events: none;
+  border-radius: 20px;
 }
 
-/* Degradado oscuro de IZQUIERDA a DERECHA (oscuro izq, claro der) */
+/* Degradado oscuro - cubre toda la card para legibilidad del texto */
 .carousel-gradient {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(to right,
+  background: linear-gradient(to top,
       rgba(0, 0, 0, 0.95) 0%,
       rgba(0, 0, 0, 0.85) 30%,
-      rgba(0, 0, 0, 0.4) 60%,
-      rgba(0, 0, 0, 0.1) 100%);
-  pointer-events: none;      /* No bloquea el drag */
+      rgba(0, 0, 0, 0.7) 60%,
+      rgba(0, 0, 0, 0.5) 100%);
+  pointer-events: none;
+  border-radius: 20px;
 }
 
 /* Contenido del plan - posicionado a la IZQUIERDA sobre la imagen */
@@ -977,13 +1194,13 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: 452px;
+  width: 100%;
   height: 100%;
-  padding: 32px;
+  padding: 36px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 16px;
+  gap: 18px;
   z-index: 1;
 }
 
@@ -994,30 +1211,30 @@
 
 .carousel-title {
   font-family: 'Inter', sans-serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
-  color: #FFFFFF;            /* Texto blanco */
-  margin: 0 0 8px 0;
+  color: #FFFFFF;
+  margin: 0 0 10px 0;
   line-height: 1.1;
   font-style: italic;
 }
 
 .carousel-description {
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
-  color: rgba(255, 255, 255, 0.8);  /* Texto blanco semi-transparente */
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
   line-height: 1.5;
 }
 
-/* Precio grande del carrusel - estilo igual al modal en PC */
+/* Precio grande del carrusel */
 .carousel-price-large {
   font-family: 'Inter', sans-serif;
-  font-size: 32px;
-  font-weight: 900;          /* Negrita extra */
-  color: #FFFFFF;            /* Blanco */
-  margin: 8px 0 0 0;
+  font-size: 38px;
+  font-weight: 900;
+  color: #FFFFFF;
+  margin: 10px 0 0 0;
   line-height: 1.1;
 }
 
@@ -1028,19 +1245,20 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  flex: 1;                   /* Ocupa el espacio disponible */
+  gap: 12px;
+  flex: 1;
   overflow-y: auto;
+  max-height: 240px;
 }
 
 .carousel-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);  /* Texto blanco */
-  line-height: 1.3;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.92);
+  line-height: 1.4;
 }
 
 /* Botón CTA del carrusel */
@@ -1049,12 +1267,12 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  width: 100%;
-  padding: 14px 20px;
+  flex: 1;
+  padding: 16px 24px;
   background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
   color: #1a1a1a;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   text-decoration: none;
   border-radius: 100px;
@@ -1081,8 +1299,18 @@
 /* Contenedor de los 2 botones del carrusel */
 .carousel-buttons {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
   width: 100%;
+  margin-top: 12px;
+}
+
+/* En pantallas más anchas, botones en fila */
+@media screen and (min-width: 1400px) {
+  .carousel-buttons {
+    flex-direction: row;
+    gap: 12px;
+  }
 }
 
 /* Botón secundario blanco ("Ver informe legal" / "Ver video") */
@@ -1092,11 +1320,11 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 20px;
+  padding: 16px 24px;
   background: #FFFFFF;
   color: #1a1a1a;
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
@@ -1108,9 +1336,4 @@
 .carousel-btn-secondary:hover {
   background: #f0f0f0;
   transform: translateY(-2px);
-}
-
-/* Ajuste del botón CTA para que ocupe el mismo espacio que el secundario */
-.carousel-cta {
-  flex: 1;
 }

@@ -36,7 +36,7 @@ export default function ProcessSection() {
             src: "/assets/images/cuarta-foto.png",
             alt: "Gestión notarial a docimicilio",
             titulo: "Gestión notarial a docimicilio",
-            descripcion: "Firmamos en I hora. Un procurador va a donde estés para formalizar la compra sin que pierdas tiempo."
+            descripcion: "Firmamos en 1 hora. Un procurador va a donde estés para formalizar la compra sin que pierdas tiempo."
         },
     ]
 

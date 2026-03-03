@@ -1,67 +1,152 @@
 import styles from './footer.module.css';
 
 export default function Footer() {
-    return (
-        <footer className={`section ${styles['primary-background']}`}>
-            <div className={styles['div-block-4']}>
-                <div className={`w-layout-blockcontainer container ${styles['footer-container']} w-container`}>
-                    <div className={styles['footer-row-1']}>
-                        <div className={styles['footer-left']}>
-                            <div className={styles['div-block-6']}><img src="assets/images/image63.svg" loading="lazy" alt="" className={styles['image-12']} /></div>
-                            <div className={styles['footer-box-inner-1']}>
-                                <div className={styles['footer-item']}>
-                                    <div className={styles['icon']}><img src="assets/images/image64.svg" loading="lazy" alt="" /></div>
-                                    <p className={styles['footer-text']}>Cerro Azul 421, Santiago de
-                                        Surco, Lima</p>
-                                </div>
-                                <div className={styles['footer-item']}>
-                                    <div className={styles['icon']}><img src="assets/images/image65.svg" loading="lazy" alt="" /></div>
-                                    <div className="w-layout-vflex">
-                                        <p className={styles['footer-text']}><a href="tel:+51934140010" className={styles['link']}>+51 934 140 010</a></p>
-                                    </div>
-                                </div>
-                                <div className={styles['footer-item']}>
-                                    <div className={styles['icon']}><img src="assets/images/image66.svg" loading="lazy" alt="" className={styles['material-symbols-lightmail-outline']} />
-                                    </div>
-                                    <div className="w-layout-vflex">
-                                        <p className={styles['footer-text']}><a href="mailto:verificarlo@carlo.pe?subject=Hola"
-                                            className={styles['link']}>verificarlo@carlo.pe</a></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className={styles['footer-right']}>
-                            <div className={styles['footer-box-inner-2']}>
-                                <h4 className={styles['footer-heading']}>Tu seguridad empieza con una buena decisi&oacute;n.</h4>
-                                <p className={styles['footer-description']}>Verifica el auto usado que quieres comprar con profesionales expertos.</p>
-                            </div>
-                            <a href="https://wa.link/64579s" target="_blank" className={`${styles['primary-cta']} w-button`}
-                                aria-label="Agendar inspección por WhatsApp">
-                                Agendar inspecci&oacute;n
-                            </a>
+    // Keywords SEO - para posicionamiento en buscadores
+    const keywords = [
+        "Inspección de autos usados Lima",
+        "Revisión mecánica",
+        "Verificación legal de autos",
+        "Peritaje vehicular Lima",
+        "Comprar auto seguro",
+        "Kilometraje adulterado",
+        "Detectar choques",
+        "Informe vehicular técnico",
+        "Escaneo de motor",
+        "Gravamen vehicular",
+        "Escaneo motor",
+        "Inspección vehicular a domicilio",
+        "Historial de multas",
+        "Fallas mecánicas ocultas"
+    ];
 
+    return (
+        <footer className={styles.footer}>
+            <div className={styles.container}>
+                {/* Logo - visible en móvil arriba, en desktop dentro de brandColumn */}
+                <div className={styles.logoMobile}>
+                    <img
+                        src="/assets/images/verificarlo-logo.png"
+                        alt="VerifiCARLO"
+                        className={styles.logoImage}
+                    />
+                </div>
+
+                {/* Sección principal */}
+                <div className={styles.mainSection}>
+                    {/* Columna 1: Logo (desktop) + Redes + CTA */}
+                    <div className={styles.brandColumn}>
+                        <div className={styles.logoDesktop}>
+                            <img
+                                src="/assets/images/verificarlo-logo.png"
+                                alt="VerifiCARLO"
+                                className={styles.logoImage}
+                            />
+                        </div>
+                        <div className={styles.socialIcons}>
+                            <a href="https://www.facebook.com/profile.php?id=61577445755386" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                                <img src="/assets/images/image67.svg" alt="Facebook" />
+                            </a>
+                            <a href="https://www.instagram.com/verificarlo.peru" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                                <img src="/assets/images/image68.svg" alt="Instagram" />
+                            </a>
+                            <a href="https://www.tiktok.com/@verificarlo.peru" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                                <img src="/assets/images/image69.svg" alt="TikTok" />
+                            </a>
+                            <a href="https://www.linkedin.com/company/107714281" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                                <img src="/assets/images/image70.svg" alt="LinkedIn" />
+                            </a>
+                        </div>
+                        <a href="https://wa.link/64579s" target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
+                            Agendar inspección ahora
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    </div>
+
+                    {/* Grupo de columnas: Navegación, Planes, Contacto */}
+                    <div className={styles.columnsGroup}>
+                        {/* Columna: Navegación */}
+                        <div className={styles.navColumn}>
+                            <h4 className={styles.columnTitle}>Navegación</h4>
+                            <nav className={styles.navLinks}>
+                                <a href="#inicio">Inicio</a>
+                                <a href="#planes">Planes</a>
+                                <a href="#proceso">Proceso</a>
+                                <a href="#testimonios">Testimonios</a>
+                                <a href="#blog">Blog</a>
+                                <a href="#fqas">FQAs</a>
+                            </nav>
+                        </div>
+
+                        {/* Columna: Planes + Servicios */}
+                        <div className={styles.plansColumn}>
+                            <h4 className={styles.columnTitle}>Planes</h4>
+                            <nav className={styles.navLinks}>
+                                <a href="#inspeccion-legal">Inspección Legal Express</a>
+                                <a href="#inspeccion-completa">Inspección Básica</a>
+                                <a href="#inspeccion-premium" className={styles.premiumLink}>
+                                    Inspección Premium
+                                    <span className={styles.popularBadge}>MÁS POPULAR</span>
+                                </a>
+                            </nav>
+                            <h4 className={`${styles.columnTitle} ${styles.servicesTitle}`}>Servicios</h4>
+                            <nav className={styles.navLinks}>
+                                <a href="#gestion-notarial">Gestión notarial</a>
+                            </nav>
+                        </div>
+
+                        {/* Columna: Contacto */}
+                        <div className={styles.contactColumn}>
+                            {/* Línea divisora - solo visible en móvil */}
+                            <div className={styles.dividerMobile}></div>
+                            {/* Título Contacto - solo visible en PC */}
+                            <h4 className={`${styles.columnTitle} ${styles.contactTitle}`}>Contacto</h4>
+                            <div className={styles.contactItems}>
+                                <div className={styles.contactItem}>
+                                    <div className={styles.contactIcon}>
+                                        <img src="/assets/images/image64.svg" alt="" />
+                                    </div>
+                                    <span>Cerro Azul 421, Santiago de Surco, Lima</span>
+                                </div>
+                                <div className={styles.contactItem}>
+                                    <div className={styles.contactIcon}>
+                                        <img src="/assets/images/image65.svg" alt="" />
+                                    </div>
+                                    <a href="tel:+51934140010">+51 934 140 010</a>
+                                </div>
+                                <div className={styles.contactItem}>
+                                    <div className={styles.contactIcon}>
+                                        <img src="/assets/images/image66.svg" alt="" />
+                                    </div>
+                                    <a href="mailto:verificarlo@carlo.pe">verificarlo@carlo.pe</a>
+                                </div>
+                            </div>
+                            {/* Línea divisora debajo de contacto - solo móvil */}
+                            <div className={styles.dividerAfterContact}></div>
                         </div>
                     </div>
-                    <div className={styles['footer-row-2']}>
-                        <p className={styles['_2025-todos-los-derechos-reservados']}>
-                            &copy; 2025 Todos los derechos reservados.
-                        </p>
-                        <div className={styles['list']}>
-                            <a href="https://www.facebook.com/profile.php?id=61577445755386" target="_blank" className="w-inline-block">
-                                <img src="assets/images/image67.svg" loading="lazy" alt="Facebook" />
-                            </a>
-                            <a href="https://www.instagram.com/verificarlo.peru?igsh=NzllN2JrbWI5MXVm&amp;utm_source=qr" target="_blank"
-                                className="w-inline-block">
-                                <img src="assets/images/image68.svg" loading="lazy" alt="Instagram" />
-                            </a>
-                            <a href="https://www.tiktok.com/@verificarlo.peru?_t=ZM-8xHtDLk63fy&amp;_r=1" target="_blank" className="w-inline-block">
-                                <img src="assets/images/image69.svg" loading="lazy" alt="TikTok" />
-                            </a>
-                            <a href="https://www.linkedin.com/company/107714281/admin/dashboard" target="_blank" className="w-inline-block">
-                                <img src="assets/images/image70.svg" loading="lazy" alt="LinkedIn" />
-                            </a>
-                        </div>
-                    </div>
+                </div>
+
+                {/* Línea divisora arriba de keywords - solo PC */}
+                <div className={styles.dividerDesktop}></div>
+
+                {/* Sección de keywords SEO */}
+                <div className={styles.keywordsSection}>
+                    {keywords.map((keyword, index) => (
+                        <span key={index} className={styles.keyword}>
+                            {keyword}
+                            {index < keywords.length - 1 && <span className={styles.separator}>|</span>}
+                        </span>
+                    ))}
+                </div>
+
+                {/* Línea divisora */}
+                <div className={styles.divider}></div>
+
+                {/* Copyright */}
+                <div className={styles.copyright}>
+                    <p>© 2025 Todos los derechos reservados.</p>
                 </div>
             </div>
         </footer>

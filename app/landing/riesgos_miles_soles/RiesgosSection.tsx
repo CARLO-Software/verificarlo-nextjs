@@ -17,19 +17,19 @@ const ListaRiesgosEvitar: Riesgo[] = [
     iconito: "assets/icons/herramientas1.svg",
     titulo: "Fallas mecánicas",
     descripcion: "Motor reparado, consumo de aceite o cadena vencida.",
-    frecuencia: "6 de cada 10 casos",
+    frecuencia: "5 de cada 10 casos",
   },
   {
     iconito: "assets/icons/servicio-de-auto.svg",
     titulo: "Km adulterado",
     descripcion: "Kilometraje real oculto y desgaste no coincidente.",
-    frecuencia: "7 de cada 10 casos",
+    frecuencia: "4 de cada 10 casos",
   },
   {
     iconito: "assets/icons/Group.svg",
     titulo: "Precio inflado",
     descripcion: "Daños ocultos y choques no declarados que bajan su valor.",
-    frecuencia: "8 de cada 10 casos",
+    frecuencia: "6 de cada 10 casos",
   },
   {
     iconito: "assets/icons/velocimetro.svg",
@@ -171,7 +171,12 @@ export default function RiesgosSection() {
           ))}
         </div>
 
-        <button className={styles["riesgos-button"]}>
+        <a
+          href="https://api.whatsapp.com/send?phone=51934140010&text=%C2%A1Hola!%20voy%20a%20comprar%20un%20auto%20usado%20y%20quiero%20agendar%20una%20cita%20para%20VERIFICARLO%20🚗✅"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles["riesgos-button"]}
+        >
           Agendar inspección ahora
           <svg
             className={styles["riesgos-button-arrow"]}
@@ -186,7 +191,7 @@ export default function RiesgosSection() {
           >
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
-        </button>
+        </a>
       </div>
     </section>
   );

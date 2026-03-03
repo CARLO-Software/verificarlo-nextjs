@@ -6,42 +6,42 @@ import styles from "./GoogleReviews.module.css";
     { 
       id: 1,
       rating: 5,
-      author: "Alexandra _",
+      author: "María Quiñonez",
       text:
         "Buen servicio me ayudaron a inspeccionar un vehículo y me brindaron asesoría sobre el mantenimiento y reparaciones por hacer",
     },
     {
       id: 2,
       rating: 5,
-      author: "Jesus Chue",
+      author: "Jose Bermudez",
       text:
         "Compré mi auto luego de la segunda inspección. El equipo técnico me ayudó bastante a entender que hacer cuando compre el auto así que los super recomiendo.",
     },
     {
       id: 3,
       rating: 5,
-      author: "Dhamara Alcantara",
+      author: "Viviana Aquijes",
       text:
         "Muy satisfecha con la atención. Se notaba el profesionalismo de los inspectores y se tomaron el tiempo de explicarme todo. Ya llevo 5 meses con el carro que aprobaron y todo perfecto.",
     },
     {
       id: 4,
       rating: 5,
-      author: "Ignacio Lezama",
+      author: "Eduardo Gomez",
       text:
         "Buen servicio, contraté para verificar 2 carros, fueron objetivos y ayudaron en mi elección",
     },
     {
       id: 5,
       rating: 5,
-      author: "Daniel Castañeda",
+      author: "David Rojas",
       text:
         "Existen muchas empresas para la verificación de vehículos, pero ninguno como VERIFICARLO, ya que se comprometen al 100% en brindar un servicio de calidad.",
     },
     {
       id: 6,
       rating: 5,
-      author: "Victoria Ordoñez",
+      author: "Esteban Uribe",
       text: "Excelente servicio, me salvaron de comprar un pésimo auto 🥹…",
     },
   ];

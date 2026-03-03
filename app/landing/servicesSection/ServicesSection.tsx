@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useRef, useLayoutEffect } from "react";
-// Splide: librería de carrusel con soporte de drag, flechas y más
-import Splide from "@splidejs/splide";
-import "@splidejs/splide/css";
+import { useState } from "react";
 import styles from './ServicesSection.module.css';
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
-// Iconos: X (cerrar), FileText (PDF), Play (video), ChevronLeft/Right (flechas)
-import { X, FileText, Play, ChevronLeft, ChevronRight } from "lucide-react";
+// Iconos: X (cerrar), Play (video)
+import { X, Play } from "lucide-react";
 
 type ModalData = {
     title: string;
@@ -21,9 +18,9 @@ type ModalData = {
 
 // IDs de videos de YouTube para cada plan (reemplazar con los reales)
 const PLAN_VIDEO_IDS: Record<number, string | null> = {
-    0: null,           // Plan Básico: usa PDF, no video
-    1: "IRIAhxOg6hU",  // Plan Estándar: reemplazar con ID real
-    2: "tgBM9EGWLig", // Plan Premium: reemplazar con ID real
+    0: "IRIAhxOg6hU",  // Plan Legal Express: reemplazar con ID real
+    1: "IRIAhxOg6hU",  // Plan Básico: reemplazar con ID real
+    2: "tgBM9EGWLig",  // Plan Premium: reemplazar con ID real
 };
 
 // Imágenes de fondo para el carrusel de desktop (una por cada plan)
@@ -34,72 +31,23 @@ const PLAN_IMAGES = [
     "/assets/images/modal-bg-3.png",  // Plan Premium
 ];
 
+// Mensajes de WhatsApp personalizados para cada plan
+const PLAN_WHATSAPP_MESSAGES: Record<number, string> = {
+    0: "¡Hola! Quiero saber los antecedentes de un carro usado que quiero comprar.",
+    1: "¡Hola! Voy a comprar un carro usado y quiero agendar una cita para la Inspección Básica 🚘✅",
+    2: "¡Hola! Voy a comprar un carro usado y quiero agendar cita para una Inspección Premium 🚘✅",
+};
+
+// Función para generar el enlace de WhatsApp
+const getWhatsAppLink = (planIndex: number) => {
+    const message = PLAN_WHATSAPP_MESSAGES[planIndex] || "";
+    return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
+};
+
 export default function ServicesSection() {
     const [modalData, setModalData] = useState<ModalData>(null);
     // Controla si el video está reproduciéndose en el modal
     const [isPlayingVideo, setIsPlayingVideo] = useState(false);
-
-    // Estados para controlar el color de las flechas (dinámico)
-    const [isAtStart, setIsAtStart] = useState(true);   // ¿Estamos en el primer slide?
-    const [isAtEnd, setIsAtEnd] = useState(false);      // ¿Estamos en el último slide?
-
-    // Referencia al contenedor del carrusel (donde Splide se monta)
-    const carouselRef = useRef<HTMLDivElement>(null);
-    // Referencia a la instancia de Splide (para controlar las flechas)
-    const splideInstanceRef = useRef<Splide | null>(null);
-
-    // ========================================
-    // INICIALIZACIÓN DE SPLIDE
-    // ========================================
-    useLayoutEffect(() => {
-        if (!carouselRef.current) return;
-
-        // Configuración de Splide
-        const splide = new Splide(carouselRef.current, {
-            type: "slide",           // Tipo de carrusel (slide = normal)
-            fixedWidth: "750px",     // Ancho fijo de cada slide
-            perMove: 1,              // Mueve 1 slide por click
-            gap: "24px",             // Espacio entre slides
-            arrows: false,           // Ocultamos flechas nativas (usamos las nuestras)
-            pagination: false,       // Sin puntos de paginación
-            drag: true,              // Permite arrastrar con mouse
-            speed: 400,              // Velocidad de animación (ms)
-            easing: "ease",          // Tipo de animación
-            padding: { left: 40, right: 40 },
-            trimSpace: true,         // Elimina espacio extra al final
-        });
-
-        // Función para actualizar el estado de las flechas
-        const updateArrowState = () => {
-            const index = splide.index;
-            const endIndex = splide.Components.Controller.getEnd();
-            setIsAtStart(index === 0);
-            setIsAtEnd(index >= endIndex);
-        };
-
-        // Escuchar DESPUÉS de que el carrusel termine de moverse
-        splide.on('moved', updateArrowState);
-        // Al montar para estado inicial
-        splide.on('mounted', updateArrowState);
-
-        splide.mount();
-        splideInstanceRef.current = splide;
-
-        // Cleanup
-        return () => {
-            splide.destroy();
-            splideInstanceRef.current = null;
-        };
-    }, []);
-
-    // Funciones para las flechas de navegación
-    const goToPrev = () => {
-        splideInstanceRef.current?.go("<");
-    };
-
-    const goToNext = () => {
-        splideInstanceRef.current?.go(">");
-    };
 
     const openModal = (inspection: typeof inspectionPlans[0], items: string[], planIndex: number) => {
         setModalData({
@@ -107,7 +55,7 @@ export default function ServicesSection() {
             description: inspection.landingDescription,
             price: inspection.price,
             items,
-            whatsappLink: `https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20${encodeURIComponent(inspection.title)}.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98`,
+            whatsappLink: getWhatsAppLink(planIndex),
             planIndex,
             videoId: PLAN_VIDEO_IDS[planIndex] // Asigna el video según el plan
         });
@@ -128,34 +76,12 @@ export default function ServicesSection() {
     return (
         <section id="planes" className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
             <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
-                {/* Header con título y flechas en la misma línea (solo PC) */}
+                {/* Header con título */}
                 <div className={styles['services-header']}>
                     <div className={styles['services-div']}>
                         <h2 id="services-heading" className={styles['heading-2']}>
-                            El plan que eliges <span className={styles['negrita']}>define cuánto descubres</span>
+                            El plan que eliges <span className={styles['negrita']}>define cuánto descubres.</span>
                         </h2>
-                    </div>
-                    {/* Flechas de navegación - solo visibles en PC */}
-                    <div className={styles['carousel-arrows']}>
-                       
-                        <button
-                            type="button"
-                            className={`${styles['carousel-arrow']} ${isAtStart ? styles['carousel-arrow-disabled'] : styles['carousel-arrow-active']}`}
-                            onClick={goToPrev}
-                            disabled={isAtStart}
-                            aria-label="Slide anterior"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button
-                            type="button"
-                            className={`${styles['carousel-arrow']} ${isAtEnd ? styles['carousel-arrow-disabled'] : styles['carousel-arrow-active']}`}
-                            onClick={goToNext}
-                            disabled={isAtEnd}
-                            aria-label="Slide siguiente"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
                     </div>
                 </div>
                 {/* Versión Móvil - Cards en vertical */}
@@ -182,13 +108,11 @@ export default function ServicesSection() {
                                     </header>
                                     <div className="flex justify-between items-center w-full">
                                         <p className={styles['card-price']} aria-label={`Precio ${inspection.price} soles`}>S/ {inspection.price}</p>
-                                        {isPremium &&
-                                            <span className={styles['badge-popular']} aria-label="Más popular">POPULAR</span>
-                                        }
+                                     
                                     </div>
                                 </div>
                                 <div className={styles['mobile-buttons']}>
-                                    <a href={`https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20${encodeURIComponent(inspection.title)}.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98`}
+                                    <a href={getWhatsAppLink(inspectionIndex)}
                                         target="_blank" className={styles['btn-primary-dark']} aria-label={`Elegir ${inspection.title}`}>
                                         Elegir este plan
                                     </a>
@@ -206,114 +130,96 @@ export default function ServicesSection() {
                     })}
                 </div>
 
-                {/* Versión PC - Carrusel con Splide */}
-                {/*
-                    Splide maneja automáticamente:
-                    - Arrastre con mouse y touch
-                    - Animaciones suaves
-                    - Las flechas están arriba, conectadas a la instancia de Splide
-                */}
-                <div className={styles['desktop-carousel']}>
-                    {/* Contenedor de Splide - usa clases específicas de la librería */}
-                    <div ref={carouselRef} className="splide" aria-label="Galería de planes">
-                        {/* splide__track: área visible del carrusel */}
-                        <div className="splide__track">
-                            {/* splide__list: contenedor de las slides */}
-                            <ul className="splide__list">
-                                {/* Mapeamos cada plan para crear una slide */}
-                                {inspectionPlans.map((inspection, index) => {
-                                    const itemsForInspection = inspectionPlanItems.find(
-                                        ii => ii.inspectionPlanId === index + 1
-                                    );
+                {/* Versión PC - Grid con 3 planes (Premium al centro) */}
+                <div className={styles['desktop-plans']}>
+                    {/* Reordenamos: Legal Express (0), Premium (2), Básica (1) - Premium al centro */}
+                    {[0, 2, 1].map((originalIndex) => {
+                        const inspection = inspectionPlans[originalIndex];
+                        const itemsForInspection = inspectionPlanItems.find(
+                            ii => ii.inspectionPlanId === originalIndex + 1
+                        );
 
-                                    const isPremiumPlus = index === 2; // Tercer plan (Premium Plus)
+                        const isPremium = originalIndex === 2; // Plan Premium
 
-                                    return (
-                                        // splide__slide: cada slide individual
-                                        <li key={inspection.type} className="splide__slide">
-                                            <div className={`${styles['carousel-slide']} ${isPremiumPlus ? styles['carousel-slide-featured'] : ''}`}>
-                                                {/* Imagen de fondo completa */}
-                                                <img
-                                                    src={PLAN_IMAGES[index]}
-                                                    alt={`Imagen de ${inspection.title}`}
-                                                    className={styles['carousel-image']}
-                                                    draggable={false}
-                                                />
-                                                {/* Degradado oscuro de derecha a izquierda */}
-                                                <div className={styles['carousel-gradient']} />
+                        return (
+                            <div
+                                key={inspection.type}
+                                className={`${styles['desktop-plan-card']} ${isPremium ? styles['desktop-plan-featured'] : ''}`}
+                            >
+                                {/* Badge "Recomendado" para Premium - posicionado arriba */}
+                                {isPremium && (
+                                    <div className={styles['premium-badge-top']}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <span>MÁS POPULAR</span>
+                                    </div>
+                                )}
 
-                                                {/* Contenido del plan sobre la imagen */}
-                                                <div className={styles['carousel-content']}>
-                                                    <div className={styles['carousel-header']}>
-                                                        <div className={styles['carousel-title-row']}>
-                                                            <h3 className={styles['carousel-title']}>{inspection.title}</h3>
-                                                            {isPremiumPlus && (
-                                                                <span className={styles['badge-popular']}>MÁS POPULAR</span>
-                                                            )}
-                                                        </div>
-                                                        <p className={styles['carousel-description']}>
-                                                            {inspection.landingDescription}
-                                                        </p>
-                                                        {/* Precio grande - mismo estilo que el modal en PC */}
-                                                        <p className={styles['carousel-price-large']}>S/{inspection.price}</p>
-                                                    </div>
+                                {/* Imagen de fondo completa */}
+                                <img
+                                    src={PLAN_IMAGES[originalIndex]}
+                                    alt={`Imagen de ${inspection.title}`}
+                                    className={styles['carousel-image']}
+                                />
+                                {/* Degradado oscuro */}
+                                <div className={styles['carousel-gradient']} />
 
-                                                    {/* Lista de items con checks verdes */}
-                                                    <ul className={styles['carousel-items-list']}>
-                                                        {itemsForInspection?.label.map((item, itemIndex) => (
-                                                            <li key={itemIndex} className={styles['carousel-item']}>
-                                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
-                                                                    <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                                                </svg>
-                                                                <span>{item}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                {/* Contenido del plan sobre la imagen */}
+                                <div className={styles['carousel-content']}>
+                                    <div className={styles['carousel-header']}>
+                                        <div className={styles['carousel-title-row']}>
+                                            <h3 className={styles['carousel-title']}>{inspection.title}</h3>
+                                         
+                                        </div>
+                                        <p className={styles['carousel-description']}>
+                                            {inspection.landingDescription}
+                                        </p>
+                                        {/* Precio grande */}
+                                        <p className={styles['carousel-price-large']}>S/{inspection.price}</p>
+                                    </div>
 
-                                                    {/* Botones */}
-                                                    <div className={styles['carousel-buttons']}>
-                                                        <a
-                                                            href={`https://wa.me/51934140010?text=%C2%A1Hola!%20Deseo%20coordinar%20la%20${encodeURIComponent(inspection.title)}.%20Quisiera%20agendar%20y%20recibir%20informaci%C3%B3n.%E2%9C%85%F0%9F%9A%98`}
-                                                            target="_blank"
-                                                            className={styles['carousel-cta']}
-                                                        >
-                                                            <span>Elegir este plan</span>
-                                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                                <line x1="5" y1="12" x2="19" y2="12" />
-                                                                <polyline points="12 5 19 12 12 19" />
-                                                            </svg>
-                                                        </a>
-                                                        {index === 0 ? (
-                                                            <a
-                                                                href="/assets/docs/informe-legal-ejemplo.pdf"
-                                                                target="_blank"
-                                                                className={styles['carousel-btn-secondary']}
-                                                            >
-                                                                <FileText size={18} />
-                                                                <span>Ver informe legal</span>
-                                                            </a>
-                                                        ) : (
-                                                            <button
-                                                                type="button"
-                                                                className={styles['carousel-btn-secondary']}
-                                                                onClick={() => {
-                                                                    openModal(inspection, itemsForInspection?.label || [], index);
-                                                                    setIsPlayingVideo(true);
-                                                                }}
-                                                            >
-                                                                <Play size={18} />
-                                                                <span>Ver video</span>
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>{/* cierre carousel-content */}
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        </div>
-                    </div>
+                                    {/* Lista de items con checks verdes */}
+                                    <ul className={styles['carousel-items-list']}>
+                                        {itemsForInspection?.label.map((item, itemIndex) => (
+                                            <li key={itemIndex} className={styles['carousel-item']}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
+                                                    <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    {/* Botones */}
+                                    <div className={styles['carousel-buttons']}>
+                                        <a
+                                            href={getWhatsAppLink(originalIndex)}
+                                            target="_blank"
+                                            className={styles['carousel-cta']}
+                                        >
+                                            <span>Elegir este plan</span>
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="5" y1="12" x2="19" y2="12" />
+                                                <polyline points="12 5 19 12 12 19" />
+                                            </svg>
+                                        </a>
+                                        <button
+                                            type="button"
+                                            className={styles['carousel-btn-secondary']}
+                                            onClick={() => {
+                                                openModal(inspection, itemsForInspection?.label || [], originalIndex);
+                                                setIsPlayingVideo(true);
+                                            }}
+                                        >
+                                            <Play size={18} />
+                                            <span>Ver video</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 
@@ -356,31 +262,16 @@ export default function ServicesSection() {
                                 )}
                             </div>
 
-                            {/* Botón: PDF para plan básico, Video para otros planes */}
-                            {/* Se oculta cuando el video está reproduciéndose */}
+                            {/* Botón play - Se oculta cuando el video está reproduciéndose */}
                             {!isPlayingVideo && (
-                                modalData.planIndex === 0 ? (
-                                    // Plan Básico: enlace al PDF
-                                    <a
-                                        href="/assets/docs/informe-legal-ejemplo.pdf"
-                                        target="_blank"
-                                        className={`${styles['btn-view-report']} ${styles['ripple-animation']}`}
-                                        aria-label="Ver informe legal de ejemplo"
-                                    >
-                                        <FileText size={18} color="black" />
-                                        <span>Ver informe legal</span>
-                                    </a>
-                                ) : (
-                                    // Planes 2 y 3: botón circular para reproducir video
-                                    <button
-                                        type="button"
-                                        onClick={handlePlayVideo}
-                                        className={`${styles['btn-view-report']} ${styles['btn-play-circle']} ${styles['ripple-animation']}`}
-                                        aria-label="Ver video"
-                                    >
-                                        <Play size={16} color="black" fill="black" />
-                                    </button>
-                                )
+                                <button
+                                    type="button"
+                                    onClick={handlePlayVideo}
+                                    className={`${styles['btn-view-report']} ${styles['btn-play-circle']} ${styles['ripple-animation']}`}
+                                    aria-label="Ver video"
+                                >
+                                    <Play size={16} color="black" fill="black" />
+                                </button>
                             )}
 
                         {/* Contenido del modal */}
