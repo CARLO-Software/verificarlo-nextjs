@@ -11,6 +11,7 @@ import styles from "./InspeccionDetalle.module.css";
 
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Culqi: any;
     culqi: () => void;
   }
@@ -73,6 +74,7 @@ interface InspeccionDetalleClientProps {
 export function InspeccionDetalleClient({
   inspection,
 }: InspeccionDetalleClientProps) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const router = useRouter();
   const isPendingPayment = inspection.status === "PENDING_PAYMENT";
   const isCompleted = inspection.status === "COMPLETED";
@@ -234,7 +236,7 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           } else {
             setError(data.error || "Error procesando el pago");
           }
-        } catch (err) {
+        } catch {
           setError("Error de conexión. Por favor intenta de nuevo.");
         } finally {
           setLoading(false);

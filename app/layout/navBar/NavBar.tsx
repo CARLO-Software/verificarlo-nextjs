@@ -7,10 +7,10 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import styles from "./NavBar.module.css";
 
-import { Menu, X, User } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function NavBar() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -12,7 +12,7 @@ import { db } from "@/lib/db";
 // GET - Obtener vehículos del usuario
 // ============================================
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {

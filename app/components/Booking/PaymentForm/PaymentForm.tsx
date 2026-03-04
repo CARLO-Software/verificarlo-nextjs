@@ -6,6 +6,7 @@ import styles from "./PaymentForm.module.css";
 
 declare global {
   interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Culqi: any;
     culqi: () => void;
   }
@@ -27,6 +28,7 @@ interface PaymentFormProps {
   bookingId: number;
   bookingDetails: BookingDetails;
   expiresAt: Date;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSuccess: (data: any) => void;
   onBack: () => void;
   onExpired: () => void;
@@ -154,7 +156,7 @@ export default function PaymentForm({
           } else {
             setError(data.error || "Error procesando el pago");
           }
-        } catch (err) {
+        } catch {
           setError("Error de conexión. Por favor intenta de nuevo.");
         } finally {
           setLoading(false);

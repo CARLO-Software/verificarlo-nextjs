@@ -150,7 +150,8 @@ export function InspectionDetailClient({ inspection }: Props) {
   const canCancel = hoursUntil > 0;
   const isPending = ['PENDING_PAYMENT', 'PAID', 'CONFIRMED'].includes(inspection.status);
   const isCompleted = inspection.status === 'COMPLETED';
-  const isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);
+  // Estado de cancelación (disponible para uso futuro)
+  const _isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);
 
 
   // Formatear fecha

@@ -88,7 +88,7 @@ interface BookingData {
 }
 
 export default function AgendarForm({ initialInspections, initialBrands }: AgendarFormProps) {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
 
   // Estado del flujo
@@ -110,6 +110,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [confirmationData, setConfirmationData] = useState<any>(null);
 
   // Modelos disponibles
@@ -248,14 +249,15 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
 
       setVehicleData((prev) => ({ ...prev, id: vehicleResult.id }));
       setCurrentStep("pago");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
   // Pago exitoso
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handlePaymentSuccess = (data: any) => {
     setConfirmationData(data.booking);
     setCurrentStep("confirmado");

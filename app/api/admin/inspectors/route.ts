@@ -11,9 +11,10 @@ import {
   reassignInspectorBookings,
   getInspectorsWorkload,
 } from "@/lib/scheduling/inspector-assignment";
-import { startOfDay, parse, format } from "date-fns";
+import { parse } from "date-fns";
 
 // Middleware para verificar rol de admin
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function verifyAdmin(session: any) {
   if (!session?.user?.id) {
     return { error: "Debe iniciar sesión", status: 401 };

@@ -106,7 +106,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const { password: _, ...userWithoutPassword } = newUser;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...userWithoutPassword } = newUser;
     return NextResponse.json(userWithoutPassword, { status: 201 });
   } catch (error) {
     console.error("Error creando usuario:", error);

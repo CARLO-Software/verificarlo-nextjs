@@ -5,7 +5,7 @@ import styles from "./PromotionalBanner.module.css";
 
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, _setIsAnimating] = useState(false);
   const [isInServicesSection, setIsInServicesSection] = useState(false);
 
   //   const handleClose = () => {
