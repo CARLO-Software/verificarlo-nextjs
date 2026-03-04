@@ -6,6 +6,7 @@ import Link from "next/link";
 import styles from "./InspectionForm.module.css";
 import { InspectionChecklist } from "./components";
 import { type InspectionResults } from "./inspectionData";
+import type { JsonValue } from "@prisma/client/runtime/library";
 
 type ResultStatus = "PENDING" | "OK" | "WARNING" | "CRITICAL";
 
@@ -21,16 +22,16 @@ interface Report {
   id: number;
   legalStatus: ResultStatus;
   legalScore: number | null;
-  legalObservations: Record<string, unknown> | null;
+  legalObservations: JsonValue;
   mechanicalStatus: ResultStatus;
   mechanicalScore: number | null;
-  mechanicalObservations: Record<string, unknown> | null;
+  mechanicalObservations: JsonValue;
   bodyStatus: ResultStatus;
   bodyScore: number | null;
-  bodyObservations: Record<string, unknown> | null;
+  bodyObservations: JsonValue;
   interiorStatus?: ResultStatus;
   interiorScore?: number | null;
-  interiorObservations?: Record<string, unknown> | null;
+  interiorObservations?: JsonValue;
   checklistResults?: InspectionResults;
   mileageAtInspection: number | null;
   vinNumber: string | null;
