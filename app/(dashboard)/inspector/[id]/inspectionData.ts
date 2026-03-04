@@ -441,7 +441,7 @@ export function calculateOverallScore(results: InspectionResults): {
     if (cat.status === "CRITICAL") {
       overallStatus = "CRITICAL";
       break;
-    } else if (cat.status === "WARNING" && overallStatus !== "CRITICAL") {
+    } else if (cat.status === "WARNING") {
       overallStatus = "WARNING";
     }
   }
