@@ -57,7 +57,7 @@ interface InspectionData {
   date: string;
   timeSlot: string;
   client: {
-    id: number;
+    id: string;
     name: string;
     phone: string | null;
     email: string;
