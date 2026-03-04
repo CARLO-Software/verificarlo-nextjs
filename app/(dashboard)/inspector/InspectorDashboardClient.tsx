@@ -13,7 +13,7 @@ interface Inspection {
   timeSlot: string;
   startTime: string;
   client: {
-    id: number;
+    id: string;
     name: string;
     phone: string | null;
     email: string;

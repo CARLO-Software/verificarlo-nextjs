@@ -40,7 +40,7 @@ interface InspectionData {
     price: number;
   };
   inspector: {
-    id: number;
+    id: string;
     name: string | null;
   } | null;
   payment: {

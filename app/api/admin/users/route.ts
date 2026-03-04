@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { Role } from "@prisma/client";
 
 // Middleware para verificar rol de admin
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -178,7 +179,7 @@ export async function PATCH(req: NextRequest) {
         );
       }
 
-      const updateData: { role: string; isInspectorAvailable?: boolean } = { role: newRole };
+      const updateData: { role: Role; isInspectorAvailable?: boolean } = { role: newRole as Role };
       if (newRole === "INSPECTOR") {
         updateData.isInspectorAvailable = true;
       }

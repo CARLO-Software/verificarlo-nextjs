@@ -39,7 +39,7 @@ export async function GET(
         inspector: {
           select: { id: true, name: true, phone: true },
         },
-        inspection: true,
+        inspectionPlan: true,
         vehicle: {
           include: {
             model: {

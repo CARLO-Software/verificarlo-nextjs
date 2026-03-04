@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
             email: true,
           },
         },
-        inspection: {
+        inspectionPlan: {
           select: {
             title: true,
             type: true,
@@ -104,8 +104,8 @@ export async function GET(req: NextRequest) {
             email: booking.client.email,
           },
           inspection: {
-            title: booking.inspection.title,
-            type: booking.inspection.type,
+            title: booking.inspectionPlan.title,
+            type: booking.inspectionPlan.type,
           },
           vehicle: {
             brand: booking.vehicle.model.brand.name,

@@ -288,7 +288,7 @@ export async function updateLegalSection(
     data: {
       legalStatus: data.status,
       legalScore: data.score,
-      legalObservations: data.observations,
+      legalObservations: JSON.parse(JSON.stringify(data.observations)),
     },
   });
 }
@@ -320,7 +320,7 @@ export async function updateMechanicalSection(
     data: {
       mechanicalStatus: data.status,
       mechanicalScore: data.score,
-      mechanicalObservations: data.observations,
+      mechanicalObservations: JSON.parse(JSON.stringify(data.observations)),
     },
   });
 }
@@ -352,7 +352,7 @@ export async function updateBodySection(
     data: {
       bodyStatus: data.status,
       bodyScore: data.score,
-      bodyObservations: data.observations,
+      bodyObservations: JSON.parse(JSON.stringify(data.observations)),
     },
   });
 }
@@ -416,7 +416,7 @@ export async function updateChecklistResults(
   return db.inspectionReport.update({
     where: { id: reportId },
     data: {
-      checklistResults: data.checklistResults,
+      checklistResults: JSON.parse(JSON.stringify(data.checklistResults)),
     },
   });
 }
@@ -572,7 +572,7 @@ export async function completeReport(reportId: number) {
   const { userId } = await verifyInspectorAccess(report.bookingId);
 
   // Validar que haya resultados del checklist
-  const checklistResults = (report.checklistResults as ChecklistResults) || {};
+  const checklistResults = (report.checklistResults as unknown as ChecklistResults) || {};
 
   if (Object.keys(checklistResults).length === 0) {
     throw new Error('No se han completado items del checklist');

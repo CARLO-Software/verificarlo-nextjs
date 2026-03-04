@@ -11,7 +11,7 @@ import { startOfDay } from "date-fns";
 
 export interface AssignmentResult {
   success: boolean;
-  inspectorId?: number;
+  inspectorId?: string;
   inspectorName?: string;
   error?: string;
 }
@@ -24,7 +24,7 @@ export interface ReassignmentResult {
 }
 
 interface InspectorWorkload {
-  id: number;
+  id: string;
   name: string;
   dailyCount: number;
   hasSlotConflict: boolean;
@@ -40,7 +40,7 @@ export async function assignInspector(
   // Obtener el booking
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
-    include: { inspection: true },
+    include: { inspectionPlan: true },
   });
 
   if (!booking) {
@@ -136,7 +136,7 @@ export async function assignInspector(
 // ============================================
 
 export async function reassignInspectorBookings(
-  inspectorId: number,
+  inspectorId: string,
   date: Date,
   _reason: string
 ): Promise<ReassignmentResult> {
@@ -264,7 +264,7 @@ export async function getInspectorsWorkload(date: Date) {
 // ============================================
 
 export async function toggleInspectorActive(
-  inspectorId: number,
+  inspectorId: string,
   isInspectorAvailable: boolean
 ): Promise<{ success: boolean; error?: string }> {
   const inspector = await db.user.findUnique({

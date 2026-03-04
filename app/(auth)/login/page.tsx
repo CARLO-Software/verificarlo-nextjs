@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./Login.module.css";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useLogin } from "./useLogin";
 import { GoogleButton } from "@/app/components/GoogleButton";
 import { useSearchParams } from "next/navigation";
@@ -87,10 +87,10 @@ function LoginIllustration({ className }: { className?: string }) {
 }
 
 // ============================================
-// MAIN LOGIN COMPONENT
+// LOGIN CONTENT (uses searchParams)
 // ============================================
 
-export default function Login() {
+function LoginContent() {
   const searchParams = useSearchParams();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -319,5 +319,17 @@ export default function Login() {
         </main>
       </div>
     </>
+  );
+}
+
+// ============================================
+// MAIN LOGIN COMPONENT (with Suspense boundary)
+// ============================================
+
+export default function Login() {
+  return (
+    <Suspense fallback={<div className={styles.container}>Cargando...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 }

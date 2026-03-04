@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       where: { id: bookingId },
       include: {
         payment: true,
-        inspection: true,
+        inspectionPlan: true,
         client: {
           select: { id: true, email: true, name: true, phone: true },
         },
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 
     // Preparar descripción del cargo
     const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
-    const description = `Inspección ${booking.inspection.type} - ${vehicleDescription}`;
+    const description = `Inspección ${booking.inspectionPlan.type} - ${vehicleDescription}`;
 
     // Crear cargo en Culqi
     const culqiRequest: CulqiChargeRequest = {
@@ -162,8 +162,8 @@ export async function POST(req: NextRequest) {
       description,
       metadata: {
         bookingId: booking.id.toString(),
-        inspectionType: booking.inspection.type,
-        vehiclePlate: booking.vehicle.plate,
+        inspectionType: booking.inspectionPlan.type,
+        vehiclePlate: booking.vehicle.plate || "Sin placa",
       },
     };
 
@@ -213,7 +213,8 @@ export async function POST(req: NextRequest) {
           status: "COMPLETED",
           culqiChargeId: chargeData.id,
           paidAt: new Date(),
-          metadata: chargeData,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          metadata: JSON.parse(JSON.stringify(chargeData)),
         },
       });
 
@@ -244,7 +245,7 @@ export async function POST(req: NextRequest) {
         inspector: {
           select: { name: true, phone: true },
         },
-        inspection: {
+        inspectionPlan: {
           select: { title: true, type: true },
         },
         vehicle: {
@@ -275,8 +276,8 @@ export async function POST(req: NextRequest) {
             }
           : null,
         inspection: {
-          title: updatedBooking!.inspection.title,
-          type: updatedBooking!.inspection.type,
+          title: updatedBooking!.inspectionPlan.title,
+          type: updatedBooking!.inspectionPlan.type,
         },
         vehicle: {
           brand: updatedBooking!.vehicle.model.brand.name,
