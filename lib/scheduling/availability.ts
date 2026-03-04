@@ -5,8 +5,6 @@
 import { db } from "@/lib/db";
 import {
   startOfDay,
-  endOfDay,
-  addMinutes,
   isSunday,
   isSaturday,
   format,

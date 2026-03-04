@@ -4,7 +4,6 @@
 
 import { db } from "@/lib/db";
 import { startOfDay } from "date-fns";
-import { BLOCKING_STATUSES } from "./constants";
 
 // ============================================
 // TIPOS
@@ -139,7 +138,7 @@ export async function assignInspector(
 export async function reassignInspectorBookings(
   inspectorId: number,
   date: Date,
-  reason: string
+  _reason: string
 ): Promise<ReassignmentResult> {
   // Obtener todas las citas confirmadas del inspector para esa fecha
   const bookings = await db.booking.findMany({
