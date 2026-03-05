@@ -168,6 +168,7 @@
   height: 300px;
   object-fit: cover;
   flex-shrink: 0;
+  filter: saturate(1.45);
 }
 
 /* ============================================
