@@ -10,6 +10,7 @@ import {
   FileBarChart,
   Settings,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import styles from './AdminSidebar.module.css';
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/inspecciones', label: 'Inspecciones', icon: CalendarCheck },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
+  { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings },
 ];

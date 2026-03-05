@@ -62,48 +62,59 @@ async function seedModels(brandMap: Map<string, number>): Promise<void> {
     modelGroups.get(key)!.years.push(vehicle.year);
   }
 
-  // Upsert de modelos en paralelo (batches para evitar sobrecarga)
+  // Upsert de modelos secuencialmente para evitar conflictos de concurrencia
   const modelEntries = Array.from(modelGroups.values());
-  const BATCH_SIZE = 50;
-
   let processedCount = 0;
 
-  for (let i = 0; i < modelEntries.length; i += BATCH_SIZE) {
-    const batch = modelEntries.slice(i, i + BATCH_SIZE);
+  for (const data of modelEntries) {
+    const brandId = brandMap.get(data.brand);
+    if (!brandId) {
+      console.warn(`   ⚠ Marca no encontrada: ${data.brand}`);
+      continue;
+    }
 
-    await Promise.all(
-      batch.map((data) => {
-        const brandId = brandMap.get(data.brand);
-        if (!brandId) {
-          console.warn(`   ⚠ Marca no encontrada: ${data.brand}`);
-          return Promise.resolve();
-        }
+    const yearFrom = Math.min(...data.years);
+    const yearTo = Math.max(...data.years);
 
-        const yearFrom = Math.min(...data.years);
-        const yearTo = Math.max(...data.years);
-
-        return prisma.model.upsert({
-          where: {
-            brandId_name: {
-              brandId: brandId,
-              name: data.model,
-            },
-          },
-          update: {
-            yearFrom: yearFrom,
-            yearTo: yearTo,
-          },
-          create: {
+    try {
+      await prisma.model.upsert({
+        where: {
+          brandId_name: {
             brandId: brandId,
             name: data.model,
+          },
+        },
+        update: {
+          yearFrom: yearFrom,
+          yearTo: yearTo,
+        },
+        create: {
+          brandId: brandId,
+          name: data.model,
+          yearFrom: yearFrom,
+          yearTo: yearTo,
+        },
+      });
+      processedCount++;
+    } catch (error) {
+      // Si ya existe, intentar actualizar
+      console.warn(`   ⚠ Error procesando modelo ${data.model}, intentando actualizar...`);
+      try {
+        await prisma.model.updateMany({
+          where: {
+            brandId: brandId,
+            name: data.model,
+          },
+          data: {
             yearFrom: yearFrom,
             yearTo: yearTo,
           },
         });
-      })
-    );
-
-    processedCount += batch.length;
+        processedCount++;
+      } catch {
+        console.warn(`   ⚠ No se pudo procesar: ${data.brand} ${data.model}`);
+      }
+    }
   }
 
   console.log(`   ✓ ${processedCount} modelos procesados`);
@@ -232,6 +243,33 @@ async function seedTestInspector(): Promise<void> {
   console.log(`   ✓ Inspector de prueba procesado (ID: ${testInspector.id})`);
 }
 
+/**
+ * Crea las categorías del blog
+ */
+async function seedBlogCategories(): Promise<void> {
+  console.log("📦 Procesando categorías del blog...");
+
+  const categories = [
+    { name: "Consejos", slug: "consejos", color: "#FFD700" },
+    { name: "Alertas", slug: "alertas", color: "#EF4444" },
+    { name: "Guías", slug: "guias", color: "#3B82F6" },
+    { name: "Noticias", slug: "noticias", color: "#22C55E" },
+  ];
+
+  for (const category of categories) {
+    await prisma.blogCategory.upsert({
+      where: { slug: category.slug },
+      update: {
+        name: category.name,
+        color: category.color,
+      },
+      create: category,
+    });
+  }
+
+  console.log(`   ✓ ${categories.length} categorías de blog procesadas`);
+}
+
 // ============================================
 // FUNCIÓN PRINCIPAL
 // ============================================
@@ -256,6 +294,9 @@ async function main() {
 
   // 5. Inspector de prueba (independiente)
   await seedTestInspector();
+
+  // 6. Categorías del blog (independiente)
+  await seedBlogCategories();
 
   console.log("\n✅ Seed completado!");
 }

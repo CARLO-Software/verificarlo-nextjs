@@ -474,3 +474,41 @@ model BlockedDate {
 
   @@index([date])
 }
+
+// ============================================
+// BLOG
+// ============================================
+
+model BlogCategory {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String     @unique
+  color     String     @default("#FFD700")
+  posts     BlogPost[]
+  createdAt DateTime   @default(now())
+}
+
+model BlogPost {
+  id          String       @id @default(cuid())
+  title       String
+  slug        String       @unique
+  excerpt     String       @db.Text
+  content     String       @db.Text
+  coverImage  String
+  categoryId  String
+  category    BlogCategory @relation(fields: [categoryId], references: [id])
+  author      String       @default("Verificarlo")
+  published   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([categoryId])
+  @@index([published])
+  @@index([createdAt])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}

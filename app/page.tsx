@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import MetricasSection from "./landing/metricas/MetricasSection";
 import GoogleReviews from "./landing/googleReviews/GoogleReviews";
+import BlogSection from "./landing/blogSection/BlogSection";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -46,8 +47,9 @@ export default async function Home() {
         {/* TODO: Riesgos que pueden costar miles */}
         <RiesgosSection />
 
-        {/* TODO: BLOG */}
-        
+        {/* Blog Section */}
+        <BlogSection />
+
         {/*Benefits section */}
         {/* <BenefitsSection /> */}
 

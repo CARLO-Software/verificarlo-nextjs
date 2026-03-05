@@ -18,7 +18,7 @@ type ModalData = {
 
 // IDs de videos de YouTube para cada plan (reemplazar con los reales)
 const PLAN_VIDEO_IDS: Record<number, string | null> = {
-    0: "IRIAhxOg6hU",  // Plan Legal Express: reemplazar con ID real
+    0: "0b_rVuMBJEc",  // Plan Legal Express: reemplazar con ID real
     1: "IRIAhxOg6hU",  // Plan Básico: reemplazar con ID real
     2: "tgBM9EGWLig",  // Plan Premium: reemplazar con ID real
 };
@@ -26,9 +26,9 @@ const PLAN_VIDEO_IDS: Record<number, string | null> = {
 // Imágenes de fondo para el carrusel de desktop (una por cada plan)
 // El índice corresponde al plan: 0 = Básico, 1 = Estándar, 2 = Premium
 const PLAN_IMAGES = [
-    "/assets/images/modal-bg.svg",    // Plan Básico
-    "/assets/images/modal-bg-2.png",  // Plan Estándar
-    "/assets/images/modal-bg-3.png",  // Plan Premium
+    "/assets/images/modal-bg.png",    // Plan Básico
+    "/assets/images/modal-bg-3.png",  // Plan Estándar
+    "/assets/images/modal-bg-2.png",  // Plan Premium
 ];
 
 // Mensajes de WhatsApp personalizados para cada plan

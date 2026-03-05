@@ -15,6 +15,26 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com', // Imágenes de Cloudinary
       },
+      {
+        protocol: 'https',
+        hostname: 'verificarlo.com', // Imágenes del blog
+      },
+      {
+        protocol: 'https',
+        hostname: '*.verificarlo.com', // Subdominios de verificarlo
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com', // Unsplash para imágenes del blog
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.imgur.com', // Imgur
+      },
+      {
+        protocol: 'https',
+        hostname: '**', // Permitir cualquier dominio HTTPS para el blog
+      },
     ],
   },
   // Configuración para @react-pdf/renderer

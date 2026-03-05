@@ -12,7 +12,9 @@
       "Bash(cmd.exe /c \"del /f /q \\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul\")",
       "Bash(cmd.exe /c \"if exist \\\\?\\\\C:\\\\Users\\\\HEYDI\\\\verificarlo-frontend\\\\nul echo EXISTS\")",
       "Bash(powershell:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npm run:*)"
     ]
   }
 }

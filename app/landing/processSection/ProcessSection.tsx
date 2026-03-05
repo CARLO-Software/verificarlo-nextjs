@@ -12,28 +12,28 @@ export default function ProcessSection() {
     const listaProcesos = [
         {
             id: 1,
-            src: "/assets/images/modal-bg.svg",
+            src: "/assets/images/primera-foto-process.png",
             alt: "Inspección de +200 puntos",
             titulo: "Inspección de +200 puntos",
             descripcion: "Revisión mecánica, estética y legal completa para asegurar que eI auto esté en perfectas condiciones."
         },
         {
             id: 2,
-            src: "/assets/images/segunda-foto.png",
+            src: "/assets/images/segunda-foto-process.png",
             alt: "Te entregamos un informe detallado",
             titulo: "Te entregamos un informe detallado",
             descripcion: "Recibe un reporte técnico de motor, caja, chasis y suspensión. Transparencia total sobre el estado real."
         },
         {
             id: 3,
-            src: "/assets/images/tercera-foto.jpg",
+            src: "/assets/images/tercera-foto-process.png",
             alt: "Presupuesto de reparaciones",
             titulo: "Presupuesto de reparaciones",
             descripcion: "Si hallamos fallas, te damos soluciones y costos estimados para que decidas con la información clara."
         },
         {
             id: 4,
-            src: "/assets/images/cuarta-foto.png",
+            src: "/assets/images/cuarta-foto-process.png",
             alt: "Gestión notarial a docimicilio",
             titulo: "Gestión notarial a docimicilio",
             descripcion: "Firmamos en 1 hora. Un procurador va a donde estés para formalizar la compra sin que pierdas tiempo."
@@ -43,7 +43,7 @@ export default function ProcessSection() {
     return (<section id="proceso" className={`${styles["section"]} ${styles['process-section']}`} aria-labelledby="process-heading">
         <div className={`w-layout-blockcontainer container ${styles['process-container']} w-container`}>
             <h2 id="process-heading" className={styles['heading-3']}>
-                <span className={styles['process-heading-span']}>¿Por qué elegir</span> Verificarlo
+                <span className={styles['process-heading-span']}>¿Por qué elegir</span> Verificarlo?
                 <p className={styles['process-subheading']}>Solo necesitas 1 hora para saber si ese auto vale la pena</p>
             </h2>
             <Slider metodoSlider={"proceso-inspeccion"} onControlsReady={setSliderControls}>
