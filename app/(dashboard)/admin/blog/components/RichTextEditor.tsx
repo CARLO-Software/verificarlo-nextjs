@@ -30,7 +30,7 @@ export default function RichTextEditor({
       import("react-quill-new").then((module) => {
         const Quill = module.default.Quill;
         if (Quill) {
-          const Size = Quill.import("attributors/style/size");
+          const Size = Quill.import("attributors/style/size") as { whitelist: string[] };
           Size.whitelist = fontSizes;
           Quill.register(Size, true);
         }
