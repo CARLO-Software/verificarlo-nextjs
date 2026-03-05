@@ -30,7 +30,8 @@ export default function RichTextEditor({
       import("react-quill-new").then((module) => {
         const Quill = module.default.Quill;
         if (Quill) {
-          const Size = Quill.import("attributors/style/size") as { whitelist: string[] };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const Size = Quill.import("attributors/style/size") as any;
           Size.whitelist = fontSizes;
           Quill.register(Size, true);
         }
