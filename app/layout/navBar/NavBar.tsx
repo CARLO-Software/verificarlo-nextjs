@@ -255,10 +255,10 @@ export default function NavBar() {
               <span className={styles["navbar-text"]}>Blog</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
             </a>
-            <a href="/#faqs" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+            {/* <a href="/#faqs" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
               <span className={styles["navbar-text"]}>FAQs</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
-            </a>
+            </a> */}
           </nav>
 
           {/* Separador */}
