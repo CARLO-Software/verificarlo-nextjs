@@ -107,6 +107,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
     plate: "",
     mileage: null,
   });
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
@@ -254,7 +255,7 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
     } finally {
       setLoading(false);
     }
-  };
+  }; //! Fin del handleProceedToPayment
 
   // Pago exitoso
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

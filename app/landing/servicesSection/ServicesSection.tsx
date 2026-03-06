@@ -253,8 +253,8 @@ export default function ServicesSection() {
                                     // Imagen de fondo por defecto
                                     <>
                                         <img
-                                            src="/assets/images/modal-bg.svg"
-                                            alt="foto de fondo modal"
+                                            src={PLAN_IMAGES[modalData.planIndex]}
+                                            alt={`Imagen de ${modalData.title}`}
                                             className={styles['modal-bg-image']}
                                         />
                                         <div className={styles['modal-bg-overlay']} />
