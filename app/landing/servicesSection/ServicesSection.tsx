@@ -18,9 +18,9 @@ type ModalData = {
 
 // IDs de videos de YouTube para cada plan (reemplazar con los reales)
 const PLAN_VIDEO_IDS: Record<number, string | null> = {
-    0: "0b_rVuMBJEc",  // Plan Legal Express: reemplazar con ID real
-    1: "IRIAhxOg6hU",  // Plan Básico: reemplazar con ID real
-    2: "tgBM9EGWLig",  // Plan Premium: reemplazar con ID real
+    0: "qpFzaaocpPo",  // Plan Legal Express: reemplazar con ID real
+    1: "8PycK5S8CpM",  // Plan Básico: reemplazar con ID real
+    2: "z1favRdoTSY",  // Plan Premium: reemplazar con ID real
 };
 
 // Imágenes de fondo para el carrusel de desktop (una por cada plan)

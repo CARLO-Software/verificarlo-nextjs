@@ -19,21 +19,21 @@ export default function ProcessSection() {
         },
         {
             id: 2,
-            src: "/assets/images/segunda-foto-process.png",
+            src: "/assets/images/segunda-foto-process.jpeg",
             alt: "Te entregamos un informe detallado",
             titulo: "Te entregamos un informe detallado",
             descripcion: "Recibe un reporte técnico de motor, caja, chasis y suspensión. Transparencia total sobre el estado real."
         },
         {
             id: 3,
-            src: "/assets/images/tercera-foto-process.png",
+            src: "/assets/images/tercera-foto-process.jpeg",
             alt: "Presupuesto de reparaciones",
             titulo: "Presupuesto de reparaciones",
             descripcion: "Si hallamos fallas, te damos soluciones y costos estimados para que decidas con la información clara."
         },
         {
             id: 4,
-            src: "/assets/images/cuarta-foto-process.png",
+            src: "/assets/images/cuarta-foto-process.jpeg",
             alt: "Gestión notarial a docimicilio",
             titulo: "Gestión notarial a docimicilio",
             descripcion: "Firmamos en 1 hora. Un procurador va a donde estés para formalizar la compra sin que pierdas tiempo."
