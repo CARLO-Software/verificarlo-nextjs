@@ -488,3 +488,158 @@
     font-size: 20px;
   }
 }
+
+/* =============================================================================
+   LAYOUT DE DOS COLUMNAS (Nuevo diseño)
+   =============================================================================
+   CONCEPTO CSS GRID:
+   - grid-template-columns: 400px 1fr significa:
+     - Columna 1: exactamente 400px (imagen)
+     - Columna 2: todo el espacio restante (formulario)
+   - En móvil (<1024px) cambiamos a una sola columna
+   ============================================================================= */
+
+.bookingLayout {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  min-height: 100vh;
+}
+
+/* =============================================================================
+   Columna Izquierda: Imagen
+   ============================================================================= */
+
+.sidebarImage {
+  position: relative; /* Necesario para que el overlay se posicione correctamente */
+  height: 100vh;
+  overflow: hidden;
+}
+
+.sidebarImageBg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center; /* Centra la imagen para que no se corte raro */
+}
+
+/* Overlay con gradiente y texto */
+.sidebarOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.4) 40%,
+    transparent 70%
+  );
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 2.5rem;
+  color: white;
+}
+
+.sidebarTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.sidebarSubtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   Columna Derecha: Formulario
+   ============================================================================= */
+
+.formContainer {
+  background: linear-gradient(180deg, var(--shark--50) 0%, var(--basics--white) 100%);
+  padding: 2rem 2.5rem 4rem;
+  overflow-y: auto;
+}
+
+.formContent {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+/* Header del formulario */
+.formHeader {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.formTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--shark--950);
+  margin: 0 0 0.5rem 0;
+}
+
+.formSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+  color: var(--shark--600);
+  margin: 0;
+}
+
+/* Contenido del paso actual */
+.stepWrapper {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Acciones del paso (botones) */
+.stepButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--shark--100);
+}
+
+.stepButtonsCenter {
+  justify-content: center;
+}
+
+/* =============================================================================
+   Responsive: En tablets y móvil, ocultar imagen
+   ============================================================================= */
+
+@media (max-width: 1024px) {
+  .bookingLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebarImage {
+    display: none;
+  }
+
+  .formContainer {
+    padding: 1.5rem 1rem 3rem;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .formContainer {
+    padding: 1rem 1rem 2rem;
+  }
+
+  .stepButtons {
+    flex-direction: column;
+  }
+
+  .stepButtons .primaryButton,
+  .stepButtons .secondaryButton {
+    width: 100%;
+  }
+}

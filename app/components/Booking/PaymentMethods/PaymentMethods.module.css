@@ -1,0 +1,449 @@
+/* =============================================================================
+   ESTILOS: PaymentMethods
+   ============================================================================= */
+
+.container {
+  width: 100%;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+}
+
+/* =============================================================================
+   Lista de métodos de pago
+   ============================================================================= */
+
+.methodsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.methodCard {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.methodCard:hover {
+  border-color: #d1d5db;
+}
+
+.methodCardSelected {
+  border-color: #ffc107;
+  background-color: #fffef5;
+}
+
+/* =============================================================================
+   Radio button
+   ============================================================================= */
+
+.radioWrapper {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.radioCircle {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.radioCircleSelected {
+  border-color: #ffc107;
+}
+
+.radioDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ffc107;
+}
+
+/* =============================================================================
+   Contenido del método
+   ============================================================================= */
+
+.methodContent {
+  flex: 1;
+}
+
+.methodHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.methodLabel {
+  font-weight: 600;
+  color: #1a1a1a;
+  font-size: 0.95rem;
+}
+
+.methodIcons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.paymentIcon {
+  height: 24px;
+  width: auto;
+  object-fit: contain;
+}
+
+.methodDescription {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =============================================================================
+   Botón continuar
+   ============================================================================= */
+
+.continueButton {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  background-color: #ffc107;
+  color: #1a1a1a;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.continueButton:hover:not(:disabled) {
+  background-color: #e6ac00;
+  transform: translateY(-1px);
+}
+
+.continueButton:disabled {
+  background-color: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* =============================================================================
+   Estilos para los Modales (compartidos)
+   ============================================================================= */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalClose {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.modalClose:hover {
+  background: #e5e7eb;
+  color: #1a1a1a;
+}
+
+.modalHeader {
+  padding: 1.5rem 1.5rem 0;
+  text-align: center;
+}
+
+.modalIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0fdf4;
+  border-radius: 50%;
+  color: #6cb545;
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+}
+
+.modalSubtitle {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.modalFooter {
+  padding: 0 1.5rem 1.5rem;
+}
+
+/* Información del banco/yape */
+.infoCard {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.infoRow:last-child {
+  border-bottom: none;
+}
+
+.infoLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.infoValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: right;
+}
+
+.infoValueLarge {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6cb545;
+}
+
+/* Código QR */
+.qrWrapper {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.qrImage {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+}
+
+/* Botón del modal */
+.modalButton {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.modalButtonPrimary {
+  background-color: #6cb545;
+  color: white;
+}
+
+.modalButtonPrimary:hover {
+  background-color: #5ca33d;
+}
+
+.modalButtonWhatsApp {
+  background-color: #25d366;
+  color: white;
+}
+
+.modalButtonWhatsApp:hover {
+  background-color: #1fb855;
+}
+
+/* Lista de pasos */
+.stepsList {
+  margin: 1rem 0;
+}
+
+.stepItem {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.stepNumber {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #6cb545;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stepText {
+  font-size: 0.85rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+/* Código de reserva */
+.bookingCode {
+  display: inline-block;
+  background: #f3f4f6;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-family: monospace;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Loader para WhatsApp */
+.loaderWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e5e7eb;
+  border-top-color: #25d366;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loaderText {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 600px) {
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .methodCard {
+    padding: 0.875rem 1rem;
+  }
+
+  .methodHeader {
+    flex-wrap: wrap;
+  }
+
+  .modalContent {
+    margin: 0.5rem;
+    max-height: 95vh;
+  }
+
+  .qrImage {
+    width: 150px;
+    height: 150px;
+  }
+}

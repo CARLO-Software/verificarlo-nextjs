@@ -1,0 +1,147 @@
+/* =============================================================================
+   ESTILOS: StepTimeline (Línea de Tiempo)
+   =============================================================================
+   CONCEPTO CSS: Usamos Flexbox para alinear los pasos horizontalmente.
+   Cada paso tiene un círculo, texto, y una línea conectora al siguiente.
+   ============================================================================= */
+
+.timeline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+}
+
+.stepWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+/* El último paso no necesita la línea conectora */
+.stepWrapper:last-child {
+  flex: 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 80px;
+}
+
+/* =============================================================================
+   Círculo del paso
+   ============================================================================= */
+
+.circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+/* Estilos según el estado del paso */
+
+/* Paso completado: fondo verde, texto blanco */
+.completed .circle {
+  background-color: #6cb545;
+  color: white;
+  border: 2px solid #6cb545;
+}
+
+/* Paso activo: borde amarillo, fondo amarillo claro */
+.active .circle {
+  background-color: #fff8e1;
+  color: #1a1a1a;
+  border: 2px solid #ffc107;
+  box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.2);
+}
+
+/* Paso pendiente: borde gris, fondo blanco */
+.pending .circle {
+  background-color: white;
+  color: #9e9e9e;
+  border: 2px solid #e0e0e0;
+}
+
+/* =============================================================================
+   Texto del paso
+   ============================================================================= */
+
+.label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.3s ease;
+}
+
+.completed .label {
+  color: #6cb545;
+}
+
+.active .label {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.pending .label {
+  color: #9e9e9e;
+}
+
+/* =============================================================================
+   Línea conectora entre pasos
+   ============================================================================= */
+
+.connector {
+  flex: 1;
+  height: 2px;
+  background-color: #e0e0e0;
+  margin: 0 0.5rem;
+  margin-top: -1rem; /* Alinear con el centro del círculo */
+  transition: background-color 0.3s ease;
+}
+
+/* Línea completada: verde */
+.connectorCompleted {
+  background-color: #6cb545;
+}
+
+/* =============================================================================
+   Responsive: En móvil, hacemos los textos más pequeños
+   ============================================================================= */
+
+@media (max-width: 600px) {
+  .timeline {
+    padding: 1rem 0;
+  }
+
+  .step {
+    min-width: 60px;
+  }
+
+  .circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+
+  .label {
+    font-size: 0.625rem;
+  }
+
+  .connector {
+    margin: 0 0.25rem;
+    margin-top: -0.75rem;
+  }
+}

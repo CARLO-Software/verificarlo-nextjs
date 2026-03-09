@@ -1,3 +1,18 @@
+// =============================================================================
+// COMPONENTE: AgendarForm (Formulario Principal de Reserva)
+// =============================================================================
+// Este es el componente principal del flujo de reserva.
+// Organiza un layout de DOS COLUMNAS:
+// - Izquierda: Imagen fija (solo en desktop)
+// - Derecha: Formulario con 4 pasos y línea de tiempo
+//
+// CONCEPTOS DE REACT:
+// 1. "use client" - Este componente necesita interactividad (clicks, formularios)
+// 2. useState - Guardamos el estado de cada paso (qué plan eligió, qué fecha, etc.)
+// 3. Props - Los datos iniciales vienen del Server Component (page.tsx)
+// 4. Renderizado Condicional - Mostramos diferentes componentes según el paso
+// =============================================================================
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -5,48 +20,25 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import styles from "./Agendar.module.css";
 
-// ============================================
-// Helpers de formato
-// ============================================
-
-// Formatear placa: ABC123 -> ABC-123
-function formatPlate(value: string): string {
-  // Remover todo excepto letras y números
-  const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-
-  // Si tiene más de 3 caracteres, insertar guión después del tercero
-  if (clean.length > 3) {
-    return clean.slice(0, 3) + "-" + clean.slice(3, 6);
-  }
-  return clean;
-}
-
-// Formatear número con comas: 50000 -> 50,000
-function formatNumberWithCommas(value: number | null): string {
-  if (value === null) return "";
-  return value.toLocaleString("es-PE");
-}
-
-// Parsear número quitando comas: 50,000 -> 50000
-function parseFormattedNumber(value: string): number | null {
-  const clean = value.replace(/[^0-9]/g, "");
-  if (clean === "") return null;
-  return parseInt(clean, 10);
-}
-
-// Components
-import StepIndicator, { BookingStep } from "@/app/components/Booking/StepIndicator/StepIndicator";
-import BookingCalendar from "@/app/components/Booking/Calendar/BookingCalendar";
-import TimeSlots from "@/app/components/Booking/TimeSlots/TimeSlots";
+// Componentes del flujo de reserva
+import StepTimeline from "@/app/components/Booking/StepTimeline/StepTimeline";
+import PlanSelector from "@/app/components/Booking/PlanSelector/PlanSelector";
+import VehicleLocationForm from "@/app/components/Booking/VehicleLocationForm/VehicleLocationForm";
+import InspectionSchedule from "@/app/components/Booking/InspectionSchedule/InspectionSchedule";
+import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
 import PaymentForm from "@/app/components/Booking/PaymentForm/PaymentForm";
 import Confirmation from "@/app/components/Booking/Confirmation/Confirmation";
 
-// Types
+// =============================================================================
+// TIPOS
+// =============================================================================
+
 interface Inspection {
   id: number;
   type: string;
   title: string;
   description: string;
+  landingDescription?: string;
   price: number;
   items?: { id: number; label: string }[];
 }
@@ -57,151 +49,162 @@ interface Brand {
   logo: string;
 }
 
-interface Model {
-  id: number;
-  name: string;
-  brandId: number;
-  yearFrom: number;
-  yearTo: number;
-}
-
 interface AgendarFormProps {
   initialInspections: Inspection[];
   initialBrands: Brand[];
 }
 
-interface VehicleData {
-  id?: number;
-  brandId: number | null;
-  brandName: string;
-  modelId: number | null;
-  modelName: string;
-  year: number | null;
-  plate: string;
-  mileage: number | null;
-}
+// Tipo para los pasos del flujo (1-4)
+type BookingStep = 1 | 2 | 3 | 4;
 
-interface BookingData {
-  id: number;
-  expiresAt: Date;
-  amount: number;
-}
+// =============================================================================
+// COMPONENTE PRINCIPAL
+// =============================================================================
 
-export default function AgendarForm({ initialInspections, initialBrands }: AgendarFormProps) {
+export default function AgendarForm({
+  initialInspections,
+  initialBrands,
+}: AgendarFormProps) {
   const { status } = useSession();
   const router = useRouter();
 
-  // Estado del flujo
-  const [currentStep, setCurrentStep] = useState<BookingStep>("servicio");
+  // =========================================================================
+  // ESTADOS DEL FLUJO
+  // =========================================================================
+
+  // Paso actual (1-4)
+  const [currentStep, setCurrentStep] = useState<BookingStep>(1);
+
+  // Estados de carga y error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Datos seleccionados
-  const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
-  const [vehicleData, setVehicleData] = useState<VehicleData>({
-    brandId: null,
+  // =========================================================================
+  // PASO 1: Selección de Plan
+  // =========================================================================
+  const [selectedInspection, setSelectedInspection] =
+    useState<Inspection | null>(null);
+
+  // =========================================================================
+  // PASO 2: Datos del Vehículo y Ubicación
+  // =========================================================================
+  const [vehicleData, setVehicleData] = useState({
+    brandId: null as number | null,
     brandName: "",
-    modelId: null,
+    modelId: null as number | null,
     modelName: "",
-    year: null,
+    year: null as number | null,
     plate: "",
-    mileage: null,
+    mileage: null as number | null,
   });
 
+  const [locationData, setLocationData] = useState({
+    districtId: null as number | null,
+    districtName: "",
+    address: "",
+  });
+
+  // =========================================================================
+  // PASO 3: Fecha, Hora y Contacto
+  // =========================================================================
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [bookingData, setBookingData] = useState<BookingData | null>(null);
+  const [contactData, setContactData] = useState({
+    fullName: "",
+    phone: "",
+    marketingOptIn: false,
+  });
+
+  // =========================================================================
+  // PASO 4: Método de Pago
+  // =========================================================================
+  const [paymentMethod, setPaymentMethod] = useState<
+    "culqi" | "transfer" | "yape" | "whatsapp" | null
+  >(null);
+  const [showCulqiForm, setShowCulqiForm] = useState(false);
+
+  // =========================================================================
+  // DATOS DE RESERVA (después de crearla en el backend)
+  // =========================================================================
+  const [bookingData, setBookingData] = useState<{
+    id: number;
+    code: string;
+    expiresAt: Date;
+    amount: number;
+  } | null>(null);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [confirmationData, setConfirmationData] = useState<any>(null);
 
-  // Modelos disponibles
-  const [models, setModels] = useState<Model[]>([]);
-  const [loadingModels, setLoadingModels] = useState(false);
+  // =========================================================================
+  // EFECTO: Verificar autenticación
+  // =========================================================================
+  // Si el usuario no está logueado, lo redirigimos al login.
+  // useEffect se ejecuta después de que el componente se renderiza.
 
-  // UI state for dropdowns
-  const [showBrands, setShowBrands] = useState(false);
-  const [showModels, setShowModels] = useState(false);
-  const [brandQuery, setBrandQuery] = useState("");
-  const [modelQuery, setModelQuery] = useState("");
-
-  // Verificar sesión
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login?callbackUrl=/agendar");
     }
   }, [status, router]);
 
-  // Cargar modelos cuando se selecciona marca
-  const loadModels = async (brandId: number) => {
-    setLoadingModels(true);
-    try {
-      const res = await fetch(`/api/vehicles/models/${brandId}`);
-      const data = await res.json();
-      setModels(data);
-    } catch (err) {
-      console.error("Error loading models:", err);
-    } finally {
-      setLoadingModels(false);
+  // =========================================================================
+  // VALIDACIONES POR PASO
+  // =========================================================================
+  // Estas funciones determinan si el usuario puede avanzar al siguiente paso.
+
+  const canProceedStep1 = selectedInspection !== null;
+
+  const canProceedStep2 =
+    vehicleData.brandId !== null &&
+    vehicleData.modelId !== null &&
+    vehicleData.year !== null &&
+    locationData.districtId !== null &&
+    locationData.address.length >= 10;
+
+  const canProceedStep3 =
+    selectedDate !== null &&
+    selectedSlot !== null &&
+    contactData.fullName.length >= 3 &&
+    contactData.phone.length >= 9;
+
+  // canProceedStep4 se usa implícitamente en PaymentMethods
+  const _canProceedStep4 = paymentMethod !== null;
+
+  // =========================================================================
+  // NAVEGACIÓN ENTRE PASOS
+  // =========================================================================
+
+  const goToStep = (step: BookingStep) => {
+    setError(null);
+    setCurrentStep(step);
+  };
+
+  const goNext = () => {
+    if (currentStep < 4) {
+      setCurrentStep((prev) => (prev + 1) as BookingStep);
     }
   };
 
-  // Handlers
-  const handleInspectionSelect = (inspection: Inspection) => {
-    setSelectedInspection(inspection);
+  const goBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep((prev) => (prev - 1) as BookingStep);
+    }
   };
 
-  const handleBrandSelect = (brand: Brand) => {
-    setVehicleData((prev) => ({
-      ...prev,
-      brandId: brand.id,
-      brandName: brand.name,
-      modelId: null,
-      modelName: "",
-    }));
-    setBrandQuery(brand.name);
-    setShowBrands(false);
-    loadModels(brand.id);
-  };
+  // =========================================================================
+  // HANDLER: Proceder al Pago (después del paso 3)
+  // =========================================================================
+  // Crea el vehículo y la reserva en el backend
 
-  const handleModelSelect = (model: Model) => {
-    setVehicleData((prev) => ({
-      ...prev,
-      modelId: model.id,
-      modelName: model.name,
-      year: null, // Resetear año al cambiar modelo
-    }));
-    setModelQuery(model.name);
-    setShowModels(false);
-  };
-
-  const handleDateSelect = (date: string) => {
-    setSelectedDate(date);
-    setSelectedSlot(null); // Reset slot when date changes
-  };
-
-  const handleSlotSelect = (slot: string) => {
-    setSelectedSlot(slot);
-  };
-
-  // Validaciones
-  const canProceedToVehicle = selectedInspection !== null;
-
-  const canProceedToDate =
-    vehicleData.brandId !== null &&
-    vehicleData.modelId !== null &&
-    vehicleData.year !== null;
-
-  const canProceedToPayment = selectedDate !== null && selectedSlot !== null;
-
-  //* Crear reserva y proceder al pago
   const handleProceedToPayment = async () => {
-    if (!canProceedToPayment || !selectedInspection) return;
+    if (!canProceedStep3 || !selectedInspection) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      // Primero crear o obtener el vehículo
+      // 1. Crear o obtener el vehículo
       const vehicleRes = await fetch("/api/vehicles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -218,13 +221,8 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
       if (!vehicleRes.ok) {
         throw new Error(vehicleResult.error || "Error creando vehículo");
       }
-      console.log("ANTES DE CREAR LA RESERVA:");
-      console.log("date: " + selectedDate);
-      console.log("timeSlot:" + selectedSlot);
-      console.log("inspectionId:" + selectedInspection.id);
-      console.log("vehicleId: " + vehicleResult.id);
 
-      // Crear la reserva
+      // 2. Crear la reserva
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,6 +231,12 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
           timeSlot: selectedSlot,
           inspectionPlanId: selectedInspection.id,
           vehicleId: vehicleResult.id,
+          // Datos adicionales del nuevo formulario
+          district: locationData.districtName,
+          address: locationData.address,
+          contactName: contactData.fullName,
+          contactPhone: contactData.phone,
+          marketingOptIn: contactData.marketingOptIn,
         }),
       });
 
@@ -242,63 +246,54 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
         throw new Error(bookingResult.error || "Error creando reserva");
       }
 
+      // 3. Guardar datos de la reserva
       setBookingData({
         id: bookingResult.bookingId,
+        code: `#v-${bookingResult.bookingId.toString().padStart(5, "0")}`,
         expiresAt: new Date(bookingResult.expiresAt),
         amount: bookingResult.amount,
       });
 
-      setVehicleData((prev) => ({ ...prev, id: vehicleResult.id }));
-      setCurrentStep("pago");
+      // 4. Avanzar al paso de pago
+      goNext();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
-  }; //! Fin del handleProceedToPayment
+  };
 
-  // Pago exitoso
+  // =========================================================================
+  // HANDLERS DE PAGO
+  // =========================================================================
+
+  const handleCulqiPayment = () => {
+    setShowCulqiForm(true);
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handlePaymentSuccess = (data: any) => {
     setConfirmationData(data.booking);
-    setCurrentStep("confirmado");
   };
 
-  // Pago expirado
   const handlePaymentExpired = () => {
-    setError("El tiempo para pagar ha expirado. Por favor, inicia una nueva reserva.");
+    setError(
+      "El tiempo para pagar ha expirado. Por favor, inicia una nueva reserva."
+    );
     setBookingData(null);
-    setCurrentStep("fecha");
+    goToStep(3);
   };
 
-  // Navegación entre pasos
-  const goToStep = (step: BookingStep) => {
-    setError(null);
-    //*Esto es crucial para pasar a la siguiente ventana
-    setCurrentStep(step);
+  const handleTransferComplete = () => {
+    // Por ahora solo mostramos un mensaje, en producción enviaría el voucher
+    alert(
+      "Gracias. Por favor envía tu comprobante por WhatsApp al 934140010 para confirmar tu reserva."
+    );
   };
 
-  // Filtrar marcas
-  const filteredBrands = initialBrands.filter((b) =>
-    b.name.toLowerCase().includes(brandQuery.toLowerCase())
-  );
-
-  // Filtrar modelos
-  const filteredModels = models.filter((m) =>
-    m.name.toLowerCase().includes(modelQuery.toLowerCase())
-  );
-
-  // Generar años disponibles basados en el modelo seleccionado
-  const getAvailableYears = () => {
-    const selectedModel = models.find((m) => m.id === vehicleData.modelId);
-    if (!selectedModel) return [];
-
-    const years = [];
-    for (let y = selectedModel.yearTo; y >= selectedModel.yearFrom; y--) {
-      years.push(y);
-    }
-    return years;
-  };
+  // =========================================================================
+  // ESTADOS DE CARGA
+  // =========================================================================
 
   if (status === "loading") {
     return (
@@ -313,328 +308,261 @@ export default function AgendarForm({ initialInspections, initialBrands }: Agend
     return null;
   }
 
+  // =========================================================================
+  // PANTALLA DE CONFIRMACIÓN (después del pago exitoso)
+  // =========================================================================
+
+  if (confirmationData) {
+    return <Confirmation booking={confirmationData} />;
+  }
+
+  // =========================================================================
+  // FORMULARIO DE CULQI (cuando selecciona pago con tarjeta)
+  // =========================================================================
+
+  if (showCulqiForm && bookingData && selectedInspection) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <PaymentForm
+            bookingId={bookingData.id}
+            bookingDetails={{
+              inspectionTitle: selectedInspection.title,
+              inspectionType: selectedInspection.type,
+              vehicleBrand: vehicleData.brandName,
+              vehicleModel: vehicleData.modelName,
+              vehicleYear: vehicleData.year!,
+              vehiclePlate: vehicleData.plate,
+              date: selectedDate!,
+              timeSlot: selectedSlot!,
+              amount: bookingData.amount,
+            }}
+            expiresAt={bookingData.expiresAt}
+            onSuccess={handlePaymentSuccess}
+            onBack={() => setShowCulqiForm(false)}
+            onExpired={handlePaymentExpired}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // RENDER PRINCIPAL: Layout de Dos Columnas
+  // =========================================================================
+
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        {/* Header */}
-        <div className={styles.header}>
-          <h1 className={styles.title}>Agenda tu inspección</h1>
-          <p className={styles.subtitle}>
-            Completa los siguientes pasos para reservar tu cita
+    <div className={styles.bookingLayout}>
+      {/* ===================================================================
+          COLUMNA IZQUIERDA: Imagen (solo visible en desktop)
+          =================================================================== */}
+      <aside className={styles.sidebarImage}>
+        <img
+          src="/assets/images/booking-sidebar.png"
+          alt="Verificarlo - Inspección vehicular"
+          className={styles.sidebarImageBg}
+        />
+        <div className={styles.sidebarOverlay}>
+          <h2 className={styles.sidebarTitle}>
+            Compra tu auto usado con total confianza
+          </h2>
+          <p className={styles.sidebarSubtitle}>
+            Nuestros peritos certificados inspeccionan más de 200 puntos para
+            asegurar tu inversión.
           </p>
         </div>
+      </aside>
 
-        {/* Step Indicator */}
-        {currentStep !== "confirmado" && (
-          <StepIndicator currentStep={currentStep} />
-        )}
-
-        {/* Error global */}
-        {error && (
-          <div className={styles.errorBanner}>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
-              <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-            <span>{error}</span>
-            <button onClick={() => setError(null)}>×</button>
+      {/* ===================================================================
+          COLUMNA DERECHA: Formulario
+          =================================================================== */}
+      <main className={styles.formContainer}>
+        <div className={styles.formContent}>
+          {/* Header */}
+          <div className={styles.formHeader}>
+            <h1 className={styles.formTitle}>Agenda tu inspección</h1>
+            <p className={styles.formSubtitle}>
+              Completa los siguientes pasos para reservar tu cita
+            </p>
           </div>
-        )}
 
-        {/* Step 1: Seleccionar servicio */}
-        {currentStep === "servicio" && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>¿Qué tipo de inspección necesitas?</h2>
+          {/* Línea de tiempo */}
+          <StepTimeline currentStep={currentStep} />
 
-            <div className={styles.inspectionList}>
-              {initialInspections.map((inspection) => (
-                <div
-                  key={inspection.id}
-                  onClick={() => handleInspectionSelect(inspection)}
-                  className={`${styles.inspectionCard} ${selectedInspection?.id === inspection.id ? styles.inspectionCardSelected : ""
-                    }`}
-                >
-                  <div className={styles.inspectionRadio}>
-                    <div className={`${styles.radioCircle} ${selectedInspection?.id === inspection.id ? styles.radioCircleSelected : ""
-                      }`}>
-                      {selectedInspection?.id === inspection.id && (
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                          <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className={styles.inspectionInfo}>
-                    <h3 className={styles.inspectionTitle}>{inspection.title}</h3>
-                    <p className={styles.inspectionDescription}>{inspection.description}</p>
-                    {inspection.items && inspection.items.length > 0 && (
-                      <ul className={styles.inspectionItems}>
-                        {inspection.items.slice(0, 4).map((item) => (
-                          <li key={item.id}>{item.label}</li>
-                        ))}
-                        {inspection.items.length > 4 && (
-                          <li className={styles.moreItems}>
-                            +{inspection.items.length - 4} más
-                          </li>
-                        )}
-                      </ul>
-                    )}
-                  </div>
-
-                  <div className={styles.inspectionPrice}>
-                    <span className={styles.priceLabel}>Precio</span>
-                    <span className={styles.priceValue}>S/ {inspection.price}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className={styles.stepActions}>
-              <button
-                onClick={() => goToStep("vehiculo")}
-                disabled={!canProceedToVehicle}
-                className={styles.primaryButton}
-              >
-                Continuar
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M7 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 2: Datos del vehículo */}
-        {currentStep === "vehiculo" && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Datos de tu vehículo</h2>
-
-            <div className={styles.formGrid}>
-              {/* Marca */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Marca <span className={styles.required}>*</span>
-                </label>
-                <div className={styles.dropdownContainer}>
-                  <input
-                    type="text"
-                    value={brandQuery}
-                    onChange={(e) => {
-                      setBrandQuery(e.target.value);
-                      setShowBrands(true);
-                    }}
-                    onFocus={() => setShowBrands(true)}
-                    placeholder="Buscar marca..."
-                    className={styles.input}
-                  />
-                  {showBrands && filteredBrands.length > 0 && (
-                    <div className={styles.dropdown}>
-                      {filteredBrands.map((brand) => (
-                        <div
-                          key={brand.id}
-                          onClick={() => handleBrandSelect(brand)}
-                          className={styles.dropdownItem}
-                        >
-                          <img src={brand.logo} alt={brand.name} className={styles.brandLogo} />
-                          <span>{brand.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Modelo */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Modelo <span className={styles.required}>*</span>
-                </label>
-                <div className={styles.dropdownContainer}>
-                  <input
-                    type="text"
-                    value={modelQuery}
-                    onChange={(e) => {
-                      setModelQuery(e.target.value);
-                      setShowModels(true);
-                    }}
-                    onFocus={() => setShowModels(true)}
-                    placeholder={loadingModels ? "Cargando..." : "Buscar modelo..."}
-                    disabled={!vehicleData.brandId || loadingModels}
-                    className={styles.input}
-                  />
-                  {showModels && filteredModels.length > 0 && (
-                    <div className={styles.dropdown}>
-                      {filteredModels.map((model) => (
-                        <div
-                          key={model.id}
-                          onClick={() => handleModelSelect(model)}
-                          className={styles.dropdownItem}
-                        >
-                          <span>{model.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Año */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>
-                  Año <span className={styles.required}>*</span>
-                </label>
-                <select
-                  value={vehicleData.year || ""}
-                  onChange={(e) =>
-                    setVehicleData((prev) => ({ ...prev, year: Number(e.target.value) }))
-                  }
-                  disabled={!vehicleData.modelId}
-                  className={styles.select}
-                >
-                  <option value="">Seleccionar año</option>
-                  {getAvailableYears().map((year) => (
-                    <option key={year} value={year}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Placa */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Placa (opcional)</label>
-                <input
-                  type="text"
-                  value={vehicleData.plate}
-                  onChange={(e) =>
-                    setVehicleData((prev) => ({
-                      ...prev,
-                      plate: formatPlate(e.target.value),
-                    }))
-                  }
-                  placeholder="ABC-123"
-                  maxLength={7}
-                  className={styles.input}
+          {/* Error global */}
+          {error && (
+            <div className={styles.errorBanner}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="8"
+                  stroke="currentColor"
+                  strokeWidth="2"
                 />
-              </div>
-
-              {/* Kilometraje */}
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Kilometraje (opcional)</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={formatNumberWithCommas(vehicleData.mileage)}
-                  onChange={(e) =>
-                    setVehicleData((prev) => ({
-                      ...prev,
-                      mileage: parseFormattedNumber(e.target.value),
-                    }))
-                  }
-                  placeholder="Ej: 50,000"
-                  className={styles.input}
+                <path
+                  d="M10 6v5M10 13.5v.5"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
                 />
-              </div>
+              </svg>
+              <span>{error}</span>
+              <button onClick={() => setError(null)}>×</button>
             </div>
+          )}
 
-            <div className={styles.stepActions}>
-              <button onClick={() => goToStep("servicio")} className={styles.secondaryButton}>
-                Atrás
-              </button>
-              <button
-                onClick={() => goToStep("fecha")}
-                disabled={!canProceedToDate}
-                className={styles.primaryButton}
-              >
-                Continuar
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                  <path d="M7 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3: Fecha y hora */}
-        {currentStep === "fecha" && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Selecciona fecha y hora</h2>
-
-            <div className={styles.dateTimeGrid}>
-              {/**La fecha seleccionada en el handleDateSelect se asigna a selectedDate desde el hijo (BookingCalendar) => esa funcion y valor obtenido de esa funcion se van al BookingCalendar */}
-              <BookingCalendar
-                onDateSelect={handleDateSelect}
-                selectedDate={selectedDate}
+          {/* =================================================================
+              PASO 1: Selección de Plan
+              ================================================================= */}
+          {currentStep === 1 && (
+            <div className={styles.stepWrapper}>
+              <PlanSelector
+                plans={initialInspections}
+                selectedPlanId={selectedInspection?.id || null}
+                onSelectPlan={(plan) => setSelectedInspection(plan)}
               />
 
-              {selectedDate && (
-                <TimeSlots
-                  date={selectedDate}
-                  onSlotSelect={handleSlotSelect}
-                  selectedSlot={selectedSlot}
-                />
-              )}
+              <div className={`${styles.stepButtons} ${styles.stepButtonsCenter}`}>
+                <button
+                  onClick={goNext}
+                  disabled={!canProceedStep1}
+                  className={styles.primaryButton}
+                >
+                  Continuar
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M7 5l5 5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
+          )}
 
-            <div className={styles.stepActions}>
-              <button onClick={() => goToStep("vehiculo")} className={styles.secondaryButton}>
-                Atrás
-              </button>
-              <button
-                onClick={handleProceedToPayment}
-                disabled={!canProceedToPayment || loading}
-                className={styles.primaryButton}
-              >
-                {loading ? (
-                  <>
-                    <span className={styles.buttonSpinner} />
-                    Procesando...
-                  </>
-                ) : (
-                  <>
-                    Continuar al pago
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                      <path d="M7 5l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </>
-                )}
-              </button>
+          {/* =================================================================
+              PASO 2: Datos del Vehículo y Ubicación
+              ================================================================= */}
+          {currentStep === 2 && (
+            <div className={styles.stepWrapper}>
+              <VehicleLocationForm
+                brands={initialBrands}
+                vehicleData={vehicleData}
+                locationData={locationData}
+                onVehicleChange={setVehicleData}
+                onLocationChange={setLocationData}
+              />
+
+              <div className={styles.stepButtons}>
+                <button onClick={goBack} className={styles.secondaryButton}>
+                  Atrás
+                </button>
+                <button
+                  onClick={goNext}
+                  disabled={!canProceedStep2}
+                  className={styles.primaryButton}
+                >
+                  Continuar
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M7 5l5 5-5 5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Step 4: Pago */}
-        {currentStep === "pago" && bookingData && selectedInspection && (
-          <div className={styles.stepContent}>
-            <h2 className={styles.stepTitle}>Completa tu pago</h2>
+          {/* =================================================================
+              PASO 3: Fecha, Hora y Contacto
+              ================================================================= */}
+          {currentStep === 3 && (
+            <div className={styles.stepWrapper}>
+              <InspectionSchedule
+                selectedDate={selectedDate}
+                selectedSlot={selectedSlot}
+                contactData={contactData}
+                onDateSelect={(date) => {
+                  setSelectedDate(date);
+                  setSelectedSlot(null); // Reset slot cuando cambia la fecha
+                }}
+                onSlotSelect={setSelectedSlot}
+                onContactChange={setContactData}
+              />
 
-            <PaymentForm
-              bookingId={bookingData.id}
-              bookingDetails={{
-                inspectionTitle: selectedInspection.title,
-                inspectionType: selectedInspection.type,
-                vehicleBrand: vehicleData.brandName,
-                vehicleModel: vehicleData.modelName,
-                vehicleYear: vehicleData.year!,
-                vehiclePlate: vehicleData.plate,
-                date: selectedDate!,
-                timeSlot: selectedSlot!,
-                amount: bookingData.amount,
-              }}
-              expiresAt={bookingData.expiresAt}
-              onSuccess={handlePaymentSuccess}
-              onBack={() => goToStep("fecha")}
-              onExpired={handlePaymentExpired}
-            />
-          </div>
-        )}
+              <div className={styles.stepButtons}>
+                <button onClick={goBack} className={styles.secondaryButton}>
+                  Atrás
+                </button>
+                <button
+                  onClick={handleProceedToPayment}
+                  disabled={!canProceedStep3 || loading}
+                  className={styles.primaryButton}
+                >
+                  {loading ? (
+                    <>
+                      <span className={styles.buttonSpinner} />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      Continuar al pago
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                      >
+                        <path
+                          d="M7 5l5 5-5 5"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* Step 5: Confirmación */}
-        {currentStep === "confirmado" && confirmationData && (
-          <Confirmation booking={confirmationData} />
-        )}
-      </div>
+          {/* =================================================================
+              PASO 4: Métodos de Pago
+              ================================================================= */}
+          {currentStep === 4 && bookingData && selectedInspection && (
+            <div className={styles.stepWrapper}>
+              <PaymentMethods
+                selectedMethod={paymentMethod}
+                onSelectMethod={setPaymentMethod}
+                bookingDetails={{
+                  bookingCode: bookingData.code,
+                  userName: contactData.fullName,
+                  planTitle: selectedInspection.title,
+                  totalAmount: selectedInspection.price,
+                }}
+                onCulqiPayment={handleCulqiPayment}
+                onTransferComplete={handleTransferComplete}
+              />
+
+              <div className={styles.stepButtons}>
+                <button onClick={goBack} className={styles.secondaryButton}>
+                  Atrás
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 }

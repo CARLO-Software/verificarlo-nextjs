@@ -1,0 +1,246 @@
+/* =============================================================================
+   ESTILOS: InspectionSchedule
+   ============================================================================= */
+
+.container {
+  width: 100%;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+}
+
+/* =============================================================================
+   Aviso de reserva
+   ============================================================================= */
+
+.reserveNotice {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, #fff8e1 0%, #fffef5 100%);
+  border: 1px solid #ffc107;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.noticeIcon {
+  flex-shrink: 0;
+  color: #f59e0b;
+}
+
+.noticeContent {
+  flex: 1;
+}
+
+.noticeTitle {
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.25rem;
+}
+
+.noticeText {
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   Secciones
+   ============================================================================= */
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* =============================================================================
+   Grid de fecha y hora
+   ============================================================================= */
+
+.dateTimeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.calendarWrapper,
+.slotsWrapper {
+  background: #fafafa;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+/* =============================================================================
+   Grid de contacto
+   ============================================================================= */
+
+.contactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background-color: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #ffc107;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15);
+}
+
+.input::placeholder {
+  color: #9ca3af;
+}
+
+/* =============================================================================
+   Checkbox circular para marketing
+   ============================================================================= */
+
+.checkboxWrapper {
+  margin-top: 0.5rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+/* El checkbox circular personalizado */
+.circularCheckbox {
+  /* Quita el estilo nativo del navegador */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Dimensiones y forma circular */
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: white;
+
+  /* Transición suave */
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  /* Centrar el checkmark */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.circularCheckbox:hover {
+  border-color: #9ca3af;
+}
+
+.circularCheckbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(108, 181, 69, 0.2);
+}
+
+/* Estado checked: fondo verde con checkmark */
+.circularCheckbox:checked {
+  background-color: #6cb545;
+  border-color: #6cb545;
+}
+
+/* Checkmark usando pseudo-elemento */
+.circularCheckbox:checked::after {
+  content: "";
+  display: block;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.checkboxText {
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+/* =============================================================================
+   Nota al pie
+   ============================================================================= */
+
+.footerNote {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* =============================================================================
+   Responsive
+   ============================================================================= */
+
+@media (max-width: 768px) {
+  .dateTimeGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .contactGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
+
+  .reserveNotice {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .calendarWrapper,
+  .slotsWrapper {
+    padding: 0.75rem;
+  }
+}
