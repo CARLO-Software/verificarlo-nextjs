@@ -139,7 +139,7 @@
 
 .process-heading-span {
   font-weight: 700;
-  color: #fec535;
+  color: var(--bright-sun--300);
   font-size: 28px;
   font-style: italic;
 }

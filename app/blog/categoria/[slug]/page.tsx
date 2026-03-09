@@ -76,8 +76,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${category.name} | Blog VerifiCARLO`,
-    description: `Artículos de ${category.name.toLowerCase()} sobre compra de autos usados. Consejos y guías de VerifiCARLO.`,
+    title: `${category.name} - Artículos y Guías`,
+    description: `Artículos sobre ${category.name.toLowerCase()} para comprar autos usados de forma segura. Consejos de expertos, guías prácticas y tips de VerifiCARLO.`,
+    alternates: {
+      canonical: `/blog/categoria/${slug}`,
+    },
+    openGraph: {
+      title: `${category.name} | Blog VerifiCARLO`,
+      description: `Explora artículos de ${category.name.toLowerCase()}. Guías y consejos para comprar tu auto usado con confianza.`,
+      type: "website",
+      url: `https://verificarlo.pe/blog/categoria/${slug}`,
+    },
   };
 }
 

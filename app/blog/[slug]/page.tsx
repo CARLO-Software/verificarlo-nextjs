@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import Breadcrumbs from "../components/Breadcrumbs";
+import { BlogPostSchema, BreadcrumbSchema } from "@/app/components/SEO/JsonLd";
 import styles from "./BlogPost.module.css";
 
 interface Props {
@@ -43,15 +44,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${post.title} | Blog VerifiCARLO`,
+    title: post.title,
     description: post.excerpt,
+    alternates: {
+      canonical: `/blog/${post.slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
       publishedTime: post.createdAt.toISOString(),
+      modifiedTime: post.updatedAt?.toISOString(),
       authors: [post.author],
-      images: [post.coverImage],
+      section: post.category.name,
+      tags: [post.category.name, "autos usados", "inspección vehicular"],
+      images: [
+        {
+          url: post.coverImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
@@ -84,8 +98,28 @@ export default async function BlogPostPage({ params }: Props) {
     { label: post.title },
   ];
 
+  // Breadcrumbs para schema SEO
+  const breadcrumbSchemaItems = [
+    { name: "Inicio", url: "https://verificarlo.pe" },
+    { name: "Blog", url: "https://verificarlo.pe/blog" },
+    { name: post.category.name, url: `https://verificarlo.pe/blog/categoria/${post.category.slug}` },
+    { name: post.title, url: `https://verificarlo.pe/blog/${post.slug}` },
+  ];
+
   return (
     <main className={styles.main}>
+      {/* Schemas JSON-LD para SEO */}
+      <BlogPostSchema
+        title={post.title}
+        description={post.excerpt}
+        slug={post.slug}
+        coverImage={post.coverImage}
+        author={post.author}
+        publishedAt={post.createdAt.toISOString()}
+        modifiedAt={post.updatedAt?.toISOString()}
+      />
+      <BreadcrumbSchema items={breadcrumbSchemaItems} />
+
       <article className={styles.article}>
         <div className={styles.container}>
           <Breadcrumbs items={breadcrumbItems} />

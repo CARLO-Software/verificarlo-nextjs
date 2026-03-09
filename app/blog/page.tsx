@@ -1,8 +1,33 @@
 import { Suspense } from "react";
+import { Metadata } from "next";
 import { db } from "@/lib/db";
 import BlogList from "./BlogList";
 
 export const dynamic = "force-dynamic";
+
+// Metadata para SEO del blog
+export const metadata: Metadata = {
+  title: "Blog - Consejos para Comprar Autos Usados",
+  description:
+    "Aprende a comprar un auto usado con seguridad. Consejos de expertos, guías de inspección, detección de fraudes y todo lo que necesitas saber antes de comprar.",
+  keywords: [
+    "consejos comprar auto usado",
+    "guía inspección vehicular",
+    "detectar fraudes autos",
+    "revisar auto antes de comprar",
+    "tips compra vehículos usados",
+  ],
+  openGraph: {
+    title: "Blog VerifiCARLO - Guías y Consejos Automotrices",
+    description:
+      "Consejos de expertos para comprar autos usados de forma segura. Guías, tips y todo lo que necesitas saber.",
+    type: "website",
+    url: "https://verificarlo.pe/blog",
+  },
+  alternates: {
+    canonical: "/blog",
+  },
+};
 
 interface SearchParams {
   search?: string;

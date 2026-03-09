@@ -4,6 +4,11 @@ import "./globals-CLEAN.css";
 import Script from "next/script";
 import { LayoutShell } from "./layout/LayoutShell";
 import { Providers } from "./providers";
+import {
+  LocalBusinessSchema,
+  WebSiteSchema,
+  ServiceSchema,
+} from "./components/SEO/JsonLd";
 //* REMOVED: getServerSession - bloqueaba el render de toda la página
 
 // ===================== FONTS LOCALES =====================
@@ -19,27 +24,108 @@ const geistMono = localFont({
 });
 
 // ===================== METADATA PARA SEO =====================
+const baseUrl = "https://verificarlo.pe";
+
 export const metadata: Metadata = {
-  title: "VerifiCARLO - Inspección de Autos Usados en Lima",
+  // Metadata básica
+  title: {
+    default: "VerifiCARLO - Inspección de Autos Usados en Lima | Desde S/249",
+    template: "%s | VerifiCARLO",
+  },
   description:
-    "Inspecciona tu auto usado antes de comprarlo. Revisamos más de 200 puntos en mecánica, estética y legal. Desde S/249 en Lima. ¡Agendar ahora!",
-  keywords:
-    "inspección autos usados, verificación vehículos, mecánica automotriz, compra auto usado Lima, revisión técnica vehicular",
-  authors: [{ name: "VerifiCARLO" }],
+    "Inspecciona tu auto usado antes de comprarlo. Revisamos más de 200 puntos en mecánica, estética y documentos legales. Servicio a domicilio en Lima desde S/249. Evita fraudes y compra con confianza.",
+  keywords: [
+    // Keywords principales
+    "inspección de autos usados",
+    "inspección vehicular Lima",
+    "verificación de vehículos",
+    "comprar auto usado seguro",
+    // Keywords long-tail (más específicos = menos competencia)
+    "revisar auto antes de comprar",
+    "peritaje vehicular Lima",
+    "inspección mecánica de autos",
+    "verificar kilometraje real",
+    "detectar auto chocado",
+    "revisar documentos de auto",
+    // Keywords locales
+    "inspección autos Lima Perú",
+    "mecánico a domicilio Lima",
+    "verificar auto Miraflores",
+    "inspección vehicular San Isidro",
+    // Keywords de intención de compra
+    "cuánto cuesta inspeccionar un auto",
+    "servicio inspección vehículos precio",
+  ],
+  authors: [{ name: "VerifiCARLO", url: baseUrl }],
+  creator: "VerifiCARLO",
+  publisher: "VerifiCARLO",
+
+  // URL canónica (evita contenido duplicado)
+  metadataBase: new URL(baseUrl),
+  alternates: {
+    canonical: "/",
+  },
+
+  // Configuración de robots
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  // Open Graph mejorado (Facebook, LinkedIn, WhatsApp)
   openGraph: {
     type: "website",
+    locale: "es_PE",
+    siteName: "VerifiCARLO",
     title: "VerifiCARLO - Inspección de Autos Usados en Lima",
     description:
-      "Inspecciona tu auto usado antes de comprarlo. Revisamos más de 200 puntos en mecánica, estética y legal.",
-    url: "https://verificarlo.pe",
-    images: ["https://verificarlo.pe/assets/images/image0.png"],
+      "Revisamos más de 200 puntos antes de tu compra. Mecánica, estética y documentos legales. Desde S/249 con servicio a domicilio.",
+    url: baseUrl,
+    images: [
+      {
+        url: `${baseUrl}/assets/images/image0.png`,
+        width: 1200,
+        height: 630,
+        alt: "VerifiCARLO - Inspección Profesional de Autos Usados",
+      },
+    ],
   },
+
+  // Twitter Cards
   twitter: {
     card: "summary_large_image",
+    site: "@verificarlo",
+    creator: "@verificarlo",
     title: "VerifiCARLO - Inspección de Autos Usados en Lima",
     description:
-      "Inspecciona tu auto usado antes de comprarlo. Revisamos más de 200 puntos en mecánica, estética y legal.",
-    images: ["https://verificarlo.pe/assets/images/image0.png"],
+      "Revisamos más de 200 puntos antes de tu compra. Evita fraudes y compra con confianza. Desde S/249.",
+    images: [`${baseUrl}/assets/images/image0.png`],
+  },
+
+  // Verificación de propiedad (agregar IDs reales cuando los tengas)
+  verification: {
+    google: "tu-codigo-google-search-console", // TODO: Agregar código real
+    // yandex: "tu-codigo-yandex",
+    // bing: "tu-codigo-bing",
+  },
+
+  // Categoría del sitio
+  category: "automotive",
+
+  // Otros metadatos útiles
+  applicationName: "VerifiCARLO",
+  referrer: "origin-when-cross-origin",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
 };
 
@@ -78,6 +164,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Favicon */}
         <link rel="shortcut icon" href="/assets/images/image0.png" type="image/x-icon" />
         <link rel="apple-touch-icon" href="/assets/images/image0.png" />
+
+        {/* JSON-LD Schemas para SEO */}
+        <LocalBusinessSchema />
+        <WebSiteSchema />
+        <ServiceSchema />
       </head>
       <body>
           {/* ================= Google Tag Manager ================= */}
