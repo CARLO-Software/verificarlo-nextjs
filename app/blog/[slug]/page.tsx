@@ -100,10 +100,10 @@ export default async function BlogPostPage({ params }: Props) {
 
   // Breadcrumbs para schema SEO
   const breadcrumbSchemaItems = [
-    { name: "Inicio", url: "https://verificarlo.pe" },
-    { name: "Blog", url: "https://verificarlo.pe/blog" },
-    { name: post.category.name, url: `https://verificarlo.pe/blog/categoria/${post.category.slug}` },
-    { name: post.title, url: `https://verificarlo.pe/blog/${post.slug}` },
+    { name: "Inicio", url: "https://verificarlo.com" },
+    { name: "Blog", url: "https://verificarlo.com/blog" },
+    { name: post.category.name, url: `https://verificarlo.com/blog/categoria/${post.category.slug}` },
+    { name: post.title, url: `https://verificarlo.com/blog/${post.slug}` },
   ];
 
   return (
@@ -161,7 +161,7 @@ export default async function BlogPostPage({ params }: Props) {
             <span className={styles.shareLabel}>Compartir:</span>
             <a
               href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                `https://verificarlo.pe/blog/${post.slug}`
+                `https://verificarlo.com/blog/${post.slug}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -176,7 +176,7 @@ export default async function BlogPostPage({ params }: Props) {
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
                 post.title
               )}&url=${encodeURIComponent(
-                `https://verificarlo.pe/blog/${post.slug}`
+                `https://verificarlo.com/blog/${post.slug}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -189,7 +189,7 @@ export default async function BlogPostPage({ params }: Props) {
             </a>
             <a
               href={`https://wa.me/?text=${encodeURIComponent(
-                `${post.title} - https://verificarlo.pe/blog/${post.slug}`
+                `${post.title} - https://verificarlo.com/blog/${post.slug}`
               )}`}
               target="_blank"
               rel="noopener noreferrer"

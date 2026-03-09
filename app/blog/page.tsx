@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     description:
       "Consejos de expertos para comprar autos usados de forma segura. Guías, tips y todo lo que necesitas saber.",
     type: "website",
-    url: "https://verificarlo.pe/blog",
+    url: "https://verificarlo.com/blog",
   },
   alternates: {
     canonical: "/blog",

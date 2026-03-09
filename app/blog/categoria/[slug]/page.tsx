@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${category.name} | Blog VerifiCARLO`,
       description: `Explora artículos de ${category.name.toLowerCase()}. Guías y consejos para comprar tu auto usado con confianza.`,
       type: "website",
-      url: `https://verificarlo.pe/blog/categoria/${slug}`,
+      url: `https://verificarlo.com/blog/categoria/${slug}`,
     },
   };
 }

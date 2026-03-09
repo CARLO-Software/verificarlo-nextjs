@@ -9,9 +9,9 @@ export function LocalBusinessSchema() {
     name: "VerifiCARLO",
     description:
       "Servicio de inspección de autos usados en Lima. Revisamos más de 200 puntos en mecánica, estética y documentación legal antes de tu compra.",
-    url: "https://verificarlo.pe",
-    logo: "https://verificarlo.pe/assets/images/verificarlo-logo.png",
-    image: "https://verificarlo.pe/assets/images/image0.png",
+    url: "https://verificarlo.com",
+    logo: "https://verificarlo.com/assets/images/verificarlo-logo.png",
+    image: "https://verificarlo.com/assets/images/image0.png",
     telephone: "+51934140010", // TODO: Reemplazar con número real
     email: "verificarlo@carlo.pe", // TODO: Reemplazar con email real
     address: {
@@ -70,7 +70,7 @@ export function WebSiteSchema() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "VerifiCARLO",
-    url: "https://verificarlo.pe",
+    url: "https://verificarlo.com",
     description:
       "Inspección profesional de autos usados en Lima, Perú. Evita fraudes y compra con confianza.",
     publisher: {
@@ -78,14 +78,14 @@ export function WebSiteSchema() {
       name: "VerifiCARLO",
       logo: {
         "@type": "ImageObject",
-        url: "https://verificarlo.pe/assets/images/verificarlo-logo.png",
+        url: "https://verificarlo.com/assets/images/verificarlo-logo.png",
       },
     },
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://verificarlo.pe/blog?search={search_term_string}",
+        urlTemplate: "https://verificarlo.com/blog?search={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -111,7 +111,7 @@ export function ServiceSchema() {
     provider: {
       "@type": "LocalBusiness",
       name: "VerifiCARLO",
-      url: "https://verificarlo.pe",
+      url: "https://verificarlo.com",
     },
     areaServed: {
       "@type": "City",
@@ -217,7 +217,7 @@ export function BlogPostSchema({
     headline: title,
     description: description,
     image: coverImage,
-    url: `https://verificarlo.pe/blog/${slug}`,
+    url: `https://verificarlo.com/blog/${slug}`,
     datePublished: publishedAt,
     dateModified: modifiedAt || publishedAt,
     author: {
@@ -229,12 +229,12 @@ export function BlogPostSchema({
       name: "VerifiCARLO",
       logo: {
         "@type": "ImageObject",
-        url: "https://verificarlo.pe/assets/images/verificarlo-logo.png",
+        url: "https://verificarlo.com/assets/images/verificarlo-logo.png",
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://verificarlo.pe/blog/${slug}`,
+      "@id": `https://verificarlo.com/blog/${slug}`,
     },
   };
 

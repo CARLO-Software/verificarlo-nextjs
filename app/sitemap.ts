@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://verificarlo.pe";
+  const baseUrl = "https://verificarlo.com";
 
   // Páginas estáticas principales
   const staticPages: MetadataRoute.Sitemap = [

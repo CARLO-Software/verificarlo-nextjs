@@ -24,7 +24,7 @@ const geistMono = localFont({
 });
 
 // ===================== METADATA PARA SEO =====================
-const baseUrl = "https://verificarlo.pe";
+const baseUrl = "https://verificarlo.com";
 
 export const metadata: Metadata = {
   // Metadata básica
