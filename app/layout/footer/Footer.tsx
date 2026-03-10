@@ -3,6 +3,12 @@ import styles from "./footer.module.css";
 export default function Footer() {
   // Keywords SEO - para posicionamiento en buscadores
   const keywords = [
+    "diagnosticar",
+    "diagnosticar auto usado",
+    "diagnosticar auto",
+    "diagnosticar auto lima",
+    "diagnosticar carro usado",
+    "diagnosticar carros",
     "diagnóstico vehicular",
     "diagnóstico de autos usados Lima",
     "diagnóstico vehicular Lima",
