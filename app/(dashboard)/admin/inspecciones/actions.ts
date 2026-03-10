@@ -4,7 +4,12 @@ import { revalidatePath } from 'next/cache';
 import {
   updateInspectionStatus,
   assignInspector,
-  updateInspectionNotes
+  updateInspectionNotes,
+  createManualBooking,
+  getBrands,
+  getModelsByBrand,
+  getInspectionPlans,
+  ManualBookingInput,
 } from '@/services/inspections/inspections.server';
 import { BookingStatus } from '@prisma/client';
 
@@ -76,5 +81,53 @@ export async function saveInspectionChangesAction(
   } catch (error) {
     console.error('Error guardando cambios:', error);
     return { success: false, error: 'Error al guardar los cambios' };
+  }
+}
+
+// ============================================
+// Acciones para crear inspección manual
+// ============================================
+
+export async function createManualInspectionAction(input: ManualBookingInput) {
+  try {
+    const booking = await createManualBooking(input);
+    revalidatePath('/admin/inspecciones');
+    return { success: true, booking };
+  } catch (error) {
+    console.error('Error creando inspección manual:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Error al crear la inspección'
+    };
+  }
+}
+
+export async function getBrandsAction() {
+  try {
+    const brands = await getBrands();
+    return { success: true, brands };
+  } catch (error) {
+    console.error('Error obteniendo marcas:', error);
+    return { success: false, error: 'Error al obtener marcas', brands: [] };
+  }
+}
+
+export async function getModelsAction(brandId: number) {
+  try {
+    const models = await getModelsByBrand(brandId);
+    return { success: true, models };
+  } catch (error) {
+    console.error('Error obteniendo modelos:', error);
+    return { success: false, error: 'Error al obtener modelos', models: [] };
+  }
+}
+
+export async function getInspectionPlansAction() {
+  try {
+    const plans = await getInspectionPlans();
+    return { success: true, plans };
+  } catch (error) {
+    console.error('Error obteniendo planes:', error);
+    return { success: false, error: 'Error al obtener planes', plans: [] };
   }
 }

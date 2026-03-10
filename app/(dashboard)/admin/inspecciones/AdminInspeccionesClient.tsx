@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { formatearFechaHoraCorta } from '@/app/domain/datetime';
-import { BookingStatus } from '@prisma/client';
-import { saveInspectionChangesAction } from './actions';
+import { BookingStatus, InspectionType } from '@prisma/client';
+import {
+  saveInspectionChangesAction,
+  createManualInspectionAction,
+  getBrandsAction,
+  getModelsAction,
+  getInspectionPlansAction,
+} from './actions';
 
 interface Inspection {
   id: number;
@@ -43,6 +49,27 @@ interface Inspector {
   name: string;
   email: string;
   image: string | null;
+}
+
+interface Brand {
+  id: number;
+  name: string;
+  logo: string;
+}
+
+interface Model {
+  id: number;
+  name: string;
+  yearFrom: number;
+  yearTo: number;
+}
+
+interface InspectionPlan {
+  id: number;
+  type: InspectionType;
+  title: string;
+  description: string;
+  price: number;
 }
 
 interface Stats {
@@ -451,6 +478,394 @@ function InspectionDetailPanel({
   );
 }
 
+// ============================================
+// Panel para crear inspección manual
+// ============================================
+
+function CreateInspectionPanel({
+  inspectors,
+  onClose,
+  onSuccess,
+}: {
+  inspectors: Inspector[];
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Datos de catálogos
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
+  const [plans, setPlans] = useState<InspectionPlan[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+  const [loadingModels, setLoadingModels] = useState(false);
+
+  // Formulario
+  const [formData, setFormData] = useState({
+    clientName: '',
+    clientEmail: '',
+    clientPhone: '',
+    brandId: '',
+    modelId: '',
+    year: new Date().getFullYear(),
+    plate: '',
+    inspectionPlanId: '',
+    date: '',
+    timeSlot: '09:00',
+    inspectorId: '',
+    adminNotes: '',
+    isPaid: false,
+  });
+
+  // Cargar marcas y planes al montar
+  useEffect(() => {
+    async function loadInitialData() {
+      const [brandsRes, plansRes] = await Promise.all([
+        getBrandsAction(),
+        getInspectionPlansAction(),
+      ]);
+
+      if (brandsRes.success && brandsRes.brands) {
+        setBrands(brandsRes.brands);
+      }
+      if (plansRes.success && plansRes.plans) {
+        setPlans(plansRes.plans);
+      }
+      setLoadingBrands(false);
+    }
+    loadInitialData();
+  }, []);
+
+  // Cargar modelos cuando cambia la marca
+  useEffect(() => {
+    if (!formData.brandId) {
+      setModels([]);
+      return;
+    }
+
+    async function loadModels() {
+      setLoadingModels(true);
+      const res = await getModelsAction(Number(formData.brandId));
+      if (res.success && res.models) {
+        setModels(res.models);
+      }
+      setLoadingModels(false);
+    }
+    loadModels();
+  }, [formData.brandId]);
+
+  // Obtener rango de años del modelo seleccionado
+  const selectedModel = models.find(m => m.id === Number(formData.modelId));
+  const yearRange = selectedModel
+    ? Array.from(
+        { length: selectedModel.yearTo - selectedModel.yearFrom + 1 },
+        (_, i) => selectedModel.yearTo - i
+      )
+    : Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
+
+  // Horarios disponibles
+  const timeSlots = [
+    '08:00', '08:45', '09:30', '10:15', '11:00', '11:45',
+    '12:30', '14:00', '14:45', '15:30', '16:15', '17:00',
+  ];
+
+  const handleSubmit = () => {
+    setMessage(null);
+
+    // Validaciones básicas
+    if (!formData.clientName.trim()) {
+      setMessage({ type: 'error', text: 'El nombre del cliente es requerido' });
+      return;
+    }
+    if (!formData.clientEmail.trim() || !formData.clientEmail.includes('@')) {
+      setMessage({ type: 'error', text: 'Email inválido' });
+      return;
+    }
+    if (!formData.modelId) {
+      setMessage({ type: 'error', text: 'Selecciona un modelo de vehículo' });
+      return;
+    }
+    if (!formData.inspectionPlanId) {
+      setMessage({ type: 'error', text: 'Selecciona un plan de inspección' });
+      return;
+    }
+    if (!formData.date) {
+      setMessage({ type: 'error', text: 'Selecciona una fecha' });
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await createManualInspectionAction({
+        clientName: formData.clientName.trim(),
+        clientEmail: formData.clientEmail.trim(),
+        clientPhone: formData.clientPhone.trim() || undefined,
+        brandId: Number(formData.brandId),
+        modelId: Number(formData.modelId),
+        year: formData.year,
+        plate: formData.plate.trim() || undefined,
+        inspectionPlanId: Number(formData.inspectionPlanId),
+        date: formData.date,
+        timeSlot: formData.timeSlot,
+        inspectorId: formData.inspectorId || undefined,
+        adminNotes: formData.adminNotes.trim() || undefined,
+        isPaid: formData.isPaid,
+      });
+
+      if (result.success) {
+        setMessage({ type: 'success', text: 'Inspección creada correctamente' });
+        setTimeout(() => {
+          onSuccess();
+        }, 1000);
+      } else {
+        setMessage({ type: 'error', text: result.error || 'Error al crear la inspección' });
+      }
+    });
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+
+      {/* Panel */}
+      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl z-50 animate-slideInRight flex flex-col">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-[#2D2D2D]">
+                Nueva Inspección Manual
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Crear reserva para cliente de WhatsApp
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="space-y-6">
+            {/* Datos del cliente */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Datos del cliente
+              </h3>
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="Nombre completo *"
+                  value={formData.clientName}
+                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                <input
+                  type="email"
+                  placeholder="Email *"
+                  value={formData.clientEmail}
+                  onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                <input
+                  type="tel"
+                  placeholder="Teléfono (opcional)"
+                  value={formData.clientPhone}
+                  onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+              </div>
+            </div>
+
+            {/* Datos del vehículo */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Datos del vehículo
+              </h3>
+              <div className="space-y-3">
+                <select
+                  value={formData.brandId}
+                  onChange={(e) => setFormData({ ...formData, brandId: e.target.value, modelId: '' })}
+                  disabled={loadingBrands}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                >
+                  <option value="">Seleccionar marca *</option>
+                  {brands.map((brand) => (
+                    <option key={brand.id} value={brand.id}>{brand.name}</option>
+                  ))}
+                </select>
+
+                <select
+                  value={formData.modelId}
+                  onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
+                  disabled={!formData.brandId || loadingModels}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100"
+                >
+                  <option value="">
+                    {loadingModels ? 'Cargando modelos...' : 'Seleccionar modelo *'}
+                  </option>
+                  {models.map((model) => (
+                    <option key={model.id} value={model.id}>{model.name}</option>
+                  ))}
+                </select>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <select
+                    value={formData.year}
+                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  >
+                    {yearRange.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="text"
+                    placeholder="Placa (opcional)"
+                    value={formData.plate}
+                    onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
+                    maxLength={7}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Plan de inspección */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Plan de inspección
+              </h3>
+              <select
+                value={formData.inspectionPlanId}
+                onChange={(e) => setFormData({ ...formData, inspectionPlanId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+              >
+                <option value="">Seleccionar plan *</option>
+                {plans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.title} - S/{plan.price}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Fecha y hora */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Fecha y hora
+              </h3>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                <select
+                  value={formData.timeSlot}
+                  onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
+                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                >
+                  {timeSlots.map((slot) => (
+                    <option key={slot} value={slot}>{slot}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Inspector */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Inspector (opcional)
+              </h3>
+              <select
+                value={formData.inspectorId}
+                onChange={(e) => setFormData({ ...formData, inspectorId: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+              >
+                <option value="">Sin asignar</option>
+                {inspectors.map((inspector) => (
+                  <option key={inspector.id} value={inspector.id}>{inspector.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Notas */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Notas del administrador
+              </h3>
+              <textarea
+                placeholder="Agregar notas (ej: Cliente contactó por WhatsApp...)"
+                value={formData.adminNotes}
+                onChange={(e) => setFormData({ ...formData, adminNotes: e.target.value })}
+                className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none h-20 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+              />
+            </div>
+
+            {/* Pago */}
+            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
+              <input
+                type="checkbox"
+                id="isPaid"
+                checked={formData.isPaid}
+                onChange={(e) => setFormData({ ...formData, isPaid: e.target.checked })}
+                className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+              />
+              <label htmlFor="isPaid" className="text-sm font-medium text-green-800">
+                Marcar como pagado (pago recibido por transferencia/efectivo)
+              </label>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-6 border-t border-gray-200">
+          {message && (
+            <div
+              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
+                message.type === 'success'
+                  ? 'bg-green-50 text-green-700'
+                  : 'bg-red-50 text-red-700'
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              disabled={isPending}
+              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="flex-1 px-4 py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors disabled:opacity-50"
+            >
+              {isPending ? 'Creando...' : 'Crear inspección'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function AdminInspeccionesClient({
   inspections,
   stats,
@@ -460,6 +875,7 @@ export function AdminInspeccionesClient({
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
+  const [showCreatePanel, setShowCreatePanel] = useState(false);
 
   const filteredInspections = inspections.filter((inspection) => {
     if (filter !== 'all') {
@@ -485,14 +901,30 @@ export function AdminInspeccionesClient({
     router.refresh();
   };
 
+  const handleCreateSuccess = () => {
+    setShowCreatePanel(false);
+    router.refresh();
+  };
+
   return (
     <div className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-semibold text-[#2D2D2D]">
-            Gestión de Inspecciones
-          </h1>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-[#2D2D2D]">
+              Gestión de Inspecciones
+            </h1>
+            <button
+              onClick={() => setShowCreatePanel(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              Nueva inspección
+            </button>
+          </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
@@ -654,6 +1086,15 @@ export function AdminInspeccionesClient({
           inspectors={inspectors}
           onClose={() => setSelectedInspection(null)}
           onSaveSuccess={handleSaveSuccess}
+        />
+      )}
+
+      {/* Create Panel */}
+      {showCreatePanel && (
+        <CreateInspectionPanel
+          inspectors={inspectors}
+          onClose={() => setShowCreatePanel(false)}
+          onSuccess={handleCreateSuccess}
         />
       )}
     </div>

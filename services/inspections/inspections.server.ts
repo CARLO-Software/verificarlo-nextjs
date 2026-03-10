@@ -492,3 +492,180 @@ export async function updateInspectionNotes(
     data: updateData,
   });
 }
+
+// ============================================
+// POST - Crear inspección manual (Admin)
+// ============================================
+
+export interface ManualBookingInput {
+  // Datos del cliente
+  clientName: string;
+  clientEmail: string;
+  clientPhone?: string;
+  // Datos del vehículo
+  brandId: number;
+  modelId: number;
+  year: number;
+  plate?: string;
+  // Datos de la inspección
+  inspectionPlanId: number;
+  date: string; // YYYY-MM-DD
+  timeSlot: string; // HH:mm
+  inspectorId?: string;
+  adminNotes?: string;
+  // Pago manual
+  isPaid?: boolean;
+}
+
+export async function createManualBooking(input: ManualBookingInput) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id || session.user.role !== 'ADMIN') {
+    throw new Error('No autorizado');
+  }
+
+  // 1. Buscar o crear el cliente
+  let client = await db.user.findUnique({
+    where: { email: input.clientEmail.toLowerCase().trim() },
+  });
+
+  if (!client) {
+    client = await db.user.create({
+      data: {
+        name: input.clientName.trim(),
+        email: input.clientEmail.toLowerCase().trim(),
+        phone: input.clientPhone?.trim() || null,
+        role: 'CLIENT',
+      },
+    });
+  }
+
+  // 2. Verificar que el modelo existe
+  const model = await db.model.findUnique({
+    where: { id: input.modelId },
+  });
+
+  if (!model) {
+    throw new Error('Modelo de vehículo no válido');
+  }
+
+  // 3. Crear o encontrar el vehículo
+  let vehicle;
+  const normalizedPlate = input.plate?.toUpperCase().replace(/[^A-Z0-9-]/g, '') || null;
+
+  if (normalizedPlate) {
+    vehicle = await db.vehicle.findFirst({
+      where: { plate: normalizedPlate },
+    });
+  }
+
+  if (!vehicle) {
+    vehicle = await db.vehicle.create({
+      data: {
+        userId: client.id,
+        modelId: input.modelId,
+        year: input.year,
+        plate: normalizedPlate,
+      },
+    });
+  }
+
+  // 4. Verificar que el plan de inspección existe
+  const plan = await db.inspectionPlan.findUnique({
+    where: { id: input.inspectionPlanId },
+  });
+
+  if (!plan) {
+    throw new Error('Plan de inspección no válido');
+  }
+
+  // 5. Calcular fecha y hora
+  const [hours, minutes] = input.timeSlot.split(':').map(Number);
+  const startTime = new Date(input.date);
+  startTime.setHours(hours, minutes, 0, 0);
+
+  const endTime = new Date(startTime);
+  endTime.setMinutes(endTime.getMinutes() + 45);
+
+  // 6. Determinar el estado inicial
+  let status: BookingStatus = 'PENDING_PAYMENT';
+  if (input.isPaid) {
+    status = input.inspectorId ? 'CONFIRMED' : 'PAID';
+  }
+
+  // 7. Crear el booking
+  const booking = await db.booking.create({
+    data: {
+      clientId: client.id,
+      vehicleId: vehicle.id,
+      inspectionPlanId: input.inspectionPlanId,
+      inspectorId: input.inspectorId || null,
+      date: new Date(input.date),
+      timeSlot: input.timeSlot,
+      startTime,
+      endTime,
+      status,
+      adminNotes: input.adminNotes || `Reserva creada manualmente por admin (WhatsApp)`,
+      confirmedAt: status === 'CONFIRMED' ? new Date() : null,
+    },
+    include: {
+      client: { select: { id: true, name: true, email: true } },
+      vehicle: {
+        include: {
+          model: { include: { brand: true } },
+        },
+      },
+      inspectionPlan: { select: { title: true, price: true } },
+      inspector: { select: { id: true, name: true } },
+    },
+  });
+
+  // 8. Si está pagado, crear el registro de pago
+  if (input.isPaid) {
+    await db.payment.create({
+      data: {
+        bookingId: booking.id,
+        amount: plan.price * 100, // Convertir a céntimos
+        status: 'COMPLETED',
+        paidAt: new Date(),
+        receiptNumber: `MAN-${booking.id}-${Date.now()}`,
+      },
+    });
+  }
+
+  return {
+    ...booking,
+    code: generateInspectionCode(booking.id, booking.createdAt),
+  };
+}
+
+// ============================================
+// GET - Marcas de vehículos
+// ============================================
+
+export async function getBrands() {
+  return db.brand.findMany({
+    orderBy: { name: 'asc' },
+  });
+}
+
+// ============================================
+// GET - Modelos por marca
+// ============================================
+
+export async function getModelsByBrand(brandId: number) {
+  return db.model.findMany({
+    where: { brandId },
+    orderBy: { name: 'asc' },
+  });
+}
+
+// ============================================
+// GET - Planes de inspección
+// ============================================
+
+export async function getInspectionPlans() {
+  return db.inspectionPlan.findMany({
+    orderBy: { price: 'asc' },
+  });
+}
