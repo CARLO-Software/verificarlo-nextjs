@@ -134,6 +134,12 @@
 
 .editor :global(.ql-editor a) {
   color: #FF6B00;
+  text-decoration: none;
+}
+
+.editor :global(.ql-editor a u),
+.editor :global(.ql-editor a.underlined) {
+  text-decoration: underline;
 }
 
 .editor :global(.ql-editor img) {
@@ -166,6 +172,64 @@
 .editor :global(.ql-toolbar button:hover .ql-fill),
 .editor :global(.ql-toolbar button.ql-active .ql-fill) {
   fill: #FF6B00;
+}
+
+/* Link tooltip styling */
+.editor :global(.ql-tooltip) {
+  background-color: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px 12px;
+  z-index: 1000;
+}
+
+.editor :global(.ql-tooltip input[type="text"]) {
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 14px;
+  width: 200px;
+  margin-right: 8px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.editor :global(.ql-tooltip input[type="text"]:focus) {
+  border-color: #FF6B00;
+}
+
+.editor :global(.ql-tooltip a.ql-action),
+.editor :global(.ql-tooltip a.ql-remove) {
+  color: #FF6B00;
+  font-weight: 500;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.editor :global(.ql-tooltip a.ql-action:hover),
+.editor :global(.ql-tooltip a.ql-remove:hover) {
+  text-decoration: underline;
+}
+
+.editor :global(.ql-tooltip.ql-editing a.ql-action::after) {
+  content: 'Guardar';
+}
+
+.editor :global(.ql-tooltip::before) {
+  content: 'URL:';
+  margin-right: 8px;
+  color: #666;
+}
+
+.editor :global(.ql-tooltip a.ql-preview) {
+  color: #FF6B00;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .loading {

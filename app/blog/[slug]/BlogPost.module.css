@@ -104,13 +104,27 @@
   margin-bottom: 0.5rem;
 }
 
-.content a {
+/* Enlaces: sin subrayado por defecto, color personalizable */
+.content a,
+.content a:link,
+.content a:visited,
+.content p a,
+.content li a {
   color: #FF6B00;
-  text-decoration: underline;
+  text-decoration: none !important;
+  transition: opacity 0.2s ease;
 }
 
-.content a:hover {
-  text-decoration: none;
+.content a:hover,
+.content p a:hover,
+.content li a:hover {
+  opacity: 0.8;
+}
+
+/* Subrayado solo si el usuario lo agregó explícitamente con <u> */
+.content u,
+.content a u {
+  text-decoration: underline !important;
 }
 
 .content blockquote {
