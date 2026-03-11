@@ -443,11 +443,10 @@ function InspectionDetailPanel({
           {/* Mensaje de feedback */}
           {saveMessage && (
             <div
-              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
-                saveMessage.type === 'success'
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-red-50 text-red-700'
-              }`}
+              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${saveMessage.type === 'success'
+                ? 'bg-green-50 text-green-700'
+                : 'bg-red-50 text-red-700'
+                }`}
             >
               {saveMessage.text}
             </div>
@@ -482,15 +481,7 @@ function InspectionDetailPanel({
 // Panel para crear inspección manual
 // ============================================
 
-function CreateInspectionPanel({
-  inspectors,
-  onClose,
-  onSuccess,
-}: {
-  inspectors: Inspector[];
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
+function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors: Inspector[]; onClose: () => void; onSuccess: () => void; }) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -508,6 +499,7 @@ function CreateInspectionPanel({
     clientPhone: '',
     brandId: '',
     modelId: '',
+    passClient: '',
     year: new Date().getFullYear(),
     plate: '',
     inspectionPlanId: '',
@@ -559,15 +551,14 @@ function CreateInspectionPanel({
   const selectedModel = models.find(m => m.id === Number(formData.modelId));
   const yearRange = selectedModel
     ? Array.from(
-        { length: selectedModel.yearTo - selectedModel.yearFrom + 1 },
-        (_, i) => selectedModel.yearTo - i
-      )
+      { length: selectedModel.yearTo - selectedModel.yearFrom + 1 },
+      (_, i) => selectedModel.yearTo - i
+    )
     : Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
 
   // Horarios disponibles
   const timeSlots = [
-    '08:00', '08:45', '09:30', '10:15', '11:00', '11:45',
-    '12:30', '14:00', '14:45', '15:30', '16:15', '17:00',
+    '09:00', '10:30', '12:00', '14:00', '15:30',
   ];
 
   const handleSubmit = () => {
@@ -610,6 +601,7 @@ function CreateInspectionPanel({
         inspectorId: formData.inspectorId || undefined,
         adminNotes: formData.adminNotes.trim() || undefined,
         isPaid: formData.isPaid,
+        passClient: formData.passClient,
       });
 
       if (result.success) {
@@ -673,6 +665,13 @@ function CreateInspectionPanel({
                   placeholder="Email *"
                   value={formData.clientEmail}
                   onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.passClient}
+                  onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                 />
                 <input
@@ -834,11 +833,10 @@ function CreateInspectionPanel({
         <div className="p-6 border-t border-gray-200">
           {message && (
             <div
-              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${
-                message.type === 'success'
-                  ? 'bg-green-50 text-green-700'
-                  : 'bg-red-50 text-red-700'
-              }`}
+              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${message.type === 'success'
+                ? 'bg-green-50 text-green-700'
+                : 'bg-red-50 text-red-700'
+                }`}
             >
               {message.text}
             </div>

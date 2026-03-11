@@ -7,6 +7,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Home, ClipboardList, Car } from 'lucide-react';
 import { NavLink } from './NavLink';
 import { UserMenu } from './UserMenu';
@@ -19,12 +20,16 @@ export function PlatformHeader() {
           {/* Logo */}
           <Link
             href="/app"
-            className="flex items-center gap-2 font-bold text-lg text-gray-900"
+            className="flex items-center gap-2"
           >
-            <div className="w-8 h-8 bg-[#F5D849] rounded-lg flex items-center justify-center">
-              <span className="text-sm font-black text-gray-900">V</span>
-            </div>
-            <span className="hidden sm:block">VerifiCARLO</span>
+            <Image
+              src="/assets/images/verificarlo-logo.png"
+              alt="VerifiCARLO"
+              width={140}
+              height={32}
+              className="h-8 w-auto brightness-0"
+              priority
+            />
           </Link>
 
           {/* Navigation - Desktop */}

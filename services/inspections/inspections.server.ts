@@ -7,7 +7,29 @@ import { BookingStatus, InspectionResultStatus } from '@prisma/client';
 // Tipos
 // ============================================
 
-export interface BookingWithDetails {
+// Tipo base del reporte para la lista del cliente (campos mínimos)
+interface ReportSummary {
+  id: number;
+  overallStatus: InspectionResultStatus;
+  overallScore: number | null;
+  pdfUrl: string | null;
+}
+
+// Tipo completo del reporte para vistas detalladas
+interface ReportFull extends ReportSummary {
+  legalStatus: InspectionResultStatus;
+  legalScore: number | null;
+  mechanicalStatus: InspectionResultStatus;
+  mechanicalScore: number | null;
+  bodyStatus: InspectionResultStatus;
+  bodyScore: number | null;
+  executiveSummary: string | null;
+  recommendations: string | null;
+  completedAt: Date | null;
+}
+
+// Tipo base para booking con detalles
+interface BookingBase {
   id: number;
   code: string;
   status: BookingStatus;
@@ -59,21 +81,16 @@ export interface BookingWithDetails {
     paidAt: Date | null;
     receiptNumber: string | null;
   } | null;
-  report?: {
-    id: number;
-    legalStatus: InspectionResultStatus;
-    legalScore: number | null;
-    mechanicalStatus: InspectionResultStatus;
-    mechanicalScore: number | null;
-    bodyStatus: InspectionResultStatus;
-    bodyScore: number | null;
-    overallScore: number | null;
-    overallStatus: InspectionResultStatus;
-    executiveSummary: string | null;
-    recommendations: string | null;
-    completedAt: Date | null;
-    pdfUrl: string | null;
-  } | null;
+}
+
+// Tipo para la lista de inspecciones del cliente (reporte resumido)
+export interface ClientBookingWithDetails extends BookingBase {
+  report?: ReportSummary | null;
+}
+
+// Tipo para vistas detalladas (reporte completo)
+export interface BookingWithDetails extends BookingBase {
+  report?: ReportFull | null;
 }
 
 // ============================================
@@ -90,7 +107,7 @@ function generateInspectionCode(id: number, createdAt: Date): string {
 // GET - Inspecciones del cliente actual
 // ============================================
 
-export async function getClientInspections(): Promise<BookingWithDetails[]> {
+export async function getClientInspections(): Promise<ClientBookingWithDetails[]> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
@@ -133,6 +150,14 @@ export async function getClientInspections(): Promise<BookingWithDetails[]> {
           name: true,
           email: true,
           image: true,
+        },
+      },
+      report: {
+        select: {
+          id: true,
+          overallStatus: true,
+          overallScore: true,
+          pdfUrl: true,
         },
       },
     },
@@ -515,6 +540,7 @@ export interface ManualBookingInput {
   adminNotes?: string;
   // Pago manual
   isPaid?: boolean;
+  passClient: string
 }
 
 export async function createManualBooking(input: ManualBookingInput) {
@@ -609,7 +635,7 @@ export async function createManualBooking(input: ManualBookingInput) {
       confirmedAt: status === 'CONFIRMED' ? new Date() : null,
     },
     include: {
-      client: { select: { id: true, name: true, email: true } },
+      client: { select: { id: true, name: true, email: true, password: true } },
       vehicle: {
         include: {
           model: { include: { brand: true } },

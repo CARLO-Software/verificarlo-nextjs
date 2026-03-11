@@ -24,13 +24,20 @@ export default async function InspectionsPage() {
     timeSlot: inspection.timeSlot,
     vehicle: {
       brand: inspection.vehicle.model.brand.name,
+      brandLogo: inspection.vehicle.model.brand.logo,
       model: inspection.vehicle.model.name,
       year: inspection.vehicle.year,
       plate: inspection.vehicle.plate,
     },
     plan: inspection.inspectionPlan.title,
+    planType: inspection.inspectionPlan.type,
     hasReport: !!inspection.report,
+    overallStatus: inspection.report?.overallStatus || null,
+    overallScore: inspection.report?.overallScore || null,
   }));
+
+  // Extraer marcas únicas para el filtro
+  const uniqueBrands = [...new Set(inspections.map(i => i.vehicle.model.brand.name))].sort();
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -62,7 +69,7 @@ export default async function InspectionsPage() {
       </div>
 
       {/* Lista con filtros (componente cliente para interactividad) */}
-      <InspectionsListClient inspections={formattedInspections} />
+      <InspectionsListClient inspections={formattedInspections} brands={uniqueBrands} />
     </div>
   );
 }
