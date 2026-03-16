@@ -46,29 +46,40 @@ export async function POST(
     }
 
     // Verificar que esté en un estado cancelable
-    if (!["CONFIRMED", "PAID"].includes(booking.status)) {
+    const cancelableStatuses = [
+      "PENDING_PAYMENT",
+      "PENDING_VERIFICATION",
+      "PAID",
+      "CONFIRMED",
+    ];
+
+    if (!cancelableStatuses.includes(booking.status)) {
       return NextResponse.json(
         { error: "Esta reserva no puede ser cancelada" },
         { status: 400 }
       );
     }
 
-    // Verificar 24 horas de anticipación
-    const hoursUntilAppointment = differenceInHours(
-      booking.startTime,
-      new Date()
-    );
+    // Solo aplicar regla de 24 horas para reservas ya pagadas
+    const requiresTimeCheck = ["PAID", "CONFIRMED"].includes(booking.status);
 
-    if (hoursUntilAppointment < MIN_HOURS_BEFORE_CANCEL) {
-      return NextResponse.json(
-        {
-          error: `Debe cancelar con al menos ${MIN_HOURS_BEFORE_CANCEL} horas de anticipación. No hay reembolso disponible.`,
-        },
-        { status: 400 }
+    if (requiresTimeCheck) {
+      const hoursUntilAppointment = differenceInHours(
+        booking.startTime,
+        new Date()
       );
+
+      if (hoursUntilAppointment < MIN_HOURS_BEFORE_CANCEL) {
+        return NextResponse.json(
+          {
+            error: `Debe cancelar con al menos ${MIN_HOURS_BEFORE_CANCEL} horas de anticipación. Contacte a soporte para asistencia.`,
+          },
+          { status: 400 }
+        );
+      }
     }
 
-    // Cancelar (sin reembolso según las reglas del negocio)
+    // Cancelar la reserva
     await db.booking.update({
       where: { id: bookingId },
       data: {
@@ -77,12 +88,14 @@ export async function POST(
       },
     });
 
-    // TODO: Enviar notificación de cancelación
+    // Determinar mensaje según el estado previo
+    const message = requiresTimeCheck
+      ? "Cita cancelada exitosamente. El reembolso se procesará según nuestras políticas."
+      : "Reserva cancelada exitosamente.";
 
     return NextResponse.json({
       success: true,
-      message:
-        "Cita cancelada exitosamente. Recuerde que no hay reembolso según nuestras políticas.",
+      message,
     });
   } catch (error) {
     console.error("Error cancelando:", error);

@@ -3,31 +3,28 @@
 // ============================================
 
 export const TIMEZONE = "America/Lima";
-export const INSPECTION_DURATION_MINUTES = 45;
+export const INSPECTION_DURATION_MINUTES = 60;
 export const BOOKING_EXPIRATION_MINUTES = 30;
 export const MIN_HOURS_BEFORE_BOOKING = 2; // Mínimo 2 horas antes para reservar
 export const MIN_HOURS_BEFORE_CANCEL = 24; // Mínimo 24 horas antes para cancelar/reprogramar
 
-// Slots de inspección predefinidos
+// Slots de inspección predefinidos (cada hora)
 export const WEEKDAY_SLOTS = [
   "09:00",
-  "09:45",
-  "10:30",
-  "11:15",
+  "10:00",
+  "11:00",
   "12:00",
-  "12:45",
-  "13:30",
-  "14:15",
+  "14:00",
   "15:00",
-  "15:45",
+  "16:00",
+  "17:00",
 ] as const;
 
 export const SATURDAY_SLOTS = [
   "09:00",
-  "09:45",
-  "10:30",
-  "11:15",
-  "12:00"
+  "10:00",
+  "11:00",
+  "12:00",
 ] as const;
 
 // Feriados fijos de Perú
@@ -47,6 +44,7 @@ export const FIXED_HOLIDAYS: { month: number; day: number; name: string }[] = [
 // Estados que bloquean un slot
 export const BLOCKING_STATUSES = [
   "PENDING_PAYMENT",
+  "PENDING_VERIFICATION",
   "PAID",
   "CONFIRMED",
 ] as const;

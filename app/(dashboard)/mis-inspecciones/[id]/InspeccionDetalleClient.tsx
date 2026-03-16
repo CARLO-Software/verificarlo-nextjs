@@ -77,8 +77,10 @@ export function InspeccionDetalleClient({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const router = useRouter();
   const isPendingPayment = inspection.status === "PENDING_PAYMENT";
+  const isPendingVerification = inspection.status === "PENDING_VERIFICATION";
   const isCompleted = inspection.status === "COMPLETED";
   const isPaid = ["PAID", "CONFIRMED", "COMPLETED"].includes(inspection.status);
+  const _canCancel = ["PENDING_PAYMENT", "PENDING_VERIFICATION", "PAID", "CONFIRMED"].includes(inspection.status);
 
   // Renderizar vista según estado
   if (isPendingPayment) {
@@ -86,6 +88,15 @@ export function InspeccionDetalleClient({
       <div className={styles.pageContainer}>
         <Header code={inspection.code} />
         <PendingPaymentView inspection={inspection} />
+      </div>
+    );
+  }
+
+  if (isPendingVerification) {
+    return (
+      <div className={styles.pageContainer}>
+        <Header code={inspection.code} />
+        <PendingVerificationView inspection={inspection} />
       </div>
     );
   }
@@ -141,9 +152,34 @@ function Header({ code }: { code: string }) {
 function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [culqiReady, setCulqiReady] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const handleCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push("/mis-inspecciones");
+        router.refresh();
+      } else {
+        setError(data.error || "Error al cancelar la inspección");
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError("Error de conexión. Intenta nuevamente.");
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
 
   // useMemo memoriza el resultado y solo lo recalcula si inspection.expiresAt cambia.
   // Sin useMemo, cada re-render crea un nuevo objeto Date (nueva referencia en memoria),
@@ -339,9 +375,13 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
 
           {/* Actions */}
           <div className={styles.actions}>
-            <Link href="/mis-inspecciones" className={styles.secondaryButton}>
-              Cancelar
-            </Link>
+            <button
+              onClick={() => setShowCancelConfirm(true)}
+              disabled={cancelLoading}
+              className={styles.secondaryButton}
+            >
+              Cancelar reserva
+            </button>
             <button
               onClick={handleOpenCulqi}
               disabled={loading || isExpired || !culqiReady}
@@ -372,6 +412,34 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
             </button>
           </div>
 
+          {/* Cancel Confirmation Modal */}
+          {showCancelConfirm && (
+            <div className={styles.modalOverlay}>
+              <div className={styles.modal}>
+                <h3 className={styles.modalTitle}>¿Cancelar reserva?</h3>
+                <p className={styles.modalMessage}>
+                  Esta acción no se puede deshacer. ¿Estás seguro de que deseas cancelar esta inspección?
+                </p>
+                <div className={styles.modalActions}>
+                  <button
+                    onClick={() => setShowCancelConfirm(false)}
+                    disabled={cancelLoading}
+                    className={styles.secondaryButton}
+                  >
+                    No, mantener
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={cancelLoading}
+                    className={styles.dangerButton}
+                  >
+                    {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Security Note */}
           <p className={styles.securityNote}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -400,9 +468,156 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
 }
 
 // ============================================
+// Pending Verification View
+// ============================================
+function PendingVerificationView({ inspection }: { inspection: InspectionData }) {
+  const router = useRouter();
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const handleCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push("/mis-inspecciones");
+        router.refresh();
+      } else {
+        setError(data.error || "Error al cancelar la inspección");
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError("Error de conexión. Intenta nuevamente.");
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.content}>
+      <div className={styles.mainCard}>
+        {/* Verification Icon */}
+        <div className={styles.verificationIcon}>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="24" fill="#F97316" fillOpacity="0.1" />
+            <path
+              d="M24 16v8m0 4v.5"
+              stroke="#F97316"
+              strokeWidth="3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+
+        <h2 className={styles.verificationTitle}>Verificando pago</h2>
+        <p className={styles.verificationMessage}>
+          Tu pago está siendo verificado por nuestro equipo. Te notificaremos cuando esté confirmado.
+        </p>
+
+        {/* Status Badge */}
+        <div className={styles.statusBadge} data-status="pending_verification">
+          <span className={styles.statusDot} />
+          Verificando pago
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className={styles.error}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+              <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Booking Summary */}
+        <BookingSummary inspection={inspection} showPrice={false} />
+
+        {/* Actions */}
+        <div className={styles.actions}>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            disabled={cancelLoading}
+            className={styles.secondaryButton}
+          >
+            Cancelar reserva
+          </button>
+          <Link href="/mis-inspecciones" className={styles.primaryButton}>
+            Volver
+          </Link>
+        </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h3 className={styles.modalTitle}>¿Cancelar reserva?</h3>
+              <p className={styles.modalMessage}>
+                Esta acción no se puede deshacer. ¿Estás seguro de que deseas cancelar esta inspección?
+              </p>
+              <div className={styles.modalActions}>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  No, mantener
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelLoading}
+                  className={styles.dangerButton}
+                >
+                  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // Payment Success View
 // ============================================
 function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
+  const router = useRouter();
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const handleCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        router.push("/mis-inspecciones");
+        router.refresh();
+      } else {
+        setError(data.error || "Error al cancelar la inspección");
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError("Error de conexión. Intenta nuevamente.");
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   const statusLabels: Record<string, string> = {
     PAID: "Pago confirmado",
     CONFIRMED: "Inspector asignado",
@@ -494,12 +709,58 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
         {/* Booking Summary */}
         <BookingSummary inspection={inspection} showPrice={false} />
 
+        {/* Error */}
+        {error && (
+          <div className={styles.error}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+              <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Actions */}
         <div className={styles.actions}>
-          <Link href="/mis-inspecciones" className={styles.secondaryButton}>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            disabled={cancelLoading}
+            className={styles.secondaryButton}
+          >
+            Cancelar inspección
+          </button>
+          <Link href="/mis-inspecciones" className={styles.primaryButton}>
             Volver
           </Link>
         </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h3 className={styles.modalTitle}>¿Cancelar inspección?</h3>
+              <p className={styles.modalMessage}>
+                Recuerda que debes cancelar con al menos 24 horas de anticipación. Esta acción no se puede deshacer.
+              </p>
+              <div className={styles.modalActions}>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  No, mantener
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelLoading}
+                  className={styles.dangerButton}
+                >
+                  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

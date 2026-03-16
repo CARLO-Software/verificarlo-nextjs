@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { ProgressBar } from '@/app/components/ui/ProgressBar/ProgressBar';
 import { ResultIndicator } from '@/app/components/ui/ResultIndicator/ResultIndicator';
@@ -12,6 +13,7 @@ interface InspectionCardProps {
     code: string;
     status: BookingStatus;
     date: Date | string;
+    expiresAt?: Date | string | null;
     vehicle: {
       brand: string;
       model: string;
@@ -34,10 +36,12 @@ interface InspectionCardProps {
   onClick?: () => void;
   onViewReport?: () => void;
   onDownloadPdf?: () => void;
+  onCancel?: () => void;
 }
 
 const statusBorderColors: Record<string, string> = {
   PENDING_PAYMENT: 'border-l-gray-400',
+  PENDING_VERIFICATION: 'border-l-orange-400',
   PAID: 'border-l-blue-400',
   CONFIRMED: 'border-l-[#FFE14C]',
   COMPLETED: 'border-l-green-500',
@@ -52,15 +56,59 @@ export function InspectionCard({
   onClick,
   onViewReport,
   onDownloadPdf,
+  onCancel,
 }: InspectionCardProps) {
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
   const isCompleted = inspection.status === 'COMPLETED';
   const isInProgress = inspection.status === 'CONFIRMED' || inspection.status === 'PAID';
+  const isPendingPayment = inspection.status === 'PENDING_PAYMENT';
+  const isCancelable = [
+    'PENDING_PAYMENT',
+    'PENDING_VERIFICATION',
+    'PAID',
+    'CONFIRMED',
+  ].includes(inspection.status);
   const displayStatus = inspection.hasCriticalObservations ? 'CRITICAL' : inspection.status;
   const borderColor = statusBorderColors[displayStatus];
 
   const progressPercent = inspection.progress
     ? (inspection.progress.current / inspection.progress.total) * 100
     : 0;
+
+  // Countdown timer for PENDING_PAYMENT
+  useEffect(() => {
+    if (!isPendingPayment || !inspection.expiresAt) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date().getTime();
+      const expiry = new Date(inspection.expiresAt!).getTime();
+      return Math.max(0, Math.floor((expiry - now) / 1000));
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const remaining = calculateTimeLeft();
+      setTimeLeft(remaining);
+
+      if (remaining <= 0) {
+        clearInterval(timer);
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isPendingPayment, inspection.expiresAt]);
+
+  // Format time as MM:SS
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const isUrgent = timeLeft > 0 && timeLeft < 300; // Less than 5 minutes
+  const isExpired = isPendingPayment && inspection.expiresAt && timeLeft <= 0;
 
   return (
     <div
@@ -77,12 +125,37 @@ export function InspectionCard({
       <div className="flex justify-between items-start mb-4">
         <StatusBadge
           status={displayStatus}
-          pulse={isInProgress}
+          pulse={isInProgress || isPendingPayment}
         />
         <span className="text-xs font-mono text-gray-400">
           {inspection.code}
         </span>
       </div>
+
+      {/* Payment Timer - only for PENDING_PAYMENT */}
+      {isPendingPayment && inspection.expiresAt && (
+        <div
+          className={`
+            flex items-center gap-2 px-3 py-2 rounded-lg mb-4 text-sm font-medium
+            ${isExpired
+              ? 'bg-red-50 text-red-600'
+              : isUrgent
+                ? 'bg-amber-50 text-amber-600 animate-pulse'
+                : 'bg-gray-100 text-gray-600'
+            }
+          `}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" strokeWidth="2" />
+            <path strokeLinecap="round" strokeWidth="2" d="M12 6v6l4 2" />
+          </svg>
+          {isExpired ? (
+            <span>Tiempo expirado</span>
+          ) : (
+            <span>Paga en: {formatTime(timeLeft)}</span>
+          )}
+        </div>
+      )}
 
       {/* Vehicle info */}
       <div className="mb-3">
@@ -184,6 +257,26 @@ export function InspectionCard({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Descargar PDF
+          </button>
+        )}
+
+        {isCancelable && onCancel && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel();
+            }}
+            className="
+              text-sm text-red-500
+              hover:text-red-700
+              transition-colors duration-200
+              flex items-center gap-1
+            "
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Cancelar
           </button>
         )}
       </div>

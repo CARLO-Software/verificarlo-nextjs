@@ -372,6 +372,7 @@ export function UsersTable() {
                         onBlur={() => setEditingUserId(null)}
                         className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 outline-none"
                       >
+                        <option value="ADMIN">ADMIN</option>
                         <option value="INSPECTOR">INSPECTOR</option>
                         <option value="CLIENT">CLIENT</option>
                       </select>
@@ -479,6 +480,7 @@ export function UsersTable() {
                     onBlur={() => setEditingUserId(null)}
                     className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 outline-none"
                   >
+                    <option value="ADMIN">ADMIN</option>
                     <option value="INSPECTOR">INSPECTOR</option>
                     <option value="CLIENT">CLIENT</option>
                   </select>

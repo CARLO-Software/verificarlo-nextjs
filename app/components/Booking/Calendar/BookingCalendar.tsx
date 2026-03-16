@@ -96,19 +96,24 @@ export default function BookingCalendar({
       const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
 
       // fetch() hace una petición HTTP al servidor
-      // En Next.js, /api/... son Route Handlers (endpoints del backend)
       const res = await fetch(`/api/availability?month=${monthStr}`);
 
       // .json() parsea la respuesta como JSON
       const data = await res.json();
 
-      // Guardamos los datos en el estado
-      // Esto causa un RE-RENDER con los nuevos datos
-      setAvailability(data);
+      // Verificar que data sea un array antes de guardarlo
+      if (Array.isArray(data)) {
+        setAvailability(data);
+      } else {
+        // Si no es array (error de API), usar array vacío
+        console.error("API no retornó un array:", data);
+        setAvailability([]);
+      }
 
     } catch (error) {
       // Si hay error de red, lo mostramos en consola
       console.error("Error fetching availability:", error);
+      setAvailability([]); // Reset a array vacío en caso de error
     } finally {
       // finally se ejecuta siempre (éxito o error)
       setLoading(false); // Ocultar spinner
@@ -162,6 +167,9 @@ export default function BookingCalendar({
 
   // ¿Hay disponibilidad para este día?
   const isAvailable = (day: number) => {
+    // Verificar que availability sea un array
+    if (!Array.isArray(availability)) return false;
+
     const dateStr = getDateString(day);
     // .find() busca en el array de disponibilidad
     const dayData = availability.find((a) => a.date === dateStr);

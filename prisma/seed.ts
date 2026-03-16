@@ -297,10 +297,15 @@ async function seedBlogCategories(): Promise<void> {
   console.log("📦 Procesando categorías del blog...");
 
   const categories = [
-    { name: "Consejos", slug: "consejos", color: "#FFD700" },
-    { name: "Alertas", slug: "alertas", color: "#EF4444" },
-    { name: "Guías", slug: "guias", color: "#3B82F6" },
-    { name: "Noticias", slug: "noticias", color: "#22C55E" },
+    { name: "Comprar Auto", slug: "comprar-auto", color: "#FFD700" },
+    { name: "Trámites", slug: "trámites", color: "#EF4444" },
+    { name: "Verificaciones", slug: "verificaciones", color: "#F59E0B" },
+    { name: "Tener y usar tu auto", slug: "tener-y-usar-tu-auto", color: "#22C55E" },
+    { name: "Marcas y modelos", slug: "marcas-y-modelos", color: "#8B5CF6" },
+    { name: "SOAT y documentación", slug: "soat-y-documentacion", color: "#EC4899" },
+    { name: "Seguros vehículares", slug: "seguros-vehiculares", color: "#3B82F6" },
+    { name: "Eléctricos e híbridos", slug: "electricos-e-hibridos", color: "#10B981" },
+    { name: "Estadísticas del mercado", slug: "estadisticas-del-mercado", color: "#3B82F6" },
   ];
 
   for (const category of categories) {

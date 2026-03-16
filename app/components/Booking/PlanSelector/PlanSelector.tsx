@@ -113,34 +113,6 @@ export default function PlanSelector({
                 <p className={styles.planDescription}>
                   {plan.landingDescription || plan.description}
                 </p>
-
-                {/* Lista de items incluidos (máximo 4 visibles) */}
-                {plan.items && plan.items.length > 0 && (
-                  <ul className={styles.planItems}>
-                    {plan.items.slice(0, 4).map((item) => (
-                      <li key={item.id}>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#6cb545"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M5 12l5 5 9-9" />
-                        </svg>
-                        <span>{item.label}</span>
-                      </li>
-                    ))}
-                    {plan.items.length > 4 && (
-                      <li className={styles.moreItems}>
-                        +{plan.items.length - 4} más incluidos
-                      </li>
-                    )}
-                  </ul>
-                )}
               </div>
 
               {/* Precio */}

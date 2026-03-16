@@ -76,9 +76,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!["CLIENT", "INSPECTOR"].includes(role)) {
+  if (!["CLIENT", "INSPECTOR", "ADMIN"].includes(role)) {
     return NextResponse.json(
-      { error: "Rol inválido. Solo CLIENT o INSPECTOR" },
+      { error: "Rol inválido. Solo CLIENT, INSPECTOR o ADMIN" },
       { status: 400 }
     );
   }
@@ -172,9 +172,9 @@ export async function PATCH(req: NextRequest) {
 
     // --- Cambiar rol ---
     if (action === "changeRole") {
-      if (!newRole || !["CLIENT", "INSPECTOR"].includes(newRole)) {
+      if (!newRole || !["CLIENT", "INSPECTOR", "ADMIN"].includes(newRole)) {
         return NextResponse.json(
-          { error: "Rol inválido. Solo CLIENT o INSPECTOR" },
+          { error: "Rol inválido. Solo CLIENT, INSPECTOR o ADMIN" },
           { status: 400 }
         );
       }

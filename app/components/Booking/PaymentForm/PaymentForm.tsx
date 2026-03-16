@@ -58,18 +58,28 @@ export default function PaymentForm({
 
     setTimeLeft(calculateTimeLeft());
 
-    const timer = setInterval(() => {
+    const timer = setInterval(async () => {
       const remaining = calculateTimeLeft();
       setTimeLeft(remaining);
 
       if (remaining <= 0) {
         clearInterval(timer);
+
+        // Marcar la reserva como expirada en el backend
+        try {
+          await fetch(`/api/bookings/${bookingId}/expire`, {
+            method: "POST",
+          });
+        } catch (error) {
+          console.error("Error expirando reserva:", error);
+        }
+
         onExpired();
       }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [expiresAt, onExpired]);
+  }, [expiresAt, onExpired, bookingId]);
 
   // Formatear tiempo
   const formatTime = (seconds: number) => {

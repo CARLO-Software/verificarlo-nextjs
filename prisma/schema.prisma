@@ -29,20 +29,29 @@ enum InspectionType {
 }
 
 enum BookingStatus {
-  PENDING_PAYMENT // Slot reservado, esperando pago (30 min max)
-  PAID            // Pagado, asignando inspector
-  CONFIRMED       // Pagado + inspector asignado
-  COMPLETED       // Inspección realizada
-  CANCELLED       // Cancelada por cliente/admin
-  NO_SHOW         // Cliente no se presentó
-  EXPIRED         // Pago no completado en 30 min
+  PENDING_PAYMENT      // Slot reservado, esperando pago (30 min max)
+  PENDING_VERIFICATION // Pago enviado (Yape/Transfer), esperando verificación admin
+  PAID                 // Pagado, asignando inspector
+  CONFIRMED            // Pagado + inspector asignado
+  COMPLETED            // Inspección realizada
+  CANCELLED            // Cancelada por cliente/admin
+  NO_SHOW              // Cliente no se presentó
+  EXPIRED              // Pago no completado a tiempo
 }
 
 enum PaymentStatus {
   PENDING
+  PENDING_VERIFICATION // Esperando verificación manual
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum PaymentMethod {
+  CULQI      // Tarjeta vía Culqi
+  TRANSFER   // Transferencia bancaria
+  YAPE_PLIN  // Yape o Plin
+  WHATSAPP   // Coordinación por WhatsApp
 }
 
 enum InspectionResultStatus {
@@ -269,12 +278,23 @@ model Payment {
   id        Int @id @default(autoincrement())
   bookingId Int @unique
 
-  // Datos Culqi
+  // Método de pago utilizado
+  method PaymentMethod @default(CULQI)
+
+  // Datos Culqi (solo para method = CULQI)
   culqiChargeId String? @unique
   culqiToken    String?
 
+  // Datos para pagos alternativos (Yape/Transfer)
+  operationNumber String?   // Número de operación del cliente
+  voucherUrl      String?   // URL del comprobante (opcional)
+
+  // Verificación por admin
+  verifiedBy String?   // ID del admin que verificó
+  verifiedAt DateTime? // Fecha de verificación
+
   // Montos
-  amount   Int    // En céntimos (ej: 15000 = S/150.00) //debe de ser double o decimal
+  amount   Int    // En céntimos (ej: 15000 = S/150.00)
   currency String @default("PEN")
 
   // Estado
@@ -299,6 +319,7 @@ model Payment {
 
   @@index([culqiChargeId])
   @@index([status])
+  @@index([method])
 }
 
 // ============================================

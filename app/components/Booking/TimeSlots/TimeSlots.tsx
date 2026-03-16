@@ -161,7 +161,7 @@ export default function TimeSlots({
           <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5" />
           <path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        Cada inspección dura aproximadamente 45 minutos
+        Cada inspección dura aproximadamente 1 hora
       </p>
     </div>
   );

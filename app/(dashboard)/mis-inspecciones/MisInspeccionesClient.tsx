@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { InspectionCard } from '@/app/components/Inspections/InspectionCard/InspectionCard';
 import { EmptyState } from '@/app/components/ui/EmptyState/EmptyState';
@@ -13,6 +13,7 @@ interface FormattedInspection {
   code: string;
   status: BookingStatus;
   date: Date;
+  expiresAt?: Date | string | null;
   vehicle: {
     brand: string;
     model: string;
@@ -46,18 +47,24 @@ const filterOptions = [
   { value: 'CANCELLED', label: 'Canceladas' },
 ];
 
-export function MisInspeccionesClient({ inspections }: MisInspeccionesClientProps) {
+export function MisInspeccionesClient({ inspections: initialInspections }: MisInspeccionesClientProps) {
   const router = useRouter();
+  const [inspections, setInspections] = useState<FormattedInspection[]>(initialInspections);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [_cancelingId, setCancelingId] = useState<number | null>(null);
 
   // Filtrar bookings
   const filteredInspections = inspections.filter((inspection) => {
     // Filtro por estado
     if (statusFilter !== 'all') {
-      if (statusFilter === 'CONFIRMED' && !['PAID', 'CONFIRMED'].includes(inspection.status)) {
+      // "Pendientes" incluye PENDING_PAYMENT y PENDING_VERIFICATION
+      if (statusFilter === 'PENDING_PAYMENT' && !['PENDING_PAYMENT', 'PENDING_VERIFICATION'].includes(inspection.status)) {
         return false;
-      } else if (statusFilter !== 'CONFIRMED' && inspection.status !== statusFilter) {
+      // "En proceso" incluye PAID y CONFIRMED
+      } else if (statusFilter === 'CONFIRMED' && !['PAID', 'CONFIRMED'].includes(inspection.status)) {
+        return false;
+      } else if (!['PENDING_PAYMENT', 'CONFIRMED'].includes(statusFilter) && inspection.status !== statusFilter) {
         return false;
       }
     }
@@ -87,6 +94,45 @@ export function MisInspeccionesClient({ inspections }: MisInspeccionesClientProp
     // TODO: Implementar descarga de PDF
     console.log('Descargar PDF:', id);
   };
+
+  const handleCancel = useCallback(async (id: number) => {
+    const confirmCancel = window.confirm(
+      '¿Estás seguro de que deseas cancelar esta inspección? Esta acción no se puede deshacer.'
+    );
+
+    if (!confirmCancel) return;
+
+    setCancelingId(id);
+
+    try {
+      const res = await fetch(`/api/bookings/${id}/cancel`, {
+        method: 'POST',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Error al cancelar la inspección');
+        return;
+      }
+
+      // Actualizar la lista local
+      setInspections((prev) =>
+        prev.map((inspection) =>
+          inspection.id === id
+            ? { ...inspection, status: 'CANCELLED' as const }
+            : inspection
+        )
+      );
+
+      alert('Inspección cancelada exitosamente');
+    } catch (error) {
+      console.error('Error al cancelar:', error);
+      alert('Error de conexión. Intenta nuevamente.');
+    } finally {
+      setCancelingId(null);
+    }
+  }, []);
   
   return (
     <div className="min-h-screen bg-[#FAFAFA]">
@@ -209,6 +255,7 @@ export function MisInspeccionesClient({ inspections }: MisInspeccionesClientProp
                   onClick={() => handleViewReport(inspection.id)}
                   onViewReport={() => handleViewReport(inspection.id)}
                   onDownloadPdf={() => handleDownloadPdf(inspection.id)}
+                  onCancel={() => handleCancel(inspection.id)}
                 />
               </div>
             ))}

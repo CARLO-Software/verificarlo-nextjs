@@ -92,6 +92,13 @@ const statusConfig: Record<string, {
     gradient: 'from-amber-500 to-orange-500',
     iconBg: 'bg-amber-100 text-amber-600',
   },
+  PENDING_VERIFICATION: {
+    label: 'Verificando pago',
+    description: 'Tu pago está siendo verificado por nuestro equipo',
+    icon: Clock,
+    gradient: 'from-orange-500 to-amber-500',
+    iconBg: 'bg-orange-100 text-orange-600',
+  },
   PAID: {
     label: 'Pagado',
     description: 'Estamos asignando un inspector a tu cita',
@@ -148,7 +155,7 @@ export function InspectionDetailClient({ inspection }: Props) {
   const hoursUntil = differenceInHours(new Date(inspection.startTime), new Date());
   const canCancelWithRefund = hoursUntil >= 24;
   const canCancel = hoursUntil > 0;
-  const isPending = ['PENDING_PAYMENT', 'PAID', 'CONFIRMED'].includes(inspection.status);
+  const isPending = ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID', 'CONFIRMED'].includes(inspection.status);
   const isCompleted = inspection.status === 'COMPLETED';
   // Estado de cancelación (disponible para uso futuro)
   const _isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);
@@ -162,15 +169,20 @@ export function InspectionDetailClient({ inspection }: Props) {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
-        method: 'PUT',
+        method: 'POST',
       });
+
+      const data = await res.json();
 
       if (res.ok) {
         router.refresh();
         setShowCancelModal(false);
+      } else {
+        alert(data.error || 'Error al cancelar la inspección');
       }
     } catch (error) {
       console.error('Error cancelando:', error);
+      alert('Error de conexión. Intenta nuevamente.');
     } finally {
       setIsLoading(false);
     }

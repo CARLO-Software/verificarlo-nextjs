@@ -52,7 +52,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
     return (
       <div className="min-h-screen bg-gray-50">
         <PlatformHeader />
-        <main className="pb-20 md:pb-8">{children}</main>
+        <main>{children}</main>
         <MobileBottomNav />
       </div>
     );

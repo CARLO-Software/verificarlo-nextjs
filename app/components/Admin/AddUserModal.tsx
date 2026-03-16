@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Modal } from "@/app/components/ui/Modal";
 import { Eye, EyeOff } from "lucide-react";
 
-type Role = "CLIENT" | "INSPECTOR";
+type Role = "CLIENT" | "INSPECTOR" | "ADMIN";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -240,6 +240,7 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
             <option value="">Seleccionar rol...</option>
             <option value="CLIENT">Cliente</option>
             <option value="INSPECTOR">Inspector</option>
+            <option value="ADMIN">Administrador</option>
           </select>
           {errors.role && (
             <p className="text-xs text-red-600 mt-1">{errors.role}</p>

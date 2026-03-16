@@ -264,8 +264,9 @@ export async function getInspectionStats() {
     throw new Error('No autorizado');
   }
 
-  const [pending, inProgress, completed, cancelled] = await Promise.all([
+  const [pending, pendingVerification, inProgress, completed, cancelled] = await Promise.all([
     db.booking.count({ where: { status: 'PENDING_PAYMENT' } }),
+    db.booking.count({ where: { status: 'PENDING_VERIFICATION' } }),
     db.booking.count({ where: { status: { in: ['PAID', 'CONFIRMED'] } } }),
     db.booking.count({ where: { status: 'COMPLETED' } }),
     db.booking.count({ where: { status: { in: ['CANCELLED', 'NO_SHOW', 'EXPIRED'] } } }),
@@ -273,10 +274,11 @@ export async function getInspectionStats() {
 
   return {
     pending,
+    pendingVerification,
     inProgress,
     completed,
     cancelled,
-    total: pending + inProgress + completed + cancelled,
+    total: pending + pendingVerification + inProgress + completed + cancelled,
   };
 }
 

@@ -10,6 +10,7 @@ export default async function MisInspeccionesPage() {
     code: inspection.code,
     status: inspection.status,
     date: inspection.date,
+    expiresAt: inspection.expiresAt,
     vehicle: {
       brand: inspection.vehicle.model.brand.name,
       model: inspection.vehicle.model.name,

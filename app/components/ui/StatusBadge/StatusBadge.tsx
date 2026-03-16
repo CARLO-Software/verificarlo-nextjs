@@ -21,6 +21,11 @@ const statusConfig: Record<string, {
     bg: 'bg-gray-100',
     text: 'text-gray-600',
   },
+  PENDING_VERIFICATION: {
+    label: 'Verificando pago',
+    bg: 'bg-orange-50',
+    text: 'text-orange-600',
+  },
   PAID: {
     label: 'Pagado',
     bg: 'bg-blue-50',

@@ -44,7 +44,7 @@ export default async function PlatformLayout({
       <PlatformHeader />
 
       {/* Contenido principal */}
-      <main className="pb-20 md:pb-8">
+      <main>
         {children}
       </main>
 

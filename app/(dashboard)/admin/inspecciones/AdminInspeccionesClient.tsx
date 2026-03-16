@@ -74,6 +74,7 @@ interface InspectionPlan {
 
 interface Stats {
   pending: number;
+  pendingVerification: number;
   inProgress: number;
   completed: number;
   cancelled: number;
@@ -88,6 +89,7 @@ interface AdminInspeccionesClientProps {
 
 const statsConfig = [
   { key: 'pending', label: 'Pendientes', color: 'text-amber-600', bg: 'bg-amber-50' },
+  { key: 'pendingVerification', label: 'Por verificar', color: 'text-orange-600', bg: 'bg-orange-50' },
   { key: 'inProgress', label: 'En proceso', color: 'text-blue-600', bg: 'bg-blue-50' },
   { key: 'completed', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
   { key: 'cancelled', label: 'Canceladas', color: 'text-red-600', bg: 'bg-red-50' },
@@ -96,6 +98,7 @@ const statsConfig = [
 const filterPills = [
   { value: 'all', label: 'Todos' },
   { value: 'PENDING_PAYMENT', label: 'Pendientes' },
+  { value: 'PENDING_VERIFICATION', label: 'Por verificar' },
   { value: 'CONFIRMED', label: 'En proceso' },
   { value: 'COMPLETED', label: 'Completadas' },
 ];
@@ -316,6 +319,7 @@ function InspectionDetailPanel({
                       className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                     >
                       <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                      <option value="PENDING_VERIFICATION">Pendiente verificación</option>
                       <option value="PAID">Pagado</option>
                       <option value="CONFIRMED">Confirmado</option>
                       <option value="COMPLETED">Completado</option>
@@ -874,6 +878,33 @@ export function AdminInspeccionesClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showCreatePanel, setShowCreatePanel] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<number | null>(null);
+
+  // Verificar pago alternativo y asignar inspector automáticamente
+  const handleVerifyPayment = async (inspectionId: number) => {
+    if (!confirm('¿Confirmar el pago y asignar inspector automáticamente?')) return;
+
+    setVerifyingId(inspectionId);
+    try {
+      const res = await fetch(`/api/admin/bookings/${inspectionId}/verify-payment`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Error al verificar el pago');
+        return;
+      }
+
+      alert(data.message);
+      router.refresh();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error de conexión');
+    } finally {
+      setVerifyingId(null);
+    }
+  };
 
   const filteredInspections = inspections.filter((inspection) => {
     if (filter !== 'all') {
@@ -1046,6 +1077,29 @@ export function AdminInspeccionesClient({
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex justify-end gap-2">
+                          {/* Botón verificar pago - solo para PENDING_VERIFICATION */}
+                          {inspection.status === 'PENDING_VERIFICATION' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVerifyPayment(inspection.id);
+                              }}
+                              disabled={verifyingId === inspection.id}
+                              className="p-2 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
+                              title="Verificar pago y asignar inspector"
+                            >
+                              {verifyingId === inspection.id ? (
+                                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                </svg>
+                              ) : (
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              )}
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

@@ -34,8 +34,9 @@ interface PaymentMethodsProps {
   selectedMethod: PaymentMethod;
   onSelectMethod: (method: PaymentMethod) => void;
   bookingDetails: BookingDetails;
-  onCulqiPayment: () => void; // Callback para proceder con Culqi
-  onTransferComplete: () => void; // Callback cuando envía comprobante
+  bookingId: number;
+  onCulqiPayment: () => void;
+  onAlternativePaymentSuccess: () => void;
 }
 
 // Datos de ejemplo para los modales (REEMPLAZAR con datos reales)
@@ -58,13 +59,57 @@ export default function PaymentMethods({
   selectedMethod,
   onSelectMethod,
   bookingDetails,
+  bookingId,
   onCulqiPayment,
-  onTransferComplete,
+  onAlternativePaymentSuccess,
 }: PaymentMethodsProps) {
   // Estados para controlar la visibilidad de los modales
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showYapeModal, setShowYapeModal] = useState(false);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+
+  // Handler para confirmar pago con Yape
+  const handleYapePaymentConfirm = async (operationNumber: string) => {
+    const res = await fetch("/api/payments/alternative", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId,
+        paymentMethod: "YAPE_PLIN",
+        operationNumber,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Error al registrar el pago");
+    }
+
+    setShowYapeModal(false);
+    onAlternativePaymentSuccess();
+  };
+
+  // Handler para confirmar pago con Transferencia
+  const handleTransferComplete = async () => {
+    const res = await fetch("/api/payments/alternative", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookingId,
+        paymentMethod: "TRANSFER",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Error al registrar el pago");
+    }
+
+    setShowTransferModal(false);
+    onAlternativePaymentSuccess();
+  };
 
   // Configuración de cada método de pago
   const paymentOptions = [
@@ -219,7 +264,7 @@ export default function PaymentMethods({
         onClose={() => setShowTransferModal(false)}
         bankData={BANK_DATA}
         amount={RESERVE_AMOUNT}
-        onSendVoucher={onTransferComplete}
+        onSendVoucher={handleTransferComplete}
       />
 
       {/* Modal de Yape/Plin */}
@@ -228,6 +273,7 @@ export default function PaymentMethods({
         onClose={() => setShowYapeModal(false)}
         yapeData={YAPE_DATA}
         amount={RESERVE_AMOUNT}
+        onPaymentConfirm={handleYapePaymentConfirm}
       />
 
       {/* Modal de WhatsApp */}

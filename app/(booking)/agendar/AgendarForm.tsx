@@ -284,11 +284,11 @@ export default function AgendarForm({
     goToStep(3);
   };
 
-  const handleTransferComplete = () => {
-    // Por ahora solo mostramos un mensaje, en producción enviaría el voucher
-    alert(
-      "Gracias. Por favor envía tu comprobante por WhatsApp al 934140010 para confirmar tu reserva."
-    );
+  // Estado para pago en verificación
+  const [pendingVerification, setPendingVerification] = useState(false);
+
+  const handleAlternativePaymentSuccess = () => {
+    setPendingVerification(true);
   };
 
   // =========================================================================
@@ -314,6 +314,53 @@ export default function AgendarForm({
 
   if (confirmationData) {
     return <Confirmation booking={confirmationData} />;
+  }
+
+  // =========================================================================
+  // PANTALLA DE PAGO EN VERIFICACIÓN (Yape/Transfer)
+  // =========================================================================
+
+  if (pendingVerification && bookingData) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <div className={styles.verificationScreen}>
+            <div className={styles.verificationIcon}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            <h2 className={styles.verificationTitle}>¡Pago registrado!</h2>
+            <p className={styles.verificationText}>
+              Tu pago está siendo verificado. Te notificaremos por correo y WhatsApp
+              cuando sea confirmado (máximo 4 horas).
+            </p>
+            <div className={styles.verificationDetails}>
+              <div className={styles.verificationItem}>
+                <span>Código de reserva:</span>
+                <strong>{bookingData.code}</strong>
+              </div>
+              <div className={styles.verificationItem}>
+                <span>Plan:</span>
+                <strong>{selectedInspection?.title}</strong>
+              </div>
+              <div className={styles.verificationItem}>
+                <span>Fecha:</span>
+                <strong>{selectedDate}</strong>
+              </div>
+              <div className={styles.verificationItem}>
+                <span>Hora:</span>
+                <strong>{selectedSlot}</strong>
+              </div>
+            </div>
+            <a href="/" className={styles.verificationButton}>
+              Volver al inicio
+            </a>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // =========================================================================
@@ -550,8 +597,9 @@ export default function AgendarForm({
                   planTitle: selectedInspection.title,
                   totalAmount: selectedInspection.price,
                 }}
+                bookingId={bookingData.id}
                 onCulqiPayment={handleCulqiPayment}
-                onTransferComplete={handleTransferComplete}
+                onAlternativePaymentSuccess={handleAlternativePaymentSuccess}
               />
 
               <div className={styles.stepButtons}>
