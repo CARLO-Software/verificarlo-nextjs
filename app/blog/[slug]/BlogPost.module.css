@@ -1,7 +1,7 @@
 .main {
   min-height: 100vh;
   background: #fff;
-  padding-top: 80px;
+  padding-top: 120px;
 }
 
 .article {
@@ -9,9 +9,9 @@
 }
 
 .container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
 }
 
 .header {
@@ -70,10 +70,14 @@
   font-size: 1.125rem;
   line-height: 1.8;
   color: #333;
-  max-width: 700px;
+  max-width: 850px;
   margin: 0 auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
+  /* Evitar que las palabras se corten con guión */
+  word-break: normal;
+  overflow-wrap: normal;
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
 }
 
 .content h2 {
@@ -97,11 +101,53 @@
 .content ul,
 .content ol {
   margin-bottom: 1.5rem;
-  padding-left: 1.5rem;
+  padding-left: 2rem;
+}
+
+.content ul {
+  list-style-type: disc;
+}
+
+.content ul ul {
+  list-style-type: circle;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.content ul ul ul {
+  list-style-type: square;
+}
+
+.content ol {
+  list-style-type: decimal;
 }
 
 .content li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.content li::marker {
+  color: #FF6B00;
+  font-weight: 600;
+}
+
+/* Anchor links para navegación interna */
+.content h2[id],
+.content h3[id],
+.content h4[id] {
+  scroll-margin-top: 100px;
+}
+
+.content a[href^="#"] {
+  color: #FF6B00;
+  text-decoration: none;
+  border-bottom: 1px dashed #FF6B00;
+  transition: border-color 0.2s ease;
+}
+
+.content a[href^="#"]:hover {
+  border-bottom-style: solid;
 }
 
 /* Enlaces: sin subrayado por defecto, color personalizable */
@@ -275,7 +321,11 @@
 
 @media (max-width: 640px) {
   .main {
-    padding-top: 70px;
+    padding-top: 100px;
+  }
+
+  .container {
+    padding: 0 1.25rem;
   }
 
   .title {
@@ -297,6 +347,11 @@
 
   .content h3 {
     font-size: 1.25rem;
+  }
+
+  .content ul,
+  .content ol {
+    padding-left: 1.5rem;
   }
 
   .relatedGrid {

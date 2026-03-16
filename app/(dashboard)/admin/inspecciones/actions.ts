@@ -11,6 +11,7 @@ import {
   getInspectionPlans,
   ManualBookingInput,
 } from '@/services/inspections/inspections.server';
+import { assignInspector as autoAssignInspector } from '@/lib/scheduling/inspector-assignment';
 import { BookingStatus } from '@prisma/client';
 
 export async function updateStatusAction(id: number, status: BookingStatus) {
@@ -56,7 +57,12 @@ export async function saveInspectionChangesAction(
   }
 ) {
   try {
-    const results: { status?: boolean; inspector?: boolean; notes?: boolean } = {};
+    const results: {
+      status?: boolean;
+      inspector?: boolean;
+      notes?: boolean;
+      autoAssigned?: { inspectorId: string; inspectorName: string };
+    } = {};
 
     // Actualizar estado si cambió
     if (changes.status) {
@@ -64,10 +70,21 @@ export async function saveInspectionChangesAction(
       results.status = true;
     }
 
-    // Asignar inspector si cambió
+    // Asignar inspector si cambió (manual)
     if (changes.inspectorId) {
       await assignInspector(id, changes.inspectorId);
       results.inspector = true;
+    }
+    // Si el estado cambió a PAID y NO se asignó inspector manualmente,
+    // intentar asignación automática
+    else if (changes.status === 'PAID') {
+      const autoResult = await autoAssignInspector(id);
+      if (autoResult.success && autoResult.inspectorId && autoResult.inspectorName) {
+        results.autoAssigned = {
+          inspectorId: autoResult.inspectorId,
+          inspectorName: autoResult.inspectorName,
+        };
+      }
     }
 
     // Actualizar notas si cambió

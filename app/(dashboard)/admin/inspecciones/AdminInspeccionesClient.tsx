@@ -194,10 +194,14 @@ function InspectionDetailPanel({
       const result = await saveInspectionChangesAction(inspection.id, changes);
 
       if (result.success) {
-        setSaveMessage({ type: 'success', text: 'Cambios guardados correctamente' });
+        // Mostrar mensaje con info del inspector auto-asignado si aplica
+        const autoAssignedMsg = result.results?.autoAssigned
+          ? ` Inspector ${result.results.autoAssigned.inspectorName} asignado automáticamente.`
+          : '';
+        setSaveMessage({ type: 'success', text: `Cambios guardados correctamente.${autoAssignedMsg}` });
         setTimeout(() => {
           onSaveSuccess();
-        }, 1000);
+        }, 1500);
       } else {
         setSaveMessage({ type: 'error', text: result.error || 'Error al guardar' });
       }
