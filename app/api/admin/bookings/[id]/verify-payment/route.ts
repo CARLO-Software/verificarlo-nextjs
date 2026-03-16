@@ -73,7 +73,6 @@ export async function POST(
       where: { id: bookingId },
       data: {
         status: "PAID",
-        paidAt: new Date(),
       },
     });
 
