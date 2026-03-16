@@ -24,20 +24,45 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Escribe el contenido del artículo...",
 }: RichTextEditorProps) {
-  // Registrar tamaños personalizados en Quill
+  // Registrar tamaños personalizados y divider en Quill
   useEffect(() => {
     if (typeof window !== "undefined") {
       import("react-quill-new").then((module) => {
         const Quill = module.default.Quill;
         if (Quill) {
+          // Registrar tamaños
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const Size = Quill.import("attributors/style/size") as any;
           Size.whitelist = fontSizes;
           Quill.register(Size, true);
+
+          // Registrar bloque de línea divisoria (hr)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const BlockEmbed = Quill.import("blots/block/embed") as any;
+          class DividerBlot extends BlockEmbed {
+            static blotName = "divider";
+            static tagName = "hr";
+          }
+          Quill.register(DividerBlot, true);
         }
       });
     }
   }, []);
+
+  // Handler para insertar línea divisoria - usa 'this' del contexto del toolbar
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function insertDivider(this: any) {
+    const quill = this.quill;
+    if (quill) {
+      const range = quill.getSelection(true);
+      if (range) {
+        quill.insertText(range.index, '\n');
+        quill.insertEmbed(range.index + 1, 'divider', true);
+        quill.insertText(range.index + 2, '\n');
+        quill.setSelection(range.index + 3);
+      }
+    }
+  }
 
   const modules = useMemo(
     () => ({
@@ -50,10 +75,13 @@ export default function RichTextEditor({
           [{ list: "ordered" }, { list: "bullet" }],
           [{ indent: "-1" }, { indent: "+1" }],
           [{ align: [] }],
-          ["blockquote"],
+          ["blockquote", "divider"],
           ["link", "image", "video"],
           ["clean"],
         ],
+        handlers: {
+          divider: insertDivider,
+        },
       },
       clipboard: {
         matchVisual: false,
@@ -76,6 +104,7 @@ export default function RichTextEditor({
     "indent",
     "align",
     "blockquote",
+    "divider",
     "link",
     "image",
     "video",

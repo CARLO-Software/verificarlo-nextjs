@@ -132,6 +132,25 @@
   font-style: italic;
 }
 
+/* Línea divisoria */
+.editor :global(.ql-editor hr) {
+  width: 100%;
+  height: 1px;
+  border: none;
+  background: #d1d5db;
+  margin: 1.5rem 0;
+}
+
+/* Botón de línea divisoria en toolbar */
+.editor :global(.ql-divider) {
+  width: 28px !important;
+}
+
+.editor :global(.ql-divider::before) {
+  content: '—';
+  font-weight: bold;
+}
+
 .editor :global(.ql-editor a) {
   color: #FF6B00;
   text-decoration: none;
