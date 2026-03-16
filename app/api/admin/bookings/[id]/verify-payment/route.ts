@@ -10,7 +10,7 @@ import { db } from "@/lib/db";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
@@ -81,7 +81,7 @@ export async function POST(
       await db.payment.update({
         where: { id: booking.payment.id },
         data: {
-          status: "PAID",
+          status: "COMPLETED",
           verifiedAt: new Date(),
           verifiedBy: session.user.id,
         },
