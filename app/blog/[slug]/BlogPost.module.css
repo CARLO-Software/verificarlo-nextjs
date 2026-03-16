@@ -71,10 +71,11 @@
   line-height: 1.8;
   color: #333;
   max-width: 100%;
+  width: 100%;
   margin: 0 auto;
-  /* Evitar que las palabras se corten con guión */
-  word-break: normal;
-  overflow-wrap: normal;
+  /* Evitar que las palabras se corten con guión pero mantener dentro del contenedor */
+  word-break: break-word;
+  overflow-wrap: break-word;
   hyphens: none;
   -webkit-hyphens: none;
   -ms-hyphens: none;
