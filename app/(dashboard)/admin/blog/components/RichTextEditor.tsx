@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import "react-quill-new/dist/quill.snow.css";
 import styles from "./RichTextEditor.module.css";
 
@@ -24,6 +24,77 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Escribe el contenido del artículo...",
 }: RichTextEditorProps) {
+  // Handler para editar anclas existentes cuando se hace clic en ellas
+  const handleAnchorClick = useCallback((e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    // Verificar si se hizo clic en una ancla (span con clase ql-anchor o con id dentro del editor)
+    const isAnchor = target.classList.contains('ql-anchor') ||
+                     (target.tagName === 'SPAN' && target.id && target.closest('.ql-editor'));
+
+    if (!isAnchor) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const currentId = target.id;
+    const currentText = target.textContent || '';
+
+    // Mostrar opciones al usuario
+    const action = prompt(
+      `Ancla actual: #${currentId}\n\nOpciones:\n1. Escribe un nuevo ID para actualizar\n2. Escribe "eliminar" para quitar el ancla (mantiene el texto)\n3. Cancela para no hacer cambios`,
+      currentId
+    );
+
+    if (action === null) {
+      // Usuario canceló
+      return;
+    }
+
+    if (action.toLowerCase() === 'eliminar') {
+      // Eliminar el ancla pero mantener el texto
+      const textNode = document.createTextNode(currentText);
+      target.parentNode?.replaceChild(textNode, target);
+    } else if (action && action !== currentId) {
+      // Actualizar el ID del ancla
+      const newId = action
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9áéíóúñü\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .substring(0, 50);
+
+      if (newId) {
+        target.id = newId;
+      }
+    }
+
+    // Disparar evento de cambio para que React actualice el estado
+    const editor = document.querySelector('.ql-editor');
+    if (editor) {
+      const event = new Event('input', { bubbles: true });
+      editor.dispatchEvent(event);
+    }
+  }, []);
+
+  // Configurar listener para clics en anclas
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const editor = document.querySelector('.ql-editor');
+      if (editor) {
+        editor.addEventListener('click', handleAnchorClick as EventListener);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      const editor = document.querySelector('.ql-editor');
+      if (editor) {
+        editor.removeEventListener('click', handleAnchorClick as EventListener);
+      }
+    };
+  }, [handleAnchorClick]);
+
   // Registrar tamaños personalizados, divider y anchor en Quill
   useEffect(() => {
     if (typeof window !== "undefined") {

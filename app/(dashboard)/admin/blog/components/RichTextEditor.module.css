@@ -281,17 +281,44 @@
 }
 
 /* Estilo para anclas en el contenido */
-.editor :global(.ql-editor span.ql-anchor) {
+.editor :global(.ql-editor span.ql-anchor),
+.editor :global(.ql-editor span[id]) {
   background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
   border: 1px dashed #FF6B00;
   border-radius: 3px;
   padding: 0 4px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.editor :global(.ql-editor span.ql-anchor::before) {
+.editor :global(.ql-editor span.ql-anchor:hover),
+.editor :global(.ql-editor span[id]:hover) {
+  background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+  border-color: #e65100;
+  box-shadow: 0 2px 4px rgba(255, 107, 0, 0.2);
+}
+
+.editor :global(.ql-editor span.ql-anchor::before),
+.editor :global(.ql-editor span[id]::before) {
   content: '⚓ ';
   font-size: 0.75em;
+}
+
+/* Tooltip visual para indicar que es editable */
+.editor :global(.ql-editor span.ql-anchor::after),
+.editor :global(.ql-editor span[id]::after) {
+  content: ' (clic para editar)';
+  font-size: 0.65em;
+  color: #888;
+  font-weight: normal;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.editor :global(.ql-editor span.ql-anchor:hover::after),
+.editor :global(.ql-editor span[id]:hover::after) {
+  opacity: 1;
 }
 
 /* ============================================ */
