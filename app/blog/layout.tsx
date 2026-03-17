@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import BfcacheFix from "./components/BfcacheFix";
 
 export const metadata: Metadata = {
   title: "Blog | VerifiCARLO - Consejos para comprar autos usados",
@@ -17,5 +18,10 @@ export default function BlogLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <BfcacheFix />
+      {children}
+    </>
+  );
 }

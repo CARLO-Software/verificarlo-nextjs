@@ -12,7 +12,7 @@
 .container {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 0 3rem;
+  padding: 0;
 }
 
 .header {
@@ -263,6 +263,15 @@
   transition: all 0.2s ease;
 }
 
+.shareLink svg {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
 .shareLink:hover {
   background: #FF6B00;
   color: white;
@@ -345,6 +354,12 @@
   }
 }
 
+@media (max-width: 1150px) {
+  .container {
+    padding: 0 1.5rem;
+  }
+}
+
 @media (max-width: 640px) {
   .main {
     padding-top: 100px;
@@ -387,4 +402,14 @@
   .relatedSection {
     padding: 3rem 0;
   }
+}
+
+/* Fix global para SVGs en el blog */
+.main svg,
+.article svg,
+.share svg,
+.content svg {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }

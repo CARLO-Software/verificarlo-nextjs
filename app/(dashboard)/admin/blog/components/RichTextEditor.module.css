@@ -142,13 +142,15 @@
 }
 
 /* Botón de línea divisoria en toolbar */
-.editor :global(.ql-divider) {
+.editor :global(.ql-toolbar .ql-divider) {
   width: 28px !important;
+  position: relative;
 }
 
-.editor :global(.ql-divider::before) {
+.editor :global(.ql-toolbar .ql-divider::after) {
   content: '—';
   font-weight: bold;
+  font-size: 14px;
 }
 
 .editor :global(.ql-editor a) {
@@ -170,6 +172,21 @@
 .editor :global(.ql-editor iframe) {
   max-width: 100%;
   border-radius: 8px;
+}
+
+/* Asegurar que los iconos SVG se muestren */
+.editor :global(.ql-toolbar button svg) {
+  display: inline-block !important;
+  width: 18px;
+  height: 18px;
+}
+
+.editor :global(.ql-toolbar .ql-stroke) {
+  stroke: #444;
+}
+
+.editor :global(.ql-toolbar .ql-fill) {
+  fill: #444;
 }
 
 /* Toolbar buttons hover */
@@ -252,18 +269,19 @@
 }
 
 /* Botón de ancla en toolbar */
-.editor :global(.ql-anchor) {
+.editor :global(.ql-toolbar .ql-anchor) {
   width: 28px !important;
+  position: relative;
 }
 
-.editor :global(.ql-anchor::before) {
+.editor :global(.ql-toolbar .ql-anchor::after) {
   content: '#';
   font-weight: bold;
   font-size: 16px;
 }
 
 /* Estilo para anclas en el contenido */
-.editor :global(.ql-editor .ql-anchor) {
+.editor :global(.ql-editor span.ql-anchor) {
   background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
   border: 1px dashed #FF6B00;
   border-radius: 3px;
@@ -271,7 +289,7 @@
   font-weight: 500;
 }
 
-.editor :global(.ql-editor .ql-anchor::before) {
+.editor :global(.ql-editor span.ql-anchor::before) {
   content: '⚓ ';
   font-size: 0.75em;
 }

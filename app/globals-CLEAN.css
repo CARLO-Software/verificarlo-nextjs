@@ -190,6 +190,12 @@ svg:not(:root) {
   overflow: hidden;
 }
 
+/* Fix para SVGs que no cargan correctamente */
+svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+
 hr {
   box-sizing: content-box;
   height: 0;
