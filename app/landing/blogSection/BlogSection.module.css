@@ -148,6 +148,13 @@
 }
 
 .cardLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cardLinkIcon {
   position: absolute;
   bottom: 1.5rem;
   right: 1.5rem;
@@ -162,15 +169,9 @@
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
-.cardLink:hover {
+.cardLink:hover .cardLinkIcon {
   background: #e55f00;
   transform: scale(1.1);
-}
-
-.cardLinkIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* View More Button */

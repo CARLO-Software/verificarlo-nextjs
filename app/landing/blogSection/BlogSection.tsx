@@ -32,31 +32,31 @@ function BlogCard({ post }: { post: BlogPost }) {
   });
 
   return (
-    <article className={styles.card}>
-      <div className={styles.cardImageWrapper}>
-        <Image
-          src={post.coverImage}
-          alt={post.title}
-          fill
-          className={styles.cardImage}
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
-        <span
-          className={styles.categoryBadge}
-          style={{ backgroundColor: post.category.color }}
-        >
-          {post.category.name}
-        </span>
-      </div>
-      <div className={styles.cardContent}>
-        <h3 className={styles.cardTitle}>{post.title}</h3>
-        <p className={styles.cardExcerpt}>{post.excerpt}</p>
-        <div className={styles.cardMeta}>
-          <span className={styles.cardDate}>{formattedDate}</span>
-          <span className={styles.cardDivider}>|</span>
-          <span className={styles.cardAuthor}>{post.author}</span>
+    <Link href={`/blog/${post.slug}`} className={styles.cardLink}>
+      <article className={styles.card}>
+        <div className={styles.cardImageWrapper}>
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            className={styles.cardImage}
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+          <span
+            className={styles.categoryBadge}
+            style={{ backgroundColor: post.category.color }}
+          >
+            {post.category.name}
+          </span>
         </div>
-        <Link href={`/blog/${post.slug}`} className={styles.cardLink}>
+        <div className={styles.cardContent}>
+          <h3 className={styles.cardTitle}>{post.title}</h3>
+          <p className={styles.cardExcerpt}>{post.excerpt}</p>
+          <div className={styles.cardMeta}>
+            <span className={styles.cardDate}>{formattedDate}</span>
+            <span className={styles.cardDivider}>|</span>
+            <span className={styles.cardAuthor}>{post.author}</span>
+          </div>
           <span className={styles.cardLinkIcon}>
             <svg
               width="24"
@@ -71,9 +71,9 @@ function BlogCard({ post }: { post: BlogPost }) {
               <path d="M5 12h14M12 5l7 7-7 7" />
             </svg>
           </span>
-        </Link>
-      </div>
-    </article>
+        </div>
+      </article>
+    </Link>
   );
 }
 

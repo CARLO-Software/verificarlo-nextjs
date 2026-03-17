@@ -40,7 +40,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className={styles.footer}>
+    <footer className={styles.footer} id="contacto">
       <div className={styles.container}>
         {/* Logo - visible en móvil arriba, en desktop dentro de brandColumn */}
         <div className={styles.logoMobile}>

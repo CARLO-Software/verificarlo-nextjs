@@ -271,3 +271,35 @@ export function BreadcrumbSchema({ items }: { items: BreadcrumbItem[] }) {
     />
   );
 }
+
+// Schema de Navegación del Sitio - Ayuda a Google a mostrar sitelinks
+export function SiteNavigationSchema() {
+  const baseUrl = "https://verificarlo.com";
+
+  const navigationItems = [
+    { name: "Tarifas de Inspección", url: `${baseUrl}/#planes` },
+    { name: "Por qué elegir VerifiCARLO", url: `${baseUrl}/#por-que-elegirnos` },
+    { name: "Diagnóstico en 1 Hora", url: `${baseUrl}/#proceso` },
+    { name: "Testimonios", url: `${baseUrl}/#testimonios` },
+    { name: "Contacto", url: `${baseUrl}/#contacto` },
+    { name: "Blog", url: `${baseUrl}/blog` },
+  ];
+
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: navigationItems.map((item, index) => ({
+      "@type": "SiteNavigationElement",
+      position: index + 1,
+      name: item.name,
+      url: item.url,
+    })),
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  );
+}

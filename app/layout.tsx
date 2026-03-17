@@ -8,6 +8,7 @@ import {
   LocalBusinessSchema,
   WebSiteSchema,
   ServiceSchema,
+  SiteNavigationSchema,
 } from "./components/SEO/JsonLd";
 //* REMOVED: getServerSession - bloqueaba el render de toda la página
 
@@ -29,11 +30,11 @@ const baseUrl = "https://verificarlo.com";
 export const metadata: Metadata = {
   // Metadata básica
   title: {
-    default: "VerifiCARLO - Inspección de Autos Usados en Lima | Desde S/249",
+    default: "INSPECCIÓN DE AUTOS USADOS | DIAGNÓSTICO VEHICULAR EN LIMA | DIAGNOSTICAR...-VERIFICARLO",
     template: "%s | VerifiCARLO",
   },
   description:
-    "Inspecciona tu auto usado antes de comprarlo. Revisamos más de 200 puntos en mecánica, estética y documentos legales. Servicio a domicilio en Lima desde S/249. Evita fraudes y compra con confianza.",
+    "VERIFICA EL AUTO DE SEGUNDA QUE QUIERES COMPRAR ✔ 200 PUNTOS DE VERIFICACIÓN MECÁNICA, ESTÉTICA Y LEGAL ✔ ESCANEO PROFESIONAL (MOTOR, CAJA, ABS, AIRBGAGS) ✔ DETECCIÓN DE CHOQUES ✔ NÚMERO DE PROPIETARIOS ✔ GRAVÁMENES ✔ ASESORÍA EN COSTOS DE REPARACIÓN",
   keywords: [
     // Keywords principales
     "inspección de autos usados",
@@ -169,6 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LocalBusinessSchema />
         <WebSiteSchema />
         <ServiceSchema />
+        <SiteNavigationSchema />
       </head>
       <body>
           {/* ================= Google Tag Manager ================= */}

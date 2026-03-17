@@ -14,25 +14,25 @@ type Riesgo = {
 
 const ListaRiesgosEvitar: Riesgo[] = [
   {
-    iconito: "assets/icons/herramientas1.svg",
+    iconito: "/assets/icons/herramientas1.svg",
     titulo: "Fallas mecánicas",
     descripcion: "Motor reparado, consumo de aceite o cadena vencida.",
     frecuencia: "5 de cada 10 casos",
   },
   {
-    iconito: "assets/icons/servicio-de-auto.svg",
+    iconito: "/assets/icons/servicio-de-auto.svg",
     titulo: "Km adulterado",
     descripcion: "Kilometraje real oculto y desgaste no coincidente.",
     frecuencia: "4 de cada 10 casos",
   },
   {
-    iconito: "assets/icons/Group.svg",
+    iconito: "/assets/icons/Group.svg",
     titulo: "Precio inflado",
     descripcion: "Daños ocultos y choques no declarados que bajan su valor.",
     frecuencia: "6 de cada 10 casos",
   },
   {
-    iconito: "assets/icons/velocimetro.svg",
+    iconito: "/assets/icons/velocimetro.svg",
     titulo: "Problemas legales",
     descripcion: "Multas, órdenes de captura o placas clonadas que heredas.",
     frecuencia: "4 de cada 10 casos",
@@ -104,7 +104,7 @@ export default function RiesgosSection() {
   }, []);
 
   return (
-    <section className={styles["riesgos-section"]}>
+    <section className={styles["riesgos-section"]} id="por-que-elegirnos">
       <div className={styles["riesgos-container"]}>
         <h2 className={styles["riesgos-header"]}>
           Riesgos que pueden{" "}

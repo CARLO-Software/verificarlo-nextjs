@@ -10,24 +10,24 @@ export default function MetricasSection() {
 
   const Metric = [
     {
-      icon: "assets/icons/mecanico.svg",
+      icon: "/assets/icons/mecanico.svg",
       description: "Inspecciones realizadas",
       value: "+500",
     },
     {
-      icon: "assets/icons/alcancia.svg",
+      icon: "/assets/icons/alcancia.svg",
       description: "Ahorro promedio por cliente",
       value: "S/8,500",
     },
     {
-      icon: "assets/icons/auto-falla.svg",
+      icon: "/assets/icons/auto-falla.svg",
       description: 'Autos "perfectos" que ocultaban fallas',
       value: "82%",
     },
   ];
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} id="metricas">
       <div className={styles.container}>
         <h2 className={styles.title}>
           Los números no mienten.
