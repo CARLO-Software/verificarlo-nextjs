@@ -63,7 +63,7 @@ export default function PromotionalBanner() {
       <div className={styles.tickerContainer}>
         <div className={styles.tickerContent}>
           <span className={styles.offerIcon}>
-            <img src="assets/icons/fueguito.svg" alt="iconito" />
+            <img src="/assets/icons/fueguito.svg" alt="iconito" />
           </span>
           <p className={styles.bannerText}>
             <span className={styles.offerText}>

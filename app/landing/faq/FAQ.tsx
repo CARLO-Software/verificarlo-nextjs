@@ -34,7 +34,7 @@ const FAQ = () => {
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 0 ? styles.open : ""}`} onClick={() => handleFAQToggle(0)}>
                                     <p className={styles['faq-item-header']}>&iquest;Qu&eacute; puntos revisan en la inspecci&oacute;n del auto usado que
                                         quiero comprar?</p><a className={`${styles['faq-dropdown-btn']} w-inline-block`} ><img
-                                            src="assets/images/image44.svg" loading="lazy" alt="" className={styles['mynauichevron-up']} /></a>
+                                            src="/assets/images/image44.svg" loading="lazy" alt="" className={styles['mynauichevron-up']} /></a>
                                 </div>
 
                                 <div className={styles['frame-427318844']}>
@@ -47,7 +47,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 1 ? styles.open : ""}`} onClick={() => handleFAQToggle(1)}>
                                     <p className={styles['faq-item-header']}>&iquest;Incluyen revisi&oacute;n de motor y caja?</p><a
-                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
@@ -61,7 +61,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 2 ? styles.open : ""}`} onClick={() => handleFAQToggle(2)}>
                                     <p className={styles['faq-item-header']}>&iquest;La revisi&oacute;n es solo visual o tambi&eacute;n t&eacute;cnica?</p>
-                                    <a className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                    <a className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                         className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
@@ -73,7 +73,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 3 ? styles.open : ""}`} onClick={() => handleFAQToggle(3)}>
                                     <p className={styles['faq-item-header']}>&iquest;Incluye prueba de manejo?</p><a
-                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
@@ -86,7 +86,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 4 ? styles.open : ""}`} onClick={() => handleFAQToggle(4)}>
                                     <p className={styles['faq-item-header']}>&iquest;Pueden verificar si el auto ha tenido accidentes?</p><a
-                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
@@ -98,7 +98,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 5 ? styles.open : ""}`} onClick={() => handleFAQToggle(5)}>
                                     <p className={styles['faq-item-header']}>&iquest;Cu&aacute;nto tiempo demora la inspecci&oacute;n?</p><a
-                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
@@ -110,7 +110,7 @@ const FAQ = () => {
                             <div className={styles['label-buttons']}>
                                 <div className={`${styles['frame-427318843']} ${openFAQ === 6 ? styles.open : ""}`} onClick={() => handleFAQToggle(6)}>
                                     <p className={styles['faq-item-header']}>&iquest;C&oacute;mo agendo una inspecci&oacute;n?</p><a
-                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="assets/images/image44.svg" loading="lazy" alt=""
+                                        className={`${styles['faq-dropdown-btn']} w-inline-block`}><img src="/assets/images/image44.svg" loading="lazy" alt=""
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>

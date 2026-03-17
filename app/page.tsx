@@ -8,6 +8,7 @@ import { authOptions } from "@/lib/auth";
 import MetricasSection from "./landing/metricas/MetricasSection";
 import GoogleReviews from "./landing/googleReviews/GoogleReviews";
 import BlogSection from "./landing/blogSection/BlogSection";
+import FAQ from "./landing/faq/FAQ";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -50,17 +51,8 @@ export default async function Home() {
         {/* Blog Section */}
         <BlogSection />
 
-        {/*Benefits section */}
-        {/* <BenefitsSection /> */}
-
-        {/*EligeTranquiloSection*/}
-        {/* <EligeTranquiloSection /> */}
-
-        {/*Centro de inspección */}
-        {/* <CentroInspeccionSection /> */}
-
         {/* FAQ section */}
-        {/* <FAQ /> */}
+        <FAQ />
       </main>
     </>
   );

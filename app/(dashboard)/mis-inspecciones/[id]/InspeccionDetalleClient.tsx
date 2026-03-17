@@ -366,10 +366,10 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           <div className={styles.paymentMethods}>
             <p className={styles.paymentMethodsLabel}>Aceptamos</p>
             <div className={styles.cards}>
-              <img src="assets/icons/visa.svg" alt="Visa" />
-              <img src="assets/icons/mastercard.svg" alt="Mastercard" />
-              <img src="assets/icons/amex.svg" alt="American Express" />
-              <img src="assets/icons/diners.svg" alt="Diners Club" />
+              <img src="/assets/icons/visa.svg" alt="Visa" />
+              <img src="/assets/icons/mastercard.svg" alt="Mastercard" />
+              <img src="/assets/icons/amex.svg" alt="American Express" />
+              <img src="/assets/icons/diners.svg" alt="Diners Club" />
             </div>
           </div>
 

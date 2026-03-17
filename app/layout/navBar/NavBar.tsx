@@ -174,7 +174,7 @@ export default function NavBar() {
           className={styles["user-icon-button"]}
           aria-label="Iniciar sesión"
         >
-          <img src="assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
+          <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
 
 
         </Link>
@@ -188,7 +188,7 @@ export default function NavBar() {
             aria-expanded={isMobileMenuOpen}
             aria-label="Abrir menú de navegación"
           >
-            <img src="assets/icons/barritas.svg" alt="barras" />
+            <img src="/assets/icons/barritas.svg" alt="barras" />
           </button>
         )}
 
@@ -222,7 +222,7 @@ export default function NavBar() {
                 className={styles["sidebar-user-icon"]}
                 aria-label="Iniciar sesión"
               >
-                <img src="assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
+                <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
               </Link>
               <button
                 className={styles["close-button"]}
@@ -386,7 +386,7 @@ export default function NavBar() {
                 href="/register"
                 className={`${styles["secondary-cta"]} w-button`}
               >
-                <img src="assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
+                <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
 
                 Iniciar/Registrarse
               </Link>
