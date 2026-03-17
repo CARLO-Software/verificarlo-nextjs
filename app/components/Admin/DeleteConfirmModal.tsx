@@ -3,12 +3,35 @@
 import { useEffect, useState } from "react";
 import { Modal } from "@/app/components/ui/Modal";
 
+interface BookingStats {
+  total: number;
+  PENDING_PAYMENT: number;
+  PENDING_VERIFICATION: number;
+  PAID: number;
+  CONFIRMED: number;
+  COMPLETED: number;
+  CANCELLED: number;
+  NO_SHOW: number;
+  EXPIRED: number;
+}
+
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: { id: string; name: string | null; email: string };
   onConfirm: () => Promise<void>;
 }
+
+const STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: "Pendientes de pago",
+  PENDING_VERIFICATION: "Pendientes de verificación",
+  PAID: "Pagadas",
+  CONFIRMED: "Confirmadas",
+  COMPLETED: "Completadas",
+  CANCELLED: "Canceladas",
+  NO_SHOW: "No presentados",
+  EXPIRED: "Expiradas",
+};
 
 export function DeleteConfirmModal({
   isOpen,
@@ -18,15 +41,39 @@ export function DeleteConfirmModal({
 }: DeleteConfirmModalProps) {
   const [confirmText, setConfirmText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(false);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState<{
+    asClient: BookingStats;
+    asInspector: BookingStats;
+  } | null>(null);
 
   const isConfirmed = confirmText.toLowerCase() === "eliminar";
 
-  // Reset al abrir/cerrar
+  // Cargar estadísticas al abrir
+  useEffect(() => {
+    if (isOpen && user.id) {
+      setLoadingStats(true);
+      fetch(`/api/admin/users/${user.id}/bookings-stats`)
+        .then((res) => res.json())
+        .then((data) => {
+          setStats(data);
+        })
+        .catch((err) => {
+          console.error("Error cargando stats:", err);
+        })
+        .finally(() => {
+          setLoadingStats(false);
+        });
+    }
+  }, [isOpen, user.id]);
+
+  // Reset al cerrar
   useEffect(() => {
     if (!isOpen) {
       setConfirmText("");
       setError("");
+      setStats(null);
     }
   }, [isOpen]);
 
@@ -49,6 +96,30 @@ export function DeleteConfirmModal({
     onClose();
   };
 
+  // Renderizar estadísticas de reservas
+  const renderBookingStats = (bookingStats: BookingStats, title: string) => {
+    if (bookingStats.total === 0) return null;
+
+    const statuses = Object.entries(bookingStats).filter(
+      ([key, value]) => key !== "total" && value > 0
+    );
+
+    return (
+      <div className="mb-3">
+        <p className="text-sm font-medium text-gray-700 mb-1">{title}: {bookingStats.total}</p>
+        <ul className="text-xs text-gray-600 ml-4 space-y-0.5">
+          {statuses.map(([status, count]) => (
+            <li key={status}>
+              • {STATUS_LABELS[status] || status}: <span className="font-medium">{count}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  };
+
+  const hasBookings = stats && (stats.asClient.total > 0 || stats.asInspector.total > 0);
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Eliminar usuario">
       <div className="mb-4">
@@ -60,6 +131,27 @@ export function DeleteConfirmModal({
         </p>
         <p className="text-sm text-gray-500">{user.email}</p>
       </div>
+
+      {/* Mostrar estadísticas de reservas */}
+      {loadingStats ? (
+        <div className="mb-4 p-3 bg-gray-50 rounded-md">
+          <p className="text-sm text-gray-500">Cargando reservas asociadas...</p>
+        </div>
+      ) : hasBookings ? (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
+          <p className="text-sm font-medium text-amber-800 mb-2">
+            Se eliminarán las siguientes reservas:
+          </p>
+          {stats && renderBookingStats(stats.asClient, "Como cliente")}
+          {stats && renderBookingStats(stats.asInspector, "Como inspector")}
+        </div>
+      ) : stats ? (
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+          <p className="text-sm text-green-700">
+            Este usuario no tiene reservas asociadas.
+          </p>
+        </div>
+      ) : null}
 
       <p className="text-sm text-red-600 mb-3">
         Esta acción es irreversible. Escribe{" "}

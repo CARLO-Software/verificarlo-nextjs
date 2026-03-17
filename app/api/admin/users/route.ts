@@ -328,37 +328,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Verificar si tiene bookings (activos o históricos)
-    const bookingCount = await db.booking.count({
-      where: { clientId: userId },
-    });
-
-    if (bookingCount > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Este usuario tiene reservas asociadas. Considere suspenderlo en su lugar.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // También verificar bookings como inspector
-    const inspectorBookingCount = await db.booking.count({
-      where: { inspectorId: userId },
-    });
-
-    if (inspectorBookingCount > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "Este usuario tiene inspecciones asociadas. Considere suspenderlo en su lugar.",
-        },
-        { status: 400 }
-      );
-    }
-
-    // Eliminar usuario (cascade maneja accounts/sessions)
+    // Eliminar usuario (cascade elimina reservas automáticamente)
     await db.user.delete({ where: { id: userId } });
 
     return NextResponse.json({

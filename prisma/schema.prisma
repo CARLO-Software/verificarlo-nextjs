@@ -255,8 +255,8 @@ model Booking {
   adminNotes     String? @db.Text // Notas del admin
 
   // Relaciones
-  client         User              @relation("ClientBookings", fields: [clientId], references: [id])
-  inspector      User?             @relation("InspectorBookings", fields: [inspectorId], references: [id])
+  client         User              @relation("ClientBookings", fields: [clientId], references: [id], onDelete: Cascade)
+  inspector      User?             @relation("InspectorBookings", fields: [inspectorId], references: [id], onDelete: SetNull)
   inspectionPlan InspectionPlan    @relation(fields: [inspectionPlanId], references: [id])
   vehicle        Vehicle           @relation(fields: [vehicleId], references: [id])
   payment        Payment?
