@@ -251,6 +251,37 @@
   vertical-align: middle;
 }
 
+/* Botón de ancla en toolbar */
+.editor :global(.ql-anchor) {
+  width: 28px !important;
+}
+
+.editor :global(.ql-anchor::before) {
+  content: '#';
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Estilo para anclas en el contenido */
+.editor :global(.ql-editor .ql-anchor) {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1px dashed #FF6B00;
+  border-radius: 3px;
+  padding: 0 4px;
+  font-weight: 500;
+}
+
+.editor :global(.ql-editor .ql-anchor::before) {
+  content: '⚓ ';
+  font-size: 0.75em;
+}
+
+/* ============================================ */
+/* TOOLTIPS - Se agregan via JavaScript        */
+/* ============================================ */
+
+/* Los tooltips se agregan dinámicamente con el atributo title nativo del navegador */
+
 .loading {
   padding: 2rem;
   text-align: center;

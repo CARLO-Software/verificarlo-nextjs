@@ -24,7 +24,7 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Escribe el contenido del artículo...",
 }: RichTextEditorProps) {
-  // Registrar tamaños personalizados y divider en Quill
+  // Registrar tamaños personalizados, divider y anchor en Quill
   useEffect(() => {
     if (typeof window !== "undefined") {
       import("react-quill-new").then((module) => {
@@ -44,9 +44,67 @@ export default function RichTextEditor({
             static tagName = "hr";
           }
           Quill.register(DividerBlot, true);
+
+          // Registrar bloque de ancla (span con id)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const Inline = Quill.import("blots/inline") as any;
+          class AnchorBlot extends Inline {
+            static blotName = "anchor";
+            static tagName = "span";
+
+            static create(value: string) {
+              const node = super.create();
+              node.setAttribute("id", value);
+              node.setAttribute("class", "ql-anchor");
+              return node;
+            }
+
+            static formats(node: HTMLElement) {
+              return node.getAttribute("id");
+            }
+          }
+          Quill.register(AnchorBlot, true);
         }
       });
     }
+  }, []);
+
+  // Agregar tooltips nativos a los botones del toolbar
+  useEffect(() => {
+    const tooltips: Record<string, string> = {
+      '.ql-bold': 'Negrita (Ctrl+B)',
+      '.ql-italic': 'Cursiva (Ctrl+I)',
+      '.ql-underline': 'Subrayado (Ctrl+U)',
+      '.ql-strike': 'Tachado',
+      '.ql-blockquote': 'Cita',
+      '.ql-divider': 'Línea divisoria',
+      '.ql-link': 'Insertar enlace',
+      '.ql-anchor': 'Crear ancla (#id)',
+      '.ql-image': 'Insertar imagen',
+      '.ql-video': 'Insertar video',
+      '.ql-clean': 'Limpiar formato',
+      '.ql-list[value="ordered"]': 'Lista numerada',
+      '.ql-list[value="bullet"]': 'Lista con viñetas',
+      '.ql-indent[value="-1"]': 'Reducir sangría',
+      '.ql-indent[value="+1"]': 'Aumentar sangría',
+      '.ql-header .ql-picker-label': 'Encabezado',
+      '.ql-size .ql-picker-label': 'Tamaño de fuente',
+      '.ql-color .ql-picker-label': 'Color de texto',
+      '.ql-background .ql-picker-label': 'Color de fondo',
+      '.ql-align .ql-picker-label': 'Alineación',
+    };
+
+    // Aplicar tooltips después de un breve delay para asegurar que el editor está montado
+    const timeoutId = setTimeout(() => {
+      Object.entries(tooltips).forEach(([selector, title]) => {
+        const elements = document.querySelectorAll(`.ql-toolbar ${selector}`);
+        elements.forEach((el) => {
+          el.setAttribute('title', title);
+        });
+      });
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Handler para insertar línea divisoria - usa 'this' del contexto del toolbar
@@ -64,6 +122,40 @@ export default function RichTextEditor({
     }
   }
 
+  // Handler para insertar ancla (bookmark para hipervínculos internos)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function insertAnchor(this: any) {
+    const quill = this.quill;
+    if (quill) {
+      const range = quill.getSelection(true);
+      if (range && range.length > 0) {
+        // Hay texto seleccionado - usar como ancla
+        const text = quill.getText(range.index, range.length);
+        const anchorId = text
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9áéíóúñü\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .substring(0, 50);
+
+        const finalId = prompt('ID del ancla (para enlazar usa #' + anchorId + '):', anchorId);
+        if (finalId) {
+          quill.formatText(range.index, range.length, 'anchor', finalId);
+        }
+      } else {
+        // No hay texto seleccionado - pedir ID y texto
+        const anchorId = prompt('ID del ancla (ej: seccion-1):');
+        if (anchorId) {
+          const anchorText = prompt('Texto visible del ancla:', anchorId);
+          if (anchorText) {
+            const index = range ? range.index : 0;
+            quill.insertText(index, anchorText, 'anchor', anchorId);
+          }
+        }
+      }
+    }
+  }
+
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -76,11 +168,12 @@ export default function RichTextEditor({
           [{ indent: "-1" }, { indent: "+1" }],
           [{ align: [] }],
           ["blockquote", "divider"],
-          ["link", "image", "video"],
+          ["link", "anchor", "image", "video"],
           ["clean"],
         ],
         handlers: {
           divider: insertDivider,
+          anchor: insertAnchor,
         },
       },
       clipboard: {
@@ -106,6 +199,7 @@ export default function RichTextEditor({
     "blockquote",
     "divider",
     "link",
+    "anchor",
     "image",
     "video",
   ];

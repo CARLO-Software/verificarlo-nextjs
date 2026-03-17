@@ -5,6 +5,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { BlogPostSchema, BreadcrumbSchema } from "@/app/components/SEO/JsonLd";
+import BlogContent from "./BlogContent";
 import styles from "./BlogPost.module.css";
 
 interface Props {
@@ -152,10 +153,7 @@ export default async function BlogPostPage({ params }: Props) {
         </div>
 
         <div className={styles.container}>
-          <div
-            className={styles.content}
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <BlogContent content={post.content} />
 
           <div className={styles.share}>
             <span className={styles.shareLabel}>Compartir:</span>
