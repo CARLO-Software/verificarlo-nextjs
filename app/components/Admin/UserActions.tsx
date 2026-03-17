@@ -11,6 +11,7 @@ interface Props {
   onEditRole: (userId: string) => void;
   onSuspend: (userId: string) => void;
   onDelete: (userId: string) => void;
+  onResetPassword?: (userId: string) => void;
 }
 
 export function UserActions({
@@ -21,6 +22,7 @@ export function UserActions({
   onEditRole,
   onSuspend,
   onDelete,
+  onResetPassword,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [dropUp, setDropUp] = useState(false);
@@ -51,10 +53,10 @@ export function UserActions({
     }
   }, [open]);
 
-  // No mostrar el botón ⋮ para administradores
-  if (role === "ADMIN") return null;
-
   const handleToggle = () => setOpen((v) => !v);
+
+  // Para administradores, solo mostrar opción de cambiar rol
+  const isAdmin = role === "ADMIN";
 
   return (
     <div className="relative" ref={ref}>
@@ -98,31 +100,57 @@ export function UserActions({
               </button>
             </li>
 
-            {/* Suspender / Reactivar */}
-            <li role="menuitem">
-              <button
-                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-amber-600"
-                onClick={() => {
-                  onSuspend(userId);
-                  setOpen(false);
-                }}
-              >
-                {status === "ACTIVE" ? (
+            {/* Resetear contraseña - No mostrar para admins */}
+            {onResetPassword && !isAdmin && (
+              <li role="menuitem">
+                <button
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-blue-600"
+                  onClick={() => {
+                    onResetPassword(userId);
+                    setOpen(false);
+                  }}
+                >
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <rect x="3" y="2" width="4" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                    <rect x="9" y="2" width="4" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                    <path
+                      d="M8 5v3l2 2M14 8A6 6 0 112 8a6 6 0 0112 0z"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
-                ) : (
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M4 2l10 6-10 6V2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                  </svg>
-                )}
-                {status === "ACTIVE" ? "Suspender" : "Reactivar"}
-              </button>
-            </li>
+                  Resetear contraseña
+                </button>
+              </li>
+            )}
 
-            {/* Eliminar */}
-            {!isSelf && (
+            {/* Suspender / Reactivar - No mostrar para admins */}
+            {!isAdmin && (
+              <li role="menuitem">
+                <button
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-amber-600"
+                  onClick={() => {
+                    onSuspend(userId);
+                    setOpen(false);
+                  }}
+                >
+                  {status === "ACTIVE" ? (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <rect x="3" y="2" width="4" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                      <rect x="9" y="2" width="4" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M4 2l10 6-10 6V2z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    </svg>
+                  )}
+                  {status === "ACTIVE" ? "Suspender" : "Reactivar"}
+                </button>
+              </li>
+            )}
+
+            {/* Eliminar - No mostrar para admins ni para uno mismo */}
+            {!isSelf && !isAdmin && (
               <li role="menuitem">
                 <hr className="my-1 border-gray-200" />
                 <button

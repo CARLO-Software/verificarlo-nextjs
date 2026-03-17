@@ -5,6 +5,7 @@ import {
   updateInspectionStatus,
   assignInspector,
   updateInspectionNotes,
+  updateInspectionDateTime,
   createManualBooking,
   getBrands,
   getModelsByBrand,
@@ -54,6 +55,8 @@ export async function saveInspectionChangesAction(
     status?: BookingStatus;
     inspectorId?: string;
     adminNotes?: string;
+    date?: string;
+    timeSlot?: string;
   }
 ) {
   try {
@@ -61,6 +64,7 @@ export async function saveInspectionChangesAction(
       status?: boolean;
       inspector?: boolean;
       notes?: boolean;
+      dateTime?: boolean;
       autoAssigned?: { inspectorId: string; inspectorName: string };
     } = {};
 
@@ -91,6 +95,12 @@ export async function saveInspectionChangesAction(
     if (changes.adminNotes !== undefined) {
       await updateInspectionNotes(id, { adminNotes: changes.adminNotes });
       results.notes = true;
+    }
+
+    // Actualizar fecha y hora si cambió
+    if (changes.date && changes.timeSlot) {
+      await updateInspectionDateTime(id, changes.date, changes.timeSlot);
+      results.dateTime = true;
     }
 
     revalidatePath('/admin/inspecciones');

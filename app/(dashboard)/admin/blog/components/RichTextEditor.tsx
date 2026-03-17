@@ -56,8 +56,9 @@ export default function RichTextEditor({
       const textNode = document.createTextNode(currentText);
       target.parentNode?.replaceChild(textNode, target);
     } else if (action && action !== currentId) {
-      // Actualizar el ID del ancla
+      // Actualizar el ID del ancla - limpiar el # si el usuario lo incluyó
       const newId = action
+        .replace(/^#+/, '') // Limpiar # al inicio
         .toLowerCase()
         .trim()
         .replace(/[^a-z0-9áéíóúñü\s-]/g, '')
@@ -125,7 +126,9 @@ export default function RichTextEditor({
 
             static create(value: string) {
               const node = super.create();
-              node.setAttribute("id", value);
+              // Limpiar el # si el usuario lo incluyó por error
+              const cleanId = value.replace(/^#+/, '');
+              node.setAttribute("id", cleanId);
               node.setAttribute("class", "ql-anchor");
               return node;
             }
@@ -211,16 +214,20 @@ export default function RichTextEditor({
 
         const finalId = prompt('ID del ancla (para enlazar usa #' + anchorId + '):', anchorId);
         if (finalId) {
-          quill.formatText(range.index, range.length, 'anchor', finalId);
+          // Limpiar el # si el usuario lo incluyó por error
+          const cleanId = finalId.replace(/^#+/, '');
+          quill.formatText(range.index, range.length, 'anchor', cleanId);
         }
       } else {
         // No hay texto seleccionado - pedir ID y texto
         const anchorId = prompt('ID del ancla (ej: seccion-1):');
         if (anchorId) {
-          const anchorText = prompt('Texto visible del ancla:', anchorId);
+          // Limpiar el # si el usuario lo incluyó por error
+          const cleanId = anchorId.replace(/^#+/, '');
+          const anchorText = prompt('Texto visible del ancla:', cleanId);
           if (anchorText) {
             const index = range ? range.index : 0;
-            quill.insertText(index, anchorText, 'anchor', anchorId);
+            quill.insertText(index, anchorText, 'anchor', cleanId);
           }
         }
       }

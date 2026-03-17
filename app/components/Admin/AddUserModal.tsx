@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Modal } from "@/app/components/ui/Modal";
-import { Eye, EyeOff } from "lucide-react";
+import { Copy, Check, Key } from "lucide-react";
 
 type Role = "CLIENT" | "INSPECTOR" | "ADMIN";
 
@@ -24,8 +24,6 @@ interface FormData {
   name: string;
   email: string;
   phone: string;
-  password: string;
-  confirmPassword: string;
   role: Role | "";
 }
 
@@ -33,9 +31,13 @@ interface FormErrors {
   name?: string;
   email?: string;
   phone?: string;
-  password?: string;
-  confirmPassword?: string;
   role?: string;
+}
+
+interface CreatedUser {
+  name: string;
+  email: string;
+  temporaryPassword: string;
 }
 
 export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) {
@@ -43,15 +45,15 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
     name: "",
     email: "",
     phone: "",
-    password: "",
-    confirmPassword: "",
     role: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Estado para mostrar la contraseña generada
+  const [createdUser, setCreatedUser] = useState<CreatedUser | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -68,16 +70,6 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
 
     if (formData.phone && !/^\d{9}$/.test(formData.phone.replace(/\s/g, ""))) {
       newErrors.phone = "Debe tener 9 dígitos";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "La contraseña es obligatoria";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Mínimo 6 caracteres";
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden";
     }
 
     if (!formData.role) {
@@ -104,7 +96,6 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
           name: formData.name.trim(),
           email: formData.email.trim().toLowerCase(),
           phone: formData.phone.trim() || null,
-          password: formData.password,
           role: formData.role,
         }),
       });
@@ -116,8 +107,15 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
         return;
       }
 
+      // Guardar la información del usuario creado con su contraseña temporal
+      setCreatedUser({
+        name: data.name,
+        email: data.email,
+        temporaryPassword: data.temporaryPassword,
+      });
+
+      // Notificar éxito (sin cerrar el modal aún)
       onSuccess(data);
-      handleClose();
     } catch {
       setApiError("Error de conexión. Intenta nuevamente.");
     } finally {
@@ -131,14 +129,12 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
       name: "",
       email: "",
       phone: "",
-      password: "",
-      confirmPassword: "",
       role: "",
     });
     setErrors({});
     setApiError("");
-    setShowPassword(false);
-    setShowConfirmPassword(false);
+    setCreatedUser(null);
+    setCopied(false);
     onClose();
   };
 
@@ -151,6 +147,113 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
+
+  const copyToClipboard = async () => {
+    if (!createdUser) return;
+
+    const text = `Email: ${createdUser.email}\nContraseña: ${createdUser.temporaryPassword}`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback para navegadores que no soportan clipboard API
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  // Si el usuario fue creado, mostrar la contraseña generada
+  if (createdUser) {
+    return (
+      <Modal isOpen={isOpen} onClose={handleClose} title="Usuario creado">
+        <div className="space-y-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center gap-2 text-green-700 mb-2">
+              <Key size={20} />
+              <span className="font-medium">Credenciales de acceso</span>
+            </div>
+            <p className="text-sm text-green-600 mb-3">
+              Comparte estas credenciales con <strong>{createdUser.name}</strong> para que pueda acceder al sistema.
+              El usuario podrá cambiar su contraseña desde su perfil.
+            </p>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Email
+              </label>
+              <p className="text-sm font-mono bg-white px-3 py-2 rounded border border-gray-200">
+                {createdUser.email}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Contraseña temporal
+              </label>
+              <p className="text-sm font-mono bg-white px-3 py-2 rounded border border-gray-200 break-all">
+                {createdUser.temporaryPassword}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={copyToClipboard}
+            className={`
+              w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg
+              font-medium text-sm transition-all
+              ${copied
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+              }
+            `}
+          >
+            {copied ? (
+              <>
+                <Check size={18} />
+                Copiado al portapapeles
+              </>
+            ) : (
+              <>
+                <Copy size={18} />
+                Copiar credenciales
+              </>
+            )}
+          </button>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <p className="text-xs text-amber-700">
+              <strong>Importante:</strong> Esta es la única vez que se mostrará la contraseña.
+              Asegúrate de copiarla antes de cerrar esta ventana.
+            </p>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <button
+              onClick={handleClose}
+              className="
+                px-4 py-2 text-sm rounded-lg font-medium
+                bg-gradient-to-r from-yellow-400 to-yellow-500
+                hover:from-yellow-500 hover:to-yellow-600
+                text-gray-900 transition-all
+              "
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Agregar usuario">
@@ -247,66 +350,12 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
           )}
         </div>
 
-        {/* Contraseña */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Contraseña <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Mínimo 6 caracteres"
-              className={`
-                w-full px-3 py-2.5 pr-10 rounded-lg border text-sm
-                focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400
-                ${errors.password ? "border-red-400 bg-red-50" : "border-gray-200"}
-              `}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          {errors.password && (
-            <p className="text-xs text-red-600 mt-1">{errors.password}</p>
-          )}
-        </div>
-
-        {/* Confirmar contraseña */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Confirmar contraseña <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Repite la contraseña"
-              className={`
-                w-full px-3 py-2.5 pr-10 rounded-lg border text-sm
-                focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400
-                ${errors.confirmPassword ? "border-red-400 bg-red-50" : "border-gray-200"}
-              `}
-            />
-            <button
-              type="button"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-            >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          {errors.confirmPassword && (
-            <p className="text-xs text-red-600 mt-1">{errors.confirmPassword}</p>
-          )}
+        {/* Info sobre contraseña */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-xs text-blue-700">
+            <strong>Nota:</strong> Se generará automáticamente una contraseña segura
+            que podrás compartir con el usuario. El usuario podrá cambiarla después.
+          </p>
         </div>
 
         {/* Error de API */}

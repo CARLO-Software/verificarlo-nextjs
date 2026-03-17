@@ -1,18 +1,42 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useMemo } from "react";
 import styles from "./BlogPost.module.css";
 
 interface BlogContentProps {
   content: string;
 }
 
+// Limpiar el HTML de caracteres problemáticos
+function cleanHtmlContent(html: string): string {
+  return html
+    // Reemplazar &nbsp; con espacios normales para permitir saltos de línea naturales
+    .replace(/&nbsp;/gi, ' ')
+    // Reemplazar múltiples espacios con uno solo
+    .replace(/  +/g, ' ');
+}
+
 export default function BlogContent({ content }: BlogContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+
+  // Limpiar el contenido HTML de caracteres problemáticos
+  const cleanedContent = useMemo(() => cleanHtmlContent(content), [content]);
 
   useEffect(() => {
     const container = contentRef.current;
     if (!container) return;
+
+    // Limpiar estilos inline problemáticos de todos los elementos
+    const allElements = container.querySelectorAll('*');
+    allElements.forEach((el) => {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.style.wordBreak) {
+        htmlEl.style.wordBreak = '';
+      }
+      if (htmlEl.style.overflowWrap) {
+        htmlEl.style.overflowWrap = '';
+      }
+    });
 
     // Función para manejar clics en enlaces internos
     const handleClick = (e: MouseEvent) => {
@@ -28,7 +52,13 @@ export default function BlogContent({ content }: BlogContentProps) {
         e.preventDefault();
 
         const targetId = href.substring(1); // Remover el #
-        const targetElement = document.getElementById(targetId);
+
+        // Buscar el elemento - primero sin #, luego con # (para anclas mal creadas)
+        let targetElement = document.getElementById(targetId);
+        if (!targetElement) {
+          // Fallback: buscar con # en el ID (bug de anclas antiguas)
+          targetElement = document.getElementById("#" + targetId);
+        }
 
         if (targetElement) {
           // Scroll suave hacia el elemento
@@ -49,11 +79,16 @@ export default function BlogContent({ content }: BlogContentProps) {
     const handleInitialHash = () => {
       const hash = window.location.hash;
       if (hash) {
-        const targetElement = document.getElementById(hash.substring(1));
+        const targetId = hash.substring(1);
+        // Buscar el elemento - primero sin #, luego con # (para anclas mal creadas)
+        let targetElement = document.getElementById(targetId);
+        if (!targetElement) {
+          targetElement = document.getElementById("#" + targetId);
+        }
         if (targetElement) {
           // Pequeño delay para asegurar que el contenido está renderizado
           setTimeout(() => {
-            targetElement.scrollIntoView({
+            targetElement!.scrollIntoView({
               behavior: "smooth",
               block: "start",
             });
@@ -73,7 +108,7 @@ export default function BlogContent({ content }: BlogContentProps) {
     <div
       ref={contentRef}
       className={styles.content}
-      dangerouslySetInnerHTML={{ __html: content }}
+      dangerouslySetInnerHTML={{ __html: cleanedContent }}
     />
   );
 }

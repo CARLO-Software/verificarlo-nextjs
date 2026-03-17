@@ -668,6 +668,47 @@ export async function createManualBooking(input: ManualBookingInput) {
 }
 
 // ============================================
+// PUT - Actualizar fecha y hora (Admin)
+// ============================================
+
+export async function updateInspectionDateTime(
+  id: number,
+  date: string, // YYYY-MM-DD
+  timeSlot: string // HH:mm
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id || session.user.role !== 'ADMIN') {
+    throw new Error('No autorizado');
+  }
+
+  // Verificar que el booking existe
+  const booking = await db.booking.findUnique({ where: { id } });
+
+  if (!booking) {
+    throw new Error('Inspección no encontrada');
+  }
+
+  // Calcular nueva fecha y hora
+  const [hours, minutes] = timeSlot.split(':').map(Number);
+  const startTime = new Date(date);
+  startTime.setHours(hours, minutes, 0, 0);
+
+  const endTime = new Date(startTime);
+  endTime.setMinutes(endTime.getMinutes() + 45);
+
+  return db.booking.update({
+    where: { id },
+    data: {
+      date: new Date(date),
+      timeSlot,
+      startTime,
+      endTime,
+    },
+  });
+}
+
+// ============================================
 // GET - Marcas de vehículos
 // ============================================
 

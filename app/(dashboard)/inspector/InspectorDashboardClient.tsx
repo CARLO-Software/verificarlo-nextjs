@@ -189,6 +189,17 @@ export function InspectorDashboardClient({
                   <p className={styles.userMenuRole}>Inspector</p>
                 </div>
                 <div className={styles.userMenuDivider} />
+                <Link
+                  href="/inspector/configuracion"
+                  className={styles.userMenuItem}
+                  onClick={() => setShowUserMenu(false)}
+                >
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M8 10a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M13.5 8a5.5 5.5 0 01-.54 2.37l1.28 1.28a.75.75 0 01-1.06 1.06l-1.28-1.28A5.5 5.5 0 118 2.5a5.48 5.48 0 013.9 1.6l1.28-1.28a.75.75 0 011.06 1.06L12.96 5.16A5.48 5.48 0 0113.5 8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  Configuración
+                </Link>
                 <button
                   className={styles.userMenuItem}
                   onClick={() => signOut({ callbackUrl: "/login" })}

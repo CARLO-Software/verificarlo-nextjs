@@ -9,10 +9,11 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { User, Mail, Phone, MapPin, Shield } from 'lucide-react';
+import { User, Mail, Phone, MapPin } from 'lucide-react';
+import { ChangePasswordSection } from '@/app/components/shared/ChangePasswordSection';
 
 async function getUserProfile(userId: string) {
-  return db.user.findUnique({
+  const user = await db.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -21,6 +22,7 @@ async function getUserProfile(userId: string) {
       phone: true,
       address: true,
       district: true,
+      password: true,
       createdAt: true,
       _count: {
         select: {
@@ -30,6 +32,15 @@ async function getUserProfile(userId: string) {
       },
     },
   });
+
+  if (!user) return null;
+
+  // No exponer la contraseña, solo si existe
+  return {
+    ...user,
+    hasPassword: !!user.password,
+    password: undefined,
+  };
 }
 
 export default async function ProfilePage() {
@@ -153,21 +164,7 @@ export default async function ProfilePage() {
       </div>
 
       {/* Seguridad */}
-      <div className="bg-white rounded-xl border border-gray-100 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-gray-900">Seguridad</h3>
-        </div>
-
-        <button className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-gray-50 transition-colors text-left">
-          <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-            <Shield size={20} className="text-gray-600" />
-          </div>
-          <div className="flex-1">
-            <p className="font-medium text-gray-900">Cambiar contraseña</p>
-            <p className="text-xs text-gray-500">Actualiza tu contraseña de acceso</p>
-          </div>
-        </button>
-      </div>
+      <ChangePasswordSection hasPassword={profile.hasPassword} />
     </div>
   );
 }

@@ -14,7 +14,10 @@
       "Bash(powershell:*)",
       "Bash(git add:*)",
       "Bash(npx prisma:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find:*)",
+      "Bash(npx next build)",
+      "Bash(taskkill:*)"
     ]
   }
 }

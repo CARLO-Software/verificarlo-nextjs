@@ -383,7 +383,7 @@ export default function NavBar() {
           ) : (
             <div className={styles["menuMovil"]}>
               <Link
-                href="/register"
+                href="/login"
                 className={`${styles["secondary-cta"]} w-button`}
               >
                 <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />

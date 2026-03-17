@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
+import { generateSecurePassword } from "@/lib/password";
 
 // Middleware para verificar rol de admin
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,11 +68,11 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { name, email, phone, password, role } = body;
+  const { name, email, phone, role } = body;
 
-  if (!name || !email || !password || !role) {
+  if (!name || !email || !role) {
     return NextResponse.json(
-      { error: "Nombre, email, contraseña y rol son obligatorios" },
+      { error: "Nombre, email y rol son obligatorios" },
       { status: 400 }
     );
   }
@@ -93,8 +94,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Generar contraseña segura automáticamente
+    const generatedPassword = generateSecurePassword(16);
+
     const bcrypt = (await import("bcryptjs")).default;
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(generatedPassword, 12);
 
     const newUser = await db.user.create({
       data: {
@@ -109,7 +113,15 @@ export async function POST(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...userWithoutPassword } = newUser;
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+
+    // Devolver usuario + contraseña generada (solo en la creación)
+    return NextResponse.json(
+      {
+        ...userWithoutPassword,
+        temporaryPassword: generatedPassword
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creando usuario:", error);
     return NextResponse.json(
@@ -154,14 +166,6 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // No permitir actuar sobre usuarios ADMIN
-    if (user.role === "ADMIN") {
-      return NextResponse.json(
-        { error: "No se puede modificar a un administrador" },
-        { status: 400 }
-      );
-    }
-
     // No permitir cambiar el propio usuario
     if (userId === session!.user.id) {
       return NextResponse.json(
@@ -171,6 +175,7 @@ export async function PATCH(req: NextRequest) {
     }
 
     // --- Cambiar rol ---
+    // Permitido para todos, incluyendo admins (para corregir errores)
     if (action === "changeRole") {
       if (!newRole || !["CLIENT", "INSPECTOR", "ADMIN"].includes(newRole)) {
         return NextResponse.json(
@@ -193,6 +198,14 @@ export async function PATCH(req: NextRequest) {
         success: true,
         message: `Rol actualizado a ${newRole}`,
       });
+    }
+
+    // Para las siguientes acciones, no permitir actuar sobre usuarios ADMIN
+    if (user.role === "ADMIN" && ["suspend", "reactivate", "resetPassword"].includes(action)) {
+      return NextResponse.json(
+        { error: "No se puede suspender, reactivar o resetear contraseña de un administrador. Solo puede cambiar su rol." },
+        { status: 400 }
+      );
     }
 
     // --- Suspender ---
@@ -221,8 +234,38 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
+    // --- Resetear contraseña ---
+    if (action === "resetPassword") {
+      // Verificar si el usuario usa Google (no tiene contraseña)
+      if (!user.password) {
+        return NextResponse.json(
+          { error: "Este usuario inicia sesión con Google. No se puede resetear la contraseña." },
+          { status: 400 }
+        );
+      }
+
+      // Generar nueva contraseña segura
+      const newPassword = generateSecurePassword(16);
+
+      const bcrypt = (await import("bcryptjs")).default;
+      const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+      await db.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: "Contraseña reseteada",
+        temporaryPassword: newPassword,
+        userName: user.name,
+        userEmail: user.email,
+      });
+    }
+
     return NextResponse.json(
-      { error: "Acción no válida. Use 'changeRole', 'suspend' o 'reactivate'" },
+      { error: "Acción no válida. Use 'changeRole', 'suspend', 'reactivate' o 'resetPassword'" },
       { status: 400 }
     );
   } catch (error) {

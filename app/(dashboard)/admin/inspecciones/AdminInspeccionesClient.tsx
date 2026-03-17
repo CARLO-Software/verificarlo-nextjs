@@ -155,14 +155,25 @@ function InspectionDetailPanel({
   );
   const [editedNotes, setEditedNotes] = useState<string>(inspection.adminNotes || '');
 
+  // Estado para fecha y hora
+  const originalDate = new Date(inspection.startTime).toISOString().split('T')[0];
+  const originalTimeSlot = inspection.timeSlot;
+  const [editedDate, setEditedDate] = useState<string>(originalDate);
+  const [editedTimeSlot, setEditedTimeSlot] = useState<string>(originalTimeSlot);
+
+  // Horarios disponibles
+  const timeSlots = ['09:00', '10:30', '12:00', '14:00', '15:30'];
+
   // Estado para feedback
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Detectar si hay cambios
+  const hasDateTimeChanges = editedDate !== originalDate || editedTimeSlot !== originalTimeSlot;
   const hasChanges =
     editedStatus !== inspection.status ||
     editedInspectorId !== (inspection.inspector?.id ?? null) ||
-    editedNotes !== (inspection.adminNotes || '');
+    editedNotes !== (inspection.adminNotes || '') ||
+    hasDateTimeChanges;
 
   const handleSave = () => {
     setSaveMessage(null);
@@ -172,6 +183,8 @@ function InspectionDetailPanel({
         status?: BookingStatus;
         inspectorId?: string;
         adminNotes?: string;
+        date?: string;
+        timeSlot?: string;
       } = {};
 
       if (editedStatus !== inspection.status) {
@@ -184,6 +197,11 @@ function InspectionDetailPanel({
 
       if (editedNotes !== (inspection.adminNotes || '')) {
         changes.adminNotes = editedNotes;
+      }
+
+      if (hasDateTimeChanges) {
+        changes.date = editedDate;
+        changes.timeSlot = editedTimeSlot;
       }
 
       if (Object.keys(changes).length === 0) {
@@ -306,9 +324,28 @@ function InspectionDetailPanel({
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspección</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between items-center">
                     <span className="text-gray-500">Fecha</span>
-                    <span className="font-medium">{formatearFechaHoraCorta(inspection.startTime)}</span>
+                    <input
+                      type="date"
+                      value={editedDate}
+                      onChange={(e) => setEditedDate(e.target.value)}
+                      disabled={isPending}
+                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Hora</span>
+                    <select
+                      value={editedTimeSlot}
+                      onChange={(e) => setEditedTimeSlot(e.target.value)}
+                      disabled={isPending}
+                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    >
+                      {timeSlots.map((slot) => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Tipo</span>
@@ -465,7 +502,7 @@ function InspectionDetailPanel({
               onClick={handleSave}
               disabled={isPending || !hasChanges}
               className={`
-                flex-1 px-4 py-2.5 font-semibold rounded-lg transition-all
+                w-full px-4 py-2.5 font-semibold rounded-lg transition-all
                 ${hasChanges
                   ? 'bg-[#FFE14C] text-[#2D2D2D] hover:bg-[#FFD700]'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -474,9 +511,6 @@ function InspectionDetailPanel({
               `}
             >
               {isPending ? 'Guardando...' : 'Guardar cambios'}
-            </button>
-            <button className="flex-1 px-4 py-2.5 bg-[#2D2D2D] text-white font-semibold rounded-lg hover:bg-[#1a1a1a] transition-colors">
-              Publicar informe
             </button>
           </div>
         </div>

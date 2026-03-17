@@ -8,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { useToast } from "@/app/components/Toast";
 import { Plus, Search, Users, UserCheck, UserX } from "lucide-react";
 import { AddUserModal } from "@/app/components/Admin/AddUserModal";
+import { ResetPasswordModal } from "@/app/components/Admin/ResetPasswordModal";
 
 type UserStatus = "ACTIVE" | "SUSPENDED";
 type Role = "ADMIN" | "CLIENT" | "INSPECTOR";
@@ -32,6 +33,7 @@ export function UsersTable() {
   // Modals
   const [suspendTarget, setSuspendTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const [resetPasswordTarget, setResetPasswordTarget] = useState<User | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const { data: session } = useSession();
@@ -418,6 +420,10 @@ export function UsersTable() {
                         const target = users.find((u) => u.id === id);
                         if (target) setDeleteTarget(target);
                       }}
+                      onResetPassword={(id) => {
+                        const target = users.find((u) => u.id === id);
+                        if (target) setResetPasswordTarget(target);
+                      }}
                     />
                   </td>
                 </tr>
@@ -466,6 +472,10 @@ export function UsersTable() {
                   onDelete={(id) => {
                     const target = users.find((u) => u.id === id);
                     if (target) setDeleteTarget(target);
+                  }}
+                  onResetPassword={(id) => {
+                    const target = users.find((u) => u.id === id);
+                    if (target) setResetPasswordTarget(target);
                   }}
                 />
               </div>
@@ -559,6 +569,17 @@ export function UsersTable() {
           showToast(`Usuario ${newUser.name} creado exitosamente`, "success");
         }}
       />
+
+      {/* Modal de Resetear Contraseña */}
+      {resetPasswordTarget && (
+        <ResetPasswordModal
+          isOpen={!!resetPasswordTarget}
+          onClose={() => setResetPasswordTarget(null)}
+          userId={resetPasswordTarget.id}
+          userName={resetPasswordTarget.name ?? "Usuario"}
+          userEmail={resetPasswordTarget.email}
+        />
+      )}
     </div>
   );
 }
