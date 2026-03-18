@@ -26,6 +26,10 @@ interface ReportFull extends ReportSummary {
   executiveSummary: string | null;
   recommendations: string | null;
   completedAt: Date | null;
+  legalReport?: {
+    id: number;
+    status: string;
+  } | null;
 }
 
 // Tipo base para booking con detalles
@@ -88,7 +92,22 @@ export interface ClientBookingWithDetails extends BookingBase {
   report?: ReportSummary | null;
 }
 
-// Tipo para vistas detalladas (reporte completo)
+// Tipo breve del reporte para listados de admin
+interface ReportBrief {
+  id: number;
+  overallStatus: InspectionResultStatus;
+  legalReport?: {
+    id: number;
+    status: string;
+  } | null;
+}
+
+// Tipo para listado de admin (con reporte breve)
+export interface AdminBookingWithDetails extends BookingBase {
+  report?: ReportBrief | null;
+}
+
+// Tipo para vistas detalladas (con reporte completo)
 export interface BookingWithDetails extends BookingBase {
   report?: ReportFull | null;
 }
@@ -180,7 +199,7 @@ export async function getAllBookings(filters?: {
   status?: BookingStatus;
   inspectorId?: number;
   search?: string;
-}): Promise<BookingWithDetails[]> {
+}): Promise<AdminBookingWithDetails[]> {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id || session.user.role !== 'ADMIN') {
@@ -239,6 +258,18 @@ export async function getAllBookings(filters?: {
           name: true,
           email: true,
           image: true,
+        },
+      },
+      report: {
+        select: {
+          id: true,
+          overallStatus: true,
+          legalReport: {
+            select: {
+              id: true,
+              status: true,
+            },
+          },
         },
       },
     },
@@ -613,7 +644,7 @@ export async function createManualBooking(input: ManualBookingInput) {
   startTime.setHours(hours, minutes, 0, 0);
 
   const endTime = new Date(startTime);
-  endTime.setMinutes(endTime.getMinutes() + 45);
+  endTime.setMinutes(endTime.getMinutes() + 60);
 
   // 6. Determinar el estado inicial
   let status: BookingStatus = 'PENDING_PAYMENT';
@@ -695,7 +726,7 @@ export async function updateInspectionDateTime(
   startTime.setHours(hours, minutes, 0, 0);
 
   const endTime = new Date(startTime);
-  endTime.setMinutes(endTime.getMinutes() + 45);
+  endTime.setMinutes(endTime.getMinutes() + 60);
 
   return db.booking.update({
     where: { id },

@@ -3,7 +3,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { InspectionResultStatus, PhotoCategory } from '@prisma/client';
 import { generateInspectionPDF, uploadPDFToCloudinary } from '@/lib/pdf';
-import { isCloudinaryConfigured } from '@/lib/cloudinary';
+import { cloudinary, isCloudinaryConfigured } from '@/lib/cloudinary';
+import { createLegalReport } from '@/services/legalReport/legalReport.server';
+import { sendLegalReviewNotification } from '@/lib/email/sendLegalReviewNotification';
 
 // ============================================
 // Tipos
@@ -72,8 +74,9 @@ export interface AddPhotoInput {
   reportId: number;
   url: string;
   thumbnailUrl?: string;
-  category: PhotoCategory;
+  category?: PhotoCategory;  // Opcional, default DAMAGE
   label?: string;
+  checklistItemId?: string;  // ID del item del checklist (ej: "mec-sonidos-motor")
 }
 
 // ============================================
@@ -639,6 +642,11 @@ export async function completeReport(reportId: number) {
     });
   }
 
+  // Crear LegalReport y notificar a admins (en segundo plano)
+  createLegalReportAndNotify(reportId).catch((error) => {
+    console.error('Error creando LegalReport o enviando notificación:', error);
+  });
+
   return updatedReport;
 }
 
@@ -665,6 +673,63 @@ async function generateAndUploadPDF(reportId: number): Promise<void> {
     console.log(`Public ID del PDF guardado en la base de datos para reporte ${reportId}`);
   } catch (error) {
     console.error(`Error en generateAndUploadPDF para reporte ${reportId}:`, error);
+    throw error;
+  }
+}
+
+// Función auxiliar para crear LegalReport y notificar a admins
+async function createLegalReportAndNotify(reportId: number): Promise<void> {
+  try {
+    console.log(`Creando LegalReport para reporte ${reportId}...`);
+
+    // Crear el LegalReport
+    await createLegalReport(reportId);
+    console.log(`LegalReport creado para reporte ${reportId}`);
+
+    // Obtener datos para la notificación
+    const report = await db.inspectionReport.findUnique({
+      where: { id: reportId },
+      include: {
+        booking: {
+          include: {
+            vehicle: {
+              include: {
+                model: {
+                  include: { brand: true },
+                },
+              },
+            },
+            client: {
+              select: { name: true },
+            },
+            inspector: {
+              select: { name: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      console.error(`Reporte ${reportId} no encontrado para notificación`);
+      return;
+    }
+
+    // Enviar notificación por email a los admins
+    await sendLegalReviewNotification({
+      reportId,
+      vehicleBrand: report.booking.vehicle.model.brand.name,
+      vehicleModel: report.booking.vehicle.model.name,
+      vehicleYear: report.booking.vehicle.year,
+      vehiclePlate: report.booking.vehicle.plate || undefined,
+      clientName: report.booking.client.name,
+      inspectorName: report.booking.inspector?.name || 'Inspector',
+      inspectionDate: report.booking.startTime,
+    });
+
+    console.log(`Notificación de revisión legal enviada para reporte ${reportId}`);
+  } catch (error) {
+    console.error(`Error en createLegalReportAndNotify para reporte ${reportId}:`, error);
     throw error;
   }
 }
@@ -696,8 +761,9 @@ export async function addPhoto(input: AddPhotoInput) {
       reportId: input.reportId,
       url: input.url,
       thumbnailUrl: input.thumbnailUrl,
-      category: input.category,
+      category: input.category || 'DAMAGE',
       label: input.label,
+      checklistItemId: input.checklistItemId,
       sortOrder: (lastPhoto?.sortOrder || 0) + 1,
     },
   });
@@ -723,6 +789,25 @@ export async function deletePhoto(photoId: number) {
   if (photo.report.completedAt) throw new Error('El informe ya está finalizado');
 
   await verifyInspectorAccess(photo.report.bookingId);
+
+  // Intentar eliminar de Cloudinary si está configurado
+  if (isCloudinaryConfigured() && photo.url.includes('cloudinary')) {
+    try {
+      // Extraer public_id de la URL de Cloudinary
+      // URL típica: https://res.cloudinary.com/xxx/image/upload/v123/inspections/123/abc123.webp
+      const urlParts = photo.url.split('/');
+      const uploadIndex = urlParts.findIndex(part => part === 'upload');
+      if (uploadIndex !== -1) {
+        // Tomar desde después de 'upload' y 'v123...' hasta el final, sin extensión
+        const publicIdParts = urlParts.slice(uploadIndex + 2);
+        const publicId = publicIdParts.join('/').replace(/\.[^/.]+$/, '');
+        await cloudinary.uploader.destroy(publicId);
+      }
+    } catch (err) {
+      // Log pero no fallar si no se puede eliminar de Cloudinary
+      console.error('Error eliminando imagen de Cloudinary:', err);
+    }
+  }
 
   await db.inspectionPhoto.delete({
     where: { id: photoId },

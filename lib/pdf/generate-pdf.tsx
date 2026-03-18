@@ -62,6 +62,13 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
           },
         },
       },
+      photos: {
+        orderBy: { createdAt: 'asc' },
+        select: {
+          url: true,
+          checklistItemId: true,
+        },
+      },
     },
   });
 
@@ -98,6 +105,17 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
   const technicalReviewExpiryDate = report.technicalReviewExpiryDate
     ? format(report.technicalReviewExpiryDate, 'dd/MM/yyyy')
     : null;
+
+  // Agrupar fotos por checklistItemId
+  const photosByItem: Record<string, string[]> = {};
+  report.photos.forEach((photo) => {
+    if (photo.checklistItemId) {
+      if (!photosByItem[photo.checklistItemId]) {
+        photosByItem[photo.checklistItemId] = [];
+      }
+      photosByItem[photo.checklistItemId].push(photo.url);
+    }
+  });
 
   return {
     reportId: report.id,
@@ -142,6 +160,9 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
 
     inspectorName: booking.inspector?.name || 'Inspector',
     inspectorSignature: report.inspectorSignature,
+
+    // Fotos agrupadas por item del checklist
+    photosByItem,
   };
 }
 

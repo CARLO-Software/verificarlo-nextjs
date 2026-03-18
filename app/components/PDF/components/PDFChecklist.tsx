@@ -4,7 +4,7 @@
 // ============================================
 
 import React from 'react';
-import { View, Text, StyleSheet } from '@react-pdf/renderer';
+import { View, Text, Image, StyleSheet } from '@react-pdf/renderer';
 import { colors } from '../styles/pdfStyles';
 
 interface ChecklistItem {
@@ -21,6 +21,7 @@ interface ChecklistCategory {
 
 interface PDFChecklistProps {
   categories: ChecklistCategory[];
+  photosByItem?: Record<string, string[]>;
 }
 
 const styles = StyleSheet.create({
@@ -243,6 +244,39 @@ const styles = StyleSheet.create({
     color: colors.slate,
     lineHeight: 1.6,
   },
+  // Estilos para fotos de hallazgos
+  findingWithPhoto: {
+    flexDirection: 'column',
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    backgroundColor: colors.offWhite,
+    borderRadius: 4,
+    marginBottom: 6,
+  },
+  findingMainRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  photosContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    marginLeft: 14,
+    gap: 6,
+  },
+  findingPhoto: {
+    width: 140,
+    height: 105,
+    borderRadius: 4,
+    objectFit: 'cover',
+    border: `1px solid ${colors.borderGray}`,
+  },
+  photoLabel: {
+    fontSize: 7,
+    color: colors.slate,
+    marginTop: 4,
+    marginLeft: 14,
+  },
 });
 
 // Mapeo de nombres de items
@@ -348,7 +382,7 @@ function getItemName(id: string): string {
   return ITEM_NAMES[id] || id;
 }
 
-export default function PDFChecklist({ categories }: PDFChecklistProps) {
+export default function PDFChecklist({ categories, photosByItem = {} }: PDFChecklistProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Detalle de Inspección</Text>
@@ -397,37 +431,79 @@ export default function PDFChecklist({ categories }: PDFChecklistProps) {
               </View>
             </View>
 
-            {/* Defectos y observaciones con detalle */}
+            {/* Defectos y observaciones con detalle y fotos */}
             {hasProblems && (
               <View style={styles.findingsContainer}>
-                {defectos.map((item) => (
-                  <View key={item.id} style={styles.findingRow}>
-                    <View style={[styles.findingBullet, styles.bulletDefecto]} />
-                    <View style={styles.findingContent}>
-                      <Text style={styles.findingName}>{item.name}</Text>
-                      {item.comment && (
-                        <Text style={styles.findingComment}>{item.comment}</Text>
+                {defectos.map((item) => {
+                  const itemPhotos = photosByItem[item.id] || [];
+                  const hasPhotos = itemPhotos.length > 0;
+
+                  return (
+                    <View key={item.id} style={hasPhotos ? styles.findingWithPhoto : styles.findingRow}>
+                      <View style={hasPhotos ? styles.findingMainRow : undefined}>
+                        <View style={[styles.findingBullet, styles.bulletDefecto]} />
+                        <View style={styles.findingContent}>
+                          <Text style={styles.findingName}>{item.name}</Text>
+                          {item.comment && (
+                            <Text style={styles.findingComment}>{item.comment}</Text>
+                          )}
+                        </View>
+                        <Text style={[styles.findingSeverity, styles.severityDefecto]}>
+                          DEF
+                        </Text>
+                      </View>
+                      {hasPhotos && (
+                        <>
+                          <View style={styles.photosContainer}>
+                            {itemPhotos.slice(0, 3).map((photoUrl, idx) => (
+                              <Image key={idx} src={photoUrl} style={styles.findingPhoto} />
+                            ))}
+                          </View>
+                          {itemPhotos.length > 3 && (
+                            <Text style={styles.photoLabel}>
+                              +{itemPhotos.length - 3} foto(s) adicional(es)
+                            </Text>
+                          )}
+                        </>
                       )}
                     </View>
-                    <Text style={[styles.findingSeverity, styles.severityDefecto]}>
-                      DEF
-                    </Text>
-                  </View>
-                ))}
-                {observaciones.map((item) => (
-                  <View key={item.id} style={styles.findingRow}>
-                    <View style={[styles.findingBullet, styles.bulletObservacion]} />
-                    <View style={styles.findingContent}>
-                      <Text style={styles.findingName}>{item.name}</Text>
-                      {item.comment && (
-                        <Text style={styles.findingComment}>{item.comment}</Text>
+                  );
+                })}
+                {observaciones.map((item) => {
+                  const itemPhotos = photosByItem[item.id] || [];
+                  const hasPhotos = itemPhotos.length > 0;
+
+                  return (
+                    <View key={item.id} style={hasPhotos ? styles.findingWithPhoto : styles.findingRow}>
+                      <View style={hasPhotos ? styles.findingMainRow : undefined}>
+                        <View style={[styles.findingBullet, styles.bulletObservacion]} />
+                        <View style={styles.findingContent}>
+                          <Text style={styles.findingName}>{item.name}</Text>
+                          {item.comment && (
+                            <Text style={styles.findingComment}>{item.comment}</Text>
+                          )}
+                        </View>
+                        <Text style={[styles.findingSeverity, styles.severityObservacion]}>
+                          OBS
+                        </Text>
+                      </View>
+                      {hasPhotos && (
+                        <>
+                          <View style={styles.photosContainer}>
+                            {itemPhotos.slice(0, 3).map((photoUrl, idx) => (
+                              <Image key={idx} src={photoUrl} style={styles.findingPhoto} />
+                            ))}
+                          </View>
+                          {itemPhotos.length > 3 && (
+                            <Text style={styles.photoLabel}>
+                              +{itemPhotos.length - 3} foto(s) adicional(es)
+                            </Text>
+                          )}
+                        </>
                       )}
                     </View>
-                    <Text style={[styles.findingSeverity, styles.severityObservacion]}>
-                      OBS
-                    </Text>
-                  </View>
-                ))}
+                  );
+                })}
               </View>
             )}
 

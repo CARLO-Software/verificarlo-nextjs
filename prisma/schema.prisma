@@ -101,6 +101,10 @@ model User {
   clientBookings   Booking[]     @relation("ClientBookings")
   inspectorBookings Booking[]    @relation("InspectorBookings")
   blockedDates     BlockedDate[]
+
+  // Relaciones de Informe Legal
+  legalReportsLocked    LegalReport[] @relation("LegalReportLockedBy")
+  legalReportsCompleted LegalReport[] @relation("LegalReportCompletedBy")
 }
 
 enum UserStatus{
@@ -230,9 +234,9 @@ model Booking {
 
   // Datos de la cita
   date      DateTime @db.Date // Solo fecha (YYYY-MM-DD)
-  timeSlot  String   @db.VarChar(5) // "09:00", "09:45", etc.
+  timeSlot  String   @db.VarChar(5) // "09:00", "10:00", etc.
   startTime DateTime // Fecha + hora completa
-  endTime   DateTime // startTime + 45 min
+  endTime   DateTime // startTime + 60 min (1 hora)
 
   // Estado y control
   status    BookingStatus @default(PENDING_PAYMENT)
@@ -429,6 +433,7 @@ model InspectionReport {
   // Relaciones
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   photos  InspectionPhoto[]
+  legalReport LegalReport?  // Informe legal del admin (1:1)
 
   @@index([bookingId])
   @@index([overallStatus])
@@ -442,15 +447,18 @@ model InspectionPhoto {
   id         Int @id @default(autoincrement())
   reportId   Int
 
+  // Vinculación al item del checklist (ej: "mec-sonidos-motor", "legal-tarjeta")
+  checklistItemId String?
+
   // URL de la imagen (en Cloudinary, S3, etc.)
   url        String
   thumbnailUrl String?
 
-  // Categoría de la foto
-  category   PhotoCategory
+  // Categoría de la foto (usar DAMAGE por defecto para hallazgos)
+  category   PhotoCategory @default(DAMAGE)
 
-  // Descripción/etiqueta
-  label      String?  // "Puerta delantera izquierda", "Motor - vista general", etc.
+  // Descripción/etiqueta opcional del inspector
+  label      String?
 
   // Orden de visualización
   sortOrder  Int      @default(0)
@@ -462,6 +470,7 @@ model InspectionPhoto {
   report InspectionReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
 
   @@index([reportId])
+  @@index([checklistItemId])
   @@index([category])
 }
 
@@ -478,6 +487,128 @@ enum PhotoCategory {
   DOCUMENTS           // Documentos (tarjeta, SOAT, etc.)
   DAMAGE              // Daños encontrados
   OTHER               // Otros
+}
+
+// ============================================
+// INFORME LEGAL (Para admins post-inspección)
+// ============================================
+
+enum LegalReportStatus {
+  PENDING_REVIEW    // Inspector completó, esperando revisión admin
+  IN_PROGRESS       // Admin está revisando (bloqueado)
+  COMPLETED         // Revisión legal completada
+}
+
+enum LegalFieldStatus {
+  OK        // Verde - Sin problemas
+  WARNING   // Amarillo - Observaciones menores
+  CRITICAL  // Rojo - Problemas graves
+  PENDING   // Gris - Sin revisar
+}
+
+model LegalReport {
+  id        Int @id @default(autoincrement())
+  reportId  Int @unique  // Relación 1:1 con InspectionReport
+
+  status    LegalReportStatus @default(PENDING_REVIEW)
+
+  // ============================================
+  // CAMPOS DEL INFORME LEGAL - Columna Izquierda
+  // ============================================
+
+  // Historial de propietarios
+  ownerHistoryStatus     LegalFieldStatus @default(PENDING)
+  ownerHistoryText       String?          @db.Text
+
+  // Gravámenes SUNARP
+  sunarpLiensStatus      LegalFieldStatus @default(PENDING)
+  sunarpLiensText        String?          @db.Text
+
+  // Orden de captura SAT
+  satCaptureOrderStatus  LegalFieldStatus @default(PENDING)
+  satCaptureOrderText    String?          @db.Text
+
+  // SOAT
+  soatStatus             LegalFieldStatus @default(PENDING)
+  soatText               String?          @db.Text
+  soatExpiryDate         DateTime?        @db.Date
+
+  // Revisión técnica vehicular
+  techReviewStatus       LegalFieldStatus @default(PENDING)
+  techReviewText         String?          @db.Text
+  techReviewExpiryDate   DateTime?        @db.Date
+
+  // Situación de impuesto vehicular
+  vehicleTaxStatus       LegalFieldStatus @default(PENDING)
+  vehicleTaxText         String?          @db.Text
+
+  // Transformado a gas
+  gasConversionStatus    LegalFieldStatus @default(PENDING)
+  gasConversionText      String?          @db.Text
+
+  // ============================================
+  // CAMPOS DEL INFORME LEGAL - Columna Derecha
+  // ============================================
+
+  // Papeletas SAT
+  satTicketsStatus       LegalFieldStatus @default(PENDING)
+  satTicketsText         String?          @db.Text
+
+  // Papeletas CALLAO
+  callaoTicketsStatus    LegalFieldStatus @default(PENDING)
+  callaoTicketsText      String?          @db.Text
+
+  // Papeletas SUTRAN
+  sutranTicketsStatus    LegalFieldStatus @default(PENDING)
+  sutranTicketsText      String?          @db.Text
+
+  // Historial de Robos
+  theftHistoryStatus     LegalFieldStatus @default(PENDING)
+  theftHistoryText       String?          @db.Text
+
+  // Registro de transportes
+  transportRegistryStatus LegalFieldStatus @default(PENDING)
+  transportRegistryText   String?          @db.Text
+
+  // Datos de la última transferencia
+  lastTransferStatus     LegalFieldStatus @default(PENDING)
+  lastTransferText       String?          @db.Text
+
+  // Siniestralidad
+  accidentHistoryStatus  LegalFieldStatus @default(PENDING)
+  accidentHistoryText    String?          @db.Text
+
+  // ============================================
+  // OBSERVACIONES GENERALES
+  // ============================================
+
+  otherObservations      String?          @db.Text
+
+  // ============================================
+  // BLOQUEO EXCLUSIVO
+  // ============================================
+
+  lockedBy               String?          // ID del admin que tiene bloqueado
+  lockedAt               DateTime?        // Cuándo se bloqueó
+  lockExpiresAt          DateTime?        // Expiración del bloqueo (15 min auto-release)
+
+  // ============================================
+  // METADATA
+  // ============================================
+
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  completedAt            DateTime?        // Cuándo admin finalizó
+  completedBy            String?          // ID del admin que completó
+
+  // Relaciones
+  report         InspectionReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  lockedByUser   User?            @relation("LegalReportLockedBy", fields: [lockedBy], references: [id], onDelete: SetNull)
+  completedByUser User?           @relation("LegalReportCompletedBy", fields: [completedBy], references: [id], onDelete: SetNull)
+
+  @@index([reportId])
+  @@index([status])
+  @@index([lockedBy])
 }
 
 // ============================================

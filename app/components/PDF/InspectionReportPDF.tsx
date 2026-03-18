@@ -102,6 +102,9 @@ export interface PDFReportData {
   // Inspector
   inspectorName: string;
   inspectorSignature: string | null;
+
+  // Fotos agrupadas por item del checklist
+  photosByItem?: Record<string, string[]>;
 }
 
 const styles = StyleSheet.create({
@@ -216,8 +219,8 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
             {/* Header mínimo */}
             <PDFHeader reportCode={data.reportCode} date={data.date} />
 
-            {/* Checklist detallado con hallazgos y comentarios */}
-            <PDFChecklist categories={checklistCategories} />
+            {/* Checklist detallado con hallazgos, comentarios y fotos */}
+            <PDFChecklist categories={checklistCategories} photosByItem={data.photosByItem} />
           </View>
 
           {/* 📚 CONCEPTO REACT: showSignature={true} porque esta es la última página */}

@@ -2,11 +2,13 @@
  * InspectionItemCard - Componente de tarjeta para cada ítem de inspección.
  * Permite al inspector marcar el estado (OK, Observación, Defecto, No aplica)
  * y agregar comentarios opcionales para observaciones o defectos.
+ * Incluye captura de fotos para hallazgos (OBSERVACION o DEFECTO).
  */
 "use client";
 
 import { useState } from "react";
 import type { InspectionStatus } from "../inspectionData";
+import { ItemPhotoCapture, type Photo } from "./ItemPhotoCapture";
 import styles from "./InspectionItemCard.module.css";
 
 interface InspectionItemCardProps {
@@ -16,6 +18,11 @@ interface InspectionItemCardProps {
   comment?: string;
   disabled?: boolean;
   onStatusChange: (id: string, status: InspectionStatus, comment?: string) => void;
+  // Props para fotos
+  reportId?: number;
+  photos?: Photo[];
+  onPhotoAdded?: (photo: Photo) => void;
+  onPhotoDeleted?: (photoId: number) => void;
 }
 
 const STATUS_OPTIONS: {
@@ -37,6 +44,11 @@ export function InspectionItemCard({
   comment = "",
   disabled = false,
   onStatusChange,
+  // Props para fotos
+  reportId,
+  photos = [],
+  onPhotoAdded,
+  onPhotoDeleted,
 }: InspectionItemCardProps) {
   const [localComment, setLocalComment] = useState(comment);
   const [isCommentOpen, setIsCommentOpen] = useState(!!comment);
@@ -135,6 +147,19 @@ export function InspectionItemCard({
             rows={2}
           />
         </div>
+      )}
+
+      {/* Sección de fotos para hallazgos */}
+      {showCommentSection && reportId && onPhotoAdded && onPhotoDeleted && (
+        <ItemPhotoCapture
+          reportId={reportId}
+          checklistItemId={id}
+          itemLabel={label}
+          photos={photos}
+          onPhotoAdded={onPhotoAdded}
+          onPhotoDeleted={onPhotoDeleted}
+          disabled={disabled}
+        />
       )}
     </div>
   );

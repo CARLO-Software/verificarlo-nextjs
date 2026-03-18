@@ -142,7 +142,7 @@
 }
 
 .content li::marker {
-  color: #1a1a1a;
+  color: #000000;
   font-weight: 600;
 }
 

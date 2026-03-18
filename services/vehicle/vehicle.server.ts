@@ -98,7 +98,7 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
     // Construir fechas para el booking (sin conversión de zona horaria)
     const dateOnly = crearFechaSinConversion(payload.fechaEstimada);
     const startTime = crearFechaHoraSinConversion(payload.fechaEstimada, payload.horaEstimada);
-    const endTime = sumarMinutos(startTime, 45);
+    const endTime = sumarMinutos(startTime, 60);
 
     const booking = await db.booking.create({
         data: {

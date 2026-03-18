@@ -6,17 +6,11 @@ import Link from "next/link";
 import styles from "./InspectionForm.module.css";
 import { InspectionChecklist } from "./components";
 import { type InspectionResults } from "./inspectionData";
+import { type Photo } from "./components/ItemPhotoCapture/ItemPhotoCapture";
+import { useToast } from "@/app/components/Toast";
 import type { JsonValue } from "@prisma/client/runtime/library";
 
 type ResultStatus = "PENDING" | "OK" | "WARNING" | "CRITICAL";
-
-interface Photo {
-  id: number;
-  url: string;
-  thumbnailUrl: string | null;
-  category: string;
-  label: string | null;
-}
 
 interface Report {
   id: number;
@@ -87,11 +81,56 @@ type Section = "info" | "checklist" | "summary";
 
 export function InspectionFormClient({ inspection }: InspectionFormClientProps) {
   const router = useRouter();
+  const { showToast } = useToast();
   const [activeSection, setActiveSection] = useState<Section>("info");
   const [report, setReport] = useState<Report | null>(inspection.report);
   const [error, setError] = useState<string | null>(null);
 
+  // Estado para fotos agrupadas por checklistItemId
+  const [photosByItem, setPhotosByItem] = useState<Record<string, Photo[]>>(() => {
+    // Inicializar desde las fotos del reporte
+    const grouped: Record<string, Photo[]> = {};
+    if (inspection.report?.photos) {
+      inspection.report.photos.forEach((photo) => {
+        if (photo.checklistItemId) {
+          if (!grouped[photo.checklistItemId]) {
+            grouped[photo.checklistItemId] = [];
+          }
+          grouped[photo.checklistItemId].push(photo);
+        }
+      });
+    }
+    return grouped;
+  });
+
   const isCompleted = report !== null && report.completedAt !== null;
+
+  // Manejar foto agregada
+  const handlePhotoAdded = (photo: Photo) => {
+    if (!photo.checklistItemId) return;
+
+    setPhotosByItem((prev) => {
+      const itemPhotos = prev[photo.checklistItemId!] || [];
+      return {
+        ...prev,
+        [photo.checklistItemId!]: [...itemPhotos, photo],
+      };
+    });
+  };
+
+  // Manejar foto eliminada
+  const handlePhotoDeleted = (photoId: number) => {
+    setPhotosByItem((prev) => {
+      const newState: Record<string, Photo[]> = {};
+      Object.entries(prev).forEach(([itemId, photos]) => {
+        const filtered = photos.filter((p) => p.id !== photoId);
+        if (filtered.length > 0) {
+          newState[itemId] = filtered;
+        }
+      });
+      return newState;
+    });
+  };
 
   // Crear informe si no existe
   useEffect(() => {
@@ -239,6 +278,9 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
               initialResults={report.checklistResults || {}}
               onUpdate={(results) => setReport((prev) => prev ? { ...prev, checklistResults: results } : prev)}
               disabled={isCompleted}
+              photosByItem={photosByItem}
+              onPhotoAdded={handlePhotoAdded}
+              onPhotoDeleted={handlePhotoDeleted}
             />
           ) : (
             <div style={{ padding: 20, textAlign: "center" }}>
@@ -250,7 +292,12 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
           <SummarySection
             report={report}
             onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
-            onComplete={() => router.refresh()}
+            onComplete={() => {
+              // Actualizar estado local para deshabilitar inmediatamente
+              setReport((prev) => prev ? { ...prev, completedAt: new Date().toISOString() } : prev);
+              showToast("Inspección completada exitosamente", "success");
+              router.refresh();
+            }}
             disabled={isCompleted}
           />
         )}
@@ -455,11 +502,17 @@ function ChecklistSection({
   initialResults,
   onUpdate,
   disabled,
+  photosByItem,
+  onPhotoAdded,
+  onPhotoDeleted,
 }: {
   reportId: number;
   initialResults: InspectionResults;
   onUpdate: (results: InspectionResults) => void;
   disabled: boolean;
+  photosByItem: Record<string, Photo[]>;
+  onPhotoAdded: (photo: Photo) => void;
+  onPhotoDeleted: (photoId: number) => void;
 }) {
   const handleSave = async (results: InspectionResults) => {
     try {
@@ -485,6 +538,10 @@ function ChecklistSection({
       initialResults={initialResults}
       disabled={disabled}
       onSave={handleSave}
+      reportId={reportId}
+      photosByItem={photosByItem}
+      onPhotoAdded={onPhotoAdded}
+      onPhotoDeleted={onPhotoDeleted}
     />
   );
 }

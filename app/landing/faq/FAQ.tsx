@@ -102,7 +102,7 @@ const FAQ = () => {
                                             className={styles['mynauichevron-up']} /></a>
                                 </div>
                                 <div className={styles['frame-427318844']}>
-                                    <p className={styles['faq-item-description']}>Entre 45 minutos y una hora. Nos tomamos el tiempo justo para hacer un
+                                    <p className={styles['faq-item-description']}>Aproximadamente una hora. Nos tomamos el tiempo justo para hacer un
                                         buen
                                         trabajo sin hacerte esperar de m&aacute;s.</p>
                                 </div>

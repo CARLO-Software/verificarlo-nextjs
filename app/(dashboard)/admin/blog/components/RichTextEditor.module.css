@@ -98,6 +98,11 @@
   padding-left: 0.25rem;
 }
 
+.editor :global(.ql-editor li::marker) {
+  color: #000000;
+  font-weight: 600;
+}
+
 /* Alignment */
 .editor :global(.ql-editor .ql-align-center) {
   text-align: center;

@@ -38,6 +38,8 @@ export default async function AdminInspeccionesPage() {
     clientNotes: inspection.clientNotes,
     inspectorNotes: inspection.inspectorNotes,
     adminNotes: inspection.adminNotes,
+    reportId: inspection.report?.id || null,
+    legalReportStatus: inspection.report?.legalReport?.status || null,
   }));
 
   return (

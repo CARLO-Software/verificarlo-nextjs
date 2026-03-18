@@ -53,7 +53,7 @@ export async function POST(
     }
 
     const body = await req.json();
-    const { url, thumbnailUrl, category, label } = body;
+    const { url, thumbnailUrl, category, label, checklistItemId } = body;
 
     if (!url) {
       return NextResponse.json(
@@ -62,7 +62,8 @@ export async function POST(
       );
     }
 
-    if (!category || !Object.values(PhotoCategory).includes(category)) {
+    // Categoría es opcional ahora, default DAMAGE
+    if (category && !Object.values(PhotoCategory).includes(category)) {
       return NextResponse.json(
         { error: "Categoría de foto inválida" },
         { status: 400 }
@@ -73,8 +74,9 @@ export async function POST(
       reportId,
       url,
       thumbnailUrl,
-      category,
+      category: category || "DAMAGE",
       label,
+      checklistItemId,
     });
 
     return NextResponse.json({

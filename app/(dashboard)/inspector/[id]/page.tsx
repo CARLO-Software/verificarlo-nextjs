@@ -145,6 +145,7 @@ export default async function InspectionDetailPage({ params }: PageProps) {
             thumbnailUrl: photo.thumbnailUrl,
             category: photo.category,
             label: photo.label,
+            checklistItemId: photo.checklistItemId,
           })),
         }
       : null,

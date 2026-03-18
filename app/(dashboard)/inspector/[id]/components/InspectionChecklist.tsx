@@ -14,6 +14,7 @@ import {
 } from "../inspectionData";
 import { InspectionItemCard } from "./InspectionItemCard";
 import { StatusLegend } from "./StatusLegend";
+import { type Photo } from "./ItemPhotoCapture";
 import styles from "./InspectionChecklist.module.css";
 
 interface InspectionChecklistProps {
@@ -21,6 +22,11 @@ interface InspectionChecklistProps {
   disabled?: boolean;
   onSave?: (results: InspectionResults) => Promise<void>;
   onCategoryChange?: (categoryId: string) => void;
+  // Props para fotos
+  reportId?: number;
+  photosByItem?: Record<string, Photo[]>;
+  onPhotoAdded?: (photo: Photo) => void;
+  onPhotoDeleted?: (photoId: number) => void;
 }
 
 export function InspectionChecklist({
@@ -28,6 +34,11 @@ export function InspectionChecklist({
   disabled = false,
   onSave,
   onCategoryChange,
+  // Props para fotos
+  reportId,
+  photosByItem = {},
+  onPhotoAdded,
+  onPhotoDeleted,
 }: InspectionChecklistProps) {
   const [activeCategory, setActiveCategory] = useState<string>(
     INSPECTION_CATEGORIES[0].id
@@ -329,6 +340,7 @@ export function InspectionChecklist({
               <div className={styles.itemsList}>
                 {section.items.map((item) => {
                   const itemResult = results[item.id];
+                  const itemPhotos = photosByItem[item.id] || [];
                   return (
                     <InspectionItemCard
                       key={item.id}
@@ -338,6 +350,11 @@ export function InspectionChecklist({
                       comment={itemResult?.comment}
                       disabled={disabled}
                       onStatusChange={handleStatusChange}
+                      // Props para fotos
+                      reportId={reportId}
+                      photos={itemPhotos}
+                      onPhotoAdded={onPhotoAdded}
+                      onPhotoDeleted={onPhotoDeleted}
                     />
                   );
                 })}
