@@ -29,6 +29,7 @@ interface ReportFull extends ReportSummary {
   legalReport?: {
     id: number;
     status: string;
+    completedAt: Date | null;
   } | null;
 }
 
@@ -107,8 +108,12 @@ export interface AdminBookingWithDetails extends BookingBase {
   report?: ReportBrief | null;
 }
 
-// Tipo para vistas detalladas (con reporte completo)
-export interface BookingWithDetails extends BookingBase {
+// Tipo para vistas detalladas (con reporte completo y dirección del cliente)
+export interface BookingWithDetails extends Omit<BookingBase, 'client'> {
+  client: BookingBase['client'] & {
+    address: string | null;
+    district: string | null;
+  };
   report?: ReportFull | null;
 }
 
@@ -333,6 +338,8 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           name: true,
           email: true,
           image: true,
+          address: true,
+          district: true,
         },
       },
       vehicle: {
@@ -384,6 +391,13 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           recommendations: true,
           completedAt: true,
           pdfUrl: true,
+          legalReport: {
+            select: {
+              id: true,
+              status: true,
+              completedAt: true,
+            },
+          },
         },
       },
     },

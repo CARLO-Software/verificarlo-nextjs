@@ -60,6 +60,11 @@ export default async function InspectionDetailPage({ params }: Props) {
         }
       : null,
     clientNotes: inspection.clientNotes,
+    // Ubicación del cliente (destino)
+    clientLocation: {
+      address: inspection.client.address,
+      district: inspection.client.district,
+    },
     report: inspection.report
       ? {
           overallScore: inspection.report.overallScore,
@@ -75,6 +80,13 @@ export default async function InspectionDetailPage({ params }: Props) {
           // Usar API de Next.js para servir el PDF (no Cloudinary)
           pdfUrl: null,
           completedAt: inspection.report.completedAt,
+          // Informe legal del admin
+          legalReport: inspection.report.legalReport
+            ? {
+                status: inspection.report.legalReport.status,
+                completedAt: inspection.report.legalReport.completedAt,
+              }
+            : null,
         }
       : null,
   };

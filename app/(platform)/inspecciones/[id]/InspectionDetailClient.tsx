@@ -27,6 +27,11 @@ import {
   RefreshCw,
   Phone,
   Loader2,
+  Circle,
+  Wrench,
+  Scale,
+  Building2,
+  Navigation,
 } from 'lucide-react';
 import { BookingStatus } from '@prisma/client';
 import { differenceInHours, format } from 'date-fns';
@@ -57,6 +62,10 @@ interface Inspection {
     image: string | null;
   } | null;
   clientNotes: string | null;
+  clientLocation: {
+    address: string | null;
+    district: string | null;
+  };
   report: {
     overallScore: number | null;
     overallStatus: string;
@@ -70,6 +79,10 @@ interface Inspection {
     recommendations: string | null;
     pdfUrl: string | null;
     completedAt: Date | null;
+    legalReport: {
+      status: string;
+      completedAt: Date | null;
+    } | null;
   } | null;
 }
 
@@ -266,6 +279,19 @@ export function InspectionDetailClient({ inspection }: Props) {
             )}
           </div>
         )}
+
+        {/* Timeline de progreso */}
+        <InspectionTimeline
+          createdAt={inspection.createdAt}
+          mechanicalCompletedAt={inspection.report?.completedAt || null}
+          legalCompletedAt={inspection.report?.legalReport?.completedAt || null}
+        />
+
+        {/* Ubicación: Origen y Destino */}
+        <LocationSection
+          clientAddress={inspection.clientLocation.address}
+          clientDistrict={inspection.clientLocation.district}
+        />
 
         {/* Resultados si está completada */}
         {isCompleted && inspection.report && (
@@ -535,6 +561,179 @@ function ScoreCard({ label, score, status }: { label: string; score: number | nu
       <p className={`text-2xl font-bold ${getStatusColor(status)}`}>
         {score ?? '--'}
       </p>
+    </div>
+  );
+}
+
+// Timeline de progreso de la inspección
+function InspectionTimeline({
+  createdAt,
+  mechanicalCompletedAt,
+  legalCompletedAt,
+}: {
+  createdAt: Date;
+  mechanicalCompletedAt: Date | null;
+  legalCompletedAt: Date | null;
+}) {
+  const steps = [
+    {
+      id: 1,
+      label: 'Inspección creada',
+      description: 'Tu solicitud fue registrada',
+      icon: Circle,
+      completedAt: createdAt,
+      isCompleted: true,
+    },
+    {
+      id: 2,
+      label: 'Inspección mecánica',
+      description: 'Revisión técnica del vehículo',
+      icon: Wrench,
+      completedAt: mechanicalCompletedAt,
+      isCompleted: !!mechanicalCompletedAt,
+    },
+    {
+      id: 3,
+      label: 'Revisión legal',
+      description: 'Verificación documental completa',
+      icon: Scale,
+      completedAt: legalCompletedAt,
+      isCompleted: !!legalCompletedAt,
+    },
+  ];
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
+      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-6 flex items-center gap-2">
+        <Clock size={16} />
+        Progreso de la inspección
+      </h2>
+
+      <div className="relative">
+        {steps.map((step, index) => {
+          const StepIcon = step.icon;
+          const isLast = index === steps.length - 1;
+
+          return (
+            <div key={step.id} className="flex gap-4">
+              {/* Línea y círculo */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`
+                    w-10 h-10 rounded-full flex items-center justify-center
+                    transition-all duration-300
+                    ${step.isCompleted
+                      ? 'bg-green-100 text-green-600'
+                      : 'bg-gray-100 text-gray-400'
+                    }
+                  `}
+                >
+                  {step.isCompleted ? (
+                    <CheckCircle2 size={20} />
+                  ) : (
+                    <StepIcon size={20} />
+                  )}
+                </div>
+                {!isLast && (
+                  <div
+                    className={`
+                      w-0.5 h-12 my-1
+                      ${step.isCompleted && steps[index + 1]?.isCompleted
+                        ? 'bg-green-300'
+                        : step.isCompleted
+                          ? 'bg-gradient-to-b from-green-300 to-gray-200'
+                          : 'bg-gray-200'
+                      }
+                    `}
+                  />
+                )}
+              </div>
+
+              {/* Contenido */}
+              <div className={`flex-1 ${!isLast ? 'pb-6' : ''}`}>
+                <p
+                  className={`
+                    font-medium
+                    ${step.isCompleted ? 'text-gray-900' : 'text-gray-400'}
+                  `}
+                >
+                  {step.label}
+                </p>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {step.description}
+                </p>
+                {step.completedAt && (
+                  <p className="text-xs text-green-600 mt-1 font-medium">
+                    {format(new Date(step.completedAt), "d MMM yyyy, HH:mm", { locale: es })}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Sección de origen y destino
+function LocationSection({
+  clientAddress,
+  clientDistrict,
+}: {
+  clientAddress: string | null;
+  clientDistrict: string | null;
+}) {
+  const companyAddress = "Av. Javier Prado Este 4200, Santiago de Surco"; // Dirección de la empresa
+  const hasClientLocation = clientAddress || clientDistrict;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
+      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
+        <Navigation size={16} />
+        Ubicación
+      </h2>
+
+      <div className="space-y-4">
+        {/* Origen - Empresa */}
+        <div className="flex gap-3">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <Building2 size={18} className="text-blue-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-medium text-gray-500 uppercase">Origen</p>
+            <p className="font-medium text-gray-900">VerifiCARLO - Centro de inspección</p>
+            <p className="text-sm text-gray-500">{companyAddress}</p>
+          </div>
+        </div>
+
+        {/* Línea conectora */}
+        <div className="ml-5 border-l-2 border-dashed border-gray-200 h-4" />
+
+        {/* Destino - Cliente */}
+        <div className="flex gap-3">
+          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+            <MapPin size={18} className="text-green-600" />
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-medium text-gray-500 uppercase">Destino</p>
+            {hasClientLocation ? (
+              <>
+                <p className="font-medium text-gray-900">
+                  {clientDistrict || 'Ubicación del cliente'}
+                </p>
+                {clientAddress && (
+                  <p className="text-sm text-gray-500">{clientAddress}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-gray-400 italic">
+                Dirección no especificada
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
