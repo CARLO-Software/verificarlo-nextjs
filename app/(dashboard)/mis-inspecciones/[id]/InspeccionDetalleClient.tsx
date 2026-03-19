@@ -8,6 +8,7 @@ import Script from "next/script";
 import Link from "next/link";
 import { BookingStatus } from "@prisma/client";
 import styles from "./InspeccionDetalle.module.css";
+import { getVerdict, getScoreCategoryInfo } from "@/lib/inspection-verdict";
 
 declare global {
   interface Window {
@@ -867,15 +868,68 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
             />
           </div>
 
-          {/* Overall Score */}
-          {inspection.report?.overallScore && (
-            <div className={styles.overallScore}>
-              <span className={styles.overallScoreLabel}>Puntaje General</span>
-              <span className={styles.overallScoreValue}>
-                {inspection.report.overallScore}/100
-              </span>
-            </div>
-          )}
+          {/* Overall Score y Veredicto */}
+          {inspection.report?.overallScore && (() => {
+            const verdict = getVerdict(
+              inspection.report.overallScore,
+              inspection.report.overallStatus
+            );
+            const verdictColors = {
+              SAFE: { bg: '#dcfce7', border: '#86efac', text: '#15803d' },
+              NEGOTIATE: { bg: '#fef3c7', border: '#fcd34d', text: '#b45309' },
+              DONT_BUY: { bg: '#fee2e2', border: '#fca5a5', text: '#b91c1c' },
+              PENDING: { bg: '#f3f4f6', border: '#d1d5db', text: '#374151' },
+            };
+            const colors = verdictColors[verdict.type];
+
+            return (
+              <div style={{ marginBottom: '1rem' }}>
+                <div className={styles.overallScore}>
+                  <span className={styles.overallScoreLabel}>Puntaje General</span>
+                  <span className={styles.overallScoreValue}>
+                    {inspection.report.overallScore}/100
+                  </span>
+                </div>
+                {/* Badge de veredicto */}
+                <div style={{
+                  marginTop: '0.75rem',
+                  padding: '1rem',
+                  borderRadius: '0.75rem',
+                  border: `2px solid ${colors.border}`,
+                  backgroundColor: colors.bg,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <span style={{ fontSize: '1.5rem' }}>{verdict.icon}</span>
+                    <div>
+                      <p style={{
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        color: colors.text,
+                        margin: 0,
+                      }}>
+                        {verdict.label}
+                      </p>
+                      <p style={{
+                        fontSize: '0.875rem',
+                        color: colors.text,
+                        opacity: 0.85,
+                        margin: '0.25rem 0 0 0',
+                      }}>
+                        {verdict.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info de cómo se calcula */}
+                <ScoreCalculationInfoInline
+                  legalScore={inspection.report?.legalScore ?? null}
+                  mechanicalScore={inspection.report?.mechanicalScore ?? null}
+                  bodyScore={inspection.report?.bodyScore ?? null}
+                />
+              </div>
+            );
+          })()}
 
           {/* Executive Summary */}
           {inspection.report?.executiveSummary && (
@@ -991,6 +1045,107 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           Volver a mis inspecciones
         </Link>
       </div>
+    </div>
+  );
+}
+
+// ============================================
+// Score Calculation Info (inline styles)
+// ============================================
+function ScoreCalculationInfoInline({ legalScore, mechanicalScore, bodyScore }: {
+  legalScore: number | null;
+  mechanicalScore: number | null;
+  bodyScore: number | null;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Calcular contribuciones
+  const legalContrib = legalScore ? (legalScore * 0.3).toFixed(1) : '--';
+  const mechContrib = mechanicalScore ? (mechanicalScore * 0.4).toFixed(1) : '--';
+  const bodyContrib = bodyScore ? (bodyScore * 0.3).toFixed(1) : '--';
+
+  const rowStyle = {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.5rem 0',
+    borderBottom: '1px solid #f3f4f6',
+    fontSize: '0.75rem',
+  };
+
+  return (
+    <div style={{ marginTop: '0.75rem' }}>
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.75rem',
+          color: '#6b7280',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          width: '100%',
+          justifyContent: 'center',
+          padding: '0.25rem',
+        }}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 16v-4M12 8h.01" />
+        </svg>
+        <span>{isExpanded ? 'Ocultar' : '¿Cómo se calcula?'}</span>
+      </button>
+
+      {isExpanded && (
+        <div style={{
+          marginTop: '0.75rem',
+          padding: '1rem',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
+          borderRadius: '0.5rem',
+          border: '1px solid #e5e7eb',
+        }}>
+          <p style={{ fontSize: '0.75rem', color: '#4b5563', marginBottom: '0.75rem' }}>
+            Cada área se evalúa de 0 a 100. El puntaje general es la suma ponderada:
+          </p>
+
+          <div style={rowStyle}>
+            <span style={{ color: '#4b5563' }}>Legal</span>
+            <span style={{ fontFamily: 'monospace', color: '#374151' }}>
+              {legalScore ?? '--'} × 30% = <strong>{legalContrib}</strong>
+            </span>
+          </div>
+          <div style={rowStyle}>
+            <span style={{ color: '#4b5563' }}>Mecánica</span>
+            <span style={{ fontFamily: 'monospace', color: '#374151' }}>
+              {mechanicalScore ?? '--'} × 40% = <strong>{mechContrib}</strong>
+            </span>
+          </div>
+          <div style={rowStyle}>
+            <span style={{ color: '#4b5563' }}>Carrocería</span>
+            <span style={{ fontFamily: 'monospace', color: '#374151' }}>
+              {bodyScore ?? '--'} × 30% = <strong>{bodyContrib}</strong>
+            </span>
+          </div>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: '0.75rem',
+            fontSize: '0.75rem',
+          }}>
+            <span style={{ color: '#111827', fontWeight: 500 }}>Total</span>
+            <span style={{ fontFamily: 'monospace', color: '#111827', fontWeight: 700 }}>
+              {legalContrib} + {mechContrib} + {bodyContrib} = {
+                legalScore && mechanicalScore && bodyScore
+                  ? Math.round(legalScore * 0.3 + mechanicalScore * 0.4 + bodyScore * 0.3)
+                  : '--'
+              }
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

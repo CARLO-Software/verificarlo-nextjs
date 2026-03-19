@@ -10,7 +10,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, Calendar, Clock, FileText, ChevronRight, Filter, X } from 'lucide-react';
 import { BookingStatus, InspectionResultStatus } from '@prisma/client';
-import { formatearFechaHoraCorta } from '@/app/domain/datetime';
+import { getVerdictBadgeConfig } from '@/lib/inspection-verdict';
 
 interface Inspection {
   id: number;
@@ -82,24 +82,8 @@ const statusConfig: Record<string, { label: string; className: string; dot: stri
   },
 };
 
-const resultStatusConfig: Record<string, { label: string; className: string }> = {
-  APPROVED: {
-    label: 'Aprobado',
-    className: 'bg-green-100 text-green-800 border-green-300',
-  },
-  APPROVED_WITH_OBSERVATIONS: {
-    label: 'Aprobado con observaciones',
-    className: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  },
-  REJECTED: {
-    label: 'Rechazado',
-    className: 'bg-red-100 text-red-800 border-red-300',
-  },
-  PENDING: {
-    label: 'Pendiente',
-    className: 'bg-gray-100 text-gray-700 border-gray-300',
-  },
-};
+// resultStatusConfig ahora usa el helper centralizado getVerdictBadgeConfig
+// que combina puntaje + estado para dar veredictos más claros
 
 export function InspectionsListClient({ inspections, brands }: Props) {
   const [filter, setFilter] = useState('all');
@@ -343,8 +327,11 @@ export function InspectionsListClient({ inspections, brands }: Props) {
 
 function InspectionCard({ inspection }: { inspection: Inspection }) {
   const status = statusConfig[inspection.status] || statusConfig.PENDING_PAYMENT;
-  const resultStatus = inspection.overallStatus ? resultStatusConfig[inspection.overallStatus] : null;
   const isCompleted = inspection.status === 'COMPLETED';
+  // Usar el helper centralizado para obtener el veredicto basado en puntaje + estado
+  const verdictBadge = isCompleted && inspection.overallStatus
+    ? getVerdictBadgeConfig(inspection.overallScore, inspection.overallStatus)
+    : null;
 
   // Formatear fecha y hora
   const inspectionDate = new Date(inspection.startTime);
@@ -434,14 +421,14 @@ function InspectionCard({ inspection }: { inspection: Inspection }) {
             </span>
           </div>
 
-          {/* Badge de resultado (solo para completadas) */}
-          {isCompleted && resultStatus && (
+          {/* Badge de veredicto (solo para completadas) */}
+          {isCompleted && verdictBadge && (
             <div className="mt-3">
               <span className={`
                 inline-flex items-center px-3 py-1.5 rounded-lg border text-sm font-medium
-                ${resultStatus.className}
+                ${verdictBadge.className}
               `}>
-                {resultStatus.label}
+                {verdictBadge.label}
               </span>
             </div>
           )}

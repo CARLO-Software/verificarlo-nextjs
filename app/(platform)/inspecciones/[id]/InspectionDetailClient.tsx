@@ -32,8 +32,11 @@ import {
   Scale,
   Building2,
   Navigation,
+  HelpCircle,
+  Info,
 } from 'lucide-react';
 import { BookingStatus } from '@prisma/client';
+import { getVerdict, getScoreCategoryInfo, type ScoreCategory } from '@/lib/inspection-verdict';
 import { differenceInHours, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -294,34 +297,63 @@ export function InspectionDetailClient({ inspection }: Props) {
         />
 
         {/* Resultados si está completada */}
-        {isCompleted && inspection.report && (
+        {isCompleted && inspection.report && (() => {
+          const verdict = getVerdict(inspection.report.overallScore, inspection.report.overallStatus);
+          const bgGradient = verdict.type === 'SAFE'
+            ? 'from-green-50 to-emerald-50 border-green-100'
+            : verdict.type === 'NEGOTIATE'
+              ? 'from-amber-50 to-yellow-50 border-amber-100'
+              : verdict.type === 'DONT_BUY'
+                ? 'from-red-50 to-rose-50 border-red-100'
+                : 'from-gray-50 to-slate-50 border-gray-100';
+          const scoreColor = verdict.type === 'SAFE'
+            ? 'text-green-700'
+            : verdict.type === 'NEGOTIATE'
+              ? 'text-amber-700'
+              : verdict.type === 'DONT_BUY'
+                ? 'text-red-700'
+                : 'text-gray-700';
+
+          return (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-6 animate-in slide-in-from-bottom duration-500">
             {/* Score principal */}
-            <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-100">
-              <div className="flex items-center justify-between">
+            <div className={`p-6 bg-gradient-to-r ${bgGradient} border-b`}>
+              <div className="flex flex-col gap-4">
+                {/* Puntaje */}
                 <div>
-                  <p className="text-sm font-medium text-green-700 mb-1">Puntaje General</p>
+                  <p className={`text-sm font-medium ${scoreColor} mb-1`}>Puntaje General</p>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold text-green-700">
+                    <span className={`text-4xl font-bold ${scoreColor}`}>
                       {inspection.report.overallScore || '--'}
                     </span>
-                    <span className="text-lg text-green-600">/100</span>
+                    <span className={`text-lg ${scoreColor} opacity-80`}>/100</span>
                   </div>
                 </div>
 
+                {/* Badge de veredicto mejorado */}
                 <div className={`
-                  px-4 py-2 rounded-full font-semibold text-sm
-                  ${inspection.report.overallStatus === 'OK'
-                    ? 'bg-green-100 text-green-700'
-                    : inspection.report.overallStatus === 'WARNING'
-                      ? 'bg-amber-100 text-amber-700'
-                      : 'bg-red-100 text-red-700'
-                  }
+                  p-4 rounded-xl border-2
+                  ${verdict.bgColor} ${verdict.borderColor}
                 `}>
-                  {inspection.report.overallStatus === 'OK' ? '✓ Aprobado' :
-                   inspection.report.overallStatus === 'WARNING' ? '⚠ Con observaciones' :
-                   '✗ Requiere atención'}
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">{verdict.icon}</span>
+                    <div>
+                      <p className={`font-bold text-lg ${verdict.color}`}>
+                        {verdict.label}
+                      </p>
+                      <p className={`text-sm mt-0.5 ${verdict.color} opacity-80`}>
+                        {verdict.subtitle}
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Info de cómo se calcula */}
+                <ScoreCalculationInfo
+                  legalScore={inspection.report.legalScore}
+                  mechanicalScore={inspection.report.mechanicalScore}
+                  bodyScore={inspection.report.bodyScore}
+                />
               </div>
             </div>
 
@@ -331,16 +363,19 @@ export function InspectionDetailClient({ inspection }: Props) {
                 label="Legal"
                 score={inspection.report.legalScore}
                 status={inspection.report.legalStatus}
+                category="legal"
               />
               <ScoreCard
                 label="Mecánica"
                 score={inspection.report.mechanicalScore}
                 status={inspection.report.mechanicalStatus}
+                category="mechanical"
               />
               <ScoreCard
                 label="Carrocería"
                 score={inspection.report.bodyScore}
                 status={inspection.report.bodyStatus}
+                category="body"
               />
             </div>
 
@@ -369,7 +404,8 @@ export function InspectionDetailClient({ inspection }: Props) {
               </div>
             )}
           </div>
-        )}
+          );
+        })()}
 
         {/* Información del vehículo */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-100">
@@ -546,8 +582,87 @@ export function InspectionDetailClient({ inspection }: Props) {
   );
 }
 
+// Componente que explica cómo se calcula el puntaje general
+function ScoreCalculationInfo({ legalScore, mechanicalScore, bodyScore }: {
+  legalScore: number | null;
+  mechanicalScore: number | null;
+  bodyScore: number | null;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Calcular contribuciones
+  const legalContrib = legalScore ? (legalScore * 0.3).toFixed(1) : '--';
+  const mechContrib = mechanicalScore ? (mechanicalScore * 0.4).toFixed(1) : '--';
+  const bodyContrib = bodyScore ? (bodyScore * 0.3).toFixed(1) : '--';
+
+  return (
+    <div className="mt-3">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="
+          flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700
+          transition-colors w-full justify-center
+        "
+      >
+        <Info size={14} />
+        <span>{isExpanded ? 'Ocultar' : '¿Cómo se calcula?'}</span>
+      </button>
+
+      {isExpanded && (
+        <div className="
+          mt-3 p-4 bg-white/80 rounded-lg border border-gray-200
+          animate-in slide-in-from-top-2 duration-200
+        ">
+          <p className="text-xs text-gray-600 mb-3">
+            Cada área se evalúa de 0 a 100. El puntaje general es la suma ponderada:
+          </p>
+
+          {/* Tabla de cálculo */}
+          <div className="space-y-2 text-xs">
+            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
+              <span className="text-gray-600">Legal</span>
+              <span className="font-mono text-gray-700">
+                {legalScore ?? '--'} × 30% = <strong>{legalContrib}</strong>
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
+              <span className="text-gray-600">Mecánica</span>
+              <span className="font-mono text-gray-700">
+                {mechanicalScore ?? '--'} × 40% = <strong>{mechContrib}</strong>
+              </span>
+            </div>
+            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
+              <span className="text-gray-600">Carrocería</span>
+              <span className="font-mono text-gray-700">
+                {bodyScore ?? '--'} × 30% = <strong>{bodyContrib}</strong>
+              </span>
+            </div>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-gray-900 font-medium">Total</span>
+              <span className="font-mono text-gray-900 font-bold">
+                {legalContrib} + {mechContrib} + {bodyContrib} = {
+                  legalScore && mechanicalScore && bodyScore
+                    ? Math.round(legalScore * 0.3 + mechanicalScore * 0.4 + bodyScore * 0.3)
+                    : '--'
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Componente de score individual
-function ScoreCard({ label, score, status }: { label: string; score: number | null; status: string }) {
+function ScoreCard({ label, score, status, category }: {
+  label: string;
+  score: number | null;
+  status: string;
+  category?: ScoreCategory;
+}) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   const getStatusColor = (s: string) => {
     if (s === 'OK') return 'text-green-600';
     if (s === 'WARNING') return 'text-amber-600';
@@ -555,12 +670,49 @@ function ScoreCard({ label, score, status }: { label: string; score: number | nu
     return 'text-gray-400';
   };
 
+  const categoryInfo = category ? getScoreCategoryInfo(category) : null;
+
   return (
-    <div className="p-4 text-center">
-      <p className="text-xs font-medium text-gray-500 uppercase mb-1">{label}</p>
+    <div className="p-4 text-center relative">
+      <div className="flex items-center justify-center gap-1 mb-1">
+        <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
+        {categoryInfo && (
+          <button
+            onClick={() => setShowTooltip(!showTooltip)}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label={`Información sobre ${label}`}
+          >
+            <HelpCircle size={14} />
+          </button>
+        )}
+      </div>
       <p className={`text-2xl font-bold ${getStatusColor(status)}`}>
         {score ?? '--'}
       </p>
+
+      {/* Tooltip */}
+      {showTooltip && categoryInfo && (
+        <div className="
+          absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2
+          w-64 p-3 rounded-xl shadow-lg border border-gray-200
+          bg-white text-left
+          animate-in fade-in zoom-in-95 duration-200
+        ">
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-gray-200 rotate-45" />
+          <p className="font-semibold text-gray-900 text-sm mb-1">{categoryInfo.title}</p>
+          <p className="text-xs text-gray-600 mb-2">{categoryInfo.description}</p>
+          <ul className="space-y-1">
+            {categoryInfo.items.map((item, idx) => (
+              <li key={idx} className="text-xs text-gray-500 flex items-start gap-1.5">
+                <span className="text-[#F5D849] mt-0.5">•</span>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
