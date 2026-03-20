@@ -276,6 +276,25 @@
 }
 
 /* ============================================
+   Libro de Reclamaciones
+   ============================================ */
+
+.complaintRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.complaintLegal {
+  color: var(--shark--600, #475569);
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+/* ============================================
    Copyright
    ============================================ */
 

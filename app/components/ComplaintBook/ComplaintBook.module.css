@@ -1,0 +1,325 @@
+/* ============================================
+   ComplaintBook — Button (default variant)
+   ============================================ */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background-color: #1a1a2e;
+  border: 1.5px solid rgba(220, 38, 38, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  max-width: 420px;
+}
+
+.button:hover {
+  border-color: rgba(220, 38, 38, 0.65);
+  background-color: rgba(220, 38, 38, 0.06);
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.1);
+}
+
+.button:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 3px;
+}
+
+.buttonIcon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  color: #dc2626;
+}
+
+.buttonContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.buttonLabel {
+  color: #f1f5f9;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.buttonSub {
+  color: #64748b;
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.buttonExternal {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  color: #475569;
+}
+
+/* ============================================
+   ComplaintBook — Footer variant
+   ============================================ */
+
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--shark--400, #64748b);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footerLink:hover {
+  color: #dc2626;
+}
+
+.footerLink:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.footerLinkIcon {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+}
+
+.footerLinkExternal {
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  opacity: 0.6;
+}
+
+/* ============================================
+   Modal — Backdrop
+   ============================================ */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ============================================
+   Modal — Container
+   ============================================ */
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 860px;
+  height: min(90vh, 700px);
+  background-color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(220, 38, 38, 0.1);
+  overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================
+   Modal — Header
+   ============================================ */
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  background-color: #0d1526;
+  flex-shrink: 0;
+}
+
+.modalTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modalIcon {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  color: #dc2626;
+}
+
+.modalTitle {
+  color: #f1f5f9;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.modalSubtitle {
+  color: #64748b;
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  margin: 2px 0 0 0;
+  line-height: 1.3;
+}
+
+.closeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #94a3b8;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background-color: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.closeButton:focus-visible {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+.closeButton svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ============================================
+   Modal — Iframe area
+   ============================================ */
+
+.iframeWrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+.loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background-color: #0f172a;
+  z-index: 1;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(220, 38, 38, 0.15);
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loaderText {
+  color: #475569;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  margin: 0;
+}
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.iframeVisible {
+  opacity: 1;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media screen and (max-width: 767px) {
+  .button {
+    max-width: 100%;
+    padding: 12px 16px;
+  }
+
+  .backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal {
+    max-width: 100%;
+    height: 92dvh;
+    border-radius: 20px 20px 0 0;
+    animation: slideUpMobile 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes slideUpMobile {
+    from { opacity: 0; transform: translateY(100%); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modalHeader {
+    padding: 16px 20px;
+  }
+
+  .modalTitle {
+    font-size: 14px;
+  }
+}

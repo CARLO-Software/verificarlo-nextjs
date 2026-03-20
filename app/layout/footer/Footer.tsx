@@ -1,4 +1,5 @@
 import styles from "./footer.module.css";
+import ComplaintBookButton from "@/app/components/ComplaintBook/ComplaintBookButton";
 
 export default function Footer() {
   // Keywords SEO - para posicionamiento en buscadores
@@ -201,6 +202,12 @@ export default function Footer() {
 
         {/* Línea divisora */}
         <div className={styles.divider}></div>
+
+        {/* Libro de Reclamaciones */}
+        <div className={styles.complaintRow}>
+          <ComplaintBookButton variant="footer" mode="external" />
+          <span className={styles.complaintLegal}>Ley N° 29571</span>
+        </div>
 
         {/* Copyright */}
         <div className={styles.copyright}>
