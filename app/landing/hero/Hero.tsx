@@ -75,8 +75,8 @@ export default function Hero() {
           </h1>
 
           <div className={styles.queRevisamosSection}>
-            {/* CTA Button - Blanco - WhatsApp */}
-            <a href="https://wa.link/64579s" target="_blank" rel="noopener noreferrer" className={styles.ctaButton}>
+            {/* CTA Button - Blanco - Agendar */}
+            <a href="/agendar" className={styles.ctaButton}>
               <span>Agendar inspección ahora</span>
               <ArrowRightIcon />
             </a>
