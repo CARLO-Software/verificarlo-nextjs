@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
 import { vehicles } from "./data/vehicles";
 import { inspectionPlans, inspectionPlanItems } from "./data/inspections";
 
@@ -222,75 +221,6 @@ async function seedInspectionPlanItems(
 }
 
 /**
- * Crea o actualiza el inspector de prueba
- */
-async function seedTestInspector(): Promise<void> {
-  console.log("📦 Procesando inspector de prueba...");
-
-  const testInspector = await prisma.user.upsert({
-    where: { email: "inspector@verificarlo.pe" },
-    update: {
-      role: "INSPECTOR",
-      isInspectorAvailable: true,
-    },
-    create: {
-      name: "Inspector de Prueba",
-      email: "inspector@verificarlo.pe",
-      role: "INSPECTOR",
-      isInspectorAvailable: true,
-    },
-  });
-
-  console.log(`   ✓ Inspector de prueba procesado (ID: ${testInspector.id})`);
-}
-
-/**
- * Crea usuarios de prueba (admin y cliente)
- */
-async function seedTestUsers(): Promise<void> {
-  console.log("📦 Procesando usuarios de prueba...");
-
-  // Contraseña por defecto para usuarios de prueba
-  const defaultPassword = "hola1212";
-  const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-
-  // Admin
-  await prisma.user.upsert({
-    where: { email: "jesus@gmail.com" },
-    update: {
-      name: "Jesus Choe",
-      role: "ADMIN",
-      password: hashedPassword,
-    },
-    create: {
-      name: "Jesus Choe",
-      email: "jesus@gmail.com",
-      role: "ADMIN",
-      password: hashedPassword,
-    },
-  });
-
-  // Cliente
-  await prisma.user.upsert({
-    where: { email: "esteban@gmail.com" },
-    update: {
-      name: "Esteban Cliente",
-      role: "CLIENT",
-      password: hashedPassword,
-    },
-    create: {
-      name: "Esteban Cliente",
-      email: "esteban@gmail.com",
-      role: "CLIENT",
-      password: hashedPassword,
-    },
-  });
-
-  console.log(`   ✓ 2 usuarios de prueba procesados (Admin y Cliente)`);
-  console.log(`   ℹ Contraseña por defecto: ${defaultPassword}`);
-}
-
-/**
  * Crea las categorías del blog
  */
 async function seedBlogCategories(): Promise<void> {
@@ -344,13 +274,7 @@ async function main() {
   // 4. Items de planes (depende de planes)
   await seedInspectionPlanItems(planMap);
 
-  // 5. Inspector de prueba (independiente)
-  await seedTestInspector();
-
-  // 6. Usuarios de prueba (admin y cliente)
-  await seedTestUsers();
-
-  // 7. Categorías del blog (independiente)
+  // 5. Categorías del blog (independiente)
   await seedBlogCategories();
 
   console.log("\n✅ Seed completado!");

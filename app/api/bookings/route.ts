@@ -9,6 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { addMinutes, parse } from "date-fns";
 import { isSlotAvailable } from "@/lib/scheduling/availability";
+import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 import {
   INSPECTION_DURATION_MINUTES,
   BOOKING_EXPIRATION_MINUTES,
@@ -126,6 +127,26 @@ export async function POST(req: NextRequest) {
 
       return newBooking;
     });
+
+    // TODO: Eliminar bloque completo cuando Culqi esté configurado.
+    // Simula el pago para poder probar la asignación de inspectores sin pasarela.
+    await db.$transaction(async (tx) => {
+      await tx.booking.update({
+        where: { id: booking.id },
+        data: { status: "PAID", expiresAt: null },
+      });
+      await tx.payment.update({
+        where: { bookingId: booking.id },
+        data: { status: "COMPLETED", paidAt: new Date() },
+      });
+    });
+
+    const assignment = await assignInspector(booking.id);
+    if (!assignment.success) {
+      console.warn(
+        `[Bookings] Inspector auto-assignment failed for booking ${booking.id}: ${assignment.error}`
+      );
+    }
 
     return NextResponse.json({
       success: true,

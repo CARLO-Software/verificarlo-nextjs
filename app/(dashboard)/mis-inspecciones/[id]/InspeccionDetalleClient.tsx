@@ -693,19 +693,17 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
         )}
 
         {/* Inspector Info */}
-        {inspection.inspector && (
-          <div className={styles.inspectorCard}>
-            <div className={styles.inspectorAvatar}>
-              {inspection.inspector.name?.charAt(0) || "I"}
-            </div>
-            <div className={styles.inspectorInfo}>
-              <p className={styles.inspectorLabel}>Inspector asignado</p>
-              <p className={styles.inspectorName}>
-                {inspection.inspector.name || "Por asignar"}
-              </p>
-            </div>
+        <div className={styles.inspectorCard}>
+          <div className={styles.inspectorAvatar}>
+            {inspection.inspector ? (inspection.inspector.name?.charAt(0) || "I") : "?"}
           </div>
-        )}
+          <div className={styles.inspectorInfo}>
+            <p className={styles.inspectorLabel}>Inspector asignado</p>
+            <p className={styles.inspectorName}>
+              {inspection.inspector?.name ?? "Inspector todavía no asignado"}
+            </p>
+          </div>
+        </div>
 
         {/* Booking Summary */}
         <BookingSummary inspection={inspection} showPrice={false} />
@@ -1014,7 +1012,7 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
           )}
 
           {/* Inspector */}
-          {inspection.inspector && (
+          {inspection.inspector ? (
             <div className={styles.inspectorCard}>
               <div className={styles.inspectorAvatar}>
                 {inspection.inspector.name?.charAt(0) || "I"}
@@ -1026,7 +1024,7 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
                 </p>
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
 

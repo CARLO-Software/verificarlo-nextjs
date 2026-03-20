@@ -145,7 +145,7 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""} ${isInServicesSection ? styles["navbarServices"] : ""}`}
+      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""} ${!isHeroPage ? styles["navbarSticky"] : ""} ${isInServicesSection ? styles["navbarServices"] : ""}`}
       role="navigation"
       aria-label="Navegacion principal"
     >

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Script from "next/script";
+import { useRouter } from "next/navigation";
 import styles from "./PaymentForm.module.css";
 
 declare global {
@@ -42,6 +43,7 @@ export default function PaymentForm({
   onBack,
   onExpired,
 }: PaymentFormProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -167,7 +169,10 @@ export default function PaymentForm({
             setError(data.error || "Error procesando el pago");
           }
         } catch {
-          setError("Error de conexión. Por favor intenta de nuevo.");
+          // Network error: the charge may have gone through despite the failure.
+          // Redirect to pending — polling will determine the real outcome.
+          router.push(`/payment/pending?bookingId=${bookingId}`);
+          return;
         } finally {
           setLoading(false);
         }

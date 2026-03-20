@@ -8,14 +8,7 @@ export async function POST(req: Request) {
     const body = await req.json(); //fullName: "nombre ingresado", email: "email@gmail.com", password: "clave"
 
     try {
-        // Call the login service
-        const result = await registerUser(body);
-
-        if (!result) {
-            return NextResponse.json({ message: "Registration failed" }, { status: 401 });
-        }
-
-        // Process login logic here
+        await registerUser(body);
         return NextResponse.json({ message: "Registration successful" });
     } catch (error) {
         if (error instanceof Error) {

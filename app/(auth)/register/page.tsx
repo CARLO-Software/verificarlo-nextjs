@@ -7,17 +7,12 @@ import { register } from "@/services/auth/auth.client";
 import Link from 'next/link';
 import { GoogleButton } from "@/app/components/GoogleButton";
 import { useToast } from "@/app/components/Toast";
+import Image from "next/image";
 
 // ============================================
-// TYPES - Define the shape of our form data
+// TYPES
 // ============================================
 
-/**
- * Form Data Type
- *
- * Notice we have confirmPassword here for validation,
- * but we won't send it to the API (it's just for UI validation)
- */
 type RegisterFormData = {
     fullName: string;
     email: string;
@@ -25,12 +20,6 @@ type RegisterFormData = {
     confirmPassword: string;
 };
 
-/**
- * Form Errors Type
- *
- * Each field can have its own error message.
- * Empty string means no error.
- */
 type FormErrors = {
     fullName: string;
     email: string;
@@ -38,57 +27,7 @@ type FormErrors = {
     confirmPassword: string;
 };
 
-// ============================================
-// SVG ILLUSTRATION COMPONENT
-// New user registration illustration
-// ============================================
-
-function RegisterIllustration({ className }: { className?: string }) {
-    return (
-        <svg
-            className={className}
-            viewBox="0 0 200 200"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-        >
-            {/* Background circles */}
-            <circle cx="100" cy="100" r="90" fill="var(--bright-sun--200)" opacity="0.4" />
-            <circle cx="100" cy="100" r="70" fill="var(--bright-sun--100)" opacity="0.3" />
-
-            {/* User avatar circle */}
-            <circle cx="100" cy="75" r="35" fill="var(--shark--950)" />
-            <circle cx="100" cy="65" r="15" fill="var(--bright-sun--100)" />
-            <path
-                d="M78 90 A22 22 0 0 1 122 90"
-                fill="var(--bright-sun--100)"
-            />
-
-            {/* Form/clipboard base */}
-            <rect x="55" y="105" width="90" height="70" rx="8" fill="var(--shark--950)" />
-            <rect x="62" y="112" width="76" height="56" rx="4" fill="var(--basics--white)" />
-
-            {/* Form lines (representing form fields) */}
-            <rect x="70" y="122" width="60" height="6" rx="3" fill="var(--shark--200)" />
-            <rect x="70" y="136" width="45" height="6" rx="3" fill="var(--shark--200)" />
-            <rect x="70" y="150" width="55" height="6" rx="3" fill="var(--shark--200)" />
-
-            {/* Plus badge (add user) */}
-            <circle cx="155" cy="55" r="22" fill="var(--bright-sun--300)" />
-            <path
-                d="M155 45 V65 M145 55 H165"
-                stroke="var(--shark--950)"
-                strokeWidth="4"
-                strokeLinecap="round"
-            />
-
-            {/* Decorative sparkles */}
-            <circle cx="40" cy="60" r="5" fill="var(--bright-sun--400)" />
-            <circle cx="165" cy="120" r="4" fill="var(--bright-sun--400)" />
-            <circle cx="35" cy="140" r="3" fill="var(--bright-sun--300)" />
-        </svg>
-    );
-}
+type Step = "form" | "verify";
 
 // ============================================
 // MAIN REGISTER COMPONENT
@@ -118,6 +57,12 @@ export default function Register() {
 
     const [generalError, setGeneralError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [step, setStep] = useState<Step>("form");
+    const [registeredEmail, setRegisteredEmail] = useState("");
+    const [verificationCode, setVerificationCode] = useState("");
+    const [verificationError, setVerificationError] = useState<string | null>(null);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [resendCooldown, setResendCooldown] = useState(0);
 
     // ------------------------------------------
     // VALIDATION FUNCTIONS
@@ -176,13 +121,14 @@ export default function Register() {
                 if (value.length < 8) {
                     return "La contraseña debe tener al menos 8 caracteres";
                 }
-                // Check for at least one number
-                if (!/\d/.test(value)) {
-                    return "La contraseña debe contener al menos un número";
+                if (!/[A-Z]/.test(value)) {
+                    return "La contraseña debe tener al menos una letra mayúscula";
                 }
-                // Check for at least one letter
-                if (!/[a-zA-Z]/.test(value)) {
-                    return "La contraseña debe contener al menos una letra";
+                if (!/\d/.test(value)) {
+                    return "La contraseña debe tener al menos un número";
+                }
+                if (!/[!@#$%^&*()_+\-=\[\]{}|;':",./<>?]/.test(value)) {
+                    return "La contraseña debe tener al menos un carácter especial (!@#$%^&*)";
                 }
                 return "";
 
@@ -310,21 +256,10 @@ export default function Register() {
             // Example API call:
             await register(dataToSend);
 
-            // Success - mostrar toast y redirigir al login
-            showToast("¡Cuenta creada exitosamente! Ya puedes iniciar sesión.", "success");
-
-            // Reset form
-            setFormData({
-                fullName: "",
-                email: "",
-                password: "",
-                confirmPassword: "",
-            });
-
-            // Redirigir al login después de un momento
-            setTimeout(() => {
-                router.push("/login");
-            }, 1500);
+            // Registro exitoso — pasar al paso de verificación
+            setRegisteredEmail(dataToSend.email);
+            setStep("verify");
+            startResendCooldown();
 
         } catch (err) {
             setGeneralError(
@@ -338,15 +273,174 @@ export default function Register() {
     }
 
     // ------------------------------------------
+    // VERIFICACIÓN DE EMAIL
+    // ------------------------------------------
+
+    function startResendCooldown() {
+        setResendCooldown(60);
+        const interval = setInterval(() => {
+            setResendCooldown((prev) => {
+                if (prev <= 1) { clearInterval(interval); return 0; }
+                return prev - 1;
+            });
+        }, 1000);
+    }
+
+    async function handleVerify(e: React.FormEvent) {
+        e.preventDefault();
+        if (isVerifying || verificationCode.length !== 6) return;
+
+        setIsVerifying(true);
+        setVerificationError(null);
+
+        try {
+            const res = await fetch("/api/auth/verify-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: registeredEmail, code: verificationCode }),
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                setVerificationError(data.error || "Código incorrecto.");
+                return;
+            }
+
+            showToast("¡Cuenta verificada! Ya puedes iniciar sesión.", "success");
+            setTimeout(() => router.push("/login"), 1500);
+        } catch {
+            setVerificationError("Error de conexión. Intenta de nuevo.");
+        } finally {
+            setIsVerifying(false);
+        }
+    }
+
+    async function handleResend() {
+        if (resendCooldown > 0) return;
+
+        try {
+            await fetch("/api/auth/resend-code", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: registeredEmail }),
+            });
+            showToast("Código reenviado a tu correo.", "success");
+            startResendCooldown();
+        } catch {
+            showToast("No se pudo reenviar el código.", "error");
+        }
+    }
+
+    // ------------------------------------------
     // RENDER
     // ------------------------------------------
+
+    // Paso de verificación de email
+    if (step === "verify") {
+        return (
+            <div className={styles.container}>
+                <aside className={styles.illustrationSection}>
+                    <Image
+                        src="/assets/images/login-side.png"
+                        alt=""
+                        fill
+                        className={styles.illustrationImage}
+                        aria-hidden="true"
+                        priority
+                    />
+                    <div className={styles.illustrationContent}>
+                        <h2 className={styles.illustrationTitle}>Casi listo</h2>
+                        <p className={styles.illustrationDescription}>
+                            Verifica tu correo para activar tu cuenta.
+                        </p>
+                    </div>
+                </aside>
+
+                <main className={styles.formSection}>
+                    <div className={styles.formCard}>
+                        <header className={styles.formHeader}>
+                            <h1 className={styles.formTitle}>Verifica tu correo</h1>
+                            <p className={styles.formSubtitle}>
+                                Enviamos un código de 6 dígitos a{" "}
+                                <strong>{registeredEmail}</strong>. Revisa tu bandeja de entrada.
+                            </p>
+                        </header>
+
+                        {verificationError && (
+                            <div className={styles.errorContainer} role="alert">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <circle cx="10" cy="10" r="9" stroke="#FF1E39" strokeWidth="2" />
+                                    <path d="M10 6v5M10 13.5v.5" stroke="#FF1E39" strokeWidth="2" strokeLinecap="round" />
+                                </svg>
+                                <p>{verificationError}</p>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleVerify} className={styles.form} noValidate>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="verificationCode" className={styles.label}>
+                                    Código de verificación
+                                    <span className={styles.required}>*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="verificationCode"
+                                    inputMode="numeric"
+                                    maxLength={6}
+                                    value={verificationCode}
+                                    onChange={(e) => {
+                                        setVerificationError(null);
+                                        setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                                    }}
+                                    placeholder="000000"
+                                    className={`${styles.input} ${styles.inputCode}`}
+                                    autoComplete="one-time-code"
+                                    autoFocus
+                                />
+                                <span className={styles.helperText}>
+                                    El código expira en 15 minutos.
+                                </span>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isVerifying || verificationCode.length !== 6}
+                                className={`${styles.submitButton} ${isVerifying ? styles.loading : ""}`}
+                            >
+                                {isVerifying ? "Verificando..." : "Verificar cuenta"}
+                            </button>
+                        </form>
+
+                        <p className={styles.loginPrompt}>
+                            ¿No recibiste el código?{" "}
+                            <button
+                                onClick={handleResend}
+                                disabled={resendCooldown > 0}
+                                className={styles.loginLink}
+                                style={{ background: "none", border: "none", cursor: resendCooldown > 0 ? "default" : "pointer", padding: 0, opacity: resendCooldown > 0 ? 0.5 : 1 }}
+                            >
+                                {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : "Reenviar código"}
+                            </button>
+                        </p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.container}>
             {/* LEFT SIDE: Illustration Section */}
             <aside className={styles.illustrationSection}>
+                <Image
+                    src="/assets/images/login-side.png"
+                    alt=""
+                    fill
+                    className={styles.illustrationImage}
+                    aria-hidden="true"
+                    priority
+                />
                 <div className={styles.illustrationContent}>
-                    <RegisterIllustration className={styles.illustrationIcon} />
                     <h2 className={styles.illustrationTitle}>
                         Crea tu cuenta
                     </h2>
@@ -477,7 +571,7 @@ export default function Register() {
                                 aria-invalid={errors.password ? "true" : "false"}
                             />
                             <span id="password-helper" className={styles.helperText}>
-                                Mínimo 8 caracteres, incluye letras y números
+                                Mínimo 8 caracteres, mayúscula, número y símbolo (!@#$%...)
                             </span>
                             {errors.password && (
                                 <span

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import styles from "./PromotionalBanner.module.css";
 
 export default function PromotionalBanner() {
   const [isVisible, setIsVisible] = useState(true);
   const [isAnimating, _setIsAnimating] = useState(false);
   const [isInServicesSection, setIsInServicesSection] = useState(false);
+  const pathname = usePathname();
+  const isHeroPage = pathname === "/";
 
   //   const handleClose = () => {
   //     setIsAnimating(true);
@@ -48,7 +51,7 @@ export default function PromotionalBanner() {
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--banner-height",
-      isVisible ? "42px" : "0px",
+      isVisible ? "30px" : "0px",
     );
   }, [isVisible]);
 
@@ -56,7 +59,7 @@ export default function PromotionalBanner() {
 
   return (
     <div
-      className={`${styles.bannerWrapper} ${isAnimating ? styles.bannerHiding : ""} ${isInServicesSection ? styles.bannerFixed : ""}`}
+      className={`${styles.bannerWrapper} ${isAnimating ? styles.bannerHiding : ""} ${isInServicesSection ? styles.bannerFixed : ""} ${!isHeroPage ? styles.bannerSticky : ""}`}
       role="banner"
       aria-label="Oferta promocional"
     >

@@ -27,6 +27,12 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 } */
 
+/* Sticky mode for non-landing pages: flows below banner, sticks on scroll */
+.navbarSticky {
+  position: sticky;
+  top: var(--banner-height, 0px);
+}
+
 /* Estado para páginas que NO son el Hero (texto negro por defecto) */
 .navbarSolid {
   background: rgba(255, 255, 255, 0.98);

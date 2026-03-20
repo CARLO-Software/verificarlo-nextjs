@@ -133,9 +133,6 @@ export default function AgendarForm({
     amount: number;
   } | null>(null);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [confirmationData, setConfirmationData] = useState<any>(null);
-
   // =========================================================================
   // EFECTO: Verificar autenticación
   // =========================================================================
@@ -271,9 +268,11 @@ export default function AgendarForm({
     setShowCulqiForm(true);
   };
 
+  // Pago con tarjeta confirmado (o incierto por error de red).
+  // En ambos casos vamos a /payment/pending — el webhook es la fuente de verdad.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlePaymentSuccess = (data: any) => {
-    setConfirmationData(data.booking);
+  const handlePaymentSuccess = (_data: any) => {
+    router.push(`/payment/pending?bookingId=${bookingData!.id}`);
   };
 
   const handlePaymentExpired = () => {
@@ -284,11 +283,10 @@ export default function AgendarForm({
     goToStep(3);
   };
 
-  // Estado para pago en verificación
-  const [pendingVerification, setPendingVerification] = useState(false);
-
+  // Yape / Transferencia / WhatsApp registrado.
+  // El webhook (o admin) confirmará el pago; mientras tanto el usuario espera.
   const handleAlternativePaymentSuccess = () => {
-    setPendingVerification(true);
+    router.push(`/payment/pending?bookingId=${bookingData!.id}`);
   };
 
   // =========================================================================
@@ -306,61 +304,6 @@ export default function AgendarForm({
 
   if (status === "unauthenticated") {
     return null;
-  }
-
-  // =========================================================================
-  // PANTALLA DE CONFIRMACIÓN (después del pago exitoso)
-  // =========================================================================
-
-  if (confirmationData) {
-    return <Confirmation booking={confirmationData} />;
-  }
-
-  // =========================================================================
-  // PANTALLA DE PAGO EN VERIFICACIÓN (Yape/Transfer)
-  // =========================================================================
-
-  if (pendingVerification && bookingData) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <div className={styles.verificationScreen}>
-            <div className={styles.verificationIcon}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 6v6l4 2" />
-              </svg>
-            </div>
-            <h2 className={styles.verificationTitle}>¡Pago registrado!</h2>
-            <p className={styles.verificationText}>
-              Tu pago está siendo verificado. Te notificaremos por correo y WhatsApp
-              cuando sea confirmado (máximo 4 horas).
-            </p>
-            <div className={styles.verificationDetails}>
-              <div className={styles.verificationItem}>
-                <span>Código de reserva:</span>
-                <strong>{bookingData.code}</strong>
-              </div>
-              <div className={styles.verificationItem}>
-                <span>Plan:</span>
-                <strong>{selectedInspection?.title}</strong>
-              </div>
-              <div className={styles.verificationItem}>
-                <span>Fecha:</span>
-                <strong>{selectedDate}</strong>
-              </div>
-              <div className={styles.verificationItem}>
-                <span>Hora:</span>
-                <strong>{selectedSlot}</strong>
-              </div>
-            </div>
-            <a href="/" className={styles.verificationButton}>
-              Volver al inicio
-            </a>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   // =========================================================================

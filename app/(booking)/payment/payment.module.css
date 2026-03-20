@@ -1,0 +1,285 @@
+/* ============================================================
+   Payment Status Pages — Shared Styles
+   /payment/pending | /payment/success | /payment/failed
+   ============================================================ */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #f8fafc;
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05);
+  animation: fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Icon ───────────────────────────────────────────────── */
+
+.iconWrapper {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.iconWrapper[data-type="success"] {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.iconWrapper[data-type="failed"] {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.iconWrapper svg {
+  width: 36px;
+  height: 36px;
+}
+
+/* ── Spinner (pending page) ─────────────────────────────── */
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  color: #FBBF24;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+
+.title {
+  font-family: Inter, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
+
+.subtitle {
+  font-family: Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0 0 28px;
+}
+
+/* ── Details grid ───────────────────────────────────────── */
+
+.detailsGrid {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  margin: 0 0 28px;
+  text-align: left;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  gap: 12px;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+}
+
+.detailRow + .detailRow {
+  border-top: 1px solid #f1f5f9;
+}
+
+.detailRow dt {
+  color: #64748b;
+  font-weight: 400;
+  flex-shrink: 0;
+}
+
+.detailRow dd {
+  color: #0f172a;
+  font-weight: 600;
+  text-align: right;
+  margin: 0;
+}
+
+.amount {
+  color: #16a34a !important;
+  font-size: 16px !important;
+}
+
+/* ── Status chip ────────────────────────────────────────── */
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 100px;
+  margin-bottom: 24px;
+}
+
+.statusChip[data-status="failed"] {
+  color: #dc2626;
+  background: #fff5f5;
+  border-color: #fecaca;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FBBF24;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ── Error box ──────────────────────────────────────────── */
+
+.errorBox {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  color: #b91c1c;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.errorHint {
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  color: #dc2626;
+  margin: 0 0 16px;
+}
+
+.errorHint a {
+  color: #dc2626;
+  text-decoration: underline;
+}
+
+/* ── Action buttons ─────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.primaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #FBBF24;
+  color: #0f172a;
+  font-family: Inter, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 14px 24px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.primaryButton:hover {
+  background: #F59E0B;
+}
+
+.primaryButton:active {
+  transform: scale(0.98);
+}
+
+.primaryButton[data-variant="secondary"] {
+  background: transparent;
+  border: 1.5px solid #FBBF24;
+  color: #0f172a;
+}
+
+.secondaryButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: transparent;
+  color: #64748b;
+  font-family: Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 12px 24px;
+  border-radius: 100px;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.secondaryButton:hover {
+  color: #0f172a;
+}
+
+/* ── Legal note ─────────────────────────────────────────── */
+
+.legal {
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.legal a {
+  color: #64748b;
+  text-decoration: underline;
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+
+@media (max-width: 479px) {
+  .card {
+    padding: 32px 24px;
+    border-radius: 20px;
+  }
+
+  .title {
+    font-size: 21px;
+  }
+}

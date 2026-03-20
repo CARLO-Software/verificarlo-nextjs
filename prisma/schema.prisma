@@ -287,6 +287,7 @@ model Payment {
 
   // Datos Culqi (solo para method = CULQI)
   culqiChargeId String? @unique
+  culqiEventId  String? @unique // Webhook event ID – idempotency key
   culqiToken    String?
 
   // Datos para pagos alternativos (Yape/Transfer)
@@ -322,6 +323,7 @@ model Payment {
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([culqiChargeId])
+  @@index([culqiEventId])
   @@index([status])
   @@index([method])
 }

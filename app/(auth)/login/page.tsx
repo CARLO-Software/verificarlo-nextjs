@@ -6,85 +6,7 @@ import { useLogin } from "./useLogin";
 import { GoogleButton } from "@/app/components/GoogleButton";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-
-// ============================================
-// SVG ILLUSTRATION COMPONENT
-// Secure login illustration matching brand style
-// ============================================
-
-function LoginIllustration({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 200 200"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true" // Hides from screen readers (decorative)
-    >
-      {/* Background circles for visual depth */}
-      <circle
-        cx="100"
-        cy="100"
-        r="90"
-        fill="var(--bright-sun--200)"
-        opacity="0.4"
-      />
-      <circle
-        cx="100"
-        cy="100"
-        r="70"
-        fill="var(--bright-sun--100)"
-        opacity="0.3"
-      />
-
-      {/* Lock body */}
-      <rect
-        x="60"
-        y="90"
-        width="80"
-        height="70"
-        rx="8"
-        fill="var(--shark--950)"
-      />
-
-      {/* Lock shackle (the U-shaped part) */}
-      <path
-        d="M75 90 V70 A25 25 0 0 1 125 70 V90"
-        fill="none"
-        stroke="var(--shark--950)"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-
-      {/* Keyhole */}
-      <circle cx="100" cy="118" r="12" fill="var(--bright-sun--300)" />
-      <rect
-        x="96"
-        y="118"
-        width="8"
-        height="20"
-        rx="2"
-        fill="var(--bright-sun--300)"
-      />
-
-      {/* Decorative check mark badge */}
-      <circle cx="155" cy="55" r="20" fill="var(--bright-sun--300)" />
-      <path
-        d="M145 55 L152 62 L165 49"
-        stroke="var(--shark--950)"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-
-      {/* User icon */}
-      <circle cx="45" cy="50" r="15" fill="var(--shark--300)" />
-      <circle cx="45" cy="42" r="7" fill="var(--shark--950)" />
-      <path d="M33 62 A12 12 0 0 1 57 62" fill="var(--shark--950)" />
-    </svg>
-  );
-}
+import Image from "next/image";
 
 // ============================================
 // LOGIN CONTENT (uses searchParams)
@@ -132,8 +54,15 @@ function LoginContent() {
               Hidden on small screens where space is limited.
             */}
         <aside className={styles.illustrationSection}>
+          <Image
+            src="/assets/images/login-side.png"
+            alt=""
+            fill
+            className={styles.illustrationImage}
+            aria-hidden="true"
+            priority
+          />
           <div className={styles.illustrationContent}>
-            <LoginIllustration className={styles.illustrationIcon} />
             <h2 className={styles.illustrationTitle}>Accede a tu cuenta</h2>
             <p className={styles.illustrationDescription}>
               Inicia sesión para gestionar tus inspecciones y acceder a tu
@@ -282,7 +211,7 @@ function LoginContent() {
 
               {/* Forgot Password Link */}
               <div className={styles.forgotPassword}>
-                <a href="#" className={styles.forgotPasswordLink}>
+                <a href="/forgot-password" className={styles.forgotPasswordLink}>
                   ¿Olvidaste tu contraseña?
                 </a>
               </div>

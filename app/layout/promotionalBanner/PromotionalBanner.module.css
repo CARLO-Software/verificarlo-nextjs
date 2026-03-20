@@ -31,6 +31,12 @@
     animation: slideDownBanner 0.3s ease-out;
 }
 
+/* Sticky mode for non-landing pages: flows with document, sticks on scroll */
+.bannerSticky {
+    position: sticky;
+    top: 0;
+}
+
 @keyframes slideDownBanner {
     from {
         transform: translateY(-100%);
