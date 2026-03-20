@@ -17,7 +17,9 @@
       "Bash(npm run:*)",
       "Bash(find:*)",
       "Bash(npx next build)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -n \"inspector\" C:/Proyectos/verificarlo-nextjs/app/\\\\\\(dashboard\\\\\\)/mis-inspecciones/[id]/InspeccionDetalleClient.tsx)"
     ]
   }
 }
