@@ -61,12 +61,17 @@
 }
 
 /* ============================================
-   Add Photo Button
+   Add Photo Buttons Container
    ============================================ */
 
+.addPhotoButtons {
+  display: flex;
+  gap: 6px;
+}
+
 .addPhotoButton {
-  width: 80px;
-  height: 80px;
+  width: 70px;
+  height: 70px;
   border-radius: 8px;
   border: 2px dashed var(--shark--300);
   background: var(--shark--50);
@@ -77,16 +82,23 @@
   justify-content: center;
   gap: 4px;
   color: var(--shark--500);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   transition: all 0.2s;
-  padding: 8px;
+  padding: 6px;
 }
 
 .addPhotoButton:hover:not(:disabled) {
   border-color: var(--bright-sun--500);
   background: var(--bright-sun--50);
   color: var(--shark--700);
+}
+
+.addPhotoButton:active:not(:disabled) {
+  border-color: var(--bright-sun--600);
+  background: var(--bright-sun--100);
+  color: var(--shark--800);
+  transform: scale(0.96);
 }
 
 .addPhotoButton:disabled {
@@ -97,10 +109,32 @@
 .addPhotoButton.uploading {
   border-color: var(--bright-sun--400);
   background: var(--bright-sun--50);
+  color: var(--shark--700);
 }
 
 .addPhotoButton svg {
   flex-shrink: 0;
+  color: inherit;
+}
+
+/* Galería - estilo diferenciado */
+.addPhotoButtonGallery {
+  border-style: solid;
+  border-color: var(--shark--200);
+  background: white;
+}
+
+.addPhotoButtonGallery:hover:not(:disabled) {
+  border-color: #3B82F6;
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.addPhotoButtonGallery:active:not(:disabled) {
+  border-color: #2563EB;
+  background: #DBEAFE;
+  color: #1E40AF;
+  transform: scale(0.96);
 }
 
 /* ============================================
@@ -172,9 +206,9 @@
   }
 
   .addPhotoButton {
-    width: 100px;
-    height: 100px;
-    font-size: 12px;
+    width: 85px;
+    height: 85px;
+    font-size: 11px;
   }
 
   .deleteButton {
@@ -185,13 +219,14 @@
 
 @media (min-width: 768px) {
   .photoItem {
-    width: 120px;
-    height: 120px;
+    width: 100px;
+    height: 100px;
   }
 
   .addPhotoButton {
-    width: 120px;
-    height: 120px;
+    width: 90px;
+    height: 90px;
+    font-size: 11px;
   }
 }
 

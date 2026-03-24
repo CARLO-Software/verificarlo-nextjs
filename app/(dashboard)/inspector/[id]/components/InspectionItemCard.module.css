@@ -119,6 +119,31 @@
   background: rgba(107, 114, 128, 0.1);
 }
 
+/* Active/Tap states for mobile */
+.statusButton--green:active:not(:disabled) {
+  color: white;
+  background: #16A34A;
+  transform: scale(0.95);
+}
+
+.statusButton--yellow:active:not(:disabled) {
+  color: white;
+  background: #D97706;
+  transform: scale(0.95);
+}
+
+.statusButton--red:active:not(:disabled) {
+  color: white;
+  background: #DC2626;
+  transform: scale(0.95);
+}
+
+.statusButton--gray:active:not(:disabled) {
+  color: white;
+  background: #4B5563;
+  transform: scale(0.95);
+}
+
 /* Add Comment Button */
 .addCommentButton {
   display: flex;
@@ -194,6 +219,73 @@
   color: #9CA3AF;
 }
 
+/* Comment Input Wrapper - para posicionar el botón de voz */
+.commentInputWrapper {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.commentInputWrapper .commentInput {
+  flex: 1;
+  padding-right: 8px;
+}
+
+.voiceButton {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* Predefined Comments Chips */
+.predefinedComments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.commentChip {
+  padding: 6px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+  background: #F3F4F6;
+  border: 1px solid #E5E7EB;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.commentChip:hover {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+}
+
+.commentChip:active {
+  background: #D1D5DB;
+  color: #374151;
+  transform: scale(0.95);
+}
+
+.commentChipActive {
+  background: #FEF3C7;
+  border-color: #F59E0B;
+  color: #92400E;
+}
+
+.commentChipActive:hover {
+  background: #FDE68A;
+}
+
+.commentChipActive:active {
+  background: #FCD34D;
+  color: #78350F;
+  transform: scale(0.95);
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .cardContent {
@@ -230,5 +322,14 @@
   .statusButton {
     padding: 8px 6px;
     font-size: 11px;
+  }
+
+  .predefinedComments {
+    gap: 4px;
+  }
+
+  .commentChip {
+    padding: 5px 8px;
+    font-size: 10px;
   }
 }

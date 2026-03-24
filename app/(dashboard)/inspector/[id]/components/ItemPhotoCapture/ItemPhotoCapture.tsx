@@ -38,43 +38,27 @@ export function ItemPhotoCapture({
   maxPhotos = 5,
 }: ItemPhotoCaptureProps) {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [viewingPhoto, setViewingPhoto] = useState<Photo | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputMultipleRef = useRef<HTMLInputElement>(null);
+
+  // Detectar si es iOS (no soporta bien multiple)
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   const handleCameraClick = () => {
     if (disabled || uploading) return;
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleGalleryClick = () => {
+    if (disabled || uploading) return;
+    fileInputMultipleRef.current?.click();
+  };
 
-    // Limpiar input para permitir seleccionar la misma foto
-    e.target.value = "";
-
-    // Validar que sea imagen
-    if (!file.type.startsWith("image/")) {
-      setError("Solo se permiten imágenes");
-      return;
-    }
-
-    // Validar tamaño (10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      setError("La imagen no debe superar 10MB");
-      return;
-    }
-
-    // Validar máximo de fotos
-    if (photos.length >= maxPhotos) {
-      setError(`Máximo ${maxPhotos} fotos por item`);
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
+  // Subir un archivo individual
+  const uploadSingleFile = async (file: File): Promise<boolean> => {
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -93,10 +77,105 @@ export function ItemPhotoCapture({
       }
 
       onPhotoAdded(data.photo);
-    } catch (err: any) {
-      setError(err.message || "Error al subir la imagen");
-    } finally {
-      setUploading(false);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  // Manejar captura de cámara (una foto)
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    e.target.value = "";
+
+    if (!file.type.startsWith("image/")) {
+      setError("Solo se permiten imágenes");
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("La imagen no debe superar 10MB");
+      return;
+    }
+
+    if (photos.length >= maxPhotos) {
+      setError(`Máximo ${maxPhotos} fotos por item`);
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    const success = await uploadSingleFile(file);
+    if (!success) {
+      setError("Error al subir la imagen");
+    }
+
+    setUploading(false);
+  };
+
+  // Manejar selección de galería (múltiple en Android/Desktop, una por una en iOS)
+  const handleMultipleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Limpiar input inmediatamente
+    const input = e.target;
+    setTimeout(() => { input.value = ""; }, 0);
+
+    // Filtrar y validar archivos
+    const validFiles: File[] = [];
+    const remainingSlots = maxPhotos - photos.length;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      // Verificar tipo de imagen (incluyendo HEIC de iOS)
+      const isImage = file.type.startsWith("image/") ||
+                      file.name.toLowerCase().endsWith('.heic') ||
+                      file.name.toLowerCase().endsWith('.heif');
+      if (isImage && file.size <= 10 * 1024 * 1024) {
+        validFiles.push(file);
+      }
+    }
+
+    // Limitar a slots disponibles
+    const filesToUpload = validFiles.slice(0, remainingSlots);
+
+    if (filesToUpload.length === 0) {
+      setError("No se encontraron imágenes válidas");
+      return;
+    }
+
+    if (validFiles.length > remainingSlots) {
+      setError(`Solo se subirán ${remainingSlots} fotos (límite: ${maxPhotos})`);
+    }
+
+    setUploading(true);
+    setError(null);
+
+    // Mostrar progreso solo si hay más de 1 archivo
+    if (filesToUpload.length > 1) {
+      setUploadProgress({ current: 0, total: filesToUpload.length });
+    }
+
+    let successCount = 0;
+    for (let i = 0; i < filesToUpload.length; i++) {
+      if (filesToUpload.length > 1) {
+        setUploadProgress({ current: i + 1, total: filesToUpload.length });
+      }
+      const success = await uploadSingleFile(filesToUpload[i]);
+      if (success) successCount++;
+    }
+
+    setUploadProgress(null);
+    setUploading(false);
+
+    if (successCount === 0) {
+      setError("Error al subir las fotos");
+    } else if (successCount < filesToUpload.length) {
+      setError(`${successCount}/${filesToUpload.length} fotos subidas`);
     }
   };
 
@@ -126,13 +205,26 @@ export function ItemPhotoCapture({
 
   return (
     <div className={styles.container}>
-      {/* Input oculto para captura */}
+      {/* Input oculto para captura con cámara */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         capture="environment"
         onChange={handleFileChange}
+        className={styles.hiddenInput}
+        disabled={disabled || uploading}
+      />
+      {/* Input oculto para selección múltiple de galería */}
+      <input
+        ref={(el) => {
+          (fileInputMultipleRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+          // Forzar atributo multiple correctamente
+          if (el) el.setAttribute('multiple', 'multiple');
+        }}
+        type="file"
+        accept="image/*"
+        onChange={handleMultipleFileChange}
         className={styles.hiddenInput}
         disabled={disabled || uploading}
       />
@@ -174,33 +266,55 @@ export function ItemPhotoCapture({
           </div>
         ))}
 
-        {/* Botón para agregar foto */}
+        {/* Botones para agregar fotos */}
         {canAddMore && !disabled && (
-          <button
-            type="button"
-            className={`${styles.addPhotoButton} ${uploading ? styles.uploading : ""}`}
-            onClick={handleCameraClick}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <span className={styles.spinner} />
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect
-                  x="2"
-                  y="4"
-                  width="16"
-                  height="12"
-                  rx="2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                />
-                <circle cx="10" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
-                <circle cx="15" cy="6" r="1" fill="currentColor" />
-              </svg>
-            )}
-            <span>{uploading ? "Subiendo..." : "Foto"}</span>
-          </button>
+          <div className={styles.addPhotoButtons}>
+            {/* Botón cámara */}
+            <button
+              type="button"
+              className={`${styles.addPhotoButton} ${uploading ? styles.uploading : ""}`}
+              onClick={handleCameraClick}
+              disabled={uploading}
+              title="Tomar foto"
+            >
+              {uploading && !uploadProgress ? (
+                <span className={styles.spinner} />
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                  <rect x="2" y="4" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                  <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+                  <circle cx="13" cy="5.5" r="0.75" fill="currentColor"/>
+                </svg>
+              )}
+              <span>Cámara</span>
+            </button>
+            {/* Botón galería */}
+            <button
+              type="button"
+              className={`${styles.addPhotoButton} ${styles.addPhotoButtonGallery} ${uploading ? styles.uploading : ""}`}
+              onClick={handleGalleryClick}
+              disabled={uploading}
+              title={isIOS ? "Seleccionar foto" : "Seleccionar varias fotos"}
+            >
+              {uploading && uploadProgress ? (
+                <>
+                  <span className={styles.spinner} />
+                  <span>{uploadProgress.current}/{uploadProgress.total}</span>
+                </>
+              ) : uploading ? (
+                <span className={styles.spinner} />
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <rect x="2" y="2" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+                    <circle cx="6" cy="6" r="1.5" stroke="currentColor" strokeWidth="1"/>
+                    <path d="M2 12l4-4 3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>{isIOS ? "Fotos" : "Galería"}</span>
+                </>
+              )}
+            </button>
+          </div>
         )}
       </div>
 

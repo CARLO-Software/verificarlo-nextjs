@@ -9,6 +9,7 @@
 import { useState } from "react";
 import type { InspectionStatus } from "../inspectionData";
 import { ItemPhotoCapture, type Photo } from "./ItemPhotoCapture";
+import { VoiceButton } from "@/app/components/VoiceButton";
 import styles from "./InspectionItemCard.module.css";
 
 interface InspectionItemCardProps {
@@ -23,6 +24,8 @@ interface InspectionItemCardProps {
   photos?: Photo[];
   onPhotoAdded?: (photo: Photo) => void;
   onPhotoDeleted?: (photoId: number) => void;
+  // Categoría para filtrar opciones (legal solo tiene OK/No aplica)
+  categoryId?: string;
 }
 
 const STATUS_OPTIONS: {
@@ -37,6 +40,26 @@ const STATUS_OPTIONS: {
   { value: "NO_APLICA", label: "No aplica", shortLabel: "N/A", color: "gray" },
 ];
 
+// Comentarios predefinidos por tipo de estado
+const PREDEFINED_COMMENTS: Record<"OBSERVACION" | "DEFECTO", string[]> = {
+  OBSERVACION: [
+    "Desgaste normal",
+    "Requiere atención pronto",
+    "Suciedad visible",
+    "Ligero ruido",
+    "Pequeña fuga",
+    "Revisión recomendada",
+  ],
+  DEFECTO: [
+    "Requiere cambio inmediato",
+    "No funciona",
+    "Daño estructural",
+    "Fuga severa",
+    "Riesgo de seguridad",
+    "Reparación mayor requerida",
+  ],
+};
+
 export function InspectionItemCard({
   id,
   label,
@@ -49,9 +72,15 @@ export function InspectionItemCard({
   photos = [],
   onPhotoAdded,
   onPhotoDeleted,
+  categoryId,
 }: InspectionItemCardProps) {
   const [localComment, setLocalComment] = useState(comment);
   const [isCommentOpen, setIsCommentOpen] = useState(!!comment);
+
+  // Filtrar opciones de estado según categoría
+  const availableOptions = categoryId === "legal"
+    ? STATUS_OPTIONS.filter((opt) => opt.value === "OK" || opt.value === "NO_APLICA")
+    : STATUS_OPTIONS;
 
   const handleStatusClick = (newStatus: InspectionStatus) => {
     if (disabled) return;
@@ -91,7 +120,7 @@ export function InspectionItemCard({
         <span className={styles.label}>{label}</span>
 
         <div className={styles.statusButtons}>
-          {STATUS_OPTIONS.map((option) => (
+          {availableOptions.map((option) => (
             <button
               key={option.value}
               type="button"
@@ -132,20 +161,67 @@ export function InspectionItemCard({
       {/* Área de comentario */}
       {(showCommentSection || isCommentOpen) && status && (
         <div className={styles.commentSection}>
-          <textarea
-            className={styles.commentInput}
-            placeholder={
-              status === "DEFECTO"
-                ? "Describe el defecto encontrado..."
-                : status === "OBSERVACION"
-                ? "Describe la observación..."
-                : "Comentario adicional (opcional)..."
-            }
-            value={localComment}
-            onChange={(e) => handleCommentChange(e.target.value)}
-            disabled={disabled}
-            rows={2}
-          />
+          {/* Chips de comentarios predefinidos */}
+          {(status === "OBSERVACION" || status === "DEFECTO") && !disabled && (
+            <div className={styles.predefinedComments}>
+              {PREDEFINED_COMMENTS[status].map((suggestion) => (
+                <button
+                  key={suggestion}
+                  type="button"
+                  className={`${styles.commentChip} ${
+                    localComment.includes(suggestion) ? styles.commentChipActive : ""
+                  }`}
+                  onClick={() => {
+                    // Toggle: agregar o quitar del comentario
+                    if (localComment.includes(suggestion)) {
+                      const newComment = localComment
+                        .replace(suggestion, "")
+                        .replace(/,\s*,/g, ",")
+                        .replace(/^,\s*|,\s*$/g, "")
+                        .trim();
+                      handleCommentChange(newComment);
+                    } else {
+                      const newComment = localComment
+                        ? `${localComment}, ${suggestion}`
+                        : suggestion;
+                      handleCommentChange(newComment);
+                    }
+                  }}
+                >
+                  {suggestion}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className={styles.commentInputWrapper}>
+            <textarea
+              className={styles.commentInput}
+              placeholder={
+                status === "DEFECTO"
+                  ? "Describe el defecto encontrado..."
+                  : status === "OBSERVACION"
+                  ? "Describe la observación..."
+                  : "Comentario adicional (opcional)..."
+              }
+              value={localComment}
+              onChange={(e) => handleCommentChange(e.target.value)}
+              disabled={disabled}
+              rows={2}
+            />
+            {!disabled && (
+              <VoiceButton
+                onTranscript={(text) => {
+                  // Agregar texto dictado al comentario existente
+                  const newComment = localComment
+                    ? `${localComment} ${text}`
+                    : text;
+                  handleCommentChange(newComment);
+                }}
+                disabled={disabled}
+                className={styles.voiceButton}
+              />
+            )}
+          </div>
         </div>
       )}
 

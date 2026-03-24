@@ -46,11 +46,14 @@ export function InspectionChecklist({
   const [results, setResults] = useState<InspectionResults>(initialResults);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   // Ref para el timeout del autoguardado
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Ref para trackear si hay cambios pendientes
   const hasUnsavedChanges = useRef(false);
+  // Ref para ocultar el indicador de "guardado"
+  const savedIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Obtener categoría activa
   const currentCategory = useMemo(() => {
@@ -67,12 +70,26 @@ export function InspectionChecklist({
     if (!onSave || saving || disabled) return;
 
     setSaving(true);
+    setSaveStatus("saving");
+
+    // Limpiar timeout anterior del indicador
+    if (savedIndicatorTimeoutRef.current) {
+      clearTimeout(savedIndicatorTimeoutRef.current);
+    }
+
     try {
       await onSave(newResults);
       setLastSaved(new Date());
       hasUnsavedChanges.current = false;
+      setSaveStatus("saved");
+
+      // Ocultar indicador después de 2 segundos
+      savedIndicatorTimeoutRef.current = setTimeout(() => {
+        setSaveStatus("idle");
+      }, 2000);
     } catch (error) {
       console.error("Error al autoguardar:", error);
+      setSaveStatus("idle");
     } finally {
       setSaving(false);
     }
@@ -131,26 +148,39 @@ export function InspectionChecklist({
     onCategoryChange?.(categoryId);
   };
 
-  // Guardar resultados manualmente
-  const handleSave = async () => {
-    if (!onSave || saving) return;
+  // Marcar todos los ítems de una sección como OK
+  const handleMarkAllOk = useCallback(
+    (sectionItems: { id: string }[]) => {
+      if (disabled) return;
 
-    // Cancelar autoguardado pendiente
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
+      setResults((prev) => {
+        const newResults = { ...prev };
 
-    setSaving(true);
-    try {
-      await onSave(results);
-      setLastSaved(new Date());
-      hasUnsavedChanges.current = false;
-    } catch (error) {
-      console.error("Error al guardar:", error);
-    } finally {
-      setSaving(false);
-    }
-  };
+        sectionItems.forEach((item) => {
+          // Solo marcar como OK si no tiene estado o si ya está OK
+          // No sobrescribir OBSERVACION o DEFECTO
+          if (!newResults[item.id] || newResults[item.id].status === null) {
+            newResults[item.id] = { status: "OK" };
+          }
+        });
+
+        hasUnsavedChanges.current = true;
+
+        // Cancelar timeout anterior si existe
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Programar autoguardado
+        saveTimeoutRef.current = setTimeout(() => {
+          autoSave(newResults);
+        }, 500); // Más rápido para acción en lote
+
+        return newResults;
+      });
+    },
+    [disabled, autoSave]
+  );
 
   // Obtener icono de categoría
   const getCategoryIcon = (icon: string) => {
@@ -224,6 +254,26 @@ export function InspectionChecklist({
 
   return (
     <div className={`${styles.container} checklistContainer`}>
+      {/* Indicador de autoguardado flotante */}
+      {saveStatus !== "idle" && (
+        <div className={`${styles.autoSaveIndicator} ${styles[`autoSaveIndicator--${saveStatus}`]}`}>
+          {saveStatus === "saving" && (
+            <>
+              <span className={styles.autoSaveSpinner} />
+              <span>Guardando...</span>
+            </>
+          )}
+          {saveStatus === "saved" && (
+            <>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M2 7l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Guardado</span>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Header móvil con categoría activa */}
       <div className={styles.mobileHeader}>
         <div className={styles.mobileHeaderTop}>
@@ -317,6 +367,10 @@ export function InspectionChecklist({
           const sectionItemIds = section.items.map(item => item.id);
           const completedInSection = sectionItemIds.filter(id => results[id]).length;
           const totalInSection = section.items.length;
+          // Verificar si hay ítems sin marcar (para mostrar botón "Todo OK")
+          const hasUnmarkedItems = section.items.some(
+            (item) => !results[item.id] || results[item.id].status === null
+          );
 
           return (
             <div key={section.id} className={styles.section}>
@@ -336,6 +390,20 @@ export function InspectionChecklist({
                     {completedInSection} de {totalInSection} items
                   </span>
                 </div>
+                {/* Botón "Todo OK" */}
+                {!disabled && hasUnmarkedItems && (
+                  <button
+                    type="button"
+                    className={styles.markAllOkButton}
+                    onClick={() => handleMarkAllOk(section.items)}
+                    title="Marcar todos como OK"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M2 7l4 4 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>Todo OK</span>
+                  </button>
+                )}
               </div>
               <div className={styles.itemsList}>
                 {section.items.map((item) => {
@@ -350,6 +418,7 @@ export function InspectionChecklist({
                       comment={itemResult?.comment}
                       disabled={disabled}
                       onStatusChange={handleStatusChange}
+                      categoryId={activeCategory}
                       // Props para fotos
                       reportId={reportId}
                       photos={itemPhotos}
@@ -363,40 +432,16 @@ export function InspectionChecklist({
           );
         })}
 
-        {/* Save Button */}
-        {!disabled && onSave && (
-          <div className={styles.saveSection}>
-            <button
-              type="button"
-              className={styles.saveButton}
-              onClick={handleSave}
-              disabled={saving}
-            >
-              {saving ? (
-                <>
-                  <span className={styles.spinner} />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <path
-                      d="M15 6l-6 6-3-3"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  Guardar cambios
-                </>
-              )}
-            </button>
-            {lastSaved && (
-              <span className={styles.lastSaved}>
-                Guardado a las {lastSaved.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
-              </span>
-            )}
+        {/* Último guardado (solo informativo) */}
+        {lastSaved && !disabled && (
+          <div className={styles.lastSavedInfo}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <circle cx="7" cy="7" r="6" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M7 4v3l2 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <span>
+              Último guardado: {lastSaved.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" })}
+            </span>
           </div>
         )}
       </div>
