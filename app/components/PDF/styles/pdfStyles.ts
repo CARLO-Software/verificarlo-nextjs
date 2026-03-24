@@ -136,9 +136,9 @@ export function getStatusText(status: string): string {
     case 'OK':
       return 'OK';
     case 'WARNING':
-      return 'OBS';
+      return 'OBSERVACIÓN';
     case 'CRITICAL':
-      return 'DEF';
+      return 'DEFECTO';
     default:
       return '-';
   }

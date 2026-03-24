@@ -42,8 +42,8 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  width: 380px;
-  max-height: 480px;
+  width: 400px;
+  max-height: 520px;
   background: white;
   border-radius: 0.75rem;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
@@ -107,7 +107,7 @@
 
 /* Lista de notificaciones */
 .list {
-  max-height: 360px;
+  max-height: 400px;
   overflow-y: auto;
 }
 
@@ -126,13 +126,88 @@
   font-size: 0.875rem;
 }
 
-/* Item de notificación */
+/* ========================================
+   GRUPOS DE NOTIFICACIONES
+   ======================================== */
+.group {
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.group:last-child {
+  border-bottom: none;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #F9FAFB;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.groupCount {
+  margin-left: auto;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+}
+
+/* Colores por grupo */
+.groupUrgent {
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+.groupUrgent .groupCount {
+  background: #FECACA;
+  color: #DC2626;
+}
+
+.groupToday {
+  color: #D97706;
+  background: #FFFBEB;
+}
+
+.groupToday .groupCount {
+  background: #FDE68A;
+  color: #92400E;
+}
+
+.groupWeek {
+  color: #2563EB;
+  background: #EFF6FF;
+}
+
+.groupWeek .groupCount {
+  background: #BFDBFE;
+  color: #1E40AF;
+}
+
+.groupOlder {
+  color: #6B7280;
+  background: #F9FAFB;
+}
+
+.groupOlder .groupCount {
+  background: #E5E7EB;
+  color: #4B5563;
+}
+
+/* ========================================
+   ITEM DE NOTIFICACION
+   ======================================== */
 .item {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.75rem 1rem;
   border: none;
   border-bottom: 1px solid #F3F4F6;
   background: white;
@@ -149,7 +224,7 @@
   border-bottom: none;
 }
 
-/* Item no leído */
+/* Item no leido */
 .item.unread {
   background-color: #FEF3C7;
 }
@@ -222,35 +297,53 @@
   margin-top: 0.25rem;
 }
 
+/* ========================================
+   ACCIONES DEL ITEM
+   ======================================== */
+.itemActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  margin-left: 0.75rem;
+}
+
 .unreadDot {
   width: 0.5rem;
   height: 0.5rem;
   background-color: #3B82F6;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-left: 0.75rem;
-  margin-top: 0.25rem;
 }
 
-/* Footer */
-.footer {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #E5E7EB;
-  background: #FAFAFA;
-  text-align: center;
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #9CA3AF;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
 }
 
-.viewAll {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: #F5D849;
-  text-decoration: none;
-  transition: color 0.15s ease;
+.item:hover .deleteBtn {
+  opacity: 1;
 }
 
-.viewAll:hover {
-  color: #D4B83D;
-  text-decoration: underline;
+.deleteBtn:hover:not(:disabled) {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Responsive */
@@ -258,5 +351,13 @@
   .dropdown {
     width: calc(100vw - 2rem);
     right: -0.5rem;
+  }
+
+  .item:hover .deleteBtn {
+    opacity: 1;
+  }
+
+  .deleteBtn {
+    opacity: 0.6;
   }
 }

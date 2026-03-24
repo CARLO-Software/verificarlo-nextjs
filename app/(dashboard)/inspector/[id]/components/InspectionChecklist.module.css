@@ -1,6 +1,6 @@
 /**
- * Estilos para InspectionChecklist
- * Layout principal con tabs de categorías y secciones de inspección
+ * InspectionChecklist - Stripe/Linear Inspired
+ * Clean, minimal SaaS aesthetic
  */
 
 .container {
@@ -21,13 +21,13 @@
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   border-radius: 100px;
   z-index: 100;
   animation: slideIn 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 @keyframes slideIn {
@@ -43,18 +43,20 @@
 
 .autoSaveIndicator--saving {
   background: #FEF3C7;
-  color: #92400E;
+  color: #B45309;
+  border: 1px solid #FDE68A;
 }
 
 .autoSaveIndicator--saved {
   background: #D1FAE5;
-  color: #065F46;
+  color: #047857;
+  border: 1px solid #A7F3D0;
 }
 
 .autoSaveSpinner {
   width: 12px;
   height: 12px;
-  border: 2px solid #92400E;
+  border: 2px solid #B45309;
   border-top-color: transparent;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -68,12 +70,12 @@
   align-items: center;
   gap: 4px;
   padding: 6px 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
-  font-weight: 500;
-  color: #065F46;
+  font-weight: 600;
+  color: #047857;
   background: #D1FAE5;
-  border: none;
+  border: 1px solid #A7F3D0;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -82,12 +84,11 @@
 
 .markAllOkButton:hover {
   background: #A7F3D0;
-  transform: scale(1.02);
+  border-color: #6EE7B7;
 }
 
 .markAllOkButton:active {
   background: #6EE7B7;
-  color: #064E3B;
   transform: scale(0.96);
 }
 
@@ -104,10 +105,11 @@
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
-  color: #9CA3AF;
-  background: #F9FAFB;
+  color: #94A3B8;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
 }
 
@@ -117,11 +119,11 @@
 
 .mobileHeader {
   display: none;
-  background: linear-gradient(135deg, #1F2937 0%, #374151 100%);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   padding: 16px;
   border-radius: 12px;
   margin-bottom: 12px;
-  color: white;
 }
 
 .mobileHeaderTop {
@@ -143,24 +145,25 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: rgba(255, 225, 76, 0.2);
+  background: #FEF3C7;
   border-radius: 10px;
-  color: #FFE14C;
+  color: #B45309;
 }
 
 .mobileHeaderLabel {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #94A3B8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 .mobileHeaderTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 16px;
   font-weight: 600;
+  color: #0F172A;
   margin: 2px 0 0 0;
 }
 
@@ -170,28 +173,28 @@
 
 .mobileHeaderPercentage {
   display: block;
-  font-family: 'Inter', sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  color: #FFE14C;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: #0F172A;
 }
 
 .mobileHeaderProgressLabel {
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #94A3B8;
 }
 
 .mobileProgressBar {
   height: 6px;
-  background: rgba(255, 255, 255, 0.2);
+  background: #E2E8F0;
   border-radius: 3px;
   overflow: hidden;
 }
 
 .mobileProgressFill {
   height: 100%;
-  background: #FFE14C;
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
   border-radius: 3px;
   transition: width 0.3s ease;
 }
@@ -199,10 +202,11 @@
 /* Progress Section */
 .progressSection {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .progressHeader {
@@ -213,29 +217,29 @@
 }
 
 .progressLabel {
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #6B7280;
+  color: #64748B;
 }
 
 .progressValue {
-  font-family: 'Inter', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 500;
+  color: #0F172A;
 }
 
 .progressBar {
   height: 8px;
-  background: #E5E7EB;
+  background: #E2E8F0;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #FFE14C 0%, #FFCA28 100%);
+  background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -243,9 +247,9 @@
 /* Category Tabs */
 .categoryTabs {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   padding: 4px;
-  background: #F3F4F6;
+  background: #F1F5F9;
   border-radius: 12px;
   margin-bottom: 20px;
   overflow-x: auto;
@@ -259,27 +263,28 @@
   flex: 1;
   min-width: 120px;
   padding: 12px 16px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #6B7280;
+  color: #64748B;
   background: transparent;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
+  position: relative;
 }
 
 .categoryTab:hover {
-  background: rgba(255, 255, 255, 0.5);
-  color: #374151;
+  background: rgba(255, 255, 255, 0.6);
+  color: #475569;
 }
 
 .categoryTabActive {
   background: white;
-  color: #1F2937;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  color: #0F172A;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .categoryIcon {
@@ -296,36 +301,43 @@
 
 .categoryBadge {
   padding: 2px 8px;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
-  font-weight: 600;
-  color: #6B7280;
-  background: #E5E7EB;
+  font-weight: 500;
+  color: #64748B;
+  background: #E2E8F0;
   border-radius: 100px;
 }
 
 .categoryTabActive .categoryBadge {
   background: #FEF3C7;
-  color: #92400E;
+  color: #B45309;
 }
 
 .categoryBadgeComplete {
   background: #D1FAE5 !important;
-  color: #065F46 !important;
+  color: #047857 !important;
 }
 
 /* Content */
 .content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* Section */
 .section {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E2E8F0;
   border-radius: 16px;
   padding: 20px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s ease;
+}
+
+.section:hover {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.07);
 }
 
 .sectionHeader {
@@ -334,7 +346,7 @@
   gap: 12px;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #F3F4F6;
+  border-bottom: 1px solid #F1F5F9;
 }
 
 .sectionIndex {
@@ -343,17 +355,17 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  background: #F3F4F6;
-  color: #6B7280;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  background: #F1F5F9;
+  color: #64748B;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
   border-radius: 8px;
   flex-shrink: 0;
 }
 
 .sectionIndex svg {
-  color: #22C55E;
+  color: #10B981;
 }
 
 .section:has(.sectionIndex svg) .sectionIndex {
@@ -365,25 +377,25 @@
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 15px;
   font-weight: 600;
-  color: #1F2937;
+  color: #0F172A;
   margin: 0;
 }
 
 .sectionProgress {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
-  color: #9CA3AF;
+  color: #94A3B8;
   margin-top: 2px;
 }
 
 .itemsList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 /* Indicador móvil de categoría completada */
@@ -394,23 +406,19 @@
   right: -4px;
   width: 18px;
   height: 18px;
-  background: #22C55E;
+  background: #10B981;
   color: white;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
 }
 
-.categoryTab {
-  position: relative;
-}
-
 .categoryTabComplete {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(16, 185, 129, 0.08);
 }
 
 .categoryTabComplete .categoryIcon {
-  color: #22C55E;
+  color: #10B981;
 }
 
 /* Save Section */
@@ -420,11 +428,11 @@
   gap: 16px;
   padding: 20px;
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   position: sticky;
   bottom: 16px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
 }
 
 .saveButton {
@@ -432,26 +440,27 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px 28px;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  padding: 12px 24px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
   font-weight: 600;
-  color: #1F2937;
-  background: #FFE14C;
+  color: white;
+  background: #0F172A;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #FFD700;
+  background: #1E293B;
   transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1);
 }
 
 .saveButton:disabled {
-  background: #E5E7EB;
-  color: #9CA3AF;
+  background: #E2E8F0;
+  color: #94A3B8;
   cursor: not-allowed;
   transform: none;
 }
@@ -459,8 +468,8 @@
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #9CA3AF;
-  border-top-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -472,28 +481,26 @@
 }
 
 .lastSaved {
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
-  color: #22C55E;
+  color: #10B981;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  /* Mostrar header móvil */
   .mobileHeader {
     display: block;
   }
 
-  /* Ocultar progreso desktop */
   .progressSection {
     display: none;
   }
 
   .categoryTabs {
-    gap: 6px;
+    gap: 4px;
     padding: 4px;
     background: white;
-    border: 1px solid #E5E7EB;
+    border: 1px solid #E2E8F0;
     border-radius: 12px;
   }
 
@@ -507,8 +514,8 @@
   }
 
   .categoryTabActive {
-    background: #FFFBEB;
-    border: 1px solid #FFE14C;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
   }
 
   .categoryTitle {
@@ -541,10 +548,9 @@
   .sectionIndex {
     width: 24px;
     height: 24px;
-    font-size: 12px;
+    font-size: 11px;
   }
 
-  /* Mark All OK button responsive */
   .markAllOkButton {
     order: 3;
     width: 100%;
@@ -553,7 +559,6 @@
     padding: 10px;
   }
 
-  /* Autosave indicator móvil */
   .autoSaveIndicator {
     top: auto;
     bottom: 20px;
@@ -586,16 +591,16 @@
   }
 
   .mobileHeaderTitle {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .mobileHeaderPercentage {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .categoryTabs {
     padding: 3px;
-    gap: 4px;
+    gap: 3px;
   }
 
   .categoryTab {
@@ -607,7 +612,7 @@
   }
 
   .content {
-    gap: 16px;
+    gap: 14px;
   }
 
   .section {
@@ -624,6 +629,6 @@
   }
 
   .itemsList {
-    gap: 10px;
+    gap: 8px;
   }
 }

@@ -120,7 +120,7 @@ function getStatusConfig(status: string, defectos?: number, observaciones?: numb
   if (status === 'WARNING' || (observaciones && observaciones > 0)) {
     return {
       icon: '!',
-      label: observaciones === 1 ? '1 observación' : `${observaciones} obs.`,
+      label: observaciones === 1 ? '1 observación' : `${observaciones} observaciones`,
       color: colors.warning,
       cardStyle: styles.cardWarning,
     };

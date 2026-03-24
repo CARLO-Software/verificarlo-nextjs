@@ -26,53 +26,52 @@ interface PDFChecklistProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: 'bold',
     color: colors.graphite,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.borderGray,
   },
   category: {
-    marginBottom: 14,
+    marginBottom: 16,
   },
   categoryHeader: {
-    // 📚 CONCEPTO CSS - Flex wrap:
-    // Cambiamos a wrap para que si el contenido es largo, baje a la siguiente línea
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: colors.graphite,
-    padding: 8,
+    padding: 10,
     borderRadius: 4,
-    marginBottom: 8,
-    gap: 4,
+    marginBottom: 10,
+    gap: 6,
   },
   categoryTitle: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 'bold',
     color: colors.white,
     textTransform: 'uppercase',
-    letterSpacing: 0.3,
-    // Ancho mínimo para evitar que el badge lo aplaste
-    minWidth: 80,
+    letterSpacing: 0.5,
+    minWidth: 100,
   },
   categoryBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.brand,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
-    // Flex shrink para que se ajuste si no hay espacio
     flexShrink: 1,
   },
   categoryBadgeText: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 'bold',
     color: colors.graphite,
   },
@@ -83,18 +82,20 @@ const styles = StyleSheet.create({
   findingRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     backgroundColor: colors.offWhite,
     borderRadius: 4,
-    marginBottom: 4,
+    marginBottom: 6,
+    minHeight: 28,
   },
   findingBullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 8,
-    marginTop: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 10,
+    marginTop: 2,
+    flexShrink: 0,
   },
   bulletDefecto: {
     backgroundColor: colors.danger,
@@ -104,158 +105,163 @@ const styles = StyleSheet.create({
   },
   findingContent: {
     flex: 1,
+    minWidth: 0,
   },
   findingName: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.graphite,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   findingComment: {
-    fontSize: 7,
+    fontSize: 8,
     color: colors.charcoal,
     fontStyle: 'italic',
+    lineHeight: 1.4,
   },
   findingSeverity: {
-    fontSize: 6,
+    fontSize: 7,
     fontWeight: 'bold',
     textTransform: 'uppercase',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+    marginLeft: 8,
+    flexShrink: 0,
   },
   severityDefecto: {
-    backgroundColor: colors.dangerBg,
-    color: colors.danger,
+    backgroundColor: colors.danger,
+    color: colors.white,
   },
   severityObservacion: {
-    backgroundColor: colors.warningBg,
-    color: colors.warning,
+    backgroundColor: colors.warning,
+    color: colors.white,
   },
   // Items OK (texto corrido)
   okSection: {
-    backgroundColor: colors.successBg,
-    borderRadius: 4,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: colors.successBorder,
-  },
-  okHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  okIcon: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: colors.success,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 6,
-  },
-  okIconText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: colors.white,
-  },
-  okTitle: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: colors.success,
-  },
-  okText: {
-    fontSize: 7,
-    color: colors.charcoal,
-    lineHeight: 1.6,
-  },
-  // Cuando todo está OK
-  allOkSection: {
     backgroundColor: colors.successBg,
     borderRadius: 4,
     padding: 10,
     borderWidth: 1,
     borderColor: colors.successBorder,
   },
-  allOkHeader: {
+  okHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 6,
   },
-  allOkIcon: {
+  okIcon: {
     width: 14,
     height: 14,
     borderRadius: 7,
     backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 6,
+    marginRight: 8,
   },
-  allOkIconText: {
+  okIconText: {
     fontSize: 9,
     fontWeight: 'bold',
     color: colors.white,
   },
-  allOkTitle: {
+  okTitle: {
     fontSize: 9,
     fontWeight: 'bold',
     color: colors.success,
   },
-  allOkText: {
-    fontSize: 7,
+  okText: {
+    fontSize: 8,
     color: colors.charcoal,
-    lineHeight: 1.6,
+    lineHeight: 1.5,
+  },
+  // Cuando todo está OK
+  allOkSection: {
+    backgroundColor: colors.successBg,
+    borderRadius: 4,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: colors.successBorder,
+  },
+  allOkHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  allOkIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  allOkIconText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  allOkTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: colors.success,
+  },
+  allOkText: {
+    fontSize: 8,
+    color: colors.charcoal,
+    lineHeight: 1.5,
   },
   // Estilos para items "No Aplica"
   noAplicaSection: {
     backgroundColor: colors.lightGray,
     borderRadius: 4,
-    padding: 8,
+    padding: 10,
     borderWidth: 1,
     borderColor: colors.borderGray,
-    marginTop: 6,
+    marginTop: 8,
   },
   noAplicaHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 6,
   },
   noAplicaIcon: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: colors.silver,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 6,
+    marginRight: 8,
   },
   noAplicaIconText: {
-    fontSize: 7,
+    fontSize: 8,
     fontWeight: 'bold',
     color: colors.white,
   },
   noAplicaTitle: {
-    fontSize: 8,
+    fontSize: 9,
     fontWeight: 'bold',
     color: colors.slate,
   },
   noAplicaText: {
-    fontSize: 7,
+    fontSize: 8,
     color: colors.slate,
-    lineHeight: 1.6,
+    lineHeight: 1.5,
   },
   // Estilos para fotos de hallazgos
   findingWithPhoto: {
     flexDirection: 'column',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     backgroundColor: colors.offWhite,
     borderRadius: 4,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   findingMainRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    width: '100%',
   },
   photosContainer: {
     flexDirection: 'row',
@@ -405,7 +411,7 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
             parts.push(`${defectos.length} defecto${defectos.length > 1 ? 's' : ''}`);
           }
           if (observaciones.length > 0) {
-            parts.push(`${observaciones.length} obs.`);
+            parts.push(`${observaciones.length} observación${observaciones.length > 1 ? 'es' : ''}`);
           }
 
           if (parts.length === 0) {
@@ -449,7 +455,7 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
                           )}
                         </View>
                         <Text style={[styles.findingSeverity, styles.severityDefecto]}>
-                          DEF
+                          DEFECTO
                         </Text>
                       </View>
                       {hasPhotos && (
@@ -484,7 +490,7 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
                           )}
                         </View>
                         <Text style={[styles.findingSeverity, styles.severityObservacion]}>
-                          OBS
+                          OBSERVACIÓN
                         </Text>
                       </View>
                       {hasPhotos && (

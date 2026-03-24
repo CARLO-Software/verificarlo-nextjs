@@ -129,9 +129,9 @@ export function InspectorDashboardClient({
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("es-PE", {
-      weekday: "short",
+      weekday: "long",
       day: "numeric",
-      month: "short",
+      month: "long",
     });
   };
 
@@ -139,6 +139,23 @@ export function InspectorDashboardClient({
     const date = new Date(dateStr);
     const today = new Date();
     return date.toDateString() === today.toDateString();
+  };
+
+  const isTomorrow = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return date.toDateString() === tomorrow.toDateString();
+  };
+
+  const getDaysUntil = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    const diffTime = date.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   // Agrupar inspecciones pendientes por fecha
@@ -300,30 +317,42 @@ export function InspectorDashboardClient({
           ) : (
             Object.entries(groupedPending)
               .sort(([a], [b]) => new Date(a).getTime() - new Date(b).getTime())
-              .map(([dateKey, dateInspections]) => (
-                <div key={dateKey} className={styles.dateGroup}>
-                  <h3 className={styles.dateHeader}>
-                    {isToday(dateKey) ? (
-                      <span className={styles.todayBadge}>Hoy</span>
-                    ) : (
-                      formatDate(dateKey)
-                    )}
-                    <span className={styles.dateCount}>{dateInspections.length} inspección(es)</span>
-                  </h3>
-                  <div className={styles.inspectionsList}>
-                    {dateInspections
-                      .sort((a, b) => a.timeSlot.localeCompare(b.timeSlot))
-                      .map((inspection) => (
-                        <InspectionCard
-                          key={inspection.id}
-                          inspection={inspection}
-                          isPending={true}
-                          isUrgent={isUrgent(inspection.startTime)}
-                        />
-                      ))}
+              .map(([dateKey, dateInspections]) => {
+                const daysUntil = getDaysUntil(dateKey);
+
+                return (
+                  <div key={dateKey} className={styles.dateGroup}>
+                    <h3 className={styles.dateHeader}>
+                      {isToday(dateKey) ? (
+                        <span className={styles.todayBadge}>Hoy</span>
+                      ) : isTomorrow(dateKey) ? (
+                        <span className={styles.tomorrowBadge}>Mañana</span>
+                      ) : (
+                        <span className={styles.upcomingBadge}>
+                          {daysUntil <= 7
+                            ? formatDate(dateKey)
+                            : `En ${daysUntil} días`}
+                        </span>
+                      )}
+                      <span className={styles.dateCount}>
+                        {dateInspections.length} {dateInspections.length === 1 ? 'inspección' : 'inspecciones'}
+                      </span>
+                    </h3>
+                    <div className={styles.inspectionsList}>
+                      {dateInspections
+                        .sort((a, b) => a.timeSlot.localeCompare(b.timeSlot))
+                        .map((inspection) => (
+                          <InspectionCard
+                            key={inspection.id}
+                            inspection={inspection}
+                            isPending={true}
+                            isUrgent={isUrgent(inspection.startTime)}
+                          />
+                        ))}
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
           )
         ) : (
           // Vista simple para completadas
@@ -405,8 +434,25 @@ function InspectionCard({
             <span className={styles.cardYear}>{inspection.vehicle.year}</span>
           </h4>
           <p className={styles.cardMeta}>
-            {inspection.client.name} • {inspection.inspectionPlan.title}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            {inspection.client.name}
+            <span style={{ opacity: 0.4 }}>•</span>
+            {inspection.inspectionPlan.title}
           </p>
+          {inspection.vehicle.plate && (
+            <p className={styles.cardMeta} style={{ marginTop: 2 }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, opacity: 0.5 }}>
+                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
+                <circle cx="6" cy="12" r="1" fill="currentColor"/>
+                <circle cx="18" cy="12" r="1" fill="currentColor"/>
+              </svg>
+              <span style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.05em' }}>
+                {inspection.vehicle.plate}
+              </span>
+            </p>
+          )}
         </div>
 
         {/* Estado */}
@@ -424,8 +470,8 @@ function InspectionCard({
               className={styles.actionIcon}
               title="Llamar"
             >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M3.5 2.5H6.5L8 6L6 7.25a9 9 0 004.75 4.75L12 10l3.5 1.5V15a1 1 0 01-1 1A12 12 0 012 4a1 1 0 011-1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
             <a
@@ -435,9 +481,8 @@ function InspectionCard({
               className={`${styles.actionIcon} ${styles.actionWhatsapp}`}
               title="WhatsApp"
             >
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 1.5a7.5 7.5 0 00-6.5 11.25L1.5 16.5l3.9-.975A7.5 7.5 0 109 1.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6.5 7.5h0M9 7.5h0M11.5 7.5h0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </a>
           </>
@@ -446,9 +491,9 @@ function InspectionCard({
           href={`/inspector/${inspection.id}`}
           className={styles.cardButton}
         >
-          {isPending ? (inspection.report ? "Continuar" : "Iniciar") : "Ver"}
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          {isPending ? (inspection.report ? "Continuar" : "Iniciar") : "Ver reporte"}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </Link>
       </div>

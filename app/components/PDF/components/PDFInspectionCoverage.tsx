@@ -122,7 +122,7 @@ function getStatusConfig(defectos: number, observaciones: number) {
   }
   if (observaciones > 0) {
     return {
-      label: `${observaciones} obs.`,
+      label: `${observaciones} observ.`,
       color: colors.warning,
       bgColor: colors.warningBg,
     };

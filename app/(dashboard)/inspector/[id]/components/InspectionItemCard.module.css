@@ -1,18 +1,19 @@
 /**
- * Estilos para InspectionItemCard
- * Diseño profesional tipo segmented control para estados de inspección
+ * InspectionItemCard - Stripe/Linear Inspired
+ * Clean segmented control for inspection states
  */
 
 .card {
   background: white;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   padding: 16px;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .card:hover {
-  border-color: #D1D5DB;
+  border-color: #CBD5E1;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .cardDisabled {
@@ -28,10 +29,10 @@
 }
 
 .label {
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: #0F172A;
   flex: 1;
   line-height: 1.4;
 }
@@ -39,7 +40,7 @@
 /* Status Buttons - Segmented Control */
 .statusButtons {
   display: flex;
-  background: #F3F4F6;
+  background: #F1F5F9;
   border-radius: 8px;
   padding: 3px;
   gap: 2px;
@@ -48,10 +49,10 @@
 
 .statusButton {
   padding: 8px 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
-  color: #6B7280;
+  color: #64748B;
   background: transparent;
   border: none;
   border-radius: 6px;
@@ -61,7 +62,7 @@
 }
 
 .statusButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .statusButton:disabled {
@@ -75,33 +76,33 @@
 
 /* Status Colors - Active State */
 .statusButton--green.statusButtonActive {
-  background: #22C55E;
+  background: #10B981;
   color: white;
-  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
+  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
 }
 
 .statusButton--yellow.statusButtonActive {
   background: #F59E0B;
   color: white;
-  box-shadow: 0 1px 3px rgba(245, 158, 11, 0.3);
+  box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
 }
 
 .statusButton--red.statusButtonActive {
   background: #EF4444;
   color: white;
-  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
 }
 
 .statusButton--gray.statusButtonActive {
-  background: #6B7280;
+  background: #64748B;
   color: white;
-  box-shadow: 0 1px 3px rgba(107, 114, 128, 0.3);
+  box-shadow: 0 1px 2px rgba(100, 116, 139, 0.2);
 }
 
 /* Hover states when not active */
 .statusButton--green:hover:not(.statusButtonActive):not(:disabled) {
-  color: #22C55E;
-  background: rgba(34, 197, 94, 0.1);
+  color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
 }
 
 .statusButton--yellow:hover:not(.statusButtonActive):not(:disabled) {
@@ -115,33 +116,33 @@
 }
 
 .statusButton--gray:hover:not(.statusButtonActive):not(:disabled) {
-  color: #6B7280;
-  background: rgba(107, 114, 128, 0.1);
+  color: #64748B;
+  background: rgba(100, 116, 139, 0.1);
 }
 
 /* Active/Tap states for mobile */
 .statusButton--green:active:not(:disabled) {
   color: white;
-  background: #16A34A;
-  transform: scale(0.95);
+  background: #059669;
+  transform: scale(0.96);
 }
 
 .statusButton--yellow:active:not(:disabled) {
   color: white;
   background: #D97706;
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .statusButton--red:active:not(:disabled) {
   color: white;
   background: #DC2626;
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 .statusButton--gray:active:not(:disabled) {
   color: white;
-  background: #4B5563;
-  transform: scale(0.95);
+  background: #475569;
+  transform: scale(0.96);
 }
 
 /* Add Comment Button */
@@ -151,18 +152,18 @@
   gap: 6px;
   margin-top: 12px;
   padding: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
-  color: #9CA3AF;
+  color: #94A3B8;
   background: none;
   border: none;
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.15s ease;
 }
 
 .addCommentButton:hover:not(:disabled) {
-  color: #6B7280;
+  color: #64748B;
 }
 
 .addCommentButton svg {
@@ -174,7 +175,7 @@
 .commentSection {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #F3F4F6;
+  border-top: 1px solid #F1F5F9;
   animation: slideDown 0.2s ease-out;
 }
 
@@ -192,34 +193,34 @@
 .commentInput {
   width: 100%;
   padding: 10px 12px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 13px;
-  color: #374151;
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
+  color: #0F172A;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
   resize: vertical;
   min-height: 60px;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .commentInput:focus {
   outline: none;
-  border-color: #FFE14C;
+  border-color: #F59E0B;
   background: white;
-  box-shadow: 0 0 0 3px rgba(255, 225, 76, 0.15);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
 }
 
 .commentInput:disabled {
-  background: #F3F4F6;
+  background: #F1F5F9;
   cursor: not-allowed;
 }
 
 .commentInput::placeholder {
-  color: #9CA3AF;
+  color: #94A3B8;
 }
 
-/* Comment Input Wrapper - para posicionar el botón de voz */
+/* Comment Input Wrapper */
 .commentInputWrapper {
   position: relative;
   display: flex;
@@ -247,12 +248,12 @@
 
 .commentChip {
   padding: 6px 10px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'DM Sans', system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
-  color: #6B7280;
-  background: #F3F4F6;
-  border: 1px solid #E5E7EB;
+  color: #64748B;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
   border-radius: 100px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -260,20 +261,20 @@
 }
 
 .commentChip:hover {
-  background: #E5E7EB;
-  border-color: #D1D5DB;
+  background: #E2E8F0;
+  border-color: #CBD5E1;
 }
 
 .commentChip:active {
-  background: #D1D5DB;
-  color: #374151;
-  transform: scale(0.95);
+  background: #CBD5E1;
+  color: #0F172A;
+  transform: scale(0.96);
 }
 
 .commentChipActive {
   background: #FEF3C7;
-  border-color: #F59E0B;
-  color: #92400E;
+  border-color: #FDE68A;
+  color: #B45309;
 }
 
 .commentChipActive:hover {
@@ -282,8 +283,7 @@
 
 .commentChipActive:active {
   background: #FCD34D;
-  color: #78350F;
-  transform: scale(0.95);
+  transform: scale(0.96);
 }
 
 /* Responsive */
