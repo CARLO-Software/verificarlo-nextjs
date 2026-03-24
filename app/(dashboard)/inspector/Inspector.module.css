@@ -1,26 +1,32 @@
 /* ============================================
-   Inspector Dashboard - Estilos Compactos
+   Inspector Dashboard - Mobile-First Design
+   Professional UI/UX by VerifiCARLO
    ============================================ */
 
+/* ============================================
+   Base & Container
+   ============================================ */
 .container {
   min-height: 100vh;
-  background: #F5F5F7;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
 }
 
 /* ============================================
-   Navbar
+   Navbar - Fixed Top
    ============================================ */
-
 .navbar {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #1F2937;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .navbarContent {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 12px 16px;
   display: flex;
@@ -31,26 +37,48 @@
 .navbarBrand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .navbarLogo {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #FFE14C;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .navbarBadge {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 8px;
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.8);
-  border-radius: 4px;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  background: rgba(251, 191, 36, 0.15);
+  color: #FBBF24;
+  border-radius: 6px;
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* Navbar Right Section */
+.navbarRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Override NotificationBell colors for dark navbar */
+.navbarRight :global(.bellButton) {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.navbarRight :global(.bellButton:hover) {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #FBBF24;
 }
 
 /* User Menu */
@@ -63,216 +91,241 @@
   align-items: center;
   padding: 0;
   background: none;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .avatarButton:hover {
-  border-color: #FFE14C;
+  border-color: #FBBF24;
+  transform: scale(1.05);
 }
 
 .avatarImage {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   object-fit: cover;
 }
 
 .avatarInitials {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FFE14C;
-  color: #1F2937;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  color: #0F172A;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
   font-weight: 700;
   border-radius: 50%;
 }
 
 .userMenu {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 12px);
   right: 0;
-  width: 180px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  width: 200px;
+  background: #1E293B;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
   overflow: hidden;
   z-index: 100;
-  animation: fadeIn 0.15s ease-out;
+  animation: slideDown 0.2s ease-out;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .userMenuHeader {
-  padding: 12px 16px;
-  background: #F9FAFB;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .userMenuName {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
   font-weight: 600;
-  color: #1F2937;
+  color: #F8FAFC;
   margin: 0;
 }
 
 .userMenuRole {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  color: #6B7280;
-  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  color: #64748B;
+  margin: 4px 0 0 0;
 }
 
 .userMenuDivider {
   height: 1px;
-  background: #E5E7EB;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .userMenuItem {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 12px 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  color: #DC2626;
+  padding: 14px 16px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #94A3B8;
   background: none;
   border: none;
+  text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: all 0.15s ease;
 }
 
 .userMenuItem:hover {
-  background: #FEF2F2;
+  background: rgba(255, 255, 255, 0.05);
+  color: #F8FAFC;
+}
+
+.userMenuItem:last-child {
+  color: #F87171;
+}
+
+.userMenuItem:last-child:hover {
+  background: rgba(248, 113, 113, 0.1);
 }
 
 /* ============================================
-   Header
+   Header - Welcome Section
    ============================================ */
-
 .header {
-  background: #1F2937;
-  padding: 16px;
-  padding-top: 8px;
+  padding: 20px 16px 24px;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(30, 41, 59, 0.5) 100%);
 }
 
 .headerContent {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
 .headerTop {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  align-items: flex-start;
+  margin-bottom: 20px;
 }
 
 .greeting {
-  font-family: 'Inter', sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: white;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #F8FAFC;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .currentDate {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  margin: 4px 0 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #64748B;
+  margin: 6px 0 0 0;
   text-transform: capitalize;
 }
 
 .stats {
   display: flex;
-  gap: 12px;
+  gap: 8px;
 }
 
 .statItem {
   text-align: center;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
 }
 
 .statItem[data-type="today"] {
-  background: rgba(255, 225, 76, 0.2);
+  background: rgba(251, 191, 36, 0.12);
+  border-color: rgba(251, 191, 36, 0.25);
 }
 
 .statValue {
   display: block;
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #FFE14C;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: #FBBF24;
+  line-height: 1;
 }
 
 .statLabel {
-  font-family: 'Inter', sans-serif;
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748B;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 4px;
 }
 
-/* Próxima inspección */
+/* Next Inspection Card */
 .nextInspection {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: rgba(255, 225, 76, 0.15);
-  border: 1px solid rgba(255, 225, 76, 0.25);
-  border-radius: 10px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 16px;
   text-decoration: none;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
 }
 
 .nextInspection:hover {
-  background: rgba(255, 225, 76, 0.25);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.25) 0%, rgba(245, 158, 11, 0.15) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(251, 191, 36, 0.15);
 }
 
 .nextInspectionLeft {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .nextInspectionTime {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
   font-weight: 700;
-  color: #FFE14C;
+  color: #FBBF24;
 }
 
 .nextInspectionVehicle {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.7);
 }
 
 .nextInspection svg {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(251, 191, 36, 0.6);
+  transition: transform 0.2s ease;
+}
+
+.nextInspection:hover svg {
+  transform: translateX(4px);
+  color: #FBBF24;
 }
 
 /* ============================================
-   Tabs
+   Tabs - Segmented Control
    ============================================ */
-
 .tabs {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px 16px 0;
+  padding: 0 16px 16px;
   display: flex;
   gap: 8px;
 }
@@ -282,139 +335,161 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: #6B7280;
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 10px;
+  gap: 8px;
+  padding: 14px 20px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .tab:hover {
-  border-color: #D1D5DB;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
 }
 
 .tab svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
 }
 
 .tabActive {
-  color: #1F2937;
-  border-color: #FFE14C;
-  background: #FFFBEB;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+}
+
+.tabActive:hover {
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  color: #0F172A;
 }
 
 .tabActive svg {
-  color: #F59E0B;
+  opacity: 1;
 }
 
 /* ============================================
-   Content
+   Content Area
    ============================================ */
-
 .content {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 16px 100px;
+  min-height: 50vh;
 }
 
 .dateGroup {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .dateHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  gap: 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
   font-weight: 600;
-  color: #6B7280;
-  margin: 0 0 8px 4px;
+  color: #64748B;
+  margin: 0 0 12px 4px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
 
 .todayBadge {
-  background: #FFE14C;
-  color: #1F2937;
-  padding: 2px 8px;
-  border-radius: 4px;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  color: #0F172A;
+  padding: 4px 12px;
+  border-radius: 8px;
   font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .dateCount {
-  font-weight: 400;
-  color: #9CA3AF;
+  font-weight: 500;
+  color: #475569;
   text-transform: none;
+  letter-spacing: normal;
 }
 
 .inspectionsList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 /* ============================================
-   Card (Compacta)
+   Inspection Card - Modern Glass Design
    ============================================ */
-
 .card {
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   overflow: hidden;
-  transition: all 0.15s;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
 }
 
 .card:hover {
-  border-color: #D1D5DB;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
 }
 
 .cardUrgent {
-  border-color: #FECACA;
-  background: linear-gradient(to right, #FEF2F2, white);
+  border-color: rgba(239, 68, 68, 0.4);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+}
+
+.cardUrgent:hover {
+  border-color: rgba(239, 68, 68, 0.6);
 }
 
 .cardMain {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 16px;
+  padding: 20px;
 }
 
 .cardTimeBlock {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
   min-width: 70px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
 }
 
 .cardTimeValue {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #F8FAFC;
 }
 
 .cardUrgentDot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: #EF4444;
   border-radius: 50%;
-  animation: blink 1.5s infinite;
+  margin-top: 6px;
+  animation: pulse 1.5s infinite;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
 }
 
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.9); }
 }
 
 .cardInfo {
@@ -423,231 +498,299 @@
 }
 
 .cardTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #F8FAFC;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 .cardYear {
-  font-weight: 400;
-  color: #9CA3AF;
-  margin-left: 4px;
+  font-weight: 500;
+  color: #64748B;
+  margin-left: 6px;
 }
 
 .cardMeta {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: #6B7280;
-  margin: 2px 0 0 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #94A3B8;
+  margin: 6px 0 0 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .statusBadge {
-  font-family: 'Inter', sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 10px;
   white-space: nowrap;
 }
 
 .statusBadge[data-color="gray"] {
-  background: #F3F4F6;
-  color: #6B7280;
+  background: rgba(100, 116, 139, 0.2);
+  color: #94A3B8;
 }
 
 .statusBadge[data-color="yellow"] {
-  background: #FEF3C7;
-  color: #92400E;
+  background: rgba(251, 191, 36, 0.2);
+  color: #FBBF24;
 }
 
 .statusBadge[data-color="green"] {
-  background: #D1FAE5;
-  color: #065F46;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22C55E;
 }
 
 /* Card Actions */
 .cardActions {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #FAFAFA;
-  border-top: 1px solid #F3F4F6;
+  gap: 10px;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .actionIcon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  color: #6B7280;
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  color: #94A3B8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
 }
 
 .actionIcon:hover {
-  background: #F3F4F6;
-  color: #1F2937;
+  background: rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  transform: scale(1.05);
 }
 
 .actionWhatsapp {
   color: #22C55E;
-  border-color: #BBF7D0;
-  background: #F0FDF4;
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
 }
 
 .actionWhatsapp:hover {
-  background: #DCFCE7;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22C55E;
 }
 
 .cardButton {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   margin-left: auto;
-  padding: 8px 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1F2937;
-  background: #FFE14C;
-  border-radius: 8px;
+  padding: 12px 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  border-radius: 12px;
   text-decoration: none;
-  transition: all 0.15s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.25);
 }
 
 .cardButton:hover {
-  background: #FCD34D;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(251, 191, 36, 0.35);
 }
 
 /* ============================================
    Empty State
    ============================================ */
-
 .emptyState {
   text-align: center;
-  padding: 48px 24px;
+  padding: 60px 24px;
 }
 
 .emptyIcon {
-  color: #D1D5DB;
-  margin-bottom: 12px;
+  color: #475569;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
 .emptyTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #374151;
-  margin: 0 0 4px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin: 0 0 8px 0;
 }
 
 .emptyDescription {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  color: #9CA3AF;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  color: #64748B;
   margin: 0;
 }
 
 /* ============================================
-   Responsive
+   Responsive - Mobile First Adjustments
    ============================================ */
-
 @media (max-width: 640px) {
   .navbarContent {
-    padding: 10px 16px;
+    padding: 10px 12px;
   }
 
   .navbarLogo {
-    font-size: 16px;
+    font-size: 18px;
+  }
+
+  .navbarBadge {
+    padding: 3px 8px;
+    font-size: 9px;
   }
 
   .header {
-    padding: 12px 16px;
+    padding: 16px 12px 20px;
   }
 
   .headerTop {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .greeting {
+    font-size: 22px;
+  }
+
+  .currentDate {
+    font-size: 13px;
   }
 
   .stats {
     width: 100%;
+    justify-content: stretch;
   }
 
   .statItem {
     flex: 1;
-    padding: 8px 12px;
+    padding: 10px 16px;
   }
 
   .statValue {
-    font-size: 18px;
+    font-size: 24px;
+  }
+
+  .statLabel {
+    font-size: 10px;
+  }
+
+  .nextInspection {
+    padding: 14px 16px;
+  }
+
+  .nextInspectionTime {
+    font-size: 15px;
+  }
+
+  .nextInspectionVehicle {
+    font-size: 13px;
   }
 
   .tabs {
-    padding: 12px 12px 0;
+    padding: 0 12px 12px;
     gap: 6px;
   }
 
   .tab {
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+
+  .tab svg {
+    width: 16px;
+    height: 16px;
   }
 
   .content {
-    padding: 12px;
+    padding: 0 12px 80px;
+  }
+
+  .dateHeader {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .inspectionsList {
+    gap: 10px;
   }
 
   .card {
-    border-radius: 10px;
+    border-radius: 16px;
   }
 
   .cardMain {
-    flex-wrap: wrap;
-    padding: 10px 12px;
-    gap: 8px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
   }
 
   .cardTimeBlock {
-    min-width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 10px;
+  }
+
+  .cardUrgentDot {
+    margin-top: 0;
+    margin-left: auto;
   }
 
   .cardInfo {
-    flex: 1 1 60%;
+    width: 100%;
+  }
+
+  .cardTitle {
+    font-size: 16px;
+  }
+
+  .cardMeta {
+    font-size: 13px;
+    white-space: normal;
   }
 
   .statusBadge {
-    order: -1;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 4px;
+    align-self: flex-start;
+    margin-top: 8px;
   }
 
   .cardActions {
-    padding: 8px 12px;
-    gap: 6px;
+    padding: 14px 16px;
+    gap: 8px;
   }
 
   .actionIcon {
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
   }
 
   .cardButton {
-    padding: 10px 16px;
+    padding: 14px 20px;
+    font-size: 14px;
   }
 }
 
@@ -656,7 +799,87 @@
     display: none;
   }
 
-  .statLabel {
-    font-size: 9px;
+  .greeting {
+    font-size: 20px;
+  }
+
+  .statValue {
+    font-size: 22px;
+  }
+
+  .tab span {
+    display: none;
+  }
+
+  .tab {
+    padding: 14px;
+  }
+
+  .tab svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ============================================
+   Desktop Enhancements
+   ============================================ */
+@media (min-width: 768px) {
+  .header {
+    padding: 24px 24px 32px;
+  }
+
+  .greeting {
+    font-size: 28px;
+  }
+
+  .statItem {
+    padding: 14px 28px;
+  }
+
+  .statValue {
+    font-size: 32px;
+  }
+
+  .tabs {
+    padding: 0 24px 20px;
+  }
+
+  .content {
+    padding: 0 24px 100px;
+  }
+
+  .cardMain {
+    padding: 24px;
+  }
+
+  .cardActions {
+    padding: 18px 24px;
+  }
+
+  .inspectionsList {
+    gap: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .inspectionsList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .card {
+    height: 100%;
+  }
+
+  .cardMain {
+    flex-direction: row;
+    height: calc(100% - 70px);
+  }
+
+  .cardTimeBlock {
+    flex-direction: column;
+    min-width: 80px;
   }
 }

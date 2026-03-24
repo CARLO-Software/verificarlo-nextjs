@@ -9,6 +9,7 @@ import Link from "next/link";
 import { BookingStatus } from "@prisma/client";
 import styles from "./InspeccionDetalle.module.css";
 import { getVerdict, getScoreCategoryInfo } from "@/lib/inspection-verdict";
+import { InspectionTimeline } from "./InspectionTimeline";
 
 declare global {
   interface Window {
@@ -65,6 +66,22 @@ interface InspectionData {
     recommendations: string | null;
     completedAt: string | null;
     pdfUrl: string | null;
+  } | null;
+  vehicleInspection: {
+    id: number;
+    plate: string | null;
+    legalStatus: "BLOQUEADO" | "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+    mechanicalStatus: "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+    assignedMechanic: { id: string; name: string } | null;
+    assignedAdmin: { id: string; name: string } | null;
+    createdAt: string;
+    plateAddedAt: string | null;
+    legalUnlockedAt: string | null;
+    legalStartedAt: string | null;
+    legalCompletedAt: string | null;
+    mechanicAssignedAt: string | null;
+    mechanicStartedAt: string | null;
+    mechanicCompletedAt: string | null;
   } | null;
 }
 
@@ -705,6 +722,11 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
           </div>
         </div>
 
+        {/* Inspection Timeline (flujo dual) */}
+        {inspection.vehicleInspection && (
+          <InspectionTimeline vehicleInspection={inspection.vehicleInspection} />
+        )}
+
         {/* Booking Summary */}
         <BookingSummary inspection={inspection} showPrice={false} />
 
@@ -1025,6 +1047,11 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
               </div>
             </div>
           ) : null}
+
+          {/* Inspection Timeline (flujo dual) */}
+          {inspection.vehicleInspection && (
+            <InspectionTimeline vehicleInspection={inspection.vehicleInspection} />
+          )}
         </div>
       </div>
 

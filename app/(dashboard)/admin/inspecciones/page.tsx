@@ -40,6 +40,14 @@ export default async function AdminInspeccionesPage() {
     adminNotes: inspection.adminNotes,
     reportId: inspection.report?.id || null,
     legalReportStatus: inspection.report?.legalReport?.status || null,
+    vehicleInspection: inspection.vehicleInspection
+      ? {
+          id: inspection.vehicleInspection.id,
+          plate: inspection.vehicleInspection.plate,
+          legalStatus: inspection.vehicleInspection.legalStatus,
+          mechanicalStatus: inspection.vehicleInspection.mechanicalStatus,
+        }
+      : null,
   }));
 
   return (

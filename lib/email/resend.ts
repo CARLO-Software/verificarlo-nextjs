@@ -35,19 +35,34 @@ export const EMAIL_FROM = process.env.EMAIL_FROM || 'Verificarlo <notificaciones
 
 /**
  * Enviar email usando Resend
+ * Soporta contenido React o texto plano
  */
 export async function sendEmail(options: {
   to: string | string[];
   subject: string;
-  react: React.ReactElement;
+  react?: React.ReactElement | null;
+  text?: string;
 }) {
   const resend = getResendClient();
 
+  // Construir payload - al menos uno de react o text debe estar presente
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload: any = {
+    from: EMAIL_FROM,
+    to: options.to,
+    subject: options.subject,
+  };
+
+  if (options.react) {
+    payload.react = options.react;
+  }
+
+  if (options.text) {
+    payload.text = options.text;
+  }
+
   try {
-    const { data, error } = await resend.emails.send({
-      from: EMAIL_FROM,
-      ...options,
-    });
+    const { data, error } = await resend.emails.send(payload);
 
     if (error) {
       console.error('Error enviando email:', error);

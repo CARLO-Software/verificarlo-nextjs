@@ -87,6 +87,22 @@ interface Inspection {
       completedAt: Date | null;
     } | null;
   } | null;
+  vehicleInspection: {
+    id: number;
+    plate: string | null;
+    legalStatus: "BLOQUEADO" | "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+    mechanicalStatus: "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+    assignedMechanic: { id: string; name: string } | null;
+    assignedAdmin: { id: string; name: string } | null;
+    createdAt: Date;
+    plateAddedAt: Date | null;
+    legalUnlockedAt: Date | null;
+    legalStartedAt: Date | null;
+    legalCompletedAt: Date | null;
+    mechanicAssignedAt: Date | null;
+    mechanicStartedAt: Date | null;
+    mechanicCompletedAt: Date | null;
+  } | null;
 }
 
 interface Props {
@@ -288,6 +304,7 @@ export function InspectionDetailClient({ inspection }: Props) {
           createdAt={inspection.createdAt}
           mechanicalCompletedAt={inspection.report?.completedAt || null}
           legalCompletedAt={inspection.report?.legalReport?.completedAt || null}
+          vehicleInspection={inspection.vehicleInspection}
         />
 
         {/* Ubicación: Origen y Destino */}
@@ -717,16 +734,225 @@ function ScoreCard({ label, score, status, category }: {
   );
 }
 
-// Timeline de progreso de la inspección
+// Timeline de progreso de la inspección (soporta flujo paralelo y secuencial)
+type LegalStatusType = "BLOQUEADO" | "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+type MechanicalStatusType = "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+
+interface VehicleInspectionData {
+  id: number;
+  plate: string | null;
+  legalStatus: LegalStatusType;
+  mechanicalStatus: MechanicalStatusType;
+  assignedMechanic: { id: string; name: string } | null;
+  assignedAdmin: { id: string; name: string } | null;
+  createdAt: Date;
+  plateAddedAt: Date | null;
+  legalUnlockedAt: Date | null;
+  legalStartedAt: Date | null;
+  legalCompletedAt: Date | null;
+  mechanicAssignedAt: Date | null;
+  mechanicStartedAt: Date | null;
+  mechanicCompletedAt: Date | null;
+}
+
 function InspectionTimeline({
   createdAt,
   mechanicalCompletedAt,
   legalCompletedAt,
+  vehicleInspection,
 }: {
   createdAt: Date;
   mechanicalCompletedAt: Date | null;
   legalCompletedAt: Date | null;
+  vehicleInspection?: VehicleInspectionData | null;
 }) {
+  // Si hay vehicleInspection, usar el nuevo flujo dual
+  if (vehicleInspection) {
+    const { legalStatus, mechanicalStatus, assignedMechanic, assignedAdmin } = vehicleInspection;
+
+    // Determinar si es flujo paralelo (con placa desde inicio) o secuencial (sin placa)
+    // Si tiene placa Y legalUnlockedAt es null, fue paralelo desde el inicio
+    const isParallelFlow = vehicleInspection.plate !== null && vehicleInspection.legalUnlockedAt === null;
+
+    const getStatusInfo = (status: LegalStatusType | MechanicalStatusType, type: 'legal' | 'mechanical') => {
+      if (type === 'legal') {
+        switch (status) {
+          case 'BLOQUEADO': return { label: 'Bloqueado', color: 'bg-gray-100 text-gray-400', description: 'Esperando placa' };
+          case 'PENDIENTE': return { label: 'Pendiente', color: 'bg-amber-100 text-amber-600', description: 'Listo para revisión' };
+          case 'EN_PROCESO': return { label: 'En proceso', color: 'bg-blue-100 text-blue-600', description: 'Revisión en curso' };
+          case 'COMPLETADO': return { label: 'Completado', color: 'bg-green-100 text-green-600', description: 'Revisión finalizada' };
+        }
+      } else {
+        switch (status) {
+          case 'PENDIENTE': return { label: 'Pendiente', color: 'bg-amber-100 text-amber-600', description: 'Esperando inicio' };
+          case 'EN_PROCESO': return { label: 'En proceso', color: 'bg-blue-100 text-blue-600', description: 'Inspección en curso' };
+          case 'COMPLETADO': return { label: 'Completado', color: 'bg-green-100 text-green-600', description: 'Inspección finalizada' };
+        }
+      }
+      return { label: 'Pendiente', color: 'bg-gray-100 text-gray-400', description: '' };
+    };
+
+    const mechanicalInfo = getStatusInfo(mechanicalStatus, 'mechanical');
+    const legalInfo = getStatusInfo(legalStatus, 'legal');
+    const allCompleted = mechanicalStatus === 'COMPLETADO' && legalStatus === 'COMPLETADO';
+
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-6 flex items-center gap-2">
+          <Clock size={16} />
+          Progreso de la inspección
+          {isParallelFlow && (
+            <span className="ml-2 text-xs font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+              Flujo paralelo
+            </span>
+          )}
+        </h2>
+
+        {/* Paso 1: Inspección creada */}
+        <div className="flex gap-4 mb-4">
+          <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
+            <CheckCircle2 size={20} />
+          </div>
+          <div className="flex-1">
+            <p className="font-medium text-gray-900">Inspección creada</p>
+            <p className="text-sm text-gray-500">Tu solicitud fue registrada</p>
+            <p className="text-xs text-green-600 mt-1 font-medium">
+              {format(new Date(createdAt), "d MMM yyyy, HH:mm", { locale: es })}
+            </p>
+          </div>
+        </div>
+
+        {isParallelFlow ? (
+          // ─── FLUJO PARALELO ───────────────────────────────────────────
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Inspección Mecánica */}
+              <div className={`p-4 rounded-xl border-2 ${mechanicalStatus === 'COMPLETADO' ? 'border-green-200 bg-green-50' : mechanicalStatus === 'EN_PROCESO' ? 'border-blue-200 bg-blue-50' : 'border-amber-200 bg-amber-50'}`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-8 h-8 rounded-lg ${mechanicalInfo.color} flex items-center justify-center`}>
+                    <Wrench size={16} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Inspección mecánica</p>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${mechanicalInfo.color}`}>
+                      {mechanicalInfo.label}
+                    </span>
+                  </div>
+                </div>
+                {assignedMechanic && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                    <User size={12} /> {assignedMechanic.name}
+                  </p>
+                )}
+                {vehicleInspection.mechanicCompletedAt && (
+                  <p className="text-xs text-green-600 mt-1">
+                    {format(new Date(vehicleInspection.mechanicCompletedAt), "d MMM, HH:mm", { locale: es })}
+                  </p>
+                )}
+              </div>
+
+              {/* Revisión Legal */}
+              <div className={`p-4 rounded-xl border-2 ${legalStatus === 'COMPLETADO' ? 'border-green-200 bg-green-50' : legalStatus === 'EN_PROCESO' ? 'border-blue-200 bg-blue-50' : legalStatus === 'BLOQUEADO' ? 'border-gray-200 bg-gray-50' : 'border-amber-200 bg-amber-50'}`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className={`w-8 h-8 rounded-lg ${legalInfo.color} flex items-center justify-center`}>
+                    <Scale size={16} />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Revisión legal</p>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${legalInfo.color}`}>
+                      {legalInfo.label}
+                    </span>
+                  </div>
+                </div>
+                {assignedAdmin && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+                    <User size={12} /> {assignedAdmin.name}
+                  </p>
+                )}
+                {vehicleInspection.legalCompletedAt && (
+                  <p className="text-xs text-green-600 mt-1">
+                    {format(new Date(vehicleInspection.legalCompletedAt), "d MMM, HH:mm", { locale: es })}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {allCompleted && (
+              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 flex items-center justify-center gap-2">
+                <CheckCircle2 size={18} className="text-green-600" />
+                <span className="font-medium text-green-700">Inspección completada</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          // ─── FLUJO SECUENCIAL ─────────────────────────────────────────
+          <div className="relative">
+            {/* Línea conectora */}
+            <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
+
+            {/* Inspección Mecánica */}
+            <div className="flex gap-4 relative">
+              <div className={`w-10 h-10 rounded-full ${mechanicalInfo.color} flex items-center justify-center z-10`}>
+                {mechanicalStatus === 'COMPLETADO' ? <CheckCircle2 size={20} /> : <Wrench size={20} />}
+              </div>
+              <div className="flex-1 pb-6">
+                <div className="flex items-center gap-2">
+                  <p className={`font-medium ${mechanicalStatus === 'COMPLETADO' ? 'text-gray-900' : 'text-gray-600'}`}>
+                    Inspección mecánica
+                  </p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${mechanicalInfo.color}`}>
+                    {mechanicalInfo.label}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">{mechanicalInfo.description}</p>
+                {assignedMechanic && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <User size={12} /> {assignedMechanic.name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Revisión Legal */}
+            <div className="flex gap-4 relative">
+              <div className={`w-10 h-10 rounded-full ${legalInfo.color} flex items-center justify-center z-10`}>
+                {legalStatus === 'COMPLETADO' ? <CheckCircle2 size={20} /> : legalStatus === 'BLOQUEADO' ? <AlertCircle size={20} /> : <Scale size={20} />}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <p className={`font-medium ${legalStatus === 'COMPLETADO' ? 'text-gray-900' : legalStatus === 'BLOQUEADO' ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Revisión legal
+                  </p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${legalInfo.color}`}>
+                    {legalInfo.label}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {legalStatus === 'BLOQUEADO'
+                    ? 'Esperando que se registre la placa del vehículo'
+                    : legalInfo.description}
+                </p>
+                {assignedAdmin && legalStatus !== 'BLOQUEADO' && (
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <User size={12} /> {assignedAdmin.name}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {allCompleted && (
+              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 flex items-center justify-center gap-2">
+                <CheckCircle2 size={18} className="text-green-600" />
+                <span className="font-medium text-green-700">Inspección completada</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Fallback: flujo simple (sin vehicleInspection)
   const steps = [
     {
       id: 1,

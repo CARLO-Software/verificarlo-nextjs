@@ -19,7 +19,13 @@
       "Bash(npx next build)",
       "Bash(taskkill:*)",
       "Bash(xargs grep:*)",
-      "Bash(grep -n \"inspector\" C:/Proyectos/verificarlo-nextjs/app/\\\\\\(dashboard\\\\\\)/mis-inspecciones/[id]/InspeccionDetalleClient.tsx)"
+      "Bash(grep -n \"inspector\" C:/Proyectos/verificarlo-nextjs/app/\\\\\\(dashboard\\\\\\)/mis-inspecciones/[id]/InspeccionDetalleClient.tsx)",
+      "Bash(find \"C:\\\\Proyectos\\\\verificarlo-nextjs/app/\\(booking\\)/agendar\" -type f)",
+      "Bash(wc:*)",
+      "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/take\")",
+      "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/save\")",
+      "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/complete\")",
+      "Bash(git commit:*)"
     ]
   }
 }

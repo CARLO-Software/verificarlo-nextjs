@@ -89,6 +89,25 @@ export default async function InspectionDetailPage({ params }: Props) {
             : null,
         }
       : null,
+    // Flujo de inspección dual (mecánico + legal)
+    vehicleInspection: inspection.vehicleInspection
+      ? {
+          id: inspection.vehicleInspection.id,
+          plate: inspection.vehicleInspection.plate,
+          legalStatus: inspection.vehicleInspection.legalStatus,
+          mechanicalStatus: inspection.vehicleInspection.mechanicalStatus,
+          assignedMechanic: inspection.vehicleInspection.assignedMechanic,
+          assignedAdmin: inspection.vehicleInspection.assignedAdmin,
+          createdAt: inspection.vehicleInspection.createdAt,
+          plateAddedAt: inspection.vehicleInspection.plateAddedAt,
+          legalUnlockedAt: inspection.vehicleInspection.legalUnlockedAt,
+          legalStartedAt: inspection.vehicleInspection.legalStartedAt,
+          legalCompletedAt: inspection.vehicleInspection.legalCompletedAt,
+          mechanicAssignedAt: inspection.vehicleInspection.mechanicAssignedAt,
+          mechanicStartedAt: inspection.vehicleInspection.mechanicStartedAt,
+          mechanicCompletedAt: inspection.vehicleInspection.mechanicCompletedAt,
+        }
+      : null,
   };
 
   return <InspectionDetailClient inspection={formattedInspection} />;

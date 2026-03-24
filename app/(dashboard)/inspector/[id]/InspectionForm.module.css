@@ -1,643 +1,625 @@
 /* ============================================
-   Inspection Form Styles
+   Inspection Form - Mobile-First Design
+   Professional UI/UX by VerifiCARLO
    ============================================ */
 
+/* ============================================
+   Base Container
+   ============================================ */
 .container {
   min-height: 100vh;
-  background: #FAFAFA;
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
 }
 
-/* Header */
+/* ============================================
+   Header - Sticky Navigation
+   ============================================ */
 .header {
-  background: white;
-  border-bottom: 1px solid #E5E7EB;
-  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 16px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .backLink {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #6B7280;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #94A3B8;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .backLink:hover {
-  color: #1F2937;
+  background: rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
 }
 
 .headerInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .headerTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #F8FAFC;
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .headerSubtitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #6B7280;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  color: #64748B;
   margin: 4px 0 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .completedBadge {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  background: #D1FAE5;
-  color: #065F46;
-  font-family: 'Inter', sans-serif;
+  padding: 8px 14px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #22C55E;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 100px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  white-space: nowrap;
 }
 
-/* Navigation */
+/* ============================================
+   Navigation Tabs - Bottom Fixed on Mobile
+   ============================================ */
 .nav {
-  background: white;
-  border-bottom: 1px solid #E5E7EB;
-  padding: 0 24px;
   display: flex;
-  gap: 4px;
+  gap: 6px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
 }
 
 .navItem {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 16px 20px;
-  font-family: 'Inter', sans-serif;
+  padding: 12px 20px;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 500;
-  color: #6B7280;
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
+  font-weight: 600;
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .navItem:hover {
-  color: #374151;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+}
+
+.navItem svg {
+  width: 18px;
+  height: 18px;
+  opacity: 0.6;
 }
 
 .navItem--active {
-  color: #1F2937;
-  border-bottom-color: #FFE14C;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
+}
+
+.navItem--active svg {
+  opacity: 1;
 }
 
 .navItem--complete {
   color: #22C55E;
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.1);
 }
 
-.navItem--complete .navCheck {
-  color: #22C55E;
+.navItem--complete svg {
+  opacity: 1;
 }
 
 .navCheck {
+  color: #22C55E;
   margin-left: 4px;
 }
 
-/* Error */
+/* ============================================
+   Error Banner
+   ============================================ */
 .error {
-  max-width: 800px;
-  margin: 16px auto;
-  padding: 12px 16px;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
-  border-radius: 8px;
+  margin: 16px;
+  padding: 14px 18px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  color: #DC2626;
+  color: #F87171;
 }
 
 .error button {
   background: none;
   border: none;
   font-size: 20px;
-  color: #DC2626;
+  color: #F87171;
   cursor: pointer;
+  padding: 4px;
 }
 
-/* Content */
+/* ============================================
+   Content Area
+   ============================================ */
 .content {
-  max-width: 800px;
+  padding: 20px 16px 120px;
+  max-width: 900px;
   margin: 0 auto;
-  padding: 24px;
 }
 
-/* Section */
+/* ============================================
+   Section Card
+   ============================================ */
 .section {
-  background: white;
-  border: 1px solid #E5E7EB;
-  border-radius: 16px;
-  padding: 24px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 24px 20px;
+  backdrop-filter: blur(8px);
 }
 
-/* Checklist section - sin bordes ni padding extra */
 .section:has(.checklistContainer) {
   background: transparent;
   border: none;
   padding: 0;
+  backdrop-filter: none;
 }
 
 .sectionTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 8px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: #F8FAFC;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
 }
 
 .sectionSubtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  color: #6B7280;
-  margin: 0 0 20px 0;
+  color: #64748B;
+  margin: 0 0 24px 0;
 }
 
-/* Info Grid */
+/* ============================================
+   Info Grid - Vehicle & Booking Data
+   ============================================ */
 .infoGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
 .infoCard {
-  background: #F9FAFB;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px 18px;
+  transition: all 0.2s ease;
+}
+
+.infoCard:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .infoCardTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #9CA3AF;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   margin: 0 0 8px 0;
 }
 
 .infoCardValue {
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: #1F2937;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #F8FAFC;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .infoCardSubvalue {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
-  color: #6B7280;
+  color: #94A3B8;
   margin: 4px 0 0 0;
 }
 
 .infoCardLink {
-  display: block;
-  font-family: 'Inter', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  color: #2563EB;
-  margin-top: 4px;
+  color: #FBBF24;
+  margin-top: 6px;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .infoCardLink:hover {
-  text-decoration: underline;
+  color: #F59E0B;
 }
 
-/* Plan Items */
+/* ============================================
+   Plan Items - Inspection Points
+   ============================================ */
 .planItems {
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 16px;
+  padding: 18px 20px;
   margin-bottom: 24px;
 }
 
 .planItemsTitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  color: #92400E;
-  margin: 0 0 12px 0;
+  font-weight: 700;
+  color: #FBBF24;
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .planItemsList {
   margin: 0;
-  padding-left: 20px;
-  font-family: 'Inter', sans-serif;
+  padding-left: 0;
+  list-style: none;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  color: #78350F;
+  color: #F8FAFC;
 }
 
 .planItemsList li {
-  margin-bottom: 6px;
+  margin-bottom: 10px;
+  padding-left: 24px;
+  position: relative;
 }
 
-/* Form Section */
+.planItemsList li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  background: #FBBF24;
+  border-radius: 50%;
+}
+
+/* ============================================
+   Form Section - Inspector Verification
+   ============================================ */
 .formSection {
-  border-top: 1px solid #E5E7EB;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 24px;
+  margin-top: 24px;
 }
 
 .formSectionTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 4px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin: 0 0 6px 0;
 }
 
 .formSectionSubtitle {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
-  color: #9CA3AF;
-  margin: 0 0 16px 0;
+  color: #64748B;
+  margin: 0 0 20px 0;
 }
 
 /* Form Grid */
 .formGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 /* Form Group */
 .formGroup {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .label {
   display: block;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: #94A3B8;
+  margin-bottom: 8px;
 }
 
 .input,
 .select,
 .textarea {
   width: 100%;
-  padding: 12px 14px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #1F2937;
-  background: white;
-  border: 1px solid #D1D5DB;
-  border-radius: 10px;
-  transition: all 0.2s;
+  padding: 14px 16px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  color: #F8FAFC;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: #475569;
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #FFE14C;
-  box-shadow: 0 0 0 3px rgba(255, 225, 76, 0.2);
+  border-color: #FBBF24;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
 }
 
 .input:disabled,
 .select:disabled,
 .textarea:disabled {
-  background: #F3F4F6;
+  background: rgba(255, 255, 255, 0.02);
+  color: #64748B;
   cursor: not-allowed;
 }
 
 .textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 120px;
 }
 
-/* Status Row */
+/* ============================================
+   Status Row
+   ============================================ */
 .statusRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-/* Checkbox Group */
+/* ============================================
+   Checkbox Group
+   ============================================ */
 .checkboxGroup {
-  background: #F9FAFB;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
   margin-bottom: 24px;
 }
 
 .checkboxGroupTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
-  margin: 0 0 12px 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin: 0 0 16px 0;
 }
 
 .checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-family: 'Inter', sans-serif;
+  gap: 12px;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  color: #374151;
-  margin-bottom: 10px;
+  color: #E2E8F0;
+  margin-bottom: 14px;
   cursor: pointer;
 }
 
 .checkbox input {
-  width: 18px;
-  height: 18px;
-  accent-color: #FFE14C;
+  width: 20px;
+  height: 20px;
+  accent-color: #FBBF24;
+  cursor: pointer;
 }
 
 .checkbox:last-child {
   margin-bottom: 0;
 }
 
-/* Categories Hint */
+/* ============================================
+   Categories Hint
+   ============================================ */
 .categoriesHint {
-  background: #F0F9FF;
-  border: 1px solid #BAE6FD;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 16px;
+  padding: 18px 20px;
   margin-bottom: 24px;
 }
 
 .categoriesHint h3 {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 600;
-  color: #0369A1;
-  margin: 0 0 8px 0;
+  font-weight: 700;
+  color: #60A5FA;
+  margin: 0 0 12px 0;
 }
 
 .categoriesHint ul {
   margin: 0;
-  padding-left: 20px;
-  font-family: 'Inter', sans-serif;
+  padding-left: 0;
+  list-style: none;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 13px;
-  color: #0C4A6E;
-  columns: 2;
+  color: #93C5FD;
+  columns: 1;
 }
 
 .categoriesHint li {
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
 }
 
-/* Save Button */
+.categoriesHint li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #60A5FA;
+}
+
+/* ============================================
+   Save Button
+   ============================================ */
 .saveButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 24px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1F2937;
-  background: #FFE14C;
+  gap: 8px;
+  padding: 14px 28px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F172A;
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(251, 191, 36, 0.3);
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #FFD700;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(251, 191, 36, 0.4);
 }
 
 .saveButton:disabled {
-  background: #E5E7EB;
-  color: #9CA3AF;
+  background: #334155;
+  color: #64748B;
   cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
-/* Results Grid */
+/* ============================================
+   Results Grid
+   ============================================ */
 .resultsGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 12px;
   margin-bottom: 24px;
 }
 
 .resultCard {
-  background: #F9FAFB;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 18px;
   text-align: center;
+}
+
+.resultCard[data-status="OK"] {
+  border-color: rgba(34, 197, 94, 0.4);
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.resultCard[data-status="WARNING"] {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.resultCard[data-status="CRITICAL"] {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .resultLabel {
   display: block;
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  color: #9CA3AF;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
 }
 
 .resultValue {
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-/* Summary Actions */
-.summaryActions {
-  display: flex;
-  gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid #E5E7EB;
-  margin-top: 24px;
-}
-
-.completeButton {
-  flex: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 24px;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  color: white;
-  background: #22C55E;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.completeButton:hover:not(:disabled) {
-  background: #16A34A;
-}
-
-.completeButton:disabled {
-  background: #9CA3AF;
-  cursor: not-allowed;
-}
-
-/* Error Message */
-.errorMessage {
-  padding: 12px 16px;
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #DC2626;
-  margin-bottom: 16px;
-}
-
-/* Completed Message */
-.completedMessage {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 12px;
-  margin-top: 24px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #166534;
-}
-
-/* ============================================
-   Overall Score - Puntaje General
-   ============================================ */
-.overallScore {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 24px;
-  background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%);
-  border-radius: 16px;
-  margin-bottom: 24px;
-}
-
-.overallScoreCircle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border: 4px solid #E5E7EB;
-  flex-shrink: 0;
-}
-
-.overallScoreCircle[data-status="OK"] {
-  border-color: #22C55E;
-}
-
-.overallScoreCircle[data-status="WARNING"] {
-  border-color: #F59E0B;
-}
-
-.overallScoreCircle[data-status="CRITICAL"] {
-  border-color: #EF4444;
-}
-
-.overallScoreValue {
-  font-family: 'Inter', sans-serif;
-  font-size: 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 18px;
   font-weight: 700;
-  color: #1F2937;
-  line-height: 1;
-}
-
-.overallScoreLabel {
-  font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: #9CA3AF;
-  margin-top: 2px;
-}
-
-.overallScoreInfo {
-  flex: 1;
-}
-
-.overallScoreStatus {
-  display: block;
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.overallScoreHint {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #6B7280;
-}
-
-/* ============================================
-   Result Cards - Tarjetas de Resultados
-   ============================================ */
-.resultCard {
-  background: #F9FAFB;
-  border: 1px solid #E5E7EB;
-  border-radius: 12px;
-  padding: 16px;
-}
-
-.resultCard[data-status="OK"] {
-  border-color: #BBF7D0;
-  background: #F0FDF4;
-}
-
-.resultCard[data-status="WARNING"] {
-  border-color: #FDE68A;
-  background: #FFFBEB;
-}
-
-.resultCard[data-status="CRITICAL"] {
-  border-color: #FECACA;
-  background: #FEF2F2;
+  color: #F8FAFC;
 }
 
 .resultCardHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .resultProgress {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
-  font-weight: 500;
-  color: #9CA3AF;
-  background: rgba(0, 0, 0, 0.05);
-  padding: 2px 8px;
+  font-weight: 600;
+  color: #64748B;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 10px;
   border-radius: 100px;
 }
 
@@ -648,163 +630,481 @@
 }
 
 .resultScore {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
   font-weight: 600;
-  color: #374151;
+  color: #F8FAFC;
 }
 
 .resultBreakdown {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .resultOk,
 .resultWarning,
 .resultCritical {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 11px;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
 }
 
 .resultOk {
-  background: #D1FAE5;
-  color: #065F46;
+  background: rgba(34, 197, 94, 0.2);
+  color: #22C55E;
 }
 
 .resultWarning {
-  background: #FEF3C7;
-  color: #92400E;
+  background: rgba(251, 191, 36, 0.2);
+  color: #FBBF24;
 }
 
 .resultCritical {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: rgba(239, 68, 68, 0.2);
+  color: #F87171;
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* ============================================
+   Summary Actions
+   ============================================ */
+.summaryActions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 24px;
+}
+
+.completeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+}
+
+.completeButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
+}
+
+.completeButton:disabled {
+  background: #334155;
+  color: #64748B;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ============================================
+   Messages
+   ============================================ */
+.errorMessage {
+  padding: 16px 20px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #F87171;
+  margin-bottom: 20px;
+}
+
+.completedMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 16px;
+  margin-top: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #22C55E;
+}
+
+/* ============================================
+   Overall Score - Final Result
+   ============================================ */
+.overallScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 28px 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.overallScoreCircle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 5px solid #475569;
+  flex-shrink: 0;
+}
+
+.overallScoreCircle[data-status="OK"] {
+  border-color: #22C55E;
+  box-shadow: 0 0 32px rgba(34, 197, 94, 0.3);
+}
+
+.overallScoreCircle[data-status="WARNING"] {
+  border-color: #FBBF24;
+  box-shadow: 0 0 32px rgba(251, 191, 36, 0.3);
+}
+
+.overallScoreCircle[data-status="CRITICAL"] {
+  border-color: #EF4444;
+  box-shadow: 0 0 32px rgba(239, 68, 68, 0.3);
+}
+
+.overallScoreValue {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: #F8FAFC;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.overallScoreLabel {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 12px;
+  color: #64748B;
+  margin-top: 4px;
+}
+
+.overallScoreInfo {
+  flex: 1;
+}
+
+.overallScoreStatus {
+  display: block;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin-bottom: 6px;
+}
+
+.overallScoreHint {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #94A3B8;
+  line-height: 1.5;
+}
+
+/* ============================================
+   Plate Registration - Urgent Card
+   ============================================ */
+.plateRegister {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.infoCardValueMuted {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #64748B;
+  margin: 0;
+}
+
+.legalBlockedBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #F87171;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 100px;
+}
+
+.plateRegisterCard {
+  margin-top: 20px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12) 0%, rgba(245, 158, 11, 0.08) 100%);
+  border: 2px solid rgba(251, 191, 36, 0.4);
+  border-radius: 20px;
+}
+
+.plateRegisterHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  color: #FBBF24;
+}
+
+.plateRegisterHeader svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.plateRegisterTitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #FBBF24;
+  margin: 0;
+}
+
+.plateRegisterSubtitle {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  color: #F59E0B;
+  margin: 6px 0 0 0;
+  line-height: 1.5;
+}
+
+.plateRegisterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plateInput {
+  width: 100%;
+  padding: 16px 20px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  letter-spacing: 0.15em;
+  color: #0F172A;
+  background: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 14px;
+  transition: all 0.2s ease;
+}
+
+.plateInput:focus {
+  outline: none;
+  border-color: #FBBF24;
+  box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.2);
+}
+
+.plateInput::placeholder {
+  color: #94A3B8;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.plateRegisterButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 28px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.3);
+}
+
+.plateRegisterButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(34, 197, 94, 0.4);
+}
+
+.plateRegisterButton:disabled {
+  background: #334155;
+  color: #64748B;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   Responsive - Tablet & Desktop
+   ============================================ */
+@media (min-width: 640px) {
   .header {
-    flex-wrap: wrap;
+    padding: 16px 24px;
+  }
+
+  .headerTitle {
+    font-size: 20px;
   }
 
   .nav {
-    padding: 0 16px;
-  }
-
-  .navItem {
-    padding: 12px 16px;
-    font-size: 13px;
+    padding: 16px 24px;
+    gap: 8px;
   }
 
   .content {
-    padding: 16px;
+    padding: 24px;
   }
 
   .section {
-    padding: 16px;
+    padding: 32px;
   }
 
   .infoGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .formGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .statusRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .resultsGrid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .summaryActions {
-    flex-direction: column;
   }
 
   .categoriesHint ul {
-    columns: 1;
+    columns: 2;
   }
 
-  /* Overall Score Mobile */
+  .summaryActions {
+    flex-direction: row;
+  }
+
+  .completeButton {
+    flex: 1;
+  }
+
   .overallScore {
-    flex-direction: column;
-    text-align: center;
-    gap: 16px;
-    padding: 20px;
+    flex-direction: row;
+    text-align: left;
+    gap: 32px;
+    padding: 32px;
   }
 
   .overallScoreCircle {
-    width: 90px;
-    height: 90px;
+    width: 140px;
+    height: 140px;
   }
 
   .overallScoreValue {
-    font-size: 28px;
+    font-size: 48px;
   }
 
-  .overallScoreStatus {
-    font-size: 18px;
+  .plateRegisterForm {
+    flex-direction: row;
   }
 
-  /* Result Cards Mobile */
-  .resultCard {
-    padding: 12px;
+  .plateInput {
+    flex: 1;
+    text-align: left;
+    padding-left: 24px;
   }
 
-  .resultLabel {
-    font-size: 11px;
-  }
-
-  .resultValue {
-    font-size: 14px;
-  }
-
-  .resultScore {
-    font-size: 12px;
-  }
-
-  .resultBreakdown {
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-
-  .resultOk,
-  .resultWarning,
-  .resultCritical {
-    font-size: 10px;
-    padding: 2px 6px;
+  .plateRegisterButton {
+    white-space: nowrap;
   }
 }
 
-@media (max-width: 480px) {
-  .resultsGrid {
-    grid-template-columns: 1fr;
+@media (min-width: 768px) {
+  .header {
+    gap: 20px;
   }
 
-  .overallScoreCircle {
-    width: 80px;
-    height: 80px;
+  .backLink {
+    width: 44px;
+    height: 44px;
   }
 
-  .overallScoreValue {
+  .headerTitle {
+    font-size: 22px;
+  }
+
+  .navItem {
+    padding: 14px 24px;
+  }
+
+  .content {
+    padding: 32px;
+  }
+
+  .sectionTitle {
     font-size: 24px;
   }
 
-  .overallScoreStatus {
-    font-size: 16px;
+  .resultsGrid {
+    grid-template-columns: repeat(3, 1fr);
   }
 
-  .overallScoreHint {
-    font-size: 13px;
+  .infoGrid {
+    gap: 16px;
+  }
+
+  .infoCard {
+    padding: 20px 24px;
+  }
+
+  .infoCardValue {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .navItem {
+    flex: none;
+    min-width: 160px;
   }
 }

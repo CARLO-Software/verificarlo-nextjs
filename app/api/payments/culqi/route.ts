@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
+import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
 
 const CULQI_SECRET_KEY = process.env.CULQI_SECRET_KEY!;
 const CULQI_API_URL = "https://api.culqi.com/v2/charges";
@@ -235,6 +236,22 @@ export async function POST(req: NextRequest) {
       // El admin deberá asignar manualmente
       console.error(
         `[ALERTA] Pago exitoso pero sin inspector asignado para booking #${bookingId}: ${assignment.error}`
+      );
+    }
+
+    // Crear VehicleInspection con flujo dual (mecánico + legal)
+    const vehicleInspectionResult = await createVehicleInspection({
+      bookingId,
+      vehicleId: booking.vehicle.id,
+      clientId: session.user.id,
+      plate: booking.vehicle.plate,
+      vehicleDescription,
+      clientName: booking.client.name || "Cliente",
+    });
+
+    if (!vehicleInspectionResult.success) {
+      console.error(
+        `[ALERTA] Pago exitoso pero no se pudo crear VehicleInspection para booking #${bookingId}: ${vehicleInspectionResult.error}`
       );
     }
 

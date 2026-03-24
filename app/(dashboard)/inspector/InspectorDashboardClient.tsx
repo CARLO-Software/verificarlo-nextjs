@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
+import { NotificationBell } from "@/app/components/NotificationBell/NotificationBell";
 import styles from "./Inspector.module.css";
 
 interface Inspection {
@@ -161,13 +162,15 @@ export function InspectorDashboardClient({
             <span className={styles.navbarBadge}>Inspector</span>
           </div>
 
-          {/* Avatar y menú */}
-          <div className={styles.userMenuContainer} ref={menuRef}>
-            <button
-              className={styles.avatarButton}
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              aria-label="Menú de usuario"
-            >
+          {/* Notificaciones y Avatar */}
+          <div className={styles.navbarRight}>
+            <NotificationBell />
+            <div className={styles.userMenuContainer} ref={menuRef}>
+              <button
+                className={styles.avatarButton}
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                aria-label="Menú de usuario"
+              >
               {inspectorImage ? (
                 <img
                   src={inspectorImage}
@@ -211,6 +214,7 @@ export function InspectorDashboardClient({
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </nav>

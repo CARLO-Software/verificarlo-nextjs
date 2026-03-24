@@ -44,6 +44,12 @@ interface Inspection {
   adminNotes: string | null;
   reportId: number | null;
   legalReportStatus: string | null;
+  vehicleInspection: {
+    id: number;
+    plate: string | null;
+    legalStatus: 'BLOQUEADO' | 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
+    mechanicalStatus: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
+  } | null;
 }
 
 interface Inspector {
@@ -1140,6 +1146,29 @@ export function AdminInspeccionesClient({
                               )}
                             </button>
                           )}
+                          {/* Botón editar estado legal - cuando tiene placa y no está bloqueado ni completado */}
+                          {inspection.vehicleInspection &&
+                            inspection.vehicleInspection.legalStatus !== 'BLOQUEADO' &&
+                            inspection.vehicleInspection.legalStatus !== 'COMPLETADO' && (
+                              <a
+                                href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
+                                onClick={(e) => e.stopPropagation()}
+                                className={`p-2 rounded-lg transition-colors ${
+                                  inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                    ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
+                                    : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
+                                }`}
+                                title={
+                                  inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                    ? 'Continuar revisión legal'
+                                    : 'Iniciar revisión legal'
+                                }
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                </svg>
+                              </a>
+                            )}
                           {/* Botón revisar legal - solo para COMPLETED con reportId */}
                           {inspection.status === 'COMPLETED' && inspection.reportId && (
                             <a

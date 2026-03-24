@@ -129,17 +129,11 @@ async function verifyInspectorAccess(bookingId: number) {
 export async function createReport(input: CreateReportInput) {
   const { booking } = await verifyInspectorAccess(input.bookingId);
 
-  // Verificar que no exista ya un informe
-  const existingReport = await db.inspectionReport.findUnique({
+  // Usar upsert para evitar race conditions
+  const report = await db.inspectionReport.upsert({
     where: { bookingId: input.bookingId },
-  });
-
-  if (existingReport) {
-    throw new Error('Ya existe un informe para esta inspección');
-  }
-
-  const report = await db.inspectionReport.create({
-    data: {
+    update: {}, // No actualizar nada si ya existe
+    create: {
       bookingId: input.bookingId,
       legalStatus: 'PENDING',
       mechanicalStatus: 'PENDING',

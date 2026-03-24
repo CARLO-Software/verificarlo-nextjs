@@ -18,6 +18,8 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
+const DRAFT_KEY = "agendar_draft";
 import styles from "./Agendar.module.css";
 
 // Componentes del flujo de reserva
@@ -134,16 +136,36 @@ export default function AgendarForm({
   } | null>(null);
 
   // =========================================================================
-  // EFECTO: Verificar autenticación
+  // EFECTO: Restaurar borrador guardado (si el usuario volvió del login)
   // =========================================================================
-  // Si el usuario no está logueado, lo redirigimos al login.
-  // useEffect se ejecuta después de que el componente se renderiza.
-
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/login?callbackUrl=/agendar");
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+
+      const draft = JSON.parse(raw);
+      sessionStorage.removeItem(DRAFT_KEY);
+
+      if (draft.selectedInspectionId) {
+        const plan = initialInspections.find(
+          (i) => i.id === draft.selectedInspectionId
+        );
+        if (plan) setSelectedInspection(plan);
+      }
+      if (draft.vehicleData) setVehicleData(draft.vehicleData);
+      if (draft.locationData) setLocationData(draft.locationData);
+      if (draft.selectedDate) setSelectedDate(draft.selectedDate);
+      if (draft.selectedSlot) setSelectedSlot(draft.selectedSlot);
+      if (draft.contactData) setContactData(draft.contactData);
+
+      // Volver al paso donde el usuario se quedó
+      if (draft.currentStep) setCurrentStep(draft.currentStep);
+    } catch {
+      sessionStorage.removeItem(DRAFT_KEY);
     }
-  }, [status, router]);
+  // Solo al montar — initialInspections no cambia
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // =========================================================================
   // VALIDACIONES POR PASO
@@ -196,6 +218,25 @@ export default function AgendarForm({
 
   const handleProceedToPayment = async () => {
     if (!canProceedStep3 || !selectedInspection) return;
+
+    // Si el usuario aún no está autenticado, guardar el borrador y llevarlo al login.
+    // Al volver, el useEffect de arriba restaurará todo automáticamente.
+    if (status === "unauthenticated") {
+      sessionStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({
+          currentStep: 3,
+          selectedInspectionId: selectedInspection.id,
+          vehicleData,
+          locationData,
+          selectedDate,
+          selectedSlot,
+          contactData,
+        })
+      );
+      router.push("/login?callbackUrl=/agendar");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -288,23 +329,6 @@ export default function AgendarForm({
   const handleAlternativePaymentSuccess = () => {
     router.push(`/payment/pending?bookingId=${bookingData!.id}`);
   };
-
-  // =========================================================================
-  // ESTADOS DE CARGA
-  // =========================================================================
-
-  if (status === "loading") {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner} />
-        <p>Cargando...</p>
-      </div>
-    );
-  }
-
-  if (status === "unauthenticated") {
-    return null;
-  }
 
   // =========================================================================
   // FORMULARIO DE CULQI (cuando selecciona pago con tarjeta)

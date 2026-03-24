@@ -1,0 +1,300 @@
+/* ============================================
+   InspectionTimeline.module.css
+   Estilos para la línea de tiempo de inspección
+   ============================================ */
+
+/* Container */
+.timeline {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.timelineTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 20px 0;
+}
+
+.timelineTitle svg {
+  color: #6B7280;
+}
+
+/* ─── STEP INDIVIDUAL ─────────────────────────────────────────────── */
+
+.step {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  transition: all 0.2s;
+}
+
+.step[data-status="completed"] {
+  background: #F0FDF4;
+  border-color: #86EFAC;
+}
+
+.step[data-status="in_progress"] {
+  background: #EFF6FF;
+  border-color: #93C5FD;
+}
+
+.step[data-status="pending"] {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+}
+
+.step[data-status="blocked"] {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+  opacity: 0.8;
+}
+
+.stepIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid #E5E7EB;
+}
+
+.step[data-status="completed"] .stepIcon {
+  background: #22C55E;
+  border-color: #22C55E;
+  color: white;
+}
+
+.step[data-status="in_progress"] .stepIcon {
+  background: #3B82F6;
+  border-color: #3B82F6;
+  color: white;
+}
+
+.step[data-status="pending"] .stepIcon {
+  background: #F59E0B;
+  border-color: #F59E0B;
+  color: white;
+}
+
+.step[data-status="blocked"] .stepIcon {
+  background: #9CA3AF;
+  border-color: #9CA3AF;
+  color: white;
+}
+
+.stepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.stepHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.stepTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0;
+}
+
+.stepBadge {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+
+.stepBadge[data-status="completed"] {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.stepBadge[data-status="in_progress"] {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.stepBadge[data-status="pending"] {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.stepBadge[data-status="blocked"] {
+  background: #E5E7EB;
+  color: #6B7280;
+}
+
+.stepSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #6B7280;
+  margin: 0 0 8px 0;
+}
+
+.stepAssignee,
+.stepTimestamp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin: 0 0 4px 0;
+}
+
+/* ─── FLUJO PARALELO ──────────────────────────────────────────────── */
+
+.parallelHeader {
+  margin-bottom: 16px;
+}
+
+.parallelContainer {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.parallelBranch {
+  flex: 1;
+  position: relative;
+}
+
+.branchLine {
+  position: absolute;
+  top: -12px;
+  left: 28px;
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.branchLine[data-status="completed"] {
+  background: #22C55E;
+}
+
+.branchLine[data-status="in_progress"] {
+  background: #3B82F6;
+}
+
+.branchLine[data-status="pending"] {
+  background: #F59E0B;
+}
+
+.branchLine[data-status="blocked"] {
+  background: #D1D5DB;
+}
+
+.parallelDivider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.parallelDivider span {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #9CA3AF;
+  background: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #E5E7EB;
+}
+
+/* ─── FLUJO SECUENCIAL ────────────────────────────────────────────── */
+
+.sequentialContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sequentialLine {
+  position: absolute;
+  left: 36px;
+  top: 56px;
+  bottom: 56px;
+  width: 2px;
+  background: linear-gradient(to bottom, #22C55E 0%, #F59E0B 50%, #D1D5DB 100%);
+  border-radius: 1px;
+  z-index: 0;
+}
+
+.sequentialContainer .step {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── BANNER COMPLETADO ───────────────────────────────────────────── */
+
+.completedBanner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.completedBanner svg {
+  color: #059669;
+}
+
+.completedBanner span {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #065F46;
+}
+
+/* ─── RESPONSIVE ──────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .parallelContainer {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .parallelDivider {
+    width: 100%;
+    height: 32px;
+  }
+
+  .branchLine {
+    display: none;
+  }
+
+  .sequentialLine {
+    left: 36px;
+  }
+}

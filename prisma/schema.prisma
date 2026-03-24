@@ -105,6 +105,14 @@ model User {
   // Relaciones de Informe Legal
   legalReportsLocked    LegalReport[] @relation("LegalReportLockedBy")
   legalReportsCompleted LegalReport[] @relation("LegalReportCompletedBy")
+
+  // Relaciones de VehicleInspection
+  vehicleInspectionsAsClient   VehicleInspection[] @relation("VehicleInspectionClient")
+  vehicleInspectionsAsAdmin    VehicleInspection[] @relation("VehicleInspectionAdmin")
+  vehicleInspectionsAsMechanic VehicleInspection[] @relation("VehicleInspectionMechanic")
+
+  // Notificaciones in-app
+  notifications         Notification[]
 }
 
 enum UserStatus{
@@ -211,9 +219,10 @@ model Vehicle {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  model    Model     @relation(fields: [modelId], references: [id])
-  bookings Booking[]
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  model              Model               @relation(fields: [modelId], references: [id])
+  bookings           Booking[]
+  vehicleInspections VehicleInspection[]
 
   @@unique([plate]) // Única solo si tiene valor
   @@index([userId])
@@ -627,6 +636,105 @@ model BlockedDate {
   admin User @relation(fields: [createdBy], references: [id])
 
   @@index([date])
+}
+
+// ============================================
+// SISTEMA DE INSPECCIÓN DE VEHÍCULOS (FLUJO DUAL)
+// ============================================
+
+// Estado de la inspección LEGAL (requiere placa)
+enum LegalStatus {
+  BLOQUEADO   // Sin placa → no se puede iniciar
+  PENDIENTE   // Con placa → esperando que un admin tome el caso
+  EN_PROCESO  // Admin tomó el caso, revisión en curso
+  COMPLETADO  // Revisión legal finalizada
+}
+
+// Estado de la inspección MECÁNICA (independiente de la placa)
+enum MechanicalStatus {
+  PENDIENTE   // Mecánico asignado, esperando que inicie
+  EN_PROCESO  // Mecánico inspeccionando
+  COMPLETADO  // Inspección mecánica finalizada
+}
+
+model VehicleInspection {
+  id    Int    @id @default(autoincrement())
+
+  // Datos base
+  vehicleId  Int
+  clientId   String
+  plate      String?   // Placa al momento de inspección; puede agregarse después
+
+  // Asignaciones
+  assignedAdminId    String?   // Admin que tomó el caso legal
+  assignedMechanicId String?   // Mecánico asignado automáticamente al crear
+
+  // Estados independientes (NO un estado global)
+  legalStatus      LegalStatus      // BLOQUEADO si no hay placa al crear
+  mechanicalStatus MechanicalStatus @default(PENDIENTE)
+
+  // Notas por proceso
+  legalNotes    String?  @db.Text
+  mechanicNotes String?  @db.Text
+  adminNotes    String?  @db.Text
+
+  // Datos del informe legal (JSON con todos los campos)
+  // Estructura: { fieldName: { status: "OK"|"WARNING"|"CRITICAL"|"PENDING", text: "..." }, ... }
+  legalReportData Json?
+
+  // Timestamps de cada transición de estado
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  plateAddedAt        DateTime? // Cuando el mecánico registró la placa (si no había al crear)
+  legalUnlockedAt     DateTime? // Cuando legal pasó de BLOQUEADO → PENDIENTE
+  legalStartedAt      DateTime? // Admin tomó el caso
+  legalCompletedAt    DateTime?
+  mechanicAssignedAt  DateTime? // Asignación automática al crear
+  mechanicStartedAt   DateTime?
+  mechanicCompletedAt DateTime?
+
+  // Relaciones
+  vehicle          Vehicle           @relation(fields: [vehicleId], references: [id])
+  client           User              @relation("VehicleInspectionClient", fields: [clientId], references: [id])
+  assignedAdmin    User?             @relation("VehicleInspectionAdmin", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  assignedMechanic User?             @relation("VehicleInspectionMechanic", fields: [assignedMechanicId], references: [id], onDelete: SetNull)
+  notifications    Notification[]
+
+  @@index([legalStatus])
+  @@index([mechanicalStatus])
+  @@index([clientId])
+  @@index([assignedAdminId])
+  @@index([assignedMechanicId])
+  @@index([createdAt])
+}
+
+// ============================================
+// NOTIFICACIONES IN-APP
+// ============================================
+
+enum NotificationType {
+  NUEVA_INSPECCION       // Caso con placa creado → todos los admins
+  LEGAL_DESBLOQUEADO     // Mecánico registró placa → todos los admins
+  MECANICO_ASIGNADO      // Mecánico asignado al crear → mecánico
+  INSPECCION_COMPLETADA  // Ambos procesos finalizados → cliente
+}
+
+model Notification {
+  id           Int              @id @default(autoincrement())
+  userId       String           // Destinatario
+  type         NotificationType
+  title        String
+  message      String           @db.Text
+  inspectionId Int?             // VehicleInspection relacionada
+  read         Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inspection   VehicleInspection? @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, read])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 // ============================================

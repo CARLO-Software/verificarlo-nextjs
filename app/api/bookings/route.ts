@@ -10,6 +10,7 @@ import { db } from "@/lib/db";
 import { addMinutes, parse } from "date-fns";
 import { isSlotAvailable } from "@/lib/scheduling/availability";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
+import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
 import {
   INSPECTION_DURATION_MINUTES,
   BOOKING_EXPIRATION_MINUTES,
@@ -68,6 +69,11 @@ export async function POST(req: NextRequest) {
       where: {
         id: vehicleId,
         userId: session.user.id,
+      },
+      include: {
+        model: {
+          include: { brand: true },
+        },
       },
     });
 
@@ -145,6 +151,25 @@ export async function POST(req: NextRequest) {
     if (!assignment.success) {
       console.warn(
         `[Bookings] Inspector auto-assignment failed for booking ${booking.id}: ${assignment.error}`
+      );
+    }
+
+    // Crear VehicleInspection con flujo dual (mecánico + legal)
+    const vehicleDescription = `${vehicle.model.brand.name} ${vehicle.model.name} ${vehicle.year}`;
+    const vehicleInspectionResult = await createVehicleInspection({
+      bookingId: booking.id,
+      vehicleId: vehicle.id,
+      clientId: session.user.id,
+      plate: vehicle.plate,
+      vehicleDescription,
+      clientName: session.user.name || "Cliente",
+      scheduledDate: date,
+      scheduledTime: timeSlot,
+    });
+
+    if (!vehicleInspectionResult.success) {
+      console.warn(
+        `[Bookings] VehicleInspection creation failed for booking ${booking.id}: ${vehicleInspectionResult.error}`
       );
     }
 

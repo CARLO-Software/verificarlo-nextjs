@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import styles from "./InspectionForm.module.css";
@@ -45,6 +45,13 @@ interface Report {
   photos: Photo[];
 }
 
+interface VehicleInspectionData {
+  id: number;
+  plate: string | null;
+  legalStatus: 'BLOQUEADO' | 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
+  mechanicalStatus: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
+}
+
 interface InspectionData {
   id: number;
   code: string;
@@ -71,6 +78,7 @@ interface InspectionData {
     items: string[];
   };
   report: Report | null;
+  vehicleInspection: VehicleInspectionData | null;
 }
 
 interface InspectionFormClientProps {
@@ -132,10 +140,14 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
     });
   };
 
+  // Ref para evitar múltiples llamadas simultáneas
+  const creatingReportRef = useRef(false);
+
   // Crear informe si no existe
   useEffect(() => {
     const createReportIfNeeded = async () => {
-      if (!report && !isCompleted) {
+      if (!report && !isCompleted && !creatingReportRef.current) {
+        creatingReportRef.current = true;
         try {
           const res = await fetch(`/api/bookings/${inspection.id}/report`, {
             method: "POST",
@@ -149,6 +161,8 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
           }
         } catch {
           setError("Error al crear el informe");
+        } finally {
+          creatingReportRef.current = false;
         }
       }
     };
@@ -269,6 +283,14 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
             report={report}
             onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
             disabled={isCompleted}
+            onPlateRegistered={(plate) => {
+              // Actualizar la placa localmente después de registrarla
+              inspection.vehicle.plate = plate;
+              if (inspection.vehicleInspection) {
+                inspection.vehicleInspection.plate = plate;
+                inspection.vehicleInspection.legalStatus = 'PENDIENTE';
+              }
+            }}
           />
         )}
         {activeSection === "checklist" && (
@@ -314,16 +336,58 @@ function InfoSection({
   report,
   onUpdate,
   disabled,
+  onPlateRegistered,
 }: {
   inspection: InspectionData;
   report: Report | null;
   onUpdate: (data: Partial<Report>) => void;
   disabled: boolean;
+  onPlateRegistered: (plate: string) => void;
 }) {
+  const { showToast } = useToast();
   const [vinNumber, setVinNumber] = useState(report?.vinNumber || "");
   const [engineNumber, setEngineNumber] = useState(report?.engineNumber || "");
   const [actualColor, setActualColor] = useState(report?.actualColor || "");
   const [saving, setSaving] = useState(false);
+
+  // Estado para registro de placa
+  const [plateInput, setPlateInput] = useState("");
+  const [savingPlate, setSavingPlate] = useState(false);
+  const hasPlate = !!inspection.vehicle.plate;
+  const canRegisterPlate = !hasPlate && inspection.vehicleInspection;
+  const isLegalBlocked = inspection.vehicleInspection?.legalStatus === 'BLOQUEADO';
+
+  // Registrar placa en VehicleInspection
+  const handleRegisterPlate = async () => {
+    if (!plateInput.trim() || !inspection.vehicleInspection) return;
+
+    setSavingPlate(true);
+    try {
+      const res = await fetch(`/api/vehicle-inspections/${inspection.vehicleInspection.id}/mechanic`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "register_plate",
+          plate: plateInput.trim().toUpperCase(),
+        }),
+      });
+
+      if (res.ok) {
+        const normalizedPlate = plateInput.trim().toUpperCase();
+        onPlateRegistered(normalizedPlate);
+        setPlateInput("");
+        showToast("Placa registrada correctamente. El equipo legal ha sido notificado.", "success");
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Error al registrar placa", "error");
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Error al registrar placa", "error");
+    } finally {
+      setSavingPlate(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!report) return;
@@ -399,9 +463,18 @@ function InfoSection({
 
         <div className={styles.infoCard}>
           <h3 className={styles.infoCardTitle}>Placa</h3>
-          <p className={styles.infoCardValue}>
-            {inspection.vehicle.plate || "No especificada"}
-          </p>
+          {hasPlate ? (
+            <p className={styles.infoCardValue}>{inspection.vehicle.plate}</p>
+          ) : (
+            <div className={styles.plateRegister}>
+              <p className={styles.infoCardValueMuted}>No especificada</p>
+              {isLegalBlocked && (
+                <span className={styles.legalBlockedBadge}>
+                  Legal bloqueado
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className={styles.infoCard}>
@@ -415,6 +488,57 @@ function InfoSection({
           <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
         </div>
       </div>
+
+      {/* Formulario de registro de placa (cuando no hay placa) */}
+      {canRegisterPlate && (
+        <div className={styles.plateRegisterCard}>
+          <div className={styles.plateRegisterHeader}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
+              <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
+              <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+            </svg>
+            <div>
+              <h3 className={styles.plateRegisterTitle}>Registrar Placa del Vehículo</h3>
+              <p className={styles.plateRegisterSubtitle}>
+                {isLegalBlocked
+                  ? "El equipo legal está esperando la placa para iniciar la revisión"
+                  : "Registra la placa para que el equipo legal pueda continuar"}
+              </p>
+            </div>
+          </div>
+          <div className={styles.plateRegisterForm}>
+            <input
+              type="text"
+              value={plateInput}
+              onChange={(e) => setPlateInput(e.target.value.toUpperCase())}
+              placeholder="Ej: ABC-123"
+              maxLength={10}
+              className={styles.plateInput}
+              disabled={savingPlate}
+            />
+            <button
+              onClick={handleRegisterPlate}
+              disabled={!plateInput.trim() || savingPlate}
+              className={styles.plateRegisterButton}
+            >
+              {savingPlate ? (
+                <>
+                  <span className={styles.spinner} />
+                  Registrando...
+                </>
+              ) : (
+                <>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M15 4.5L6.75 12.75L3 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Registrar Placa
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Datos de la cita */}
       <div className={styles.infoGrid} style={{ marginTop: "16px" }}>

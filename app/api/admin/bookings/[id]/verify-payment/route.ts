@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
+import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
 
 export async function POST(
   _req: NextRequest,
@@ -48,8 +49,13 @@ export async function POST(
     const booking = await db.booking.findUnique({
       where: { id: bookingId },
       include: {
-        client: { select: { name: true, email: true } },
+        client: { select: { id: true, name: true, email: true } },
         payment: true,
+        vehicle: {
+          include: {
+            model: { include: { brand: true } },
+          },
+        },
       },
     });
 
@@ -102,6 +108,23 @@ export async function POST(
       });
     }
 
+    // Crear VehicleInspection con flujo dual (mecánico + legal)
+    const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+    const vehicleInspectionResult = await createVehicleInspection({
+      bookingId,
+      vehicleId: booking.vehicle.id,
+      clientId: booking.client.id,
+      plate: booking.vehicle.plate,
+      vehicleDescription,
+      clientName: booking.client.name || "Cliente",
+    });
+
+    if (!vehicleInspectionResult.success) {
+      console.error(
+        `[ALERTA] Pago verificado pero no se pudo crear VehicleInspection: ${vehicleInspectionResult.error}`
+      );
+    }
+
     return NextResponse.json({
       success: true,
       paymentVerified: true,
@@ -110,6 +133,12 @@ export async function POST(
         id: assignmentResult.inspectorId,
         name: assignmentResult.inspectorName,
       },
+      vehicleInspection: vehicleInspectionResult.success
+        ? {
+            id: vehicleInspectionResult.inspectionId,
+            hasPlate: vehicleInspectionResult.hasPlate,
+          }
+        : null,
       message: `Pago verificado e inspector ${assignmentResult.inspectorName} asignado correctamente.`,
     });
   } catch (error) {

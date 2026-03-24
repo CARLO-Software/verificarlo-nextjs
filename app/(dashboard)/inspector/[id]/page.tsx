@@ -73,6 +73,21 @@ export default async function InspectionDetailPage({ params }: PageProps) {
     redirect("/inspector");
   }
 
+  // Buscar VehicleInspection asociada (para el flujo dual legal/mecánico)
+  const vehicleInspection = await db.vehicleInspection.findFirst({
+    where: {
+      vehicleId: booking.vehicleId,
+      clientId: booking.clientId,
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      plate: true,
+      legalStatus: true,
+      mechanicalStatus: true,
+    },
+  });
+
   // Verificar que el inspector esté asignado a esta inspección
   const isAssignedInspector = booking.inspectorId === userId;
   const isAdmin = session.user.role === "ADMIN";
@@ -147,6 +162,15 @@ export default async function InspectionDetailPage({ params }: PageProps) {
             label: photo.label,
             checklistItemId: photo.checklistItemId,
           })),
+        }
+      : null,
+    // Datos del flujo dual (VehicleInspection)
+    vehicleInspection: vehicleInspection
+      ? {
+          id: vehicleInspection.id,
+          plate: vehicleInspection.plate,
+          legalStatus: vehicleInspection.legalStatus,
+          mechanicalStatus: vehicleInspection.mechanicalStatus,
         }
       : null,
   };

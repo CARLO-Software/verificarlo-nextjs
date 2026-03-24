@@ -1,6 +1,7 @@
 'use client';
 
-import { Bell, Menu } from 'lucide-react';
+import { Menu } from 'lucide-react';
+import { NotificationBell } from '@/app/components/NotificationBell/NotificationBell';
 import styles from './AdminHeader.module.css';
 
 interface AdminHeaderProps {
@@ -30,10 +31,7 @@ export function AdminHeader({ userName, onToggleSidebar }: AdminHeaderProps) {
       </div>
 
       <div className={styles.rightSection}>
-        <button className={styles.iconBtn} aria-label="Notificaciones">
-          <Bell size={20} />
-          <span className={styles.notifDot} />
-        </button>
+        <NotificationBell />
 
         <div className={styles.userInfo}>
           <div className={styles.avatar}>{initials}</div>

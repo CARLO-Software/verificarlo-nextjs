@@ -84,6 +84,25 @@ export default async function InspeccionDetallePage({ params }: PageProps) {
             pdfUrl: null,
           }
         : null,
+      // Flujo de inspección dual (mecánico + legal)
+      vehicleInspection: booking.vehicleInspection
+        ? {
+            id: booking.vehicleInspection.id,
+            plate: booking.vehicleInspection.plate,
+            legalStatus: booking.vehicleInspection.legalStatus,
+            mechanicalStatus: booking.vehicleInspection.mechanicalStatus,
+            assignedMechanic: booking.vehicleInspection.assignedMechanic,
+            assignedAdmin: booking.vehicleInspection.assignedAdmin,
+            createdAt: booking.vehicleInspection.createdAt.toISOString(),
+            plateAddedAt: booking.vehicleInspection.plateAddedAt?.toISOString() || null,
+            legalUnlockedAt: booking.vehicleInspection.legalUnlockedAt?.toISOString() || null,
+            legalStartedAt: booking.vehicleInspection.legalStartedAt?.toISOString() || null,
+            legalCompletedAt: booking.vehicleInspection.legalCompletedAt?.toISOString() || null,
+            mechanicAssignedAt: booking.vehicleInspection.mechanicAssignedAt?.toISOString() || null,
+            mechanicStartedAt: booking.vehicleInspection.mechanicStartedAt?.toISOString() || null,
+            mechanicCompletedAt: booking.vehicleInspection.mechanicCompletedAt?.toISOString() || null,
+          }
+        : null,
     };
 
     return <InspeccionDetalleClient inspection={inspectionData} />;

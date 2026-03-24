@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { BookingStatus, InspectionResultStatus } from '@prisma/client';
+import { BookingStatus, InspectionResultStatus, LegalStatus, MechanicalStatus } from '@prisma/client';
 
 // ============================================
 // Tipos
@@ -103,9 +103,42 @@ interface ReportBrief {
   } | null;
 }
 
+// Tipo breve de VehicleInspection para listado de admin
+interface VehicleInspectionBrief {
+  id: number;
+  plate: string | null;
+  legalStatus: LegalStatus;
+  mechanicalStatus: MechanicalStatus;
+}
+
 // Tipo para listado de admin (con reporte breve)
 export interface AdminBookingWithDetails extends BookingBase {
   report?: ReportBrief | null;
+  vehicleInspection?: VehicleInspectionBrief | null;
+}
+
+// Tipo para el flujo de inspección dual (mecánico + legal)
+export interface VehicleInspectionFlow {
+  id: number;
+  plate: string | null;
+  legalStatus: LegalStatus;
+  mechanicalStatus: MechanicalStatus;
+  assignedMechanic: {
+    id: string;
+    name: string;
+  } | null;
+  assignedAdmin: {
+    id: string;
+    name: string;
+  } | null;
+  createdAt: Date;
+  plateAddedAt: Date | null;
+  legalUnlockedAt: Date | null;
+  legalStartedAt: Date | null;
+  legalCompletedAt: Date | null;
+  mechanicAssignedAt: Date | null;
+  mechanicStartedAt: Date | null;
+  mechanicCompletedAt: Date | null;
 }
 
 // Tipo para vistas detalladas (con reporte completo y dirección del cliente)
@@ -115,6 +148,7 @@ export interface BookingWithDetails extends Omit<BookingBase, 'client'> {
     district: string | null;
   };
   report?: ReportFull | null;
+  vehicleInspection?: VehicleInspectionFlow | null;
 }
 
 // ============================================
@@ -247,6 +281,16 @@ export async function getAllBookings(filters?: {
               brand: true,
             },
           },
+          vehicleInspections: {
+            take: 1,
+            orderBy: { createdAt: 'desc' },
+            select: {
+              id: true,
+              plate: true,
+              legalStatus: true,
+              mechanicalStatus: true,
+            },
+          },
         },
       },
       inspectionPlan: {
@@ -286,6 +330,7 @@ export async function getAllBookings(filters?: {
   return bookings.map((booking) => ({
     ...booking,
     code: generateInspectionCode(booking.id, booking.createdAt),
+    vehicleInspection: booking.vehicle.vehicleInspections[0] || null,
   }));
 }
 
@@ -414,9 +459,39 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
     throw new Error('No autorizado');
   }
 
+  // Buscar VehicleInspection relacionada (si existe)
+  const vehicleInspection = await db.vehicleInspection.findFirst({
+    where: {
+      vehicleId: booking.vehicle.id,
+      clientId: booking.clientId,
+    },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      plate: true,
+      legalStatus: true,
+      mechanicalStatus: true,
+      createdAt: true,
+      plateAddedAt: true,
+      legalUnlockedAt: true,
+      legalStartedAt: true,
+      legalCompletedAt: true,
+      mechanicAssignedAt: true,
+      mechanicStartedAt: true,
+      mechanicCompletedAt: true,
+      assignedMechanic: {
+        select: { id: true, name: true },
+      },
+      assignedAdmin: {
+        select: { id: true, name: true },
+      },
+    },
+  });
+
   return {
     ...booking,
     code: generateInspectionCode(booking.id, booking.createdAt),
+    vehicleInspection: vehicleInspection || null,
   };
 }
 
