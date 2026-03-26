@@ -1,0 +1,507 @@
+/* ============================================
+   LegalScreenshotsUpload - Estilos
+   ============================================ */
+
+.container {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-top: 24px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.headerIcon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.headerText {
+  flex: 1;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 4px 0;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #6B7280;
+  margin: 0;
+}
+
+/* Progress */
+.progressSection {
+  background: #F9FAFB;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.progressCount {
+  color: #6366F1;
+  font-weight: 600;
+}
+
+.progressBar {
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366F1 0%, #8B5CF6 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Error Message */
+.errorMessage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  color: #DC2626;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.errorClose {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: #DC2626;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sources Grid */
+.sourcesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.sourceCard {
+  background: #FAFAFA;
+  border: 2px dashed #E5E7EB;
+  border-radius: 12px;
+  padding: 16px;
+  transition: all 0.2s ease;
+}
+
+.sourceCardUploaded {
+  background: #F0FDF4;
+  border: 2px solid #22C55E;
+}
+
+.sourceCardOptional {
+  opacity: 0.9;
+}
+
+.sourceHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.sourceInfo {
+  flex: 1;
+}
+
+.sourceName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.requiredBadge {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  background: #6366F1;
+  color: white;
+  border-radius: 4px;
+}
+
+.sourceDescription {
+  font-size: 12px;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.uploadedIcon {
+  color: #22C55E;
+  flex-shrink: 0;
+}
+
+/* Upload Area */
+.uploadArea {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+  background: white;
+  border: 2px dashed #D1D5DB;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 12px;
+}
+
+.uploadArea:hover {
+  border-color: #6366F1;
+  background: #F5F3FF;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.uploadPrompt svg {
+  color: #9CA3AF;
+}
+
+.uploadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #6366F1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Screenshot Preview */
+.screenshotPreview {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.screenshotImageWrapper {
+  position: relative;
+  height: 100px;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.screenshotImage {
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.screenshotImageWrapper:hover .screenshotImage {
+  transform: scale(1.05);
+}
+
+.screenshotActions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.actionButton {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #374151;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.actionButtonDanger:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+
+/* Source Link */
+.sourceLink {
+  display: block;
+  font-size: 12px;
+  color: #6366F1;
+  text-decoration: none;
+  text-align: center;
+  padding: 8px;
+  background: white;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.sourceLink:hover {
+  background: #EEF2FF;
+  text-decoration: underline;
+}
+
+/* Generate Section */
+.generateSection {
+  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 100%);
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+}
+
+.generateButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 32px;
+  background: white;
+  color: #1E1B4B;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.generateButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.generateButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generateHint {
+  margin: 12px 0 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* PDF Ready State */
+.pdfReady {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.pdfReadyIcon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #22C55E;
+}
+
+.pdfReadyText {
+  text-align: center;
+  color: white;
+}
+
+.pdfReadyText h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pdfReadyText p {
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.pdfActions {
+  display: flex;
+  gap: 12px;
+}
+
+.viewPdfButton,
+.downloadPdfButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.viewPdfButton {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.viewPdfButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.downloadPdfButton {
+  background: #22C55E;
+  color: white;
+}
+
+.downloadPdfButton:hover {
+  background: #16A34A;
+  transform: translateY(-1px);
+}
+
+/* Preview Modal */
+.previewModal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 40px;
+}
+
+.previewContent {
+  position: relative;
+  width: 100%;
+  max-width: 1000px;
+  height: 80vh;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.previewClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.2s ease;
+}
+
+.previewClose:hover {
+  background: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+}
+
+.previewImage {
+  object-fit: contain;
+}
+
+/* Spinner */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+  }
+
+  .sourcesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdfActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .viewPdfButton,
+  .downloadPdfButton {
+    justify-content: center;
+  }
+}

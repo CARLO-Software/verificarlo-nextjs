@@ -25,7 +25,8 @@
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/take\")",
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/save\")",
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/complete\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }

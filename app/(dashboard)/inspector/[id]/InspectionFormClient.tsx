@@ -352,14 +352,44 @@ function InfoSection({
 
   // Estado para registro de placa
   const [plateInput, setPlateInput] = useState("");
+  const [plateError, setPlateError] = useState("");
   const [savingPlate, setSavingPlate] = useState(false);
   const hasPlate = !!inspection.vehicle.plate;
   const canRegisterPlate = !hasPlate && inspection.vehicleInspection;
   const isLegalBlocked = inspection.vehicleInspection?.legalStatus === 'BLOQUEADO';
 
+  // Validación formato placa peruana: 3 letras + guión opcional + 3 números
+  const validatePlateFormat = (plate: string): boolean => {
+    const cleanPlate = plate.replace(/-/g, "").toUpperCase();
+    const plateRegex = /^[A-Z]{3}[0-9]{3}$/;
+    return plateRegex.test(cleanPlate);
+  };
+
+  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toUpperCase();
+    setPlateInput(value);
+
+    // Solo validar si hay algo escrito
+    if (value.trim()) {
+      if (!validatePlateFormat(value)) {
+        setPlateError("Formato inválido. Usa 3 letras y 3 números (Ej: ABC-123)");
+      } else {
+        setPlateError("");
+      }
+    } else {
+      setPlateError("");
+    }
+  };
+
   // Registrar placa en VehicleInspection
   const handleRegisterPlate = async () => {
     if (!plateInput.trim() || !inspection.vehicleInspection) return;
+
+    // Validar formato antes de enviar
+    if (!validatePlateFormat(plateInput)) {
+      setPlateError("Formato inválido. Usa 3 letras y 3 números (Ej: ABC-123)");
+      return;
+    }
 
     setSavingPlate(true);
     try {
@@ -508,18 +538,23 @@ function InfoSection({
             </div>
           </div>
           <div className={styles.plateRegisterForm}>
-            <input
-              type="text"
-              value={plateInput}
-              onChange={(e) => setPlateInput(e.target.value.toUpperCase())}
-              placeholder="Ej: ABC-123"
-              maxLength={10}
-              className={styles.plateInput}
-              disabled={savingPlate}
-            />
+            <div className={styles.plateInputWrapper}>
+              <input
+                type="text"
+                value={plateInput}
+                onChange={handlePlateChange}
+                placeholder="Ej: ABC-123"
+                maxLength={7}
+                className={`${styles.plateInput} ${plateError ? styles.plateInputError : ""}`}
+                disabled={savingPlate}
+              />
+              {plateError && (
+                <span className={styles.plateErrorText}>{plateError}</span>
+              )}
+            </div>
             <button
               onClick={handleRegisterPlate}
-              disabled={!plateInput.trim() || savingPlate}
+              disabled={!plateInput.trim() || !!plateError || savingPlate}
               className={styles.plateRegisterButton}
             >
               {savingPlate ? (
@@ -675,6 +710,146 @@ function ChecklistSection({
 // ============================================
 import { calculateScoreByCategory, calculateOverallScore, INSPECTION_CATEGORIES } from "./inspectionData";
 
+// Hook para reconocimiento de voz
+function useSpeechRecognition() {
+  const [isListening, setIsListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    // Verificar soporte del navegador
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setIsSupported(!!SpeechRecognitionAPI);
+
+    if (SpeechRecognitionAPI) {
+      const recognition = new SpeechRecognitionAPI();
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = "es-PE";
+      recognitionRef.current = recognition;
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.abort();
+      }
+    };
+  }, []);
+
+  const startListening = (onResult: (text: string) => void) => {
+    if (!recognitionRef.current || isListening) return;
+
+    let finalTranscript = "";
+
+    recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + " ";
+          onResult(finalTranscript.trim());
+        }
+      }
+    };
+
+    recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
+      console.error("Error de reconocimiento de voz:", event.error);
+      setIsListening(false);
+    };
+
+    recognitionRef.current.onend = () => {
+      setIsListening(false);
+    };
+
+    recognitionRef.current.start();
+    setIsListening(true);
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  return { isListening, isSupported, startListening, stopListening };
+}
+
+// Componente de textarea con micrófono
+function VoiceTextarea({
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  label,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  disabled: boolean;
+  label: string;
+}) {
+  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+
+  const handleVoiceClick = () => {
+    if (isListening) {
+      stopListening();
+    } else {
+      startListening((text) => {
+        onChange(value ? `${value} ${text}` : text);
+      });
+    }
+  };
+
+  return (
+    <div className={styles.formGroup}>
+      <label className={styles.label}>{label}</label>
+      <div className={styles.voiceInputWrapper}>
+        <textarea
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={styles.textareaWithVoice}
+          rows={4}
+          disabled={disabled}
+        />
+        {isSupported && !disabled && (
+          <button
+            type="button"
+            onClick={handleVoiceClick}
+            className={`${styles.voiceButton} ${isListening ? styles["voiceButton--recording"] : ""}`}
+            title={isListening ? "Detener grabación" : "Dictar con voz"}
+          >
+            {isListening ? (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="6" y="6" width="8" height="8" rx="1" fill="currentColor"/>
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="currentColor"/>
+                <path d="M5 9a5 5 0 0 0 10 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M10 14v4M7 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            )}
+          </button>
+        )}
+      </div>
+      {isListening && (
+        <div className={`${styles.voiceStatusHint} ${styles["voiceStatusHint--recording"]}`}>
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+            <circle cx="4" cy="4" r="4" fill="currentColor"/>
+          </svg>
+          Escuchando... Habla ahora
+        </div>
+      )}
+      {!isSupported && !disabled && (
+        <div className={styles.voiceNotSupported}>
+          Tu navegador no soporta reconocimiento de voz
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SummarySection({
   report,
   onUpdate,
@@ -698,10 +873,11 @@ function SummarySection({
   const scoresByCategory = calculateScoreByCategory(checklistResults);
   const overallResult = calculateOverallScore(checklistResults);
 
-  // Verificar si se puede completar (todas las categorías tienen items)
-  const allCategoriesStarted = INSPECTION_CATEGORIES.every(
-    cat => scoresByCategory[cat.id]?.completed > 0
+  // Verificar qué categorías faltan completar
+  const incompleteCategories = INSPECTION_CATEGORIES.filter(
+    cat => !scoresByCategory[cat.id] || scoresByCategory[cat.id].completed === 0
   );
+  const allCategoriesStarted = incompleteCategories.length === 0;
   const canComplete = allCategoriesStarted && overallResult.status !== "PENDING";
 
   const handleSaveSummary = async () => {
@@ -731,7 +907,12 @@ function SummarySection({
 
   const handleComplete = async () => {
     if (!canComplete) {
-      setError("Debe completar todas las secciones antes de finalizar");
+      if (incompleteCategories.length > 0) {
+        const names = incompleteCategories.map(c => c.title).join(", ");
+        setError(`Falta completar: ${names}`);
+      } else {
+        setError("Debe completar todas las secciones antes de finalizar");
+      }
       return;
     }
 
@@ -829,31 +1010,23 @@ function SummarySection({
         })}
       </div>
 
-      {/* Resumen ejecutivo */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Resumen ejecutivo</label>
-        <textarea
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          placeholder="Resumen general de la inspección..."
-          className={styles.textarea}
-          rows={4}
-          disabled={disabled}
-        />
-      </div>
+      {/* Resumen ejecutivo con micrófono */}
+      <VoiceTextarea
+        value={summary}
+        onChange={setSummary}
+        placeholder="Resumen general de la inspección. Puedes dictar con el micrófono..."
+        disabled={disabled}
+        label="Resumen ejecutivo"
+      />
 
-      {/* Recomendaciones */}
-      <div className={styles.formGroup}>
-        <label className={styles.label}>Recomendaciones</label>
-        <textarea
-          value={recommendations}
-          onChange={(e) => setRecommendations(e.target.value)}
-          placeholder="Recomendaciones para el cliente..."
-          className={styles.textarea}
-          rows={4}
-          disabled={disabled}
-        />
-      </div>
+      {/* Recomendaciones con micrófono */}
+      <VoiceTextarea
+        value={recommendations}
+        onChange={setRecommendations}
+        placeholder="Recomendaciones para el cliente. Puedes dictar con el micrófono..."
+        disabled={disabled}
+        label="Recomendaciones"
+      />
 
       {/* Costo estimado */}
       <div className={styles.formGroup}>

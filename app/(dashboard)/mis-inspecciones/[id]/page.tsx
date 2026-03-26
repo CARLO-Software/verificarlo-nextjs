@@ -91,6 +91,7 @@ export default async function InspeccionDetallePage({ params }: PageProps) {
             plate: booking.vehicleInspection.plate,
             legalStatus: booking.vehicleInspection.legalStatus,
             mechanicalStatus: booking.vehicleInspection.mechanicalStatus,
+            legalPdfUrl: booking.vehicleInspection.legalPdfUrl,
             assignedMechanic: booking.vehicleInspection.assignedMechanic,
             assignedAdmin: booking.vehicleInspection.assignedAdmin,
             createdAt: booking.vehicleInspection.createdAt.toISOString(),

@@ -41,19 +41,26 @@
 
 .avatarWrapper {
   position: relative;
+  width: 80px;
+  height: 80px;
 }
 
 .avatar {
+  position: absolute;
+  inset: 0;
   width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid var(--basics--white, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease;
 }
 
-/* Fallback cuando no hay imagen */
+/* Fallback cuando no hay imagen o mientras carga */
 .avatarFallback {
+  position: absolute;
+  inset: 0;
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -66,6 +73,7 @@
   color: var(--shark--950, #242424);
   border: 3px solid var(--basics--white, #fff);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.2s ease;
 }
 
 .headerInfo {

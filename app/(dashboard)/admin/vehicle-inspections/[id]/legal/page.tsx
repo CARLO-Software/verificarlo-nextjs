@@ -64,8 +64,9 @@ export default async function VehicleInspectionLegalPage({ params }: PageProps) 
 
   const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} (${inspection.vehicle.year})`;
 
-  // Parsear legalReportData si existe
+  // Parsear datos JSON si existen
   const legalReportData = inspection.legalReportData as any || null;
+  const legalScreenshots = inspection.legalScreenshots as any || null;
 
   return (
     <VehicleInspectionLegalClient
@@ -79,6 +80,8 @@ export default async function VehicleInspectionLegalPage({ params }: PageProps) 
       mechanicalStatus={inspection.mechanicalStatus}
       legalNotes={inspection.legalNotes}
       legalReportData={legalReportData}
+      legalScreenshots={legalScreenshots}
+      legalPdfUrl={inspection.legalPdfUrl}
       assignedAdmin={inspection.assignedAdmin}
       assignedMechanic={inspection.assignedMechanic}
       legalStartedAt={inspection.legalStartedAt?.toISOString() || null}

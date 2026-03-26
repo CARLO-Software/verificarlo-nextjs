@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import styles from './Profile.module.css';
 import type { Role } from '@/types/profile';
@@ -38,6 +39,9 @@ export default function ProfileHeader({
   role,
   createdAt,
 }: ProfileHeaderProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
   // Genera iniciales si no hay imagen
   const initials = name
     .split(' ')
@@ -52,20 +56,32 @@ export default function ProfileHeader({
     year: 'numeric',
   });
 
+  const showImage = image && !imageError;
+
   return (
     <header className={styles.header}>
       {/* Avatar */}
       <div className={styles.avatarWrapper}>
-        {image ? (
+        {/* Fallback/placeholder siempre visible hasta que cargue la imagen */}
+        <div
+          className={styles.avatarFallback}
+          style={{ opacity: showImage && imageLoaded ? 0 : 1 }}
+        >
+          {initials}
+        </div>
+
+        {/* Imagen del usuario */}
+        {showImage && (
           <Image
             src={image}
             alt={name}
             width={80}
             height={80}
             className={styles.avatar}
+            style={{ opacity: imageLoaded ? 1 : 0 }}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
           />
-        ) : (
-          <div className={styles.avatarFallback}>{initials}</div>
         )}
       </div>
 

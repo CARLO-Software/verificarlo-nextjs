@@ -123,6 +123,7 @@ export interface VehicleInspectionFlow {
   plate: string | null;
   legalStatus: LegalStatus;
   mechanicalStatus: MechanicalStatus;
+  legalPdfUrl: string | null;
   assignedMechanic: {
     id: string;
     name: string;
@@ -471,6 +472,7 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
       plate: true,
       legalStatus: true,
       mechanicalStatus: true,
+      legalPdfUrl: true,
       createdAt: true,
       plateAddedAt: true,
       legalUnlockedAt: true,

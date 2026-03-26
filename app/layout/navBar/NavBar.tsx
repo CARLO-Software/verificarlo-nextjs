@@ -9,6 +9,56 @@ import styles from "./NavBar.module.css";
 
 import { X } from "lucide-react";
 
+// Componente para el avatar del usuario con manejo de carga
+function UserAvatar({
+  src,
+  name,
+  className
+}: {
+  src?: string | null;
+  name?: string | null;
+  className?: string;
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+
+  const initial = name ? name.charAt(0).toUpperCase() : "U";
+
+  // Reset states when src changes
+  useEffect(() => {
+    if (src) {
+      setImageLoaded(false);
+      setImageError(false);
+    }
+  }, [src]);
+
+  const showImage = src && !imageError;
+
+  return (
+    <div className={styles["user-avatar-container"]}>
+      {/* Siempre mostrar inicial como fallback/placeholder */}
+      <span
+        className={styles["user-avatar-initial"]}
+        style={{ opacity: imageLoaded ? 0 : 1 }}
+      >
+        {initial}
+      </span>
+
+      {/* Imagen del usuario */}
+      {showImage && (
+        <img
+          src={src}
+          alt=""
+          className={`${styles["user-avatar-img"]} ${className || ""}`}
+          style={{ opacity: imageLoaded ? 1 : 0 }}
+          onLoad={() => setImageLoaded(true)}
+          onError={() => setImageError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function NavBar() {
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -127,13 +177,6 @@ export default function NavBar() {
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
-  };
-
-  const getInitial = () => {
-    if (session?.user?.name) {
-      return session.user.name.charAt(0).toUpperCase();
-    }
-    return "U";
   };
 
   const getDisplayName = () => {
@@ -276,15 +319,10 @@ export default function NavBar() {
                 aria-haspopup="true"
               >
                 <span className={styles["user-avatar"]}>
-                  {session.user?.image ? (
-                    <img
-                      src={session.user.image}
-                      alt=""
-                      className={styles["user-avatar-img"]}
-                    />
-                  ) : (
-                    getInitial()
-                  )}
+                  <UserAvatar
+                    src={session.user?.image}
+                    name={session.user?.name}
+                  />
                 </span>
                 <span className={styles["user-name"]}>{getDisplayName()}</span>
                 <svg

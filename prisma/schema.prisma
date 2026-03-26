@@ -682,6 +682,13 @@ model VehicleInspection {
   // Estructura: { fieldName: { status: "OK"|"WARNING"|"CRITICAL"|"PENDING", text: "..." }, ... }
   legalReportData Json?
 
+  // Capturas de pantalla de fuentes legales
+  // Estructura: { sourceId: { imageUrl: "...", uploadedAt: "..." }, ... }
+  legalScreenshots Json?
+
+  // URL del PDF legal generado
+  legalPdfUrl String?
+
   // Timestamps de cada transición de estado
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt

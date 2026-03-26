@@ -35,8 +35,8 @@ export interface ItemResult {
 export type InspectionResults = Record<string, ItemResult>;
 
 // ============================================
-// Datos de Inspección - 5 Categorías para el Inspector
-// Orden: Legal > Mecánica > Prueba de Ruta > Carrocería > Interior
+// Datos de Inspección - 4 Categorías para el Inspector
+// Orden: Legal > Mecánica > Carrocería > Interior
 // ============================================
 export const INSPECTION_CATEGORIES: InspectionCategory[] = [
   // ========== 1. LEGAL ==========
@@ -121,17 +121,9 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
           { id: "mec-funcionamiento-frenos", label: "Funcionamiento de frenos" },
         ],
       },
-    ],
-  },
-  // ========== 3. PRUEBA DE RUTA ==========
-  {
-    id: "prueba-ruta",
-    title: "Prueba de Ruta",
-    icon: "road",
-    sections: [
       {
-        id: "prueba-ruta-conduccion",
-        title: "Evaluación en conducción",
+        id: "mecanica-prueba-ruta",
+        title: "Prueba de ruta",
         items: [
           { id: "mec-vibracion-ruido-freno", label: "Vibración o ruido al frenar" },
           { id: "mec-funcionamiento-caja", label: "Funcionamiento de transmisión" },
@@ -140,7 +132,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
       },
     ],
   },
-  // ========== 4. CARROCERÍA ==========
+  // ========== 3. CARROCERÍA ==========
   {
     id: "carroceria",
     title: "Carrocería",
@@ -189,7 +181,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
       },
     ],
   },
-  // ========== 5. INTERIOR ==========
+  // ========== 4. INTERIOR ==========
   {
     id: "interior",
     title: "Interior",

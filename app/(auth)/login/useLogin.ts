@@ -11,12 +11,14 @@ export function useLogin() {
     const { showToast } = useToast();
     const { data: session, status } = useSession();
     const hasShownToast = useRef(false);
+    const [isRedirecting, setIsRedirecting] = useState(false);
 
     useEffect(() => {
         if (status !== "authenticated") return;
         if (hasShownToast.current) return;
 
         hasShownToast.current = true;
+        setIsRedirecting(true);
         const role = session.user.role;
         showToast("Bienvenido!", "success");
 
@@ -25,7 +27,7 @@ export function useLogin() {
             INSPECTOR: "/inspector",
         };
         router.replace(redirectMap[role] || "/perfil");
-    }, [status]);
+    }, [status, session?.user?.role, showToast, router]);
 
 
     const [formData, setFormData] = useState<LoginFormData>({
@@ -149,5 +151,5 @@ export function useLogin() {
         }
     }
 
-    return { formData, errors, generalError, isSubmitting, handleChange, handleBlur, handleSubmit };
+    return { formData, errors, generalError, isSubmitting, isRedirecting, handleChange, handleBlur, handleSubmit };
 }

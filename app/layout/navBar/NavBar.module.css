@@ -504,10 +504,37 @@
   overflow: hidden;
 }
 
+/* Container para el avatar con manejo de carga */
+.user-avatar-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Inicial como placeholder/fallback */
+.user-avatar-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
 .user-avatar-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
 }
 
 .user-name {

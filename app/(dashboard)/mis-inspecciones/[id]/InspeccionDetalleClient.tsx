@@ -72,6 +72,7 @@ interface InspectionData {
     plate: string | null;
     legalStatus: "BLOQUEADO" | "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
     mechanicalStatus: "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
+    legalPdfUrl: string | null;
     assignedMechanic: { id: string; name: string } | null;
     assignedAdmin: { id: string; name: string } | null;
     createdAt: string;
@@ -979,32 +980,55 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
             </div>
           )}
 
-          {/* Download Button */}
-          <button
-            onClick={handleDownloadPdf}
-            disabled={downloading}
-            className={styles.downloadButton}
-          >
-            {downloading ? (
-              <>
-                <span className={styles.buttonSpinner} />
-                Generando PDF...
-              </>
-            ) : (
-              <>
+          {/* Download Buttons */}
+          <div className={styles.downloadButtons}>
+            <button
+              onClick={handleDownloadPdf}
+              disabled={downloading}
+              className={styles.downloadButton}
+            >
+              {downloading ? (
+                <>
+                  <span className={styles.buttonSpinner} />
+                  Generando PDF...
+                </>
+              ) : (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path
+                      d="M10 3v10m0 0l-4-4m4 4l4-4M3 17h14"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  Descargar informe mecánico
+                </>
+              )}
+            </button>
+
+            {/* Legal PDF Download Button */}
+            {inspection.vehicleInspection?.legalPdfUrl && (
+              <a
+                href={inspection.vehicleInspection.legalPdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.downloadButtonLegal}
+              >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path
-                    d="M10 3v10m0 0l-4-4m4 4l4-4M3 17h14"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     stroke="currentColor"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
                 </svg>
-                Descargar informe PDF
-              </>
+                Descargar informe legal
+              </a>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Right: Booking Info */}

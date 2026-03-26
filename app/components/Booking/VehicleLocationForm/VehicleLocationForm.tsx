@@ -34,19 +34,6 @@ function formatPlate(value: string): string {
   return clean;
 }
 
-// Formatear número con comas: 50000 -> 50,000
-function formatNumberWithCommas(value: number | null): string {
-  if (value === null) return "";
-  return value.toLocaleString("es-PE");
-}
-
-// Parsear número quitando comas: 50,000 -> 50000
-function parseFormattedNumber(value: string): number | null {
-  const clean = value.replace(/[^0-9]/g, "");
-  if (clean === "") return null;
-  return parseInt(clean, 10);
-}
-
 // =============================================================================
 // TIPOS
 // =============================================================================
@@ -72,7 +59,6 @@ interface VehicleData {
   modelName: string;
   year: number | null;
   plate: string;
-  mileage: number | null;
 }
 
 interface LocationData {
@@ -333,24 +319,6 @@ export default function VehicleLocationForm({
               }
               placeholder="ABC-123"
               maxLength={7}
-              className={styles.input}
-            />
-          </div>
-
-          {/* KILOMETRAJE (opcional) */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Kilometraje (opcional)</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={formatNumberWithCommas(vehicleData.mileage)}
-              onChange={(e) =>
-                onVehicleChange({
-                  ...vehicleData,
-                  mileage: parseFormattedNumber(e.target.value),
-                })
-              }
-              placeholder="Ej: 50,000"
               className={styles.input}
             />
           </div>

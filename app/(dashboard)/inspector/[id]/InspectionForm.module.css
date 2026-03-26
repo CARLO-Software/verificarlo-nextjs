@@ -901,6 +901,13 @@
   gap: 12px;
 }
 
+.plateInputWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
 .plateInput {
   width: 100%;
   padding: 14px 18px;
@@ -921,6 +928,21 @@
   outline: none;
   border-color: var(--form-accent);
   box-shadow: 0 0 0 4px var(--form-accent-soft);
+}
+
+.plateInputError {
+  border-color: #EF4444;
+}
+
+.plateInputError:focus {
+  border-color: #EF4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.plateErrorText {
+  font-size: 12px;
+  color: #EF4444;
+  text-align: center;
 }
 
 .plateInput::placeholder {
@@ -1107,4 +1129,123 @@
     flex: none;
     min-width: 160px;
   }
+}
+
+/* ============================================
+   Voice Input - Microphone Button
+   ============================================ */
+.voiceInputWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.textareaWithVoice {
+  width: 100%;
+  padding: 12px 50px 12px 14px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--form-text-primary);
+  background: var(--form-surface);
+  border: 1px solid var(--form-border);
+  border-radius: 10px;
+  transition: all var(--form-transition);
+  resize: vertical;
+  min-height: 120px;
+}
+
+.textareaWithVoice::placeholder {
+  color: var(--form-text-muted);
+}
+
+.textareaWithVoice:focus {
+  outline: none;
+  border-color: var(--form-accent);
+  box-shadow: 0 0 0 3px var(--form-accent-soft);
+}
+
+.textareaWithVoice:disabled {
+  background: var(--form-bg);
+  color: var(--form-text-muted);
+  cursor: not-allowed;
+}
+
+.voiceButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--form-bg);
+  border: 1px solid var(--form-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--form-transition);
+  color: var(--form-text-muted);
+}
+
+.voiceButton:hover:not(:disabled) {
+  background: var(--form-surface);
+  border-color: var(--form-text-muted);
+  color: var(--form-text-primary);
+}
+
+.voiceButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voiceButton--recording {
+  background: var(--form-danger-soft);
+  border-color: var(--form-danger);
+  color: var(--form-danger);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.voiceButton--recording:hover {
+  background: var(--form-danger-soft);
+  border-color: var(--form-danger);
+  color: var(--form-danger);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+.voiceStatusHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--form-text-muted);
+}
+
+.voiceStatusHint--recording {
+  color: var(--form-danger);
+  font-weight: 500;
+}
+
+.voiceStatusHint svg {
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.voiceNotSupported {
+  font-size: 12px;
+  color: var(--form-text-muted);
+  margin-top: 4px;
 }

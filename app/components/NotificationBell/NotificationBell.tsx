@@ -12,7 +12,8 @@ interface Notification {
   type: 'NUEVA_INSPECCION' | 'LEGAL_DESBLOQUEADO' | 'MECANICO_ASIGNADO' | 'INSPECCION_COMPLETADA';
   title: string;
   message: string;
-  inspectionId: number | null;
+  inspectionId: number | null;  // VehicleInspection.id (para admins)
+  bookingId: number | null;      // Booking.id (para inspectors/clients)
   read: boolean;
   createdAt: string;
 }
@@ -31,13 +32,6 @@ interface GroupedNotifications {
 
 // Tipos que requieren atencion de inspeccion legal
 const LEGAL_NOTIFICATION_TYPES = ['NUEVA_INSPECCION', 'LEGAL_DESBLOQUEADO'];
-
-// Rutas por rol
-const ROUTES_BY_ROLE: Record<string, string> = {
-  ADMIN: '/admin/vehicle-inspections',
-  INSPECTOR: '/inspector',
-  CLIENT: '/mis-inspecciones',
-};
 
 export function NotificationBell() {
   const { data: session } = useSession();
@@ -167,10 +161,31 @@ export function NotificationBell() {
     if (!notification.read) {
       markAsRead(notification.id);
     }
-    if (notification.inspectionId) {
-      const baseRoute = ROUTES_BY_ROLE[userRole] || ROUTES_BY_ROLE.CLIENT;
-      window.location.href = `${baseRoute}/${notification.inspectionId}`;
+
+    // Determinar qué ID usar según el rol:
+    // - ADMIN: usa VehicleInspection.id (inspectionId) → /admin/vehicle-inspections/[id]
+    // - INSPECTOR/CLIENT: usa Booking.id (bookingId) → /inspector/[id] o /mis-inspecciones/[id]
+    let targetId: number | null = null;
+    let baseRoute: string;
+
+    if (userRole === 'ADMIN') {
+      targetId = notification.inspectionId;
+      baseRoute = '/admin/vehicle-inspections';
+    } else if (userRole === 'INSPECTOR') {
+      targetId = notification.bookingId;
+      baseRoute = '/inspector';
+    } else {
+      targetId = notification.bookingId;
+      baseRoute = '/mis-inspecciones';
     }
+
+    if (targetId) {
+      window.location.href = `${baseRoute}/${targetId}`;
+    } else {
+      // Si no hay ID, ir a la lista principal
+      window.location.href = baseRoute;
+    }
+
     setIsOpen(false);
   };
 

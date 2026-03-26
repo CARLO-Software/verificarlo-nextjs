@@ -29,6 +29,11 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import styles from './VehicleInspectionLegal.module.css';
+import {
+  LegalScreenshotsUpload,
+  type LegalScreenshot,
+  type LegalSourceId,
+} from './LegalScreenshotsUpload';
 
 // Tipos para el estado de cada campo
 type FieldStatus = 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
@@ -76,6 +81,12 @@ interface LegalReportData {
   otherObservations: string;
 }
 
+interface LegalScreenshotData {
+  sourceId: string;
+  imageUrl: string;
+  uploadedAt: string;
+}
+
 interface Props {
   inspectionId: number;
   plate: string | null;
@@ -87,6 +98,8 @@ interface Props {
   mechanicalStatus: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
   legalNotes: string | null;
   legalReportData: LegalReportData | null;
+  legalScreenshots: Record<string, LegalScreenshotData> | null;
+  legalPdfUrl: string | null;
   assignedAdmin: { id: string; name: string } | null;
   assignedMechanic: { id: string; name: string } | null;
   legalStartedAt: string | null;
@@ -154,6 +167,8 @@ export function VehicleInspectionLegalClient({
   mechanicalStatus,
   legalNotes: initialNotes,
   legalReportData: initialReportData,
+  legalScreenshots: initialScreenshots,
+  legalPdfUrl: initialPdfUrl,
   assignedAdmin,
   assignedMechanic,
   legalStartedAt,
@@ -170,6 +185,18 @@ export function VehicleInspectionLegalClient({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Estado para capturas de pantalla y PDF
+  const [screenshots, setScreenshots] = useState<LegalScreenshot[]>(() => {
+    if (!initialScreenshots) return [];
+    return Object.entries(initialScreenshots).map(([sourceId, data]) => ({
+      sourceId: sourceId as LegalSourceId,
+      imageUrl: data.imageUrl,
+      uploadedAt: new Date(data.uploadedAt),
+    }));
+  });
+  const [pdfUrl, setPdfUrl] = useState<string | null>(initialPdfUrl);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const isCompleted = legalStatus === 'COMPLETADO';
   const canTakeCase = legalStatus === 'PENDIENTE';
@@ -278,16 +305,51 @@ export function VehicleInspectionLegalClient({
         }
 
         setLegalStatus('COMPLETADO');
-        setSuccess('Revisión legal completada exitosamente.');
-
-        setTimeout(() => {
-          router.push('/admin/vehicle-inspections');
-          router.refresh();
-        }, 1500);
+        setSuccess('Revisión legal completada. Ahora puedes subir las capturas de pantalla.');
+        router.refresh();
       } catch (err: any) {
         setError(err.message);
       }
     });
+  };
+
+  // Handlers para capturas de pantalla
+  const handleScreenshotUploaded = (screenshot: LegalScreenshot) => {
+    setScreenshots((prev) => {
+      const filtered = prev.filter((s) => s.sourceId !== screenshot.sourceId);
+      return [...filtered, screenshot];
+    });
+  };
+
+  const handleScreenshotDeleted = (sourceId: LegalSourceId) => {
+    setScreenshots((prev) => prev.filter((s) => s.sourceId !== sourceId));
+    // Si se elimina una captura, limpiar el PDF generado
+    setPdfUrl(null);
+  };
+
+  const handleGeneratePdf = async () => {
+    setIsGeneratingPdf(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `/api/admin/vehicle-inspections/${inspectionId}/legal/generate-pdf`,
+        { method: 'POST' }
+      );
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Error al generar el PDF');
+      }
+
+      const data = await res.json();
+      setPdfUrl(data.pdfUrl);
+      setSuccess('PDF generado exitosamente. El cliente ya puede descargarlo.');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   // Calcular progreso
@@ -535,6 +597,19 @@ export function VehicleInspectionLegalClient({
             <User size={18} />
             Este caso está asignado a {assignedAdmin.name}
           </div>
+        )}
+
+        {/* Sección de capturas de pantalla (solo cuando está COMPLETADO) */}
+        {isCompleted && (
+          <LegalScreenshotsUpload
+            inspectionId={inspectionId}
+            existingScreenshots={screenshots}
+            onScreenshotUploaded={handleScreenshotUploaded}
+            onScreenshotDeleted={handleScreenshotDeleted}
+            onGeneratePdf={handleGeneratePdf}
+            pdfUrl={pdfUrl}
+            isGeneratingPdf={isGeneratingPdf}
+          />
         )}
       </div>
     </div>

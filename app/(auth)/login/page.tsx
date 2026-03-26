@@ -33,6 +33,7 @@ function LoginContent() {
     errors,
     generalError,
     isSubmitting,
+    isRedirecting,
     handleChange,
     handleBlur,
     handleSubmit,
@@ -40,6 +41,17 @@ function LoginContent() {
 
   return (
     <>
+      {/* Loading Overlay - aparece después del login exitoso */}
+      {isRedirecting && (
+        <div className={styles.loadingOverlay}>
+          <div className={styles.loadingSpinner} />
+          <div>
+            <p className={styles.loadingText}>Preparando tu sesión</p>
+            <p className={styles.loadingSubtext}>Por favor espera un momento...</p>
+          </div>
+        </div>
+      )}
+
       {errorMessage && (
         <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {errorMessage}
@@ -219,11 +231,18 @@ function LoginContent() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className={`${styles.submitButton} ${isSubmitting ? styles.loading : ""}`}
-                aria-busy={isSubmitting}
+                disabled={isSubmitting || isRedirecting}
+                className={`${styles.submitButton} ${isSubmitting || isRedirecting ? styles.loading : ""}`}
+                aria-busy={isSubmitting || isRedirecting}
               >
-                {isSubmitting ? "Iniciando sesión..." : "Iniciar Sesión"}
+                {isSubmitting || isRedirecting ? (
+                  <>
+                    <span className={styles.spinner} />
+                    {isRedirecting ? "Redirigiendo..." : "Iniciando sesión..."}
+                  </>
+                ) : (
+                  "Iniciar Sesión"
+                )}
               </button>
 
               {/* Divider */}

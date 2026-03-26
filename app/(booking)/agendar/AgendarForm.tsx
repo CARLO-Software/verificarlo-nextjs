@@ -97,7 +97,6 @@ export default function AgendarForm({
     modelName: "",
     year: null as number | null,
     plate: "",
-    mileage: null as number | null,
   });
 
   const [locationData, setLocationData] = useState({
@@ -250,7 +249,6 @@ export default function AgendarForm({
           modelId: vehicleData.modelId,
           year: vehicleData.year,
           plate: vehicleData.plate.toUpperCase(),
-          mileage: vehicleData.mileage,
         }),
       });
 

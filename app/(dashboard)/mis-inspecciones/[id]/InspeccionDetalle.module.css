@@ -683,6 +683,38 @@
   transform: none;
 }
 
+/* Download Buttons Container */
+.downloadButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.downloadButtonLegal {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6366F1;
+  background: #EEF2FF;
+  border: 2px solid #C7D2FE;
+  border-radius: 12px;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.downloadButtonLegal:hover {
+  background: #E0E7FF;
+  border-color: #A5B4FC;
+  transform: translateY(-2px);
+}
+
 /* Info Card */
 .infoCard {
   background: white;
