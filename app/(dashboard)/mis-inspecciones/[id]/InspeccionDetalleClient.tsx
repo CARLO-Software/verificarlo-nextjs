@@ -1011,7 +1011,7 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
             {/* Legal PDF Download Button */}
             {inspection.vehicleInspection?.legalPdfUrl && (
               <a
-                href={inspection.vehicleInspection.legalPdfUrl}
+                href={`/api/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal/download-pdf`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.downloadButtonLegal}
