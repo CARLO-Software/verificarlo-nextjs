@@ -1,13 +1,13 @@
 /**
  * API: Descargar PDF del informe legal
- * GET - Sirve el PDF a través del servidor (evita restricciones de Cloudinary)
+ * GET - Genera el PDF on-demand (evita restricciones de Cloudinary)
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { cloudinary } from "@/lib/cloudinary";
+import { generateLegalPDF } from "@/lib/pdf/legal/generate-legal-pdf";
 
 export async function GET(
   req: NextRequest,
@@ -29,12 +29,13 @@ export async function GET(
       );
     }
 
-    // 3. Obtener la inspección con la URL del PDF
+    // 3. Obtener la inspección
     const inspection = await db.vehicleInspection.findUnique({
       where: { id: inspectionId },
       select: {
         id: true,
         legalPdfUrl: true,
+        legalStatus: true,
         plate: true,
         clientId: true,
       },
@@ -58,65 +59,35 @@ export async function GET(
       );
     }
 
-    // 5. Verificar que existe el PDF
-    if (!inspection.legalPdfUrl) {
+    // 5. Verificar que el informe legal está completado
+    if (inspection.legalStatus !== "COMPLETADO") {
       return NextResponse.json(
-        { error: "El PDF aún no ha sido generado" },
-        { status: 404 }
+        { error: "El informe legal aún no ha sido completado" },
+        { status: 400 }
       );
     }
 
-    // 6. Extraer public_id de la URL de Cloudinary y generar URL firmada
-    // URL formato: https://res.cloudinary.com/CLOUD/raw/upload/vXXX/folder/file.pdf
-    const urlParts = inspection.legalPdfUrl.split('/upload/');
-    if (urlParts.length !== 2) {
-      return NextResponse.json(
-        { error: "URL del PDF inválida" },
-        { status: 500 }
-      );
-    }
+    // 6. Generar PDF on-demand
+    const pdfBuffer = await generateLegalPDF(inspectionId);
 
-    // Obtener el path después de /upload/vXXX/
-    const pathWithVersion = urlParts[1];
-    const pathParts = pathWithVersion.split('/');
-    pathParts.shift(); // Quitar versión (vXXX)
-    const publicId = pathParts.join('/').replace('.pdf', '');
-
-    // Generar URL firmada con expiración
-    const signedUrl = cloudinary.url(publicId, {
-      resource_type: 'raw',
-      type: 'upload',
-      sign_url: true,
-      expires_at: Math.floor(Date.now() / 1000) + 60, // Expira en 60 segundos
-    });
-
-    // 7. Descargar el PDF usando la URL firmada
-    const pdfResponse = await fetch(signedUrl);
-
-    if (!pdfResponse.ok) {
-      console.error("Error descargando PDF:", pdfResponse.status, await pdfResponse.text());
-      return NextResponse.json(
-        { error: "Error al obtener el PDF" },
-        { status: 500 }
-      );
-    }
-
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-
-    // 8. Enviar el PDF al cliente
+    // 7. Enviar el PDF al cliente
     const filename = `informe-legal-${inspection.plate || inspection.id}.pdf`;
 
-    return new NextResponse(pdfBuffer, {
+    // Convertir Buffer a Uint8Array para NextResponse
+    const uint8Array = new Uint8Array(pdfBuffer);
+
+    return new NextResponse(uint8Array, {
+      status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${filename}"`,
-        "Cache-Control": "private, max-age=3600",
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
   } catch (error: any) {
-    console.error("Error downloading legal PDF:", error);
+    console.error("Error generando PDF legal:", error);
     return NextResponse.json(
-      { error: error.message || "Error al descargar el PDF" },
+      { error: error.message || "Error al generar el PDF" },
       { status: 500 }
     );
   }

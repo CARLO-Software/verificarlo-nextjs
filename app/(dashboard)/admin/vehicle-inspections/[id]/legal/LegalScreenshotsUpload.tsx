@@ -1,13 +1,13 @@
 /**
  * LegalScreenshotsUpload - Sección para subir capturas de pantalla de fuentes legales
  *
- * Aparece después de que el admin completa la revisión legal.
  * Permite subir screenshots de cada consulta (SUNARP, SAT, MTC, etc.)
+ * Soporta: drag & drop, click para subir, y pegar desde clipboard (Ctrl+V)
  */
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
   Upload,
@@ -19,6 +19,8 @@ import {
   Download,
   Eye,
   AlertCircle,
+  ExternalLink,
+  Clipboard,
 } from 'lucide-react';
 import styles from './LegalScreenshotsUpload.module.css';
 import { LEGAL_SOURCES, LegalSourceId } from '@/lib/constants/legal-sources';
@@ -53,6 +55,7 @@ export function LegalScreenshotsUpload({
   const [uploading, setUploading] = useState<LegalSourceId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [activeSourceForPaste, setActiveSourceForPaste] = useState<LegalSourceId | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   // Verificar si una fuente ya tiene captura
@@ -69,14 +72,8 @@ export function LegalScreenshotsUpload({
     (uploadedRequired.length / requiredSources.length) * 100
   );
 
-  // Manejar subida de archivo
-  const handleFileChange = async (
-    sourceId: LegalSourceId,
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  // Subir archivo (usado por input file y paste)
+  const uploadFile = useCallback(async (sourceId: LegalSourceId, file: File) => {
     // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
       setError('Solo se permiten archivos de imagen (PNG, JPG, WEBP)');
@@ -116,16 +113,52 @@ export function LegalScreenshotsUpload({
         imageUrl: data.imageUrl,
         uploadedAt: new Date(),
       });
+      setActiveSourceForPaste(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
       setUploading(null);
-      // Limpiar input para permitir subir el mismo archivo de nuevo
+      // Limpiar input
       if (fileInputRefs.current[sourceId]) {
         fileInputRefs.current[sourceId]!.value = '';
       }
     }
+  }, [inspectionId, onScreenshotUploaded]);
+
+  // Manejar subida de archivo desde input
+  const handleFileChange = async (
+    sourceId: LegalSourceId,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    await uploadFile(sourceId, file);
   };
+
+  // Manejar paste global
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      // Solo procesar si hay una fuente activa para pegar
+      if (!activeSourceForPaste) return;
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            await uploadFile(activeSourceForPaste, file);
+          }
+          break;
+        }
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [activeSourceForPaste, uploadFile]);
 
   // Eliminar captura
   const handleDelete = async (sourceId: LegalSourceId) => {
@@ -158,7 +191,7 @@ export function LegalScreenshotsUpload({
         <div className={styles.headerText}>
           <h2 className={styles.title}>Capturas de Fuentes Legales</h2>
           <p className={styles.subtitle}>
-            Sube las capturas de pantalla de cada consulta realizada
+            Sube o pega (Ctrl+V) las capturas de cada consulta
           </p>
         </div>
       </div>
@@ -190,94 +223,116 @@ export function LegalScreenshotsUpload({
         </div>
       )}
 
-      {/* Sources Grid */}
-      <div className={styles.sourcesGrid}>
+      {/* Sources List - Diseño compacto con todo en una fila */}
+      <div className={styles.sourcesList}>
         {LEGAL_SOURCES.map((source) => {
           const screenshot = getScreenshot(source.id);
           const isUploading = uploading === source.id;
+          const isActiveForPaste = activeSourceForPaste === source.id;
 
           return (
             <div
               key={source.id}
-              className={`${styles.sourceCard} ${
-                screenshot ? styles.sourceCardUploaded : ''
-              } ${source.required ? '' : styles.sourceCardOptional}`}
+              className={`${styles.sourceRow} ${
+                screenshot ? styles.sourceRowUploaded : ''
+              } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
             >
-              <div className={styles.sourceHeader}>
-                <div className={styles.sourceInfo}>
+              {/* Columna 1: Info + URL */}
+              <div className={styles.sourceInfo}>
+                <div className={styles.sourceNameRow}>
                   <h4 className={styles.sourceName}>
+                    {screenshot && <CheckCircle size={16} className={styles.checkIcon} />}
                     {source.name}
                     {source.required && (
-                      <span className={styles.requiredBadge}>Requerido</span>
+                      <span className={styles.requiredBadge}>*</span>
                     )}
                   </h4>
-                  <p className={styles.sourceDescription}>{source.description}</p>
                 </div>
-                {screenshot && (
-                  <CheckCircle size={20} className={styles.uploadedIcon} />
-                )}
+                <p className={styles.sourceDescription}>{source.description}</p>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.sourceLink}
+                >
+                  <ExternalLink size={12} />
+                  {source.url.replace('https://', '').split('/')[0]}
+                </a>
               </div>
 
-              {screenshot ? (
-                <div className={styles.screenshotPreview}>
-                  <div className={styles.screenshotImageWrapper}>
+              {/* Columna 2: Preview de imagen o área de upload */}
+              <div className={styles.sourceImageCol}>
+                {screenshot ? (
+                  <div className={styles.thumbnailWrapper}>
                     <Image
                       src={screenshot.imageUrl}
                       alt={source.name}
                       fill
-                      className={styles.screenshotImage}
+                      className={styles.thumbnail}
                       onClick={() => setPreviewImage(screenshot.imageUrl)}
                     />
                   </div>
-                  <div className={styles.screenshotActions}>
+                ) : (
+                  <div
+                    className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                    onClick={() => {
+                      setActiveSourceForPaste(source.id);
+                      fileInputRefs.current[source.id]?.click();
+                    }}
+                    onFocus={() => setActiveSourceForPaste(source.id)}
+                    tabIndex={0}
+                  >
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(source.id, e)}
+                      disabled={isUploading}
+                      ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                      className={styles.fileInput}
+                    />
+                    {isUploading ? (
+                      <Loader2 size={20} className={styles.spinner} />
+                    ) : isActiveForPaste ? (
+                      <div className={styles.pasteHint}>
+                        <Clipboard size={16} />
+                        <span>Ctrl+V</span>
+                      </div>
+                    ) : (
+                      <Upload size={20} />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Columna 3: Acciones */}
+              <div className={styles.sourceActions}>
+                {screenshot ? (
+                  <>
                     <button
                       onClick={() => setPreviewImage(screenshot.imageUrl)}
-                      className={styles.actionButton}
-                      title="Ver"
+                      className={styles.actionBtn}
+                      title="Ver imagen"
                     >
                       <Eye size={16} />
                     </button>
                     <button
                       onClick={() => handleDelete(source.id)}
-                      className={`${styles.actionButton} ${styles.actionButtonDanger}`}
+                      className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
                       title="Eliminar"
                     >
                       <X size={16} />
                     </button>
-                  </div>
-                </div>
-              ) : (
-                <label className={styles.uploadArea}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(source.id, e)}
-                    disabled={isUploading}
-                    ref={(el) => { fileInputRefs.current[source.id] = el; }}
-                    className={styles.fileInput}
-                  />
-                  {isUploading ? (
-                    <div className={styles.uploadingState}>
-                      <Loader2 size={24} className={styles.spinner} />
-                      <span>Subiendo...</span>
-                    </div>
-                  ) : (
-                    <div className={styles.uploadPrompt}>
-                      <Upload size={24} />
-                      <span>Subir captura</span>
-                    </div>
-                  )}
-                </label>
-              )}
-
-              <a
-                href={source.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.sourceLink}
-              >
-                Ir a {source.url.replace('https://', '').split('/')[0]}
-              </a>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setActiveSourceForPaste(source.id)}
+                    className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
+                    title="Activar para pegar (Ctrl+V)"
+                  >
+                    <Clipboard size={16} />
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
@@ -292,7 +347,7 @@ export function LegalScreenshotsUpload({
             </div>
             <div className={styles.pdfReadyText}>
               <h3>PDF Legal Generado</h3>
-              <p>El informe está listo para descargar</p>
+              <p>El informe esta listo para descargar</p>
             </div>
             <div className={styles.pdfActions}>
               <a
@@ -335,7 +390,7 @@ export function LegalScreenshotsUpload({
         )}
         {!canGeneratePdf && !pdfUrl && (
           <p className={styles.generateHint}>
-            Sube todas las capturas requeridas para generar el PDF
+            Sube todas las capturas requeridas (*) para generar el PDF
           </p>
         )}
       </div>

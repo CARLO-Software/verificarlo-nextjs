@@ -110,121 +110,206 @@
   justify-content: center;
 }
 
-/* Sources Grid */
-.sourcesGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+/* Sources List - Diseño compacto en filas */
+.sourcesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 24px;
 }
 
-.sourceCard {
+.sourceRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
   background: #FAFAFA;
-  border: 2px dashed #E5E7EB;
+  border: 2px solid #E5E7EB;
   border-radius: 12px;
-  padding: 16px;
   transition: all 0.2s ease;
 }
 
-.sourceCardUploaded {
+.sourceRowUploaded {
   background: #F0FDF4;
-  border: 2px solid #22C55E;
+  border-color: #22C55E;
 }
 
-.sourceCardOptional {
-  opacity: 0.9;
+.sourceRowActive {
+  border-color: #6366F1;
+  background: #F5F3FF;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-.sourceHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-}
-
+/* Columna 1: Info */
 .sourceInfo {
   flex: 1;
+  min-width: 0;
+}
+
+.sourceNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
 }
 
 .sourceName {
   font-size: 14px;
   font-weight: 600;
   color: #111827;
-  margin: 0 0 4px 0;
+  margin: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.checkIcon {
+  color: #22C55E;
+  flex-shrink: 0;
 }
 
 .requiredBadge {
-  font-size: 10px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 2px 6px;
-  background: #6366F1;
-  color: white;
-  border-radius: 4px;
+  color: #DC2626;
+  font-weight: 700;
+  font-size: 14px;
 }
 
 .sourceDescription {
   font-size: 12px;
   color: #6B7280;
-  margin: 0;
-  line-height: 1.4;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #6366F1;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.sourceLink:hover {
+  color: #4F46E5;
+  text-decoration: underline;
+}
+
+/* Columna 2: Imagen */
+.sourceImageCol {
+  flex-shrink: 0;
+  width: 80px;
+  height: 56px;
+}
+
+.thumbnailWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #E5E7EB;
+}
+
+.thumbnail {
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+
+.thumbnailWrapper:hover .thumbnail {
+  transform: scale(1.05);
+}
+
+/* Upload Box */
+.uploadBox {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 2px dashed #D1D5DB;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.2s ease;
+}
+
+.uploadBox:hover {
+  border-color: #6366F1;
+  color: #6366F1;
+  background: #F5F3FF;
+}
+
+.uploadBoxActive {
+  border-color: #6366F1;
+  border-style: solid;
+  background: #EEF2FF;
+  color: #6366F1;
+}
+
+.pasteHint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Columna 3: Acciones */
+.sourceActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionBtn:hover {
+  background: #F3F4F6;
+  color: #374151;
+  border-color: #D1D5DB;
+}
+
+.actionBtnDanger:hover {
+  background: #FEE2E2;
+  color: #DC2626;
+  border-color: #FECACA;
+}
+
+.actionBtnActive {
+  background: #EEF2FF;
+  color: #6366F1;
+  border-color: #6366F1;
+}
+
+/* Legacy - kept for compatibility */
 .uploadedIcon {
   color: #22C55E;
   flex-shrink: 0;
 }
 
-/* Upload Area */
-.uploadArea {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100px;
-  background: white;
-  border: 2px dashed #D1D5DB;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: 12px;
-}
-
-.uploadArea:hover {
-  border-color: #6366F1;
-  background: #F5F3FF;
-}
-
+/* File Input (hidden) */
 .fileInput {
   display: none;
-}
-
-.uploadPrompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #6B7280;
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.uploadPrompt svg {
-  color: #9CA3AF;
-}
-
-.uploadingState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  color: #6366F1;
-  font-size: 13px;
-  font-weight: 500;
 }
 
 /* Screenshot Preview */
@@ -281,24 +366,6 @@
 .actionButtonDanger:hover {
   background: #FEE2E2;
   color: #DC2626;
-}
-
-/* Source Link */
-.sourceLink {
-  display: block;
-  font-size: 12px;
-  color: #6366F1;
-  text-decoration: none;
-  text-align: center;
-  padding: 8px;
-  background: white;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.sourceLink:hover {
-  background: #EEF2FF;
-  text-decoration: underline;
 }
 
 /* Generate Section */
@@ -480,7 +547,7 @@
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .container {
     padding: 16px;
   }
@@ -491,8 +558,25 @@
     align-items: center;
   }
 
-  .sourcesGrid {
-    grid-template-columns: 1fr;
+  .sourceRow {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .sourceInfo {
+    flex: 1 1 100%;
+    order: 1;
+  }
+
+  .sourceImageCol {
+    order: 2;
+    width: 60px;
+    height: 44px;
+  }
+
+  .sourceActions {
+    order: 3;
+    margin-left: auto;
   }
 
   .pdfActions {

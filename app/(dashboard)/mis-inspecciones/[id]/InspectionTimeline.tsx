@@ -236,7 +236,7 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
                 assignee={assignedAdmin?.name}
                 icon="document"
               />
-              {legalPdfUrl && (
+              {legalStatus === 'COMPLETADO' && (
                 <a
                   href={`/api/admin/vehicle-inspections/${id}/legal/download-pdf`}
                   target="_blank"
@@ -299,7 +299,7 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
             icon="document"
           />
 
-          {legalPdfUrl && (
+          {legalStatus === 'COMPLETADO' && (
             <a
               href={`/api/admin/vehicle-inspections/${id}/legal/download-pdf`}
               target="_blank"
