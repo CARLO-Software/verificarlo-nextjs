@@ -366,7 +366,7 @@ function GridItem({
   const iconUrl = FIELD_ICONS[field.key];
 
   return (
-    <View style={[styles.gridItem, isRight && styles.gridItemRight]}>
+    <View style={isRight ? [styles.gridItem, styles.gridItemRight] : styles.gridItem}>
       <View style={styles.iconContainer}>
         {iconUrl && <Image src={iconUrl} style={styles.fieldIcon} />}
         <StatusBadge status={field.status} />
