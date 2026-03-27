@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { cloudinary } from "@/lib/cloudinary";
 
 export async function GET(
   req: NextRequest,
@@ -65,11 +66,35 @@ export async function GET(
       );
     }
 
-    // 6. Descargar el PDF de Cloudinary
-    const pdfResponse = await fetch(inspection.legalPdfUrl);
+    // 6. Extraer public_id de la URL de Cloudinary y generar URL firmada
+    // URL formato: https://res.cloudinary.com/CLOUD/raw/upload/vXXX/folder/file.pdf
+    const urlParts = inspection.legalPdfUrl.split('/upload/');
+    if (urlParts.length !== 2) {
+      return NextResponse.json(
+        { error: "URL del PDF inválida" },
+        { status: 500 }
+      );
+    }
+
+    // Obtener el path después de /upload/vXXX/
+    const pathWithVersion = urlParts[1];
+    const pathParts = pathWithVersion.split('/');
+    pathParts.shift(); // Quitar versión (vXXX)
+    const publicId = pathParts.join('/').replace('.pdf', '');
+
+    // Generar URL firmada con expiración
+    const signedUrl = cloudinary.url(publicId, {
+      resource_type: 'raw',
+      type: 'upload',
+      sign_url: true,
+      expires_at: Math.floor(Date.now() / 1000) + 60, // Expira en 60 segundos
+    });
+
+    // 7. Descargar el PDF usando la URL firmada
+    const pdfResponse = await fetch(signedUrl);
 
     if (!pdfResponse.ok) {
-      console.error("Error descargando PDF de Cloudinary:", pdfResponse.status);
+      console.error("Error descargando PDF:", pdfResponse.status, await pdfResponse.text());
       return NextResponse.json(
         { error: "Error al obtener el PDF" },
         { status: 500 }
@@ -78,7 +103,7 @@ export async function GET(
 
     const pdfBuffer = await pdfResponse.arrayBuffer();
 
-    // 7. Enviar el PDF al cliente
+    // 8. Enviar el PDF al cliente
     const filename = `informe-legal-${inspection.plate || inspection.id}.pdf`;
 
     return new NextResponse(pdfBuffer, {

@@ -11,6 +11,7 @@ interface VehicleInspectionData {
   plate: string | null;
   legalStatus: LegalStatus;
   mechanicalStatus: MechanicalStatus;
+  legalPdfUrl: string | null;
   assignedMechanic: { id: string; name: string } | null;
   assignedAdmin: { id: string; name: string } | null;
   createdAt: string;
@@ -160,9 +161,11 @@ function TimelineStep({
 
 export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProps) {
   const {
+    id,
     plate,
     legalStatus,
     mechanicalStatus,
+    legalPdfUrl,
     assignedMechanic,
     assignedAdmin,
     createdAt,
@@ -233,6 +236,21 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
                 assignee={assignedAdmin?.name}
                 icon="document"
               />
+              {legalPdfUrl && (
+                <a
+                  href={`/api/admin/vehicle-inspections/${id}/legal/download-pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.downloadButton}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Descargar informe legal
+                </a>
+              )}
             </div>
           </div>
 
@@ -280,6 +298,22 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
             assignee={legalStatus !== "BLOQUEADO" ? assignedAdmin?.name : undefined}
             icon="document"
           />
+
+          {legalPdfUrl && (
+            <a
+              href={`/api/admin/vehicle-inspections/${id}/legal/download-pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.downloadButton}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Descargar informe legal
+            </a>
+          )}
 
           {allCompleted && (
             <div className={styles.completedBanner}>

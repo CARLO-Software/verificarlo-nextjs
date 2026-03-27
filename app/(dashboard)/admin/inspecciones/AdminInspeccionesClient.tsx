@@ -81,11 +81,9 @@ interface InspectionPlan {
 }
 
 interface Stats {
-  pending: number;
-  pendingVerification: number;
-  inProgress: number;
+  pendingAdmin: number;
+  pendingMechanic: number;
   completed: number;
-  cancelled: number;
   total: number;
 }
 
@@ -96,18 +94,15 @@ interface AdminInspeccionesClientProps {
 }
 
 const statsConfig = [
-  { key: 'pending', label: 'Pendientes', color: 'text-amber-600', bg: 'bg-amber-50' },
-  { key: 'pendingVerification', label: 'Por verificar', color: 'text-orange-600', bg: 'bg-orange-50' },
-  { key: 'inProgress', label: 'En proceso', color: 'text-blue-600', bg: 'bg-blue-50' },
+  { key: 'pendingAdmin', label: 'Pendientes admin', color: 'text-amber-600', bg: 'bg-amber-50' },
+  { key: 'pendingMechanic', label: 'Pendientes mecanico', color: 'text-blue-600', bg: 'bg-blue-50' },
   { key: 'completed', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
-  { key: 'cancelled', label: 'Canceladas', color: 'text-red-600', bg: 'bg-red-50' },
 ];
 
 const filterPills = [
   { value: 'all', label: 'Todos' },
-  { value: 'PENDING_PAYMENT', label: 'Pendientes' },
-  { value: 'PENDING_VERIFICATION', label: 'Por verificar' },
-  { value: 'CONFIRMED', label: 'En proceso' },
+  { value: 'PENDING_ADMIN', label: 'Pendientes admin' },
+  { value: 'PENDING_MECHANIC', label: 'Pendientes mecanico' },
   { value: 'COMPLETED', label: 'Completadas' },
 ];
 
@@ -954,10 +949,23 @@ export function AdminInspeccionesClient({
 
   const filteredInspections = inspections.filter((inspection) => {
     if (filter !== 'all') {
-      if (filter === 'CONFIRMED' && !['PAID', 'CONFIRMED'].includes(inspection.status)) {
-        return false;
-      } else if (filter !== 'CONFIRMED' && inspection.status !== filter) {
-        return false;
+      const vi = inspection.vehicleInspection;
+
+      if (filter === 'PENDING_ADMIN') {
+        // Tareas pendientes para admin (revisión legal)
+        if (!vi || !['PENDIENTE', 'EN_PROCESO'].includes(vi.legalStatus)) {
+          return false;
+        }
+      } else if (filter === 'PENDING_MECHANIC') {
+        // Tareas pendientes para mecánico (inspección mecánica)
+        if (!vi || !['PENDIENTE', 'EN_PROCESO'].includes(vi.mechanicalStatus)) {
+          return false;
+        }
+      } else if (filter === 'COMPLETED') {
+        // Inspecciones completadas (ambos estados completados)
+        if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus !== 'COMPLETADO') {
+          return false;
+        }
       }
     }
     if (searchQuery) {

@@ -253,6 +253,34 @@
   z-index: 1;
 }
 
+/* ─── BOTÓN DESCARGAR ────────────────────────────────────────────── */
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.downloadButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.downloadButton svg {
+  flex-shrink: 0;
+}
+
 /* ─── BANNER COMPLETADO ───────────────────────────────────────────── */
 
 .completedBanner {

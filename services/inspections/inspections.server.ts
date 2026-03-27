@@ -346,21 +346,31 @@ export async function getInspectionStats() {
     throw new Error('No autorizado');
   }
 
-  const [pending, pendingVerification, inProgress, completed, cancelled] = await Promise.all([
-    db.booking.count({ where: { status: 'PENDING_PAYMENT' } }),
-    db.booking.count({ where: { status: 'PENDING_VERIFICATION' } }),
-    db.booking.count({ where: { status: { in: ['PAID', 'CONFIRMED'] } } }),
-    db.booking.count({ where: { status: 'COMPLETED' } }),
-    db.booking.count({ where: { status: { in: ['CANCELLED', 'NO_SHOW', 'EXPIRED'] } } }),
+  const [pendingAdmin, pendingMechanic, completed, total] = await Promise.all([
+    // Pendientes admin: legalStatus es PENDIENTE o EN_PROCESO
+    db.vehicleInspection.count({
+      where: { legalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
+    }),
+    // Pendientes mecanico: mechanicalStatus es PENDIENTE o EN_PROCESO
+    db.vehicleInspection.count({
+      where: { mechanicalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
+    }),
+    // Completadas: ambos estados COMPLETADO
+    db.vehicleInspection.count({
+      where: {
+        legalStatus: 'COMPLETADO',
+        mechanicalStatus: 'COMPLETADO',
+      },
+    }),
+    // Total de inspecciones
+    db.vehicleInspection.count(),
   ]);
 
   return {
-    pending,
-    pendingVerification,
-    inProgress,
+    pendingAdmin,
+    pendingMechanic,
     completed,
-    cancelled,
-    total: pending + pendingVerification + inProgress + completed + cancelled,
+    total,
   };
 }
 
