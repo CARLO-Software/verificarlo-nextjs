@@ -8,7 +8,7 @@ import { db } from '@/lib/db';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import LegalReportPDF, { LegalReportData } from './LegalReportPDF';
-import { LEGAL_SOURCES } from '@/app/(dashboard)/admin/vehicle-inspections/[id]/legal/LegalScreenshotsUpload';
+import { LEGAL_SOURCES } from '@/lib/constants/legal-sources';
 
 // Campos del informe legal (mapeo de keys a labels)
 const LEGAL_FIELD_LABELS: Record<string, string> = {

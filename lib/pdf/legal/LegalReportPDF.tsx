@@ -375,7 +375,9 @@ function StatusIcon({ status }: { status: string }) {
 
 // Componente principal del PDF
 export default function LegalReportPDF({ data }: { data: LegalReportData }) {
-  const logoUrl = 'https://res.cloudinary.com/verificarlo/image/upload/v1/verificarlo/logo-dark.png';
+  // Logo desde el sitio en producción (NEXTAUTH_URL debe apuntar al dominio desplegado)
+  const logoUrl = `${process.env.NEXTAUTH_URL}/assets/images/verificarlo-logo.png`;
+  // Bandera peruana desde Wikipedia
   const flagUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Flag_of_Peru.svg/200px-Flag_of_Peru.svg.png';
 
   return (
