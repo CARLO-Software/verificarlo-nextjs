@@ -26,7 +26,8 @@
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/save\")",
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/complete\")",
       "Bash(git commit:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(curl -sI \"https://verificarlo.com/assets/images/verificarlo-logo.png\")"
     ]
   }
 }

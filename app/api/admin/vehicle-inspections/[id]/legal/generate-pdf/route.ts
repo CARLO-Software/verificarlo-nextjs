@@ -94,6 +94,7 @@ export async function POST(
             {
               resource_type: "raw",
               type: "upload",
+              access_mode: "public",
               public_id: publicId,
               folder: "verificarlo/legal-reports",
               overwrite: true,
