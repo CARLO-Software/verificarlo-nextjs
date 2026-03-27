@@ -27,7 +27,17 @@
       "Bash(mkdir -p \"C:/Proyectos/verificarlo-nextjs/app/api/admin/vehicle-inspections/[id]/legal/complete\")",
       "Bash(git commit:*)",
       "Bash(npx eslint:*)",
-      "Bash(curl -sI \"https://verificarlo.com/assets/images/verificarlo-logo.png\")"
+      "Bash(curl -sI \"https://verificarlo.com/assets/images/verificarlo-logo.png\")",
+      "Bash(curl -sI \"https://res.cloudinary.com/dewfh4frd/raw/upload/v1774630830/verificarlo/legal-reports/informe-legal-bue-eee-1774630830282.pdf\")",
+      "Bash(curl -s \"https://res.cloudinary.com/dewfh4frd/raw/upload/v1774630830/verificarlo/legal-reports/informe-legal-bue-eee-1774630830282.pdf\" -o /tmp/test.pdf)",
+      "Read(//tmp/**)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/group.png\" -o propietarios.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/shield.png\" -o gravamenes.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/police-badge.png\" -o captura.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/health-insurance.png\" -o soat.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/car-service.png\" -o revision.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/user-group-man-man.png\" -o propietarios.png)",
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/agreement.png\" -o transferencia.png)"
     ]
   }
 }

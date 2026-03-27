@@ -1,9 +1,6 @@
 /**
  * LegalReportPDF - Documento PDF del informe legal
- * Diseño profesional estilo Canva con:
- * - Portada con logo, placa y bandera peruana
- * - Resumen del vehículo con iconos de estado
- * - Capturas de cada fuente legal
+ * Diseño con layout de 2 columnas para el resumen
  */
 
 import React from 'react';
@@ -14,36 +11,27 @@ import {
   Text,
   Image,
   StyleSheet,
-  Font,
 } from '@react-pdf/renderer';
 
-// Registrar fuentes
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hjp-Ek-_EeA.woff', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hjp-Ek-_EeA.woff', fontWeight: 700 },
-  ],
-});
+// Nota: Helvetica es una fuente incorporada en @react-pdf/renderer, no necesita registrarse
 
 // Colores del diseño
 const colors = {
-  black: '#111827',
+  black: '#1a1a1a',
   white: '#FFFFFF',
   gray: '#6B7280',
-  lightGray: '#F3F4F6',
+  lightGray: '#F5F5F5',
   green: '#22C55E',
   yellow: '#F59E0B',
   red: '#EF4444',
-  primary: '#FBBF24', // Amarillo VerifiCARLO
+  primary: '#FBBF24',
 };
 
 // Estilos
 const styles = StyleSheet.create({
   page: {
     backgroundColor: colors.white,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     padding: 0,
   },
 
@@ -56,47 +44,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coverLogo: {
-    width: 200,
+    width: 180,
     marginBottom: 40,
   },
   coverTitle: {
-    fontSize: 42,
+    fontSize: 36,
     fontWeight: 700,
     color: colors.white,
-    marginBottom: 16,
+    marginBottom: 12,
     letterSpacing: 2,
   },
   coverSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.gray,
-    marginBottom: 60,
+    marginBottom: 50,
     letterSpacing: 1,
   },
   coverPlateContainer: {
     backgroundColor: colors.primary,
-    paddingVertical: 20,
-    paddingHorizontal: 50,
-    borderRadius: 8,
-    marginBottom: 40,
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    borderRadius: 6,
+    marginBottom: 50,
   },
   coverPlate: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 700,
     color: colors.black,
-    letterSpacing: 4,
-  },
-  coverFlag: {
-    width: 60,
-    height: 40,
-    marginBottom: 40,
+    letterSpacing: 3,
   },
   coverDate: {
-    fontSize: 14,
+    fontSize: 12,
     color: colors.gray,
   },
   coverFooter: {
     position: 'absolute',
-    bottom: 50,
+    bottom: 40,
     left: 50,
     right: 50,
     flexDirection: 'row',
@@ -104,164 +87,176 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   coverFooterText: {
-    fontSize: 10,
+    fontSize: 9,
     color: colors.gray,
   },
 
   // === PÁGINA DE RESUMEN ===
   summaryPage: {
     flex: 1,
-    padding: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 30,
-    paddingBottom: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.lightGray,
-  },
-  headerLogo: {
-    width: 120,
-  },
-  headerInfo: {
-    alignItems: 'flex-end',
-  },
-  headerPlate: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: colors.black,
-  },
-  headerDate: {
-    fontSize: 10,
-    color: colors.gray,
-    marginTop: 4,
+    padding: 30,
   },
 
-  // Título de sección (negro con texto blanco)
+  // Título de sección
   sectionTitle: {
     backgroundColor: colors.black,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
     marginBottom: 0,
   },
   sectionTitleText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: 700,
     color: colors.white,
+    textAlign: 'center',
     letterSpacing: 1,
   },
 
-  // Tabla de resumen
-  summaryTable: {
+  // Grid de 2 columnas
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     borderWidth: 1,
-    borderColor: colors.lightGray,
+    borderColor: '#E5E5E5',
     borderTopWidth: 0,
   },
-  summaryRow: {
+  gridItem: {
+    width: '50%',
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: colors.lightGray,
-    minHeight: 50,
+    borderBottomColor: '#E5E5E5',
+    padding: 8,
+    minHeight: 45,
   },
-  summaryRowLast: {
-    borderBottomWidth: 0,
-  },
-  summaryIcon: {
-    width: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.lightGray,
-  },
-  summaryName: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-  },
-  summaryNameText: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: colors.black,
-  },
-  summaryDescription: {
-    flex: 2,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    justifyContent: 'center',
+  gridItemRight: {
     borderLeftWidth: 1,
-    borderLeftColor: colors.lightGray,
-  },
-  summaryDescriptionText: {
-    fontSize: 10,
-    color: colors.gray,
-    lineHeight: 1.4,
+    borderLeftColor: '#E5E5E5',
   },
 
-  // Iconos de estado
-  statusIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  // Icono y badge de estado
+  iconContainer: {
+    width: 36,
+    height: 36,
+    marginRight: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  fieldIcon: {
+    width: 28,
+    height: 28,
+  },
+  checkBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  statusIconOK: {
+  checkBadgeOK: {
     backgroundColor: colors.green,
   },
-  statusIconWARNING: {
+  checkBadgeWARNING: {
     backgroundColor: colors.yellow,
   },
-  statusIconCRITICAL: {
+  checkBadgeCRITICAL: {
     backgroundColor: colors.red,
   },
-  statusIconPENDING: {
+  checkBadgePENDING: {
     backgroundColor: colors.gray,
   },
-  statusIconText: {
-    fontSize: 14,
+  checkText: {
+    fontSize: 6,
     color: colors.white,
     fontWeight: 700,
+  },
+
+  // Contenido del item
+  itemContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  itemLabel: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 2,
+  },
+  itemText: {
+    fontSize: 7,
+    color: colors.gray,
+    lineHeight: 1.3,
   },
 
   // Sección de observaciones
   observationsSection: {
-    marginTop: 30,
+    marginTop: 12,
   },
   observationsContent: {
     backgroundColor: colors.lightGray,
-    padding: 20,
-    borderBottomLeftRadius: 8,
-    borderBottomRightRadius: 8,
+    padding: 12,
+    minHeight: 60,
+  },
+  observationsBullet: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+  bulletPoint: {
+    fontSize: 8,
+    marginRight: 6,
+    color: colors.black,
   },
   observationsText: {
-    fontSize: 11,
+    fontSize: 8,
     color: colors.black,
-    lineHeight: 1.6,
+    flex: 1,
+    lineHeight: 1.4,
+  },
+
+  // Disclaimer
+  disclaimer: {
+    position: 'absolute',
+    bottom: 25,
+    left: 30,
+    right: 30,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    paddingTop: 8,
+  },
+  disclaimerText: {
+    fontSize: 5.5,
+    color: colors.gray,
+    lineHeight: 1.4,
+    marginBottom: 3,
   },
 
   // === PÁGINAS DE CAPTURAS ===
   screenshotPage: {
     flex: 1,
-    padding: 40,
+    padding: 30,
   },
   screenshotHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 15,
+    marginBottom: 15,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.lightGray,
+    borderBottomColor: '#E5E5E5',
+  },
+  screenshotLogo: {
+    width: 70,
   },
   screenshotTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 700,
     color: colors.black,
   },
   screenshotSource: {
-    fontSize: 10,
+    fontSize: 9,
     color: colors.gray,
   },
   screenshotImageContainer: {
@@ -269,8 +264,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.lightGray,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 4,
+    padding: 8,
   },
   screenshotImage: {
     maxWidth: '100%',
@@ -278,59 +273,33 @@ const styles = StyleSheet.create({
     objectFit: 'contain',
   },
   screenshotFooter: {
-    marginTop: 20,
-    paddingTop: 15,
+    marginTop: 15,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: colors.lightGray,
+    borderTopColor: '#E5E5E5',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   screenshotFooterText: {
-    fontSize: 9,
-    color: colors.gray,
-  },
-
-  // Footer de todas las páginas
-  pageFooter: {
-    position: 'absolute',
-    bottom: 30,
-    left: 40,
-    right: 40,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pageNumber: {
-    fontSize: 10,
+    fontSize: 8,
     color: colors.gray,
   },
 });
 
 // Tipos
-export interface LegalReportField {
-  status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
-  text: string;
-}
-
 export interface LegalReportData {
   inspectionId: number;
   plate: string;
   vehicleDescription: string;
   clientName: string;
   date: string;
-
-  // Campos del informe legal
   fields: {
     key: string;
     label: string;
     status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
     text: string;
   }[];
-
-  // Observaciones generales
   otherObservations: string;
-
-  // Capturas de pantalla
   screenshots: {
     sourceId: string;
     sourceName: string;
@@ -338,152 +307,164 @@ export interface LegalReportData {
   }[];
 }
 
-// Componente para el icono de estado
-function StatusIcon({ status }: { status: string }) {
+// Base URL para iconos
+const ICONS_BASE_URL = 'https://verificarlo.com/assets/images/icons';
+
+// Mapeo de campos a iconos
+const FIELD_ICONS: Record<string, string> = {
+  ownerHistory: `${ICONS_BASE_URL}/propietarios.png`,
+  sunarpLiens: `${ICONS_BASE_URL}/gravamenes.png`,
+  satCaptureOrder: `${ICONS_BASE_URL}/captura.png`,
+  soat: `${ICONS_BASE_URL}/soat.png`,
+  techReview: `${ICONS_BASE_URL}/revision.png`,
+  vehicleTax: `${ICONS_BASE_URL}/impuesto.png`,
+  gasConversion: `${ICONS_BASE_URL}/gas.png`,
+  satTickets: `${ICONS_BASE_URL}/papeleta.png`,
+  callaoTickets: `${ICONS_BASE_URL}/papeleta.png`,
+  sutranTickets: `${ICONS_BASE_URL}/sutran.png`,
+  theftHistory: `${ICONS_BASE_URL}/robo.png`,
+  transportRegistry: `${ICONS_BASE_URL}/transporte.png`,
+  lastTransfer: `${ICONS_BASE_URL}/transferencia.png`,
+  accidentHistory: `${ICONS_BASE_URL}/siniestro.png`,
+};
+
+// Componente para el badge de estado
+function StatusBadge({ status }: { status: string }) {
   const getSymbol = () => {
     switch (status) {
-      case 'OK':
-        return '✓';
-      case 'WARNING':
-        return '!';
-      case 'CRITICAL':
-        return '✗';
-      default:
-        return '?';
+      case 'OK': return 'V';
+      case 'WARNING': return '!';
+      case 'CRITICAL': return 'X';
+      default: return '?';
     }
   };
 
-  const getStyle = () => {
+  const getBadgeStyle = () => {
     switch (status) {
-      case 'OK':
-        return styles.statusIconOK;
-      case 'WARNING':
-        return styles.statusIconWARNING;
-      case 'CRITICAL':
-        return styles.statusIconCRITICAL;
-      default:
-        return styles.statusIconPENDING;
+      case 'OK': return styles.checkBadgeOK;
+      case 'WARNING': return styles.checkBadgeWARNING;
+      case 'CRITICAL': return styles.checkBadgeCRITICAL;
+      default: return styles.checkBadgePENDING;
     }
   };
 
   return (
-    <View style={[styles.statusIcon, getStyle()]}>
-      <Text style={styles.statusIconText}>{getSymbol()}</Text>
+    <View style={[styles.checkBadge, getBadgeStyle()]}>
+      <Text style={styles.checkText}>{getSymbol()}</Text>
     </View>
   );
 }
 
+// Componente para cada item del grid
+function GridItem({
+  field,
+  isRight
+}: {
+  field: { key: string; label: string; status: string; text: string };
+  isRight: boolean;
+}) {
+  const iconUrl = FIELD_ICONS[field.key];
+
+  return (
+    <View style={[styles.gridItem, isRight && styles.gridItemRight]}>
+      <View style={styles.iconContainer}>
+        {iconUrl && <Image src={iconUrl} style={styles.fieldIcon} />}
+        <StatusBadge status={field.status} />
+      </View>
+      <View style={styles.itemContent}>
+        <Text style={styles.itemLabel}>{field.label}</Text>
+        <Text style={styles.itemText}>
+          {field.text || 'Sin observaciones'}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// Disclaimer text
+const DISCLAIMER_LINES = [
+  'i) El informe de CARLO se basa en información disponible a la fecha de emisión. Sin embargo, podría haber datos que no se hayan reportado o que se hayan actualizado después de esa fecha.',
+  'ii) Usa la información del informe como una guía para conocer mejor el vehículo. Te ayudará a reducir riesgos y negociar un precio más justo. Complementa esto con una revisión mecánica.',
+  'iii) El informe de CARLO incluye datos en tiempo real y de fuentes externas. Por esta razón, no puede garantizar ni certificar toda la información presentada.',
+];
+
 // Componente principal del PDF
 export default function LegalReportPDF({ data }: { data: LegalReportData }) {
-  // Logo desde el sitio en producción (NEXTAUTH_URL debe apuntar al dominio desplegado)
-  const logoUrl = `${process.env.NEXTAUTH_URL}/assets/images/verificarlo-logo.png`;
-  // Bandera peruana desde Wikipedia
-  const flagUrl = 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Flag_of_Peru.svg/200px-Flag_of_Peru.svg.png';
+  // Logo desde el sitio de producción
+  const logoUrl = 'https://verificarlo.com/assets/images/verificarlo-logo.png';
+
+  // Organizar campos en pares para el grid de 2 columnas
+  const fieldPairs: Array<[typeof data.fields[0], typeof data.fields[0] | null]> = [];
+  for (let i = 0; i < data.fields.length; i += 2) {
+    fieldPairs.push([data.fields[i], data.fields[i + 1] || null]);
+  }
 
   return (
     <Document>
       {/* PÁGINA 1: PORTADA */}
       <Page size="A4" style={styles.page}>
         <View style={styles.coverPage}>
-          {/* Logo */}
           <Image src={logoUrl} style={styles.coverLogo} />
 
-          {/* Título */}
           <Text style={styles.coverTitle}>INFORME LEGAL</Text>
-          <Text style={styles.coverSubtitle}>VERIFICACIÓN VEHICULAR</Text>
+          <Text style={styles.coverSubtitle}>VERIFICACION VEHICULAR</Text>
 
-          {/* Placa */}
           <View style={styles.coverPlateContainer}>
             <Text style={styles.coverPlate}>{data.plate || 'SIN PLACA'}</Text>
           </View>
 
-          {/* Bandera */}
-          <Image src={flagUrl} style={styles.coverFlag} />
-
-          {/* Fecha */}
           <Text style={styles.coverDate}>{data.date}</Text>
 
-          {/* Footer */}
           <View style={styles.coverFooter}>
-            <Text style={styles.coverFooterText}>verificarlo.pe</Text>
-            <Text style={styles.coverFooterText}>Inspección #{data.inspectionId}</Text>
+            <Text style={styles.coverFooterText}>verificarlo.com</Text>
+            <Text style={styles.coverFooterText}>Inspeccion #{data.inspectionId}</Text>
           </View>
         </View>
       </Page>
 
-      {/* PÁGINA 2: RESUMEN DEL VEHÍCULO */}
+      {/* PÁGINA 2: RESUMEN DEL VEHÍCULO (todo en una página) */}
       <Page size="A4" style={styles.page}>
         <View style={styles.summaryPage}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Image src={logoUrl} style={styles.headerLogo} />
-            <View style={styles.headerInfo}>
-              <Text style={styles.headerPlate}>{data.plate}</Text>
-              <Text style={styles.headerDate}>{data.date}</Text>
-            </View>
-          </View>
-
-          {/* Vehículo Info */}
-          <View style={{ marginBottom: 20 }}>
-            <Text style={{ fontSize: 12, color: colors.gray, marginBottom: 4 }}>
-              Vehículo
-            </Text>
-            <Text style={{ fontSize: 16, fontWeight: 700, color: colors.black }}>
-              {data.vehicleDescription}
-            </Text>
-            <Text style={{ fontSize: 11, color: colors.gray, marginTop: 4 }}>
-              Cliente: {data.clientName}
-            </Text>
-          </View>
-
-          {/* Título de Resumen */}
+          {/* Título */}
           <View style={styles.sectionTitle}>
-            <Text style={styles.sectionTitleText}>RESUMEN DEL VEHÍCULO</Text>
+            <Text style={styles.sectionTitleText}>RESUMEN DEL VEHICULO</Text>
           </View>
 
-          {/* Tabla de Resumen */}
-          <View style={styles.summaryTable}>
-            {data.fields.map((field, index) => {
-              const isLast = index === data.fields.length - 1;
-              return (
-                <View
-                  key={field.key}
-                  style={isLast ? [styles.summaryRow, styles.summaryRowLast] : styles.summaryRow}
-                >
-                  <View style={styles.summaryIcon}>
-                    <StatusIcon status={field.status} />
-                  </View>
-                  <View style={styles.summaryName}>
-                    <Text style={styles.summaryNameText}>{field.label}</Text>
-                  </View>
-                  <View style={styles.summaryDescription}>
-                    <Text style={styles.summaryDescriptionText}>
-                      {field.text || 'Sin observaciones'}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
+          {/* Grid de 2 columnas */}
+          <View style={styles.gridContainer}>
+            {fieldPairs.map((pair, index) => (
+              <React.Fragment key={index}>
+                <GridItem field={pair[0]} isRight={false} />
+                {pair[1] && <GridItem field={pair[1]} isRight={true} />}
+                {!pair[1] && <View style={[styles.gridItem, styles.gridItemRight]} />}
+              </React.Fragment>
+            ))}
           </View>
 
           {/* Observaciones */}
-          {data.otherObservations && (
-            <View style={styles.observationsSection}>
-              <View style={styles.sectionTitle}>
-                <Text style={styles.sectionTitleText}>OBSERVACIONES</Text>
-              </View>
-              <View style={styles.observationsContent}>
-                <Text style={styles.observationsText}>
-                  {data.otherObservations}
-                </Text>
-              </View>
+          <View style={styles.observationsSection}>
+            <View style={styles.sectionTitle}>
+              <Text style={styles.sectionTitleText}>OTRAS OBSERVACIONES</Text>
             </View>
-          )}
+            <View style={styles.observationsContent}>
+              {data.otherObservations ? (
+                data.otherObservations.split('\n').map((line, i) => (
+                  <View key={i} style={styles.observationsBullet}>
+                    <Text style={styles.bulletPoint}>-</Text>
+                    <Text style={styles.observationsText}>{line.trim()}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.observationsText}>Sin observaciones adicionales.</Text>
+              )}
+            </View>
+          </View>
 
-          {/* Footer */}
-          <View style={styles.pageFooter}>
-            <Text style={styles.pageNumber}>verificarlo.pe</Text>
-            <Text style={styles.pageNumber}>Página 2</Text>
+          {/* Disclaimer */}
+          <View style={styles.disclaimer}>
+            {DISCLAIMER_LINES.map((line, i) => (
+              <Text key={i} style={styles.disclaimerText}>{line}</Text>
+            ))}
           </View>
         </View>
       </Page>
@@ -492,29 +473,24 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
       {data.screenshots.map((screenshot, index) => (
         <Page key={screenshot.sourceId} size="A4" style={styles.page}>
           <View style={styles.screenshotPage}>
-            {/* Header */}
             <View style={styles.screenshotHeader}>
               <View>
                 <Text style={styles.screenshotTitle}>{screenshot.sourceName}</Text>
-                <Text style={styles.screenshotSource}>
-                  Captura de consulta oficial
-                </Text>
+                <Text style={styles.screenshotSource}>Captura de consulta oficial</Text>
               </View>
-              <Image src={logoUrl} style={{ width: 80 }} />
+              <Image src={logoUrl} style={styles.screenshotLogo} />
             </View>
 
-            {/* Imagen */}
             <View style={styles.screenshotImageContainer}>
               <Image src={screenshot.imageUrl} style={styles.screenshotImage} />
             </View>
 
-            {/* Footer */}
             <View style={styles.screenshotFooter}>
               <Text style={styles.screenshotFooterText}>
                 Placa: {data.plate} | {data.date}
               </Text>
               <Text style={styles.screenshotFooterText}>
-                Página {index + 3}
+                Pagina {index + 3}
               </Text>
             </View>
           </View>
