@@ -26,6 +26,7 @@ interface VehicleInspectionData {
 
 interface InspectionTimelineProps {
   vehicleInspection: VehicleInspectionData;
+  bookingId: number; // Para construir la URL del informe mecánico
 }
 
 // Helper para formatear fechas
@@ -159,7 +160,7 @@ function TimelineStep({
   );
 }
 
-export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProps) {
+export function InspectionTimeline({ vehicleInspection, bookingId }: InspectionTimelineProps) {
   const {
     id,
     plate,
@@ -220,6 +221,21 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
                 assignee={assignedMechanic?.name}
                 icon="wrench"
               />
+              {mechanicalStatus === 'COMPLETADO' && (
+                <a
+                  href={`/api/inspections/${bookingId}/report/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.downloadButton}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7,10 12,15 17,10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                  </svg>
+                  Descargar informe mecánico
+                </a>
+              )}
             </div>
 
             <div className={styles.parallelDivider}>
@@ -285,6 +301,22 @@ export function InspectionTimeline({ vehicleInspection }: InspectionTimelineProp
             assignee={assignedMechanic?.name}
             icon="wrench"
           />
+
+          {mechanicalStatus === 'COMPLETADO' && (
+            <a
+              href={`/api/inspections/${bookingId}/report/pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.downloadButton}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7,10 12,15 17,10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Descargar informe mecánico
+            </a>
+          )}
 
           <TimelineStep
             title="Revisión legal"

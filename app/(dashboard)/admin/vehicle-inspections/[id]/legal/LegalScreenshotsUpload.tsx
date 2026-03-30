@@ -352,15 +352,6 @@ export function LegalScreenshotsUpload({
             <div className={styles.pdfActions}>
               <a
                 href={`/api/admin/vehicle-inspections/${inspectionId}/legal/download-pdf`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.viewPdfButton}
-              >
-                <Eye size={18} />
-                Ver PDF
-              </a>
-              <a
-                href={`/api/admin/vehicle-inspections/${inspectionId}/legal/download-pdf`}
                 download="informe-legal.pdf"
                 className={styles.downloadPdfButton}
               >

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./Register.module.css";
 import { register } from "@/services/auth/auth.client";
 import Link from 'next/link';
@@ -30,12 +30,16 @@ type FormErrors = {
 type Step = "form" | "verify";
 
 // ============================================
-// MAIN REGISTER COMPONENT
+// REGISTER CONTENT (uses searchParams)
 // ============================================
 
-export default function Register() {
+function RegisterContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { showToast } = useToast();
+
+    // Leer callbackUrl de los parámetros de la URL
+    const callbackUrl = searchParams.get("callbackUrl");
 
     // ------------------------------------------
     // STATE VARIABLES
@@ -307,7 +311,11 @@ export default function Register() {
             }
 
             showToast("¡Cuenta verificada! Ya puedes iniciar sesión.", "success");
-            setTimeout(() => router.push("/login"), 1500);
+            // Redirigir al login con el callbackUrl si existe
+            const loginUrl = callbackUrl
+                ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}`
+                : "/login";
+            setTimeout(() => router.push(loginUrl), 1500);
         } catch {
             setVerificationError("Error de conexión. Intenta de nuevo.");
         } finally {
@@ -635,13 +643,16 @@ export default function Register() {
                         {/* Google Button */}
                         <GoogleButton
                             text="Registrarse con Google"
-                            callbackUrl="/"
+                            callbackUrl={callbackUrl || "/perfil"}
                         />
 
                         {/* Login Link */}
                         <p className={styles.loginPrompt}>
                             ¿Ya tienes una cuenta?{" "}
-                            <Link href="/login" className={styles.loginLink}>
+                            <Link
+                                href={callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/login"}
+                                className={styles.loginLink}
+                            >
                                 Inicia sesión aquí
                             </Link>
                         </p>
@@ -649,5 +660,17 @@ export default function Register() {
                 </div>
             </main>
         </div>
+    );
+}
+
+// ============================================
+// MAIN REGISTER COMPONENT (with Suspense boundary)
+// ============================================
+
+export default function Register() {
+    return (
+        <Suspense fallback={<div className={styles.container}>Cargando...</div>}>
+            <RegisterContent />
+        </Suspense>
     );
 }

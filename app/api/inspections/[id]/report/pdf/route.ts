@@ -43,6 +43,9 @@ export async function GET(
             pdfHash: true,
           },
         },
+        vehicle: {
+          select: { id: true },
+        },
       },
     });
 
@@ -71,10 +74,26 @@ export async function GET(
       );
     }
 
-    // Verificar que la inspección esté completada
-    if (booking.status !== "COMPLETED") {
+    // Buscar VehicleInspection para verificar si la parte mecánica está completa
+    const vehicleInspection = await db.vehicleInspection.findFirst({
+      where: {
+        vehicleId: booking.vehicle.id,
+        clientId: booking.clientId,
+      },
+      select: {
+        mechanicalStatus: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Verificar que la inspección mecánica esté completada
+    // Permitir descarga si: booking está COMPLETED O si mechanicalStatus es COMPLETADO
+    const isMechanicalCompleted = vehicleInspection?.mechanicalStatus === 'COMPLETADO';
+    const isBookingCompleted = booking.status === "COMPLETED";
+
+    if (!isBookingCompleted && !isMechanicalCompleted) {
       return NextResponse.json(
-        { error: "El informe solo está disponible para inspecciones completadas" },
+        { error: "El informe solo está disponible cuando la inspección mecánica está completada" },
         { status: 400 }
       );
     }

@@ -305,6 +305,7 @@ export function InspectionDetailClient({ inspection }: Props) {
           mechanicalCompletedAt={inspection.report?.completedAt || null}
           legalCompletedAt={inspection.report?.legalReport?.completedAt || null}
           vehicleInspection={inspection.vehicleInspection}
+          bookingId={inspection.id}
         />
 
         {/* Ubicación: Origen y Destino */}
@@ -760,11 +761,13 @@ function InspectionTimeline({
   mechanicalCompletedAt,
   legalCompletedAt,
   vehicleInspection,
+  bookingId,
 }: {
   createdAt: Date;
   mechanicalCompletedAt: Date | null;
   legalCompletedAt: Date | null;
   vehicleInspection?: VehicleInspectionData | null;
+  bookingId: number;
 }) {
   // Si hay vehicleInspection, usar el nuevo flujo dual
   if (vehicleInspection) {
@@ -849,6 +852,17 @@ function InspectionTimeline({
                     {format(new Date(vehicleInspection.mechanicCompletedAt), "d MMM, HH:mm", { locale: es })}
                   </p>
                 )}
+                {mechanicalStatus === 'COMPLETADO' && (
+                  <a
+                    href={`/api/inspections/${bookingId}/report/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <Download size={14} />
+                    Descargar informe mecánico
+                  </a>
+                )}
               </div>
 
               {/* Revisión Legal */}
@@ -873,6 +887,17 @@ function InspectionTimeline({
                   <p className="text-xs text-green-600 mt-1">
                     {format(new Date(vehicleInspection.legalCompletedAt), "d MMM, HH:mm", { locale: es })}
                   </p>
+                )}
+                {legalStatus === 'COMPLETADO' && (
+                  <a
+                    href={`/api/admin/vehicle-inspections/${vehicleInspection.id}/legal/download-pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 flex items-center justify-center gap-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <Download size={14} />
+                    Descargar informe legal
+                  </a>
                 )}
               </div>
             </div>
@@ -910,6 +935,17 @@ function InspectionTimeline({
                     <User size={12} /> {assignedMechanic.name}
                   </p>
                 )}
+                {mechanicalStatus === 'COMPLETADO' && (
+                  <a
+                    href={`/api/inspections/${bookingId}/report/pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Download size={14} />
+                    Descargar informe mecánico
+                  </a>
+                )}
               </div>
             </div>
 
@@ -936,6 +972,17 @@ function InspectionTimeline({
                   <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                     <User size={12} /> {assignedAdmin.name}
                   </p>
+                )}
+                {legalStatus === 'COMPLETADO' && (
+                  <a
+                    href={`/api/admin/vehicle-inspections/${vehicleInspection.id}/legal/download-pdf`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    <Download size={14} />
+                    Descargar informe legal
+                  </a>
                 )}
               </div>
             </div>

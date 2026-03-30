@@ -88,7 +88,7 @@ export async function getLegalReportDataForPDF(
     plate: inspection.plate || 'SIN PLACA',
     vehicleDescription,
     clientName: inspection.client.name,
-    date: format(inspection.updatedAt, "dd 'de' MMMM 'de' yyyy", { locale: es }),
+    date: format(inspection.updatedAt, "dd 'de' MMMM 'de' yyyy 'a las' HH:mm 'hrs'", { locale: es }),
     fields,
     otherObservations: legalReportData.otherObservations || '',
     screenshots,

@@ -725,7 +725,7 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
 
         {/* Inspection Timeline (flujo dual) */}
         {inspection.vehicleInspection && (
-          <InspectionTimeline vehicleInspection={inspection.vehicleInspection} />
+          <InspectionTimeline vehicleInspection={inspection.vehicleInspection} bookingId={inspection.id} />
         )}
 
         {/* Booking Summary */}
@@ -1074,7 +1074,7 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
 
           {/* Inspection Timeline (flujo dual) */}
           {inspection.vehicleInspection && (
-            <InspectionTimeline vehicleInspection={inspection.vehicleInspection} />
+            <InspectionTimeline vehicleInspection={inspection.vehicleInspection} bookingId={inspection.id} />
           )}
         </div>
       </div>

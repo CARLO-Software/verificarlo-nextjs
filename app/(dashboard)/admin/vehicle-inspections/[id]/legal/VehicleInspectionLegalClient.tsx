@@ -178,7 +178,6 @@ export function VehicleInspectionLegalClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [legalStatus, setLegalStatus] = useState(initialLegalStatus);
-  const [notes, setNotes] = useState(initialNotes || '');
   const [reportData, setReportData] = useState<LegalReportData>(
     initialReportData || getDefaultReportData()
   );
@@ -233,35 +232,6 @@ export function VehicleInspectionLegalClient({
     });
   };
 
-  // Guardar progreso
-  const handleSave = async () => {
-    setError(null);
-    setSuccess(null);
-    setSaving(true);
-
-    try {
-      const res = await fetch(`/api/admin/vehicle-inspections/${inspectionId}/legal/save`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          legalNotes: notes,
-          legalReportData: reportData,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Error al guardar');
-      }
-
-      setSuccess('Progreso guardado correctamente.');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   // Completar revisión (EN_PROCESO -> COMPLETADO)
   const handleComplete = async () => {
     // Verificar que todos los campos estén completados
@@ -272,6 +242,18 @@ export function VehicleInspectionLegalClient({
 
     if (pendingFields.length > 0) {
       setError(`Faltan campos por revisar: ${pendingFields.map((f) => f.label).join(', ')}`);
+      return;
+    }
+
+    // Verificar que los campos con WARNING o CRITICAL tengan observaciones
+    const fieldsWithoutObservations = allFields.filter((f) => {
+      const field = reportData[f.key as LegalFieldKey];
+      const needsObservation = field?.status === 'WARNING' || field?.status === 'CRITICAL';
+      return needsObservation && !field?.text?.trim();
+    });
+
+    if (fieldsWithoutObservations.length > 0) {
+      setError(`Los siguientes campos requieren observaciones: ${fieldsWithoutObservations.map((f) => f.label).join(', ')}`);
       return;
     }
 
@@ -289,7 +271,6 @@ export function VehicleInspectionLegalClient({
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            legalNotes: notes,
             legalReportData: reportData,
           }),
         });
@@ -473,6 +454,8 @@ export function VehicleInspectionLegalClient({
         {/* Legal Report Form */}
         {(canEdit || isCompleted) && (
           <>
+            
+
             {/* Progress Bar */}
             {canEdit && (
               <div className={styles.progressSection}>
@@ -491,7 +474,16 @@ export function VehicleInspectionLegalClient({
                 </p>
               </div>
             )}
-
+            {/* Sección de capturas (siempre visible cuando está en proceso o completado) */}
+            <LegalScreenshotsUpload
+              inspectionId={inspectionId}
+              existingScreenshots={screenshots}
+              onScreenshotUploaded={handleScreenshotUploaded}
+              onScreenshotDeleted={handleScreenshotDeleted}
+              onGeneratePdf={handleGeneratePdf}
+              pdfUrl={pdfUrl}
+              isGeneratingPdf={isGeneratingPdf}
+            />
             {/* Fields Grid */}
             <div className={styles.fieldsContainer}>
               <div className={styles.fieldsColumn}>
@@ -535,19 +527,6 @@ export function VehicleInspectionLegalClient({
                 className={styles.observationsTextarea}
               />
             </div>
-
-            {/* Notes Section */}
-            <div className={styles.notesCard}>
-              <h3 className={styles.notesTitle}>Notas Internas</h3>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notas internas (no visibles para el cliente)..."
-                rows={3}
-                disabled={!canEdit || !isAssignedToMe}
-                className={styles.notesTextarea}
-              />
-            </div>
           </>
         )}
 
@@ -570,14 +549,6 @@ export function VehicleInspectionLegalClient({
         {canEdit && isAssignedToMe && (
           <div className={styles.actions}>
             <button
-              onClick={handleSave}
-              disabled={saving || isPending}
-              className={styles.saveButton}
-            >
-              {saving ? <Loader2 size={18} className={styles.spinner} /> : <Save size={18} />}
-              Guardar Progreso
-            </button>
-            <button
               onClick={handleComplete}
               disabled={isPending}
               className={styles.completeButton}
@@ -597,19 +568,6 @@ export function VehicleInspectionLegalClient({
             <User size={18} />
             Este caso está asignado a {assignedAdmin.name}
           </div>
-        )}
-
-        {/* Sección de capturas de pantalla (solo cuando está COMPLETADO) */}
-        {isCompleted && (
-          <LegalScreenshotsUpload
-            inspectionId={inspectionId}
-            existingScreenshots={screenshots}
-            onScreenshotUploaded={handleScreenshotUploaded}
-            onScreenshotDeleted={handleScreenshotDeleted}
-            onGeneratePdf={handleGeneratePdf}
-            pdfUrl={pdfUrl}
-            isGeneratingPdf={isGeneratingPdf}
-          />
         )}
       </div>
     </div>
@@ -633,6 +591,10 @@ function LegalFieldCard({
   const statusConfig = STATUS_CONFIG[value.status];
   const StatusIcon = statusConfig.icon;
 
+  // Cuando es OK, no se requiere texto y se muestra "Sin observaciones"
+  const isOk = value.status === 'OK';
+  const needsObservation = value.status === 'WARNING' || value.status === 'CRITICAL';
+
   return (
     <div className={`${styles.fieldCard} ${styles[`fieldCard${value.status}`]}`}>
       <div className={styles.fieldHeader}>
@@ -652,25 +614,45 @@ function LegalFieldCard({
             <button
               key={status}
               type="button"
-              onClick={() => onChange({ ...value, status })}
+              onClick={() => onChange({
+                ...value,
+                status,
+                // Limpiar texto si es OK
+                text: status === 'OK' ? '' : value.text
+              })}
               className={`${styles.statusButton} ${styles[`statusButton${status}`]} ${
                 value.status === status ? styles.statusButtonActive : ''
               }`}
             >
-              {STATUS_CONFIG[status].label}
+              {status === 'OK' ? (
+                <CheckCircle2 size={14} />
+              ) : (
+                STATUS_CONFIG[status].label
+              )}
             </button>
           ))}
         </div>
       )}
 
-      <textarea
-        value={value.text}
-        onChange={(e) => onChange({ ...value, text: e.target.value })}
-        placeholder={`Observaciones sobre ${label.toLowerCase()}...`}
-        rows={2}
-        disabled={disabled}
-        className={styles.fieldTextarea}
-      />
+      {/* Si es OK, mostrar "Sin observaciones". Si no, mostrar textarea */}
+      {isOk ? (
+        <div className={styles.noObservations}>
+          <CheckCircle2 size={14} />
+          <span>Sin observaciones</span>
+        </div>
+      ) : (
+        <textarea
+          value={value.text}
+          onChange={(e) => onChange({ ...value, text: e.target.value })}
+          placeholder={needsObservation
+            ? `Observaciones requeridas sobre ${label.toLowerCase()}...`
+            : `Observaciones sobre ${label.toLowerCase()}...`}
+          rows={2}
+          disabled={disabled}
+          required={needsObservation}
+          className={`${styles.fieldTextarea} ${needsObservation && !value.text ? styles.fieldTextareaRequired : ''}`}
+        />
+      )}
     </div>
   );
 }

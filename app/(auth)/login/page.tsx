@@ -17,6 +17,7 @@ function LoginContent() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const isSuspended = searchParams.get("suspended") === "true";
+  const callbackUrl = searchParams.get("callbackUrl");
 
   useEffect(() => {
     const error = searchParams.get("error");
@@ -253,12 +254,15 @@ function LoginContent() {
               </div>
 
               {/* Google Button */}
-              <GoogleButton text="Continuar con Google" />
+              <GoogleButton text="Continuar con Google" callbackUrl={callbackUrl || undefined} />
 
               {/* Register Link */}
               <p className={styles.registerPrompt}>
                 ¿No tienes una cuenta?{" "}
-                <Link href="/register" className={styles.registerLink}>
+                <Link
+                  href={callbackUrl ? `/register?callbackUrl=${encodeURIComponent(callbackUrl)}` : "/register"}
+                  className={styles.registerLink}
+                >
                   Regístrate aquí
                 </Link>
               </p>
