@@ -690,11 +690,16 @@ export async function createManualBooking(input: ManualBookingInput) {
   });
 
   if (!client) {
+    // Hashear la contraseña antes de crear el usuario
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(input.passClient || 'temp123', 10);
+
     client = await db.user.create({
       data: {
         name: input.clientName.trim(),
         email: input.clientEmail.toLowerCase().trim(),
         phone: input.clientPhone?.trim() || null,
+        password: hashedPassword,
         role: 'CLIENT',
       },
     });
@@ -790,6 +795,21 @@ export async function createManualBooking(input: ManualBookingInput) {
         paidAt: new Date(),
         receiptNumber: `MAN-${booking.id}-${Date.now()}`,
       },
+    });
+
+    // 9. Si está pagado, crear VehicleInspection y enviar notificaciones
+    const { createVehicleInspection } = await import('@/lib/vehicle-inspection/create-inspection');
+    const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+
+    await createVehicleInspection({
+      bookingId: booking.id,
+      vehicleId: vehicle.id,
+      clientId: client.id,
+      plate: normalizedPlate,
+      vehicleDescription,
+      clientName: client.name,
+      scheduledDate: input.date,
+      scheduledTime: input.timeSlot,
     });
   }
 

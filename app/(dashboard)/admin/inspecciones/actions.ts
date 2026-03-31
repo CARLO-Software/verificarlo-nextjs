@@ -158,3 +158,113 @@ export async function getInspectionPlansAction() {
     return { success: false, error: 'Error al obtener planes', plans: [] };
   }
 }
+
+// ============================================
+// Acciones para buscar clientes
+// ============================================
+
+export async function searchClientsAction(query: string) {
+  try {
+    const { db } = await import('@/lib/db');
+
+    if (!query || query.trim().length < 2) {
+      return { success: true, clients: [] };
+    }
+
+    const clients = await db.user.findMany({
+      where: {
+        role: 'CLIENT',
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { email: { contains: query, mode: 'insensitive' } },
+          { phone: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+      },
+      take: 10,
+      orderBy: { name: 'asc' },
+    });
+
+    return { success: true, clients };
+  } catch (error) {
+    console.error('Error buscando clientes:', error);
+    return { success: false, error: 'Error al buscar clientes', clients: [] };
+  }
+}
+
+// ============================================
+// Acciones para disponibilidad de horarios
+// ============================================
+
+export async function getAvailabilityForDateAction(date: string) {
+  try {
+    const { getAvailabilityForDate } = await import('@/lib/scheduling/availability');
+    const availability = await getAvailabilityForDate(date);
+    return { success: true, availability };
+  } catch (error) {
+    console.error('Error obteniendo disponibilidad:', error);
+    return { success: false, error: 'Error al obtener disponibilidad' };
+  }
+}
+
+export async function getAvailableInspectorsForSlotAction(date: string, timeSlot: string) {
+  try {
+    const { db } = await import('@/lib/db');
+    const { startOfDay } = await import('date-fns');
+    const { parse } = await import('date-fns');
+    const { BLOCKING_STATUSES } = await import('@/lib/scheduling/constants');
+
+    const dateObj = parse(date, 'yyyy-MM-dd', new Date());
+
+    // Obtener todos los inspectores activos
+    const allInspectors = await db.user.findMany({
+      where: {
+        role: 'INSPECTOR',
+        isInspectorAvailable: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+      },
+    });
+
+    // Obtener reservas para este slot específico
+    const bookingsInSlot = await db.booking.findMany({
+      where: {
+        date: startOfDay(dateObj),
+        timeSlot,
+        status: {
+          in: [...BLOCKING_STATUSES],
+        },
+      },
+      select: {
+        inspectorId: true,
+      },
+    });
+
+    // IDs de inspectores ocupados en este slot
+    const busyInspectorIds = new Set(
+      bookingsInSlot
+        .map((b) => b.inspectorId)
+        .filter((id): id is string => id !== null)
+    );
+
+    // Marcar disponibilidad de cada inspector
+    const inspectors = allInspectors.map((inspector) => ({
+      ...inspector,
+      available: !busyInspectorIds.has(inspector.id),
+    }));
+
+    return { success: true, inspectors };
+  } catch (error) {
+    console.error('Error obteniendo inspectores disponibles:', error);
+    return { success: false, error: 'Error al obtener inspectores', inspectors: [] };
+  }
+}
