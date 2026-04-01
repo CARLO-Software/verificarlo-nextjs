@@ -12,20 +12,23 @@ import Image from 'next/image';
 import {
   Upload,
   X,
-  FileText,
   CheckCircle,
   Loader2,
   Camera,
-  Download,
   Eye,
   AlertCircle,
   ExternalLink,
   Clipboard,
+  HelpCircle,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
 import styles from './LegalScreenshotsUpload.module.css';
-import { LEGAL_SOURCES, LegalSourceId } from '@/lib/constants/legal-sources';
+import { LEGAL_SOURCES, LEGAL_CATEGORIES, LegalSourceId } from '@/lib/constants/legal-sources';
 
 export { LEGAL_SOURCES, type LegalSourceId };
+
+type SourceStatus = 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
 
 export interface LegalScreenshot {
   sourceId: LegalSourceId;
@@ -38,9 +41,11 @@ interface Props {
   existingScreenshots: LegalScreenshot[];
   onScreenshotUploaded: (screenshot: LegalScreenshot) => void;
   onScreenshotDeleted: (sourceId: LegalSourceId) => void;
-  onGeneratePdf: () => void;
-  pdfUrl: string | null;
-  isGeneratingPdf: boolean;
+  initialSourceStatuses?: Record<string, SourceStatus>;
+  initialSourceObservations?: Record<string, string>;
+  generalObservations: string;
+  onGeneralObservationsChange: (value: string) => void;
+  canEdit: boolean;
 }
 
 export function LegalScreenshotsUpload({
@@ -48,26 +53,127 @@ export function LegalScreenshotsUpload({
   existingScreenshots,
   onScreenshotUploaded,
   onScreenshotDeleted,
-  onGeneratePdf,
-  pdfUrl,
-  isGeneratingPdf,
+  initialSourceStatuses,
+  initialSourceObservations,
+  generalObservations,
+  onGeneralObservationsChange,
+  canEdit,
 }: Props) {
   const [uploading, setUploading] = useState<LegalSourceId | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [activeSourceForPaste, setActiveSourceForPaste] = useState<LegalSourceId | null>(null);
+  const [sourceStatuses, setSourceStatuses] = useState<Record<string, SourceStatus>>(
+    initialSourceStatuses || {}
+  );
+  const [sourceObservations, setSourceObservations] = useState<Record<string, string>>(
+    initialSourceObservations || {}
+  );
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Log inicial para debug
+  useEffect(() => {
+    console.log('[COMPONENTE INIT] initialSourceStatuses:', initialSourceStatuses);
+    console.log('[COMPONENTE INIT] initialSourceObservations:', initialSourceObservations);
+    console.log('[COMPONENTE INIT] sourceStatuses state:', sourceStatuses);
+    console.log('[COMPONENTE INIT] sourceObservations state:', sourceObservations);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Verificar si una fuente ya tiene captura
   const getScreenshot = (sourceId: LegalSourceId) =>
     existingScreenshots.find((s) => s.sourceId === sourceId);
+
+  // Obtener el estado de una fuente (por defecto PENDING) - Reservado para uso futuro
+  const _getSourceStatus = (sourceId: string): SourceStatus => {
+    return sourceStatuses[sourceId] || 'PENDING';
+  };
+
+  // Cambiar el estado de una fuente - Reservado para uso futuro
+  const _setSourceStatus = (sourceId: string, status: SourceStatus) => {
+    setSourceStatuses(prev => ({ ...prev, [sourceId]: status }));
+    // Si cambia a OK, limpiar observaciones
+    if (status === 'OK') {
+      setSourceObservations(prev => {
+        const newObs = { ...prev };
+        delete newObs[sourceId];
+        return newObs;
+      });
+    }
+  };
+
+  // Obtener el estado de una categoría (por defecto PENDING)
+  const getCategoryStatus = (categoryId: string): SourceStatus => {
+    return sourceStatuses[categoryId] || 'PENDING';
+  };
+
+  // Cambiar el estado de una categoría
+  const setCategoryStatus = (categoryId: string, status: SourceStatus) => {
+    setSourceStatuses(prev => ({ ...prev, [categoryId]: status }));
+    // Si cambia a OK, limpiar observaciones
+    if (status === 'OK') {
+      setSourceObservations(prev => {
+        const newObs = { ...prev };
+        delete newObs[categoryId];
+        return newObs;
+      });
+    }
+  };
+
+  // Obtener observación de una fuente - Reservado para uso futuro
+  const _getSourceObservation = (sourceId: string): string => {
+    return sourceObservations[sourceId] || '';
+  };
+
+  // Cambiar observación de una fuente - Reservado para uso futuro
+  const _setSourceObservation = (sourceId: string, observation: string) => {
+    setSourceObservations(prev => ({ ...prev, [sourceId]: observation }));
+  };
+
+  // Obtener observación de una categoría
+  const getCategoryObservation = (categoryId: string): string => {
+    return sourceObservations[categoryId] || '';
+  };
+
+  // Cambiar observación de una categoría
+  const setCategoryObservation = (categoryId: string, observation: string) => {
+    setSourceObservations(prev => ({ ...prev, [categoryId]: observation }));
+  };
+
+  // Guardar estados y observaciones (debounced)
+  useEffect(() => {
+    const timeoutId = setTimeout(async () => {
+      // Solo guardar si hay datos
+      if (Object.keys(sourceStatuses).length > 0 || Object.keys(sourceObservations).length > 0) {
+        console.log('[GUARDANDO] sourceStatuses:', sourceStatuses);
+        console.log('[GUARDANDO] sourceObservations:', sourceObservations);
+        try {
+          const response = await fetch(
+            `/api/admin/vehicle-inspections/${inspectionId}/legal/source-statuses`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                statuses: sourceStatuses,
+                observations: sourceObservations,
+              }),
+            }
+          );
+          const result = await response.json();
+          console.log('[GUARDADO] Respuesta:', result);
+        } catch (err) {
+          console.error('Error guardando estados:', err);
+        }
+      }
+    }, 1000); // Guardar 1 segundo después del último cambio
+
+    return () => clearTimeout(timeoutId);
+  }, [sourceStatuses, sourceObservations, inspectionId]);
 
   // Contar capturas requeridas vs subidas
   const requiredSources = LEGAL_SOURCES.filter((s) => s.required);
   const uploadedRequired = requiredSources.filter((s) =>
     existingScreenshots.some((sc) => sc.sourceId === s.id)
   );
-  const canGeneratePdf = uploadedRequired.length === requiredSources.length;
   const progress = Math.round(
     (uploadedRequired.length / requiredSources.length) * 100
   );
@@ -223,167 +329,386 @@ export function LegalScreenshotsUpload({
         </div>
       )}
 
-      {/* Sources List - Diseño compacto con todo en una fila */}
-      <div className={styles.sourcesList}>
-        {LEGAL_SOURCES.map((source) => {
-          const screenshot = getScreenshot(source.id);
-          const isUploading = uploading === source.id;
-          const isActiveForPaste = activeSourceForPaste === source.id;
+      {/* Sources List - Agrupado por categorías */}
+      <div className={styles.categoriesContainer}>
+        {/* Sección: Documentación Legal */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Documentación Legal</h3>
+          <div className={styles.categoriesList}>
+            {LEGAL_CATEGORIES.filter((cat) => cat.section === 'legal').map((category) => (
+              <div key={category.id} className={styles.categoryCard}>
+                <div className={styles.categoryHeader}>
+                  <h4 className={styles.categoryTitle}>{category.name}</h4>
 
-          return (
-            <div
-              key={source.id}
-              className={`${styles.sourceRow} ${
-                screenshot ? styles.sourceRowUploaded : ''
-              } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
-            >
-              {/* Columna 1: Info + URL */}
-              <div className={styles.sourceInfo}>
-                <div className={styles.sourceNameRow}>
-                  <h4 className={styles.sourceName}>
-                    {screenshot && <CheckCircle size={16} className={styles.checkIcon} />}
-                    {source.name}
-                    {source.required && (
-                      <span className={styles.requiredBadge}>*</span>
-                    )}
-                  </h4>
+                  {/* Botones de Estado de la Categoría */}
+                  <div className={styles.statusButtonsRow}>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'OK')}
+                      className={`${styles.statusBtn} ${styles.statusBtnOK} ${
+                        getCategoryStatus(category.id) === 'OK' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Sin problemas"
+                    >
+                      <CheckCircle2 size={14} />
+                      <span>OK</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'WARNING')}
+                      className={`${styles.statusBtn} ${styles.statusBtnWARNING} ${
+                        getCategoryStatus(category.id) === 'WARNING' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Observación"
+                    >
+                      <AlertCircle size={14} />
+                      <span>Observación</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'CRITICAL')}
+                      className={`${styles.statusBtn} ${styles.statusBtnCRITICAL} ${
+                        getCategoryStatus(category.id) === 'CRITICAL' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Crítico"
+                    >
+                      <AlertTriangle size={14} />
+                      <span>Crítico</span>
+                    </button>
+                  </div>
+
+                  {/* Textarea de Observaciones (solo si es WARNING o CRITICAL) */}
+                  {(getCategoryStatus(category.id) === 'WARNING' || getCategoryStatus(category.id) === 'CRITICAL') && (
+                    <div className={styles.observationBox}>
+                      <textarea
+                        value={getCategoryObservation(category.id)}
+                        onChange={(e) => setCategoryObservation(category.id, e.target.value)}
+                        placeholder={`Escriba las observaciones sobre ${category.name}...`}
+                        rows={2}
+                        className={styles.observationTextarea}
+                      />
+                    </div>
+                  )}
                 </div>
-                <p className={styles.sourceDescription}>{source.description}</p>
-                <a
-                  href={source.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.sourceLink}
-                >
-                  <ExternalLink size={12} />
-                  {source.url.replace('https://', '').split('/')[0]}
-                </a>
-              </div>
+                <div className={styles.sourcesList}>
+                  {category.sources.map((source) => {
+                    const screenshot = getScreenshot(source.id as LegalSourceId);
+                    const isUploading = uploading === source.id;
+                    const isActiveForPaste = activeSourceForPaste === source.id;
 
-              {/* Columna 2: Preview de imagen o área de upload */}
-              <div className={styles.sourceImageCol}>
-                {screenshot ? (
-                  <div className={styles.thumbnailWrapper}>
-                    <Image
-                      src={screenshot.imageUrl}
-                      alt={source.name}
-                      fill
-                      className={styles.thumbnail}
-                      onClick={() => setPreviewImage(screenshot.imageUrl)}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
-                    onClick={() => {
-                      setActiveSourceForPaste(source.id);
-                      fileInputRefs.current[source.id]?.click();
-                    }}
-                    onFocus={() => setActiveSourceForPaste(source.id)}
-                    tabIndex={0}
-                  >
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileChange(source.id, e)}
-                      disabled={isUploading}
-                      ref={(el) => { fileInputRefs.current[source.id] = el; }}
-                      className={styles.fileInput}
-                    />
-                    {isUploading ? (
-                      <Loader2 size={20} className={styles.spinner} />
-                    ) : isActiveForPaste ? (
-                      <div className={styles.pasteHint}>
-                        <Clipboard size={16} />
-                        <span>Ctrl+V</span>
+                    return (
+                      <div
+                        key={source.id}
+                        className={`${styles.sourceRow} ${
+                          screenshot ? styles.sourceRowUploaded : ''
+                        } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
+                      >
+                        {/* Columna 1: Info + URL */}
+                        <div className={styles.sourceInfo}>
+                          <div className={styles.sourceNameRow}>
+                            <h5 className={styles.sourceName}>
+                              {screenshot && <CheckCircle size={14} className={styles.checkIcon} />}
+                              {source.name}
+                              {source.required && (
+                                <span className={styles.requiredBadge}>*</span>
+                              )}
+                              {source.tooltip && (
+                                <span className={styles.sourceTooltip} title={source.tooltip}>
+                                  <HelpCircle size={12} />
+                                </span>
+                              )}
+                            </h5>
+                          </div>
+
+                          <p className={styles.sourceDescription}>{source.description}</p>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.sourceLink}
+                          >
+                            <ExternalLink size={12} />
+                            {source.url.replace('https://', '').split('/')[0]}
+                          </a>
+                        </div>
+
+                        {/* Columna 2: Preview de imagen o área de upload */}
+                        <div className={styles.sourceImageCol}>
+                          {screenshot ? (
+                            <div className={styles.thumbnailWrapper}>
+                              <Image
+                                src={screenshot.imageUrl}
+                                alt={source.name}
+                                fill
+                                className={styles.thumbnail}
+                                onClick={() => setPreviewImage(screenshot.imageUrl)}
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                              onClick={() => {
+                                setActiveSourceForPaste(source.id as LegalSourceId);
+                                fileInputRefs.current[source.id]?.click();
+                              }}
+                              onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                              tabIndex={0}
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                disabled={isUploading}
+                                ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                className={styles.fileInput}
+                              />
+                              {isUploading ? (
+                                <Loader2 size={20} className={styles.spinner} />
+                              ) : isActiveForPaste ? (
+                                <div className={styles.pasteHint}>
+                                  <Clipboard size={16} />
+                                  <span>Ctrl+V</span>
+                                </div>
+                              ) : (
+                                <Upload size={20} />
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Columna 3: Acciones */}
+                        <div className={styles.sourceActions}>
+                          {screenshot ? (
+                            <>
+                              <button
+                                onClick={() => setPreviewImage(screenshot.imageUrl)}
+                                className={styles.actionBtn}
+                                title="Ver imagen"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(source.id as LegalSourceId)}
+                                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                                title="Eliminar"
+                              >
+                                <X size={16} />
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                              className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
+                              title="Activar para pegar (Ctrl+V)"
+                            >
+                              <Clipboard size={16} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    ) : (
-                      <Upload size={20} />
-                    )}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
 
-              {/* Columna 3: Acciones */}
-              <div className={styles.sourceActions}>
-                {screenshot ? (
-                  <>
+        {/* Sección: Infracciones y registros */}
+        <div className={styles.section}>
+          <h3 className={styles.sectionTitle}>Infracciones y Registros</h3>
+          <div className={styles.categoriesList}>
+            {LEGAL_CATEGORIES.filter((cat) => cat.section === 'infractions').map((category) => (
+              <div key={category.id} className={styles.categoryCard}>
+                <div className={styles.categoryHeader}>
+                  <h4 className={styles.categoryTitle}>{category.name}</h4>
+
+                  {/* Botones de Estado de la Categoría */}
+                  <div className={styles.statusButtonsRow}>
                     <button
-                      onClick={() => setPreviewImage(screenshot.imageUrl)}
-                      className={styles.actionBtn}
-                      title="Ver imagen"
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'OK')}
+                      className={`${styles.statusBtn} ${styles.statusBtnOK} ${
+                        getCategoryStatus(category.id) === 'OK' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Sin problemas"
                     >
-                      <Eye size={16} />
+                      <CheckCircle2 size={14} />
+                      <span>OK</span>
                     </button>
                     <button
-                      onClick={() => handleDelete(source.id)}
-                      className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                      title="Eliminar"
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'WARNING')}
+                      className={`${styles.statusBtn} ${styles.statusBtnWARNING} ${
+                        getCategoryStatus(category.id) === 'WARNING' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Observación"
                     >
-                      <X size={16} />
+                      <AlertCircle size={14} />
+                      <span>Observación</span>
                     </button>
-                  </>
-                ) : (
-                  <button
-                    onClick={() => setActiveSourceForPaste(source.id)}
-                    className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
-                    title="Activar para pegar (Ctrl+V)"
-                  >
-                    <Clipboard size={16} />
-                  </button>
-                )}
+                    <button
+                      type="button"
+                      onClick={() => setCategoryStatus(category.id, 'CRITICAL')}
+                      className={`${styles.statusBtn} ${styles.statusBtnCRITICAL} ${
+                        getCategoryStatus(category.id) === 'CRITICAL' ? styles.statusBtnActive : ''
+                      }`}
+                      title="Crítico"
+                    >
+                      <AlertTriangle size={14} />
+                      <span>Crítico</span>
+                    </button>
+                  </div>
+
+                  {/* Textarea de Observaciones (solo si es WARNING o CRITICAL) */}
+                  {(getCategoryStatus(category.id) === 'WARNING' || getCategoryStatus(category.id) === 'CRITICAL') && (
+                    <div className={styles.observationBox}>
+                      <textarea
+                        value={getCategoryObservation(category.id)}
+                        onChange={(e) => setCategoryObservation(category.id, e.target.value)}
+                        placeholder={`Escriba las observaciones sobre ${category.name}...`}
+                        rows={2}
+                        className={styles.observationTextarea}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className={styles.sourcesList}>
+                  {category.sources.map((source) => {
+                    const screenshot = getScreenshot(source.id as LegalSourceId);
+                    const isUploading = uploading === source.id;
+                    const isActiveForPaste = activeSourceForPaste === source.id;
+
+                    return (
+                      <div
+                        key={source.id}
+                        className={`${styles.sourceRow} ${
+                          screenshot ? styles.sourceRowUploaded : ''
+                        } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
+                      >
+                        {/* Columna 1: Info + URL */}
+                        <div className={styles.sourceInfo}>
+                          <div className={styles.sourceNameRow}>
+                            <h5 className={styles.sourceName}>
+                              {screenshot && <CheckCircle size={14} className={styles.checkIcon} />}
+                              {source.name}
+                              {source.required && (
+                                <span className={styles.requiredBadge}>*</span>
+                              )}
+                              {source.tooltip && (
+                                <span className={styles.sourceTooltip} title={source.tooltip}>
+                                  <HelpCircle size={12} />
+                                </span>
+                              )}
+                            </h5>
+                          </div>
+
+                          <p className={styles.sourceDescription}>{source.description}</p>
+                          <a
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.sourceLink}
+                          >
+                            <ExternalLink size={12} />
+                            {source.url.replace('https://', '').split('/')[0]}
+                          </a>
+                        </div>
+
+                        {/* Columna 2: Preview de imagen o área de upload */}
+                        <div className={styles.sourceImageCol}>
+                          {screenshot ? (
+                            <div className={styles.thumbnailWrapper}>
+                              <Image
+                                src={screenshot.imageUrl}
+                                alt={source.name}
+                                fill
+                                className={styles.thumbnail}
+                                onClick={() => setPreviewImage(screenshot.imageUrl)}
+                              />
+                            </div>
+                          ) : (
+                            <div
+                              className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                              onClick={() => {
+                                setActiveSourceForPaste(source.id as LegalSourceId);
+                                fileInputRefs.current[source.id]?.click();
+                              }}
+                              onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                              tabIndex={0}
+                            >
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                disabled={isUploading}
+                                ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                className={styles.fileInput}
+                              />
+                              {isUploading ? (
+                                <Loader2 size={20} className={styles.spinner} />
+                              ) : isActiveForPaste ? (
+                                <div className={styles.pasteHint}>
+                                  <Clipboard size={16} />
+                                  <span>Ctrl+V</span>
+                                </div>
+                              ) : (
+                                <Upload size={20} />
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Columna 3: Acciones */}
+                        <div className={styles.sourceActions}>
+                          {screenshot ? (
+                            <>
+                              <button
+                                onClick={() => setPreviewImage(screenshot.imageUrl)}
+                                className={styles.actionBtn}
+                                title="Ver imagen"
+                              >
+                                <Eye size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(source.id as LegalSourceId)}
+                                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                                title="Eliminar"
+                              >
+                                <X size={16} />
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                              className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
+                              title="Activar para pegar (Ctrl+V)"
+                            >
+                              <Clipboard size={16} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Generate PDF Section */}
-      <div className={styles.generateSection}>
-        {pdfUrl ? (
-          <div className={styles.pdfReady}>
-            <div className={styles.pdfReadyIcon}>
-              <FileText size={32} />
-            </div>
-            <div className={styles.pdfReadyText}>
-              <h3>PDF Legal Generado</h3>
-              <p>El informe esta listo para descargar</p>
-            </div>
-            <div className={styles.pdfActions}>
-              <a
-                href={`/api/admin/vehicle-inspections/${inspectionId}/legal/download-pdf`}
-                download="informe-legal.pdf"
-                className={styles.downloadPdfButton}
-              >
-                <Download size={18} />
-                Descargar
-              </a>
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={onGeneratePdf}
-            disabled={!canGeneratePdf || isGeneratingPdf}
-            className={styles.generateButton}
-          >
-            {isGeneratingPdf ? (
-              <>
-                <Loader2 size={20} className={styles.spinner} />
-                Generando PDF...
-              </>
-            ) : (
-              <>
-                <FileText size={20} />
-                Generar Informe PDF Legal
-              </>
-            )}
-          </button>
-        )}
-        {!canGeneratePdf && !pdfUrl && (
-          <p className={styles.generateHint}>
-            Sube todas las capturas requeridas (*) para generar el PDF
-          </p>
-        )}
+      {/* Observaciones Generales */}
+      <div className={styles.observationsCard}>
+        <h3 className={styles.observationsTitle}>Observaciones Generales</h3>
+        <textarea
+          value={generalObservations}
+          onChange={(e) => onGeneralObservationsChange(e.target.value)}
+          placeholder="Agrega observaciones adicionales sobre la revisión legal..."
+          rows={4}
+          disabled={!canEdit}
+          className={styles.observationsTextarea}
+        />
       </div>
 
       {/* Image Preview Modal */}

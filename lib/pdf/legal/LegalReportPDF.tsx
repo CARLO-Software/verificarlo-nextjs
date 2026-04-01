@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   // === PORTADA ===
   coverPage: {
     flex: 1,
-    backgroundColor: colors.black,
+    backgroundColor: colors.white,
     padding: 50,
     justifyContent: 'center',
     alignItems: 'center',
@@ -47,10 +47,17 @@ const styles = StyleSheet.create({
     width: 180,
     marginBottom: 40,
   },
+  coverLogoText: {
+    fontSize: 48,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 40,
+    letterSpacing: 2,
+  },
   coverTitle: {
     fontSize: 36,
     fontWeight: 700,
-    color: colors.white,
+    color: colors.black,
     marginBottom: 12,
     letterSpacing: 2,
   },
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
   },
   coverDate: {
     fontSize: 12,
-    color: colors.gray,
+    color: colors.black,
   },
   coverFooter: {
     position: 'absolute',
@@ -88,7 +95,7 @@ const styles = StyleSheet.create({
   },
   coverFooterText: {
     fontSize: 9,
-    color: colors.gray,
+    color: colors.black,
   },
 
   // === PÁGINA DE RESUMEN ===
@@ -332,9 +339,9 @@ const FIELD_ICONS: Record<string, string> = {
 function StatusBadge({ status }: { status: string }) {
   const getSymbol = () => {
     switch (status) {
-      case 'OK': return 'V';
+      case 'OK': return '✓';
       case 'WARNING': return '!';
-      case 'CRITICAL': return 'X';
+      case 'CRITICAL': return '✕';
       default: return '?';
     }
   };
@@ -404,7 +411,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
       {/* PÁGINA 1: PORTADA */}
       <Page size="A4" style={styles.page}>
         <View style={styles.coverPage}>
-          <Image src={logoUrl} style={styles.coverLogo} />
+          <Text style={styles.coverLogoText}>VerifiCARLO</Text>
 
           <Text style={styles.coverTitle}>INFORME LEGAL</Text>
           <Text style={styles.coverSubtitle}>VERIFICACION VEHICULAR</Text>

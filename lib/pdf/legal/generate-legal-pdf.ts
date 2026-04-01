@@ -60,14 +60,58 @@ export async function getLegalReportDataForPDF(
   const legalReportData = (inspection.legalReportData as Record<string, any>) || {};
   const legalScreenshots = (inspection.legalScreenshots as Record<string, any>) || {};
 
-  // Construir campos del informe
+  // Obtener estados y observaciones de categorías (nuevo sistema)
+  const sourceStatuses = legalReportData.sourceStatuses || {};
+  const sourceObservations = legalReportData.sourceObservations || {};
+
+  // Debug: Ver qué datos tenemos
+  console.log('[PDF DEBUG] sourceStatuses:', JSON.stringify(sourceStatuses, null, 2));
+  console.log('[PDF DEBUG] sourceObservations:', JSON.stringify(sourceObservations, null, 2));
+
+  // Mapeo de campos antiguos a IDs de categorías
+  const fieldToCategoryMap: Record<string, string> = {
+    ownerHistory: 'historial_propietarios',
+    sunarpLiens: 'gravamenes_sunat',
+    satCaptureOrder: 'orden_captura_sunat',
+    soat: 'soat',
+    techReview: 'revision_tecnica',
+    vehicleTax: 'impuesto_vehicular',
+    gasConversion: 'conversion_gas',
+    satTickets: 'papeletas_sat',
+    callaoTickets: 'papeletas_callao',
+    sutranTickets: 'papeletas_sutran',
+    theftHistory: 'siniestralidad', // No tiene categoría propia, usar siniestralidad
+    transportRegistry: 'registro_transportes',
+    lastTransfer: 'historial_propietarios', // Usar misma categoría que historial
+    accidentHistory: 'siniestralidad',
+  };
+
+  // Construir campos del informe usando las categorías
   const fields = Object.entries(LEGAL_FIELD_LABELS).map(([key, label]) => {
-    const field = legalReportData[key] || { status: 'PENDING', text: '' };
+    const categoryId = fieldToCategoryMap[key];
+    let categoryStatus: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' = 'PENDING';
+    let categoryObservation = '';
+
+    if (categoryId) {
+      const status = sourceStatuses[categoryId];
+      const observation = sourceObservations[categoryId];
+
+      console.log(`[PDF DEBUG] Campo: ${key} (${label}) → Categoría: ${categoryId}`);
+      console.log(`[PDF DEBUG]   Status: ${status}, Observation: ${observation}`);
+
+      if (status) {
+        categoryStatus = status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+      }
+      if (observation) {
+        categoryObservation = observation;
+      }
+    }
+
     return {
       key,
       label,
-      status: field.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING',
-      text: field.text || '',
+      status: categoryStatus,
+      text: categoryObservation,
     };
   });
 
