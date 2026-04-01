@@ -114,6 +114,7 @@ export default function AgendarForm({
     fullName: "",
     phone: "",
     marketingOptIn: false,
+    termsAccepted: false,
   });
 
   // =========================================================================
@@ -184,7 +185,8 @@ export default function AgendarForm({
     selectedDate !== null &&
     selectedSlot !== null &&
     contactData.fullName.length >= 3 &&
-    contactData.phone.length >= 9;
+    contactData.phone.length >= 9 &&
+    contactData.termsAccepted;
 
   // canProceedStep4 se usa implícitamente en PaymentMethods
   const _canProceedStep4 = paymentMethod !== null;

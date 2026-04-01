@@ -22,6 +22,13 @@ const ADMIN_INSPECTOR_ROUTES = ['/admin', '/inspector'];
 // Rutas de la plataforma cliente (ya tienen layout en route group)
 const CLIENT_PLATFORM_ROUTES = ['/app', '/inspecciones', '/vehiculos', '/perfil'];
 
+// Rutas legales (tienen su propio layout simple sin NavBar/Footer)
+const LEGAL_ROUTES = [
+  '/terminos-y-condiciones',
+  '/politica-de-privacidad',
+  '/politica-de-cambios-y-devoluciones',
+];
+
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
@@ -32,6 +39,13 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   );
 
   if (isAdminInspectorRoute) {
+    return <>{children}</>;
+  }
+
+  // Rutas legales usan su propio layout simple (sin NavBar/Footer)
+  const isLegalRoute = LEGAL_ROUTES.some((route) => pathname === route);
+
+  if (isLegalRoute) {
     return <>{children}</>;
   }
 

@@ -203,6 +203,21 @@ export default function Footer() {
         {/* Línea divisora */}
         <div className={styles.divider}></div>
 
+        {/* Enlaces Legales */}
+        <div className={styles.legalSection}>
+          <a href="/terminos-y-condiciones" className={styles.legalLink}>
+            Términos y Condiciones
+          </a>
+          <span className={styles.legalSeparator}>•</span>
+          <a href="/politica-de-privacidad" className={styles.legalLink}>
+            Política de Privacidad
+          </a>
+          <span className={styles.legalSeparator}>•</span>
+          <a href="/politica-de-cambios-y-devoluciones" className={styles.legalLink}>
+            Política de Cambios y Devoluciones
+          </a>
+        </div>
+
         {/* Libro de Reclamaciones */}
         <div className={styles.complaintRow}>
           <ComplaintBookButton variant="footer" mode="external" />
@@ -211,7 +226,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className={styles.copyright}>
-          <p>© 2025 Todos los derechos reservados.</p>
+          <p>© {new Date().getFullYear()} Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>
