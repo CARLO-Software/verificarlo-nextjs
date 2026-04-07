@@ -196,6 +196,22 @@
 }
 
 /* ============================================
+   NAVBAR ACTIONS (Carrito + Usuario en desktop)
+   ============================================ */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #FFFFFF;
+}
+
+.navbarScrolled .navbar-actions,
+.navbarSolid .navbar-actions,
+.navbarServices .navbar-actions {
+  color: var(--shark--700);
+}
+
+/* ============================================
    USER ICON BUTTON (Mobile - botón circular con persona)
    ============================================ */
 .user-icon-button {
@@ -780,6 +796,11 @@
 @media screen and (max-width: 991px) {
   .sidebar-user-icon-img {
     filter: none;
+  }
+
+  /* Ocultar navbar-actions (carrito desktop) en móvil */
+  .navbar-actions {
+    display: none;
   }
 
   /* Mostrar items del menú en móvil */

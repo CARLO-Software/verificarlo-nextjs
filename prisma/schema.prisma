@@ -101,6 +101,7 @@ model User {
   clientBookings   Booking[]     @relation("ClientBookings")
   inspectorBookings Booking[]    @relation("InspectorBookings")
   blockedDates     BlockedDate[]
+  cart             Cart?
 
   // Relaciones de Informe Legal
   legalReportsLocked    LegalReport[] @relation("LegalReportLockedBy")
@@ -167,8 +168,9 @@ model InspectionPlan {
   description String         @db.Text
   price       Int            // En soles (ej: 150 = S/150.00)
 
-  items    InspectionPlanItem[]
-  bookings Booking[]
+  items     InspectionPlanItem[]
+  bookings  Booking[]
+  cartItems CartItem[]
 }
 
 model InspectionPlanItem {
@@ -742,6 +744,39 @@ model Notification {
   @@index([userId, read])
   @@index([userId])
   @@index([createdAt])
+}
+
+// ============================================
+// CARRITO DE COMPRAS
+// ============================================
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+
+  @@index([userId])
+}
+
+model CartItem {
+  id               String   @id @default(cuid())
+  cartId           String
+  inspectionPlanId Int
+  quantity         Int      @default(1)
+  tempVehicleData  Json?    // { brandId, brandName, modelId, modelName, year, plate }
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  cart             Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  inspectionPlan   InspectionPlan @relation(fields: [inspectionPlanId], references: [id])
+
+  @@unique([cartId, inspectionPlanId])
+  @@index([cartId])
+  @@index([inspectionPlanId])
 }
 
 // ============================================

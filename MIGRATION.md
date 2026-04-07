@@ -89,7 +89,7 @@ Ejecuta en la consola de Prisma o crea un seed:
 ```typescript
 // Para promover usuarios a inspectores
 await prisma.user.update({
-  where: { email: "inspector1@verificarlo.pe" },
+  where: { email: "inspector1@verificarlo.com" },
   data: { role: "INSPECTOR", isActive: true }
 });
 ```

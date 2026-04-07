@@ -1,0 +1,65 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+}
+
+/* Variante primary */
+.primary {
+  color: #000;
+  background-color: #ffd700;
+}
+
+.primary:hover:not(:disabled) {
+  background-color: #e6c200;
+}
+
+/* Variante secondary */
+.secondary {
+  color: #fff;
+  background-color: #1a1a1a;
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: #333;
+}
+
+/* Variante outline */
+.outline {
+  color: #1a1a1a;
+  background-color: transparent;
+  border: 2px solid #1a1a1a;
+}
+
+.outline:hover:not(:disabled) {
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+/* Estado agregado */
+.added {
+  background-color: #22c55e !important;
+  color: #fff !important;
+  border-color: #22c55e !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .button {
+    padding: 10px 16px;
+    font-size: 0.85rem;
+  }
+}

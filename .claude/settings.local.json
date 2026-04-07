@@ -39,7 +39,13 @@
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/user-group-man-man.png\" -o propietarios.png)",
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/agreement.png\" -o transferencia.png)",
       "Bash(netstat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(timeout:*)",
+      "mcp__Neon__list_projects",
+      "mcp__Neon__list_branch_computes",
+      "mcp__Neon__run_sql",
+      "Bash(cmd //c \"taskkill /F /IM node.exe\")",
+      "mcp__Neon__get_connection_string"
     ]
   }
 }

@@ -65,7 +65,7 @@ export default function TerminosCondicionesPage() {
             estado de un vehículo usado, realizada por un inspector calificado.
           </li>
           <li>
-            <strong>"Plataforma":</strong> El sitio web www.verificarlo.pe y
+            <strong>"Plataforma":</strong> El sitio web www.verificarlo.com y
             todas sus funcionalidades.
           </li>
           <li>

@@ -31,7 +31,7 @@ export function getResendClient(): Resend {
 }
 
 // Dirección de envío por defecto
-export const EMAIL_FROM = process.env.EMAIL_FROM || 'Verificarlo <notificaciones@verificarlo.pe>';
+export const EMAIL_FROM = process.env.EMAIL_FROM || 'Verificarlo <no-reply@verificarlo.com>';
 
 /**
  * Enviar email usando Resend

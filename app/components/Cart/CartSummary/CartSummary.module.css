@@ -1,0 +1,25 @@
+.summary {
+  padding: 16px 24px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #e5e5e5;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.divider {
+  height: 1px;
+  background-color: #e5e5e5;
+  margin: 12px 0;
+}
+
+.total {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}

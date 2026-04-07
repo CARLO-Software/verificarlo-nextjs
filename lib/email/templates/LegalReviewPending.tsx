@@ -39,7 +39,7 @@ export function LegalReviewPendingEmail({
   inspectorName = 'Carlos García',
   inspectionDate = '15/03/2024',
   reportId = 123,
-  reviewUrl = 'https://verificarlo.pe/admin/inspecciones/123/legal',
+  reviewUrl = 'https://verificarlo.com/admin/inspecciones/123/legal',
 }: LegalReviewPendingEmailProps) {
   const previewText = `Nueva inspección completada: ${vehicleBrand} ${vehicleModel} - Revisión legal pendiente`;
 
@@ -109,8 +109,8 @@ export function LegalReviewPendingEmail({
               Este email fue enviado automáticamente por el sistema VerifiCARLO.
             </Text>
             <Text style={footerText}>
-              <Link href="https://verificarlo.pe" style={footerLink}>
-                verificarlo.pe
+              <Link href="https://verificarlo.com" style={footerLink}>
+                verificarlo.com
               </Link>
             </Text>
           </Section>

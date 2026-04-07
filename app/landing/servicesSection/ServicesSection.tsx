@@ -5,6 +5,7 @@ import styles from './ServicesSection.module.css';
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
 // Iconos: X (cerrar), Play (video)
 import { X, Play } from "lucide-react";
+import { AddToCartButton } from "@/app/components/Cart";
 
 type ModalData = {
     title: string;
@@ -112,10 +113,15 @@ export default function ServicesSection() {
                                     </div>
                                 </div>
                                 <div className={styles['mobile-buttons']}>
-                                    <a href={getWhatsAppLink(inspectionIndex)}
-                                        target="_blank" className={styles['btn-primary-dark']} aria-label={`Elegir ${inspection.title}`}>
-                                        Elegir este plan
-                                    </a>
+                                    <AddToCartButton
+                                        inspectionPlan={{
+                                            id: inspection.id,
+                                            type: inspection.type,
+                                            title: inspection.title,
+                                            price: inspection.price,
+                                        }}
+                                        className={styles['btn-add-cart']}
+                                    />
                                     <button
                                         type="button"
                                         className={styles['btn-secondary']}
@@ -193,17 +199,15 @@ export default function ServicesSection() {
 
                                     {/* Botones */}
                                     <div className={styles['carousel-buttons']}>
-                                        <a
-                                            href={getWhatsAppLink(originalIndex)}
-                                            target="_blank"
+                                        <AddToCartButton
+                                            inspectionPlan={{
+                                                id: inspection.id,
+                                                type: inspection.type,
+                                                title: inspection.title,
+                                                price: inspection.price,
+                                            }}
                                             className={styles['carousel-cta']}
-                                        >
-                                            <span>Elegir este plan</span>
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="5" y1="12" x2="19" y2="12" />
-                                                <polyline points="12 5 19 12 12 19" />
-                                            </svg>
-                                        </a>
+                                        />
                                         <button
                                             type="button"
                                             className={styles['carousel-btn-secondary']}

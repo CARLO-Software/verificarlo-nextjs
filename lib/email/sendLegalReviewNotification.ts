@@ -43,7 +43,7 @@ export async function sendLegalReviewNotification(data: NotificationData) {
     const adminEmails = admins.map((admin: { email: string }) => admin.email);
 
     // Construir URL de revisión
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://verificarlo.pe';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://verificarlo.com';
     const reviewUrl = `${baseUrl}/admin/inspecciones/${data.reportId}/legal`;
 
     // Formatear fecha
