@@ -346,7 +346,14 @@ export async function getInspectionStats() {
     throw new Error('No autorizado');
   }
 
-  const [pendingAdmin, pendingMechanic, completed, total] = await Promise.all([
+  const [
+    pendingAdmin,
+    pendingMechanic,
+    completedByMechanic,
+    completedByAdmin,
+    fullyCompleted,
+    total
+  ] = await Promise.all([
     // Pendientes admin: legalStatus es PENDIENTE o EN_PROCESO
     db.vehicleInspection.count({
       where: { legalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
@@ -355,7 +362,21 @@ export async function getInspectionStats() {
     db.vehicleInspection.count({
       where: { mechanicalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
     }),
-    // Completadas: ambos estados COMPLETADO
+    // Completado solo por mecánico (mecánico terminó, admin no)
+    db.vehicleInspection.count({
+      where: {
+        mechanicalStatus: 'COMPLETADO',
+        legalStatus: { not: 'COMPLETADO' },
+      },
+    }),
+    // Completado solo por admin (admin terminó, mecánico no)
+    db.vehicleInspection.count({
+      where: {
+        legalStatus: 'COMPLETADO',
+        mechanicalStatus: { not: 'COMPLETADO' },
+      },
+    }),
+    // Completado total: ambos estados COMPLETADO
     db.vehicleInspection.count({
       where: {
         legalStatus: 'COMPLETADO',
@@ -369,7 +390,11 @@ export async function getInspectionStats() {
   return {
     pendingAdmin,
     pendingMechanic,
-    completed,
+    completedByMechanic,
+    completedByAdmin,
+    fullyCompleted,
+    // Mantener 'completed' para compatibilidad (ahora es fullyCompleted)
+    completed: fullyCompleted,
     total,
   };
 }

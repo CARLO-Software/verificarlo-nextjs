@@ -5,7 +5,6 @@ import styles from './ServicesSection.module.css';
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
 // Iconos: X (cerrar), Play (video)
 import { X, Play } from "lucide-react";
-import { AddToCartButton } from "@/app/components/Cart";
 
 type ModalData = {
     title: string;
@@ -113,15 +112,14 @@ export default function ServicesSection() {
                                     </div>
                                 </div>
                                 <div className={styles['mobile-buttons']}>
-                                    <AddToCartButton
-                                        inspectionPlan={{
-                                            id: inspection.id,
-                                            type: inspection.type,
-                                            title: inspection.title,
-                                            price: inspection.price,
-                                        }}
+                                    <a
+                                        href={getWhatsAppLink(inspectionIndex)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className={styles['btn-add-cart']}
-                                    />
+                                    >
+                                        Elegir plan
+                                    </a>
                                     <button
                                         type="button"
                                         className={styles['btn-secondary']}
@@ -199,15 +197,14 @@ export default function ServicesSection() {
 
                                     {/* Botones */}
                                     <div className={styles['carousel-buttons']}>
-                                        <AddToCartButton
-                                            inspectionPlan={{
-                                                id: inspection.id,
-                                                type: inspection.type,
-                                                title: inspection.title,
-                                                price: inspection.price,
-                                            }}
+                                        <a
+                                            href={getWhatsAppLink(originalIndex)}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                             className={styles['carousel-cta']}
-                                        />
+                                        >
+                                            Elegir plan
+                                        </a>
                                         <button
                                             type="button"
                                             className={styles['carousel-btn-secondary']}

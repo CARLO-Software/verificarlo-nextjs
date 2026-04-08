@@ -86,7 +86,10 @@ interface InspectionPlan {
 interface Stats {
   pendingAdmin: number;
   pendingMechanic: number;
-  completed: number;
+  completedByMechanic: number;
+  completedByAdmin: number;
+  fullyCompleted: number;
+  completed: number; // Para compatibilidad (alias de fullyCompleted)
   total: number;
 }
 
@@ -99,14 +102,18 @@ interface AdminInspeccionesClientProps {
 const statsConfig = [
   { key: 'pendingAdmin', label: 'Pendientes admin', color: 'text-amber-600', bg: 'bg-amber-50' },
   { key: 'pendingMechanic', label: 'Pendientes mecanico', color: 'text-blue-600', bg: 'bg-blue-50' },
-  { key: 'completed', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
+  { key: 'completedByMechanic', label: 'Listo mecanico', color: 'text-cyan-600', bg: 'bg-cyan-50' },
+  { key: 'completedByAdmin', label: 'Listo admin', color: 'text-purple-600', bg: 'bg-purple-50' },
+  { key: 'fullyCompleted', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
 ];
 
 const filterPills = [
   { value: 'all', label: 'Todos' },
   { value: 'PENDING_ADMIN', label: 'Pendientes admin' },
   { value: 'PENDING_MECHANIC', label: 'Pendientes mecanico' },
-  { value: 'COMPLETED', label: 'Completadas' },
+  { value: 'COMPLETED_MECHANIC', label: 'Listo mecanico' },
+  { value: 'COMPLETED_ADMIN', label: 'Listo admin' },
+  { value: 'FULLY_COMPLETED', label: 'Completadas' },
 ];
 
 function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
@@ -1231,8 +1238,18 @@ export function AdminInspeccionesClient({
         if (!vi || !['PENDIENTE', 'EN_PROCESO'].includes(vi.mechanicalStatus)) {
           return false;
         }
-      } else if (filter === 'COMPLETED') {
-        // Inspecciones completadas (ambos estados completados)
+      } else if (filter === 'COMPLETED_MECHANIC') {
+        // Solo mecánico completó (mecánico listo, admin pendiente)
+        if (!vi || vi.mechanicalStatus !== 'COMPLETADO' || vi.legalStatus === 'COMPLETADO') {
+          return false;
+        }
+      } else if (filter === 'COMPLETED_ADMIN') {
+        // Solo admin completó (admin listo, mecánico pendiente)
+        if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus === 'COMPLETADO') {
+          return false;
+        }
+      } else if (filter === 'FULLY_COMPLETED') {
+        // Inspecciones completamente terminadas (ambos completados)
         if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus !== 'COMPLETADO') {
           return false;
         }

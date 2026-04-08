@@ -8,7 +8,6 @@ import { useState, useRef, useEffect } from "react";
 import styles from "./NavBar.module.css";
 
 import { X } from "lucide-react";
-import { CartIcon } from "@/app/components/Cart";
 
 // Componente para el avatar del usuario con manejo de carga
 function UserAvatar({
@@ -214,7 +213,6 @@ export default function NavBar() {
         </div>
 
         <div className={styles["navbar-actions"]}>
-          <CartIcon />
           <Link
             href="/login"
             className={styles["user-icon-button"]}

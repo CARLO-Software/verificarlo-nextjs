@@ -101,7 +101,6 @@ model User {
   clientBookings   Booking[]     @relation("ClientBookings")
   inspectorBookings Booking[]    @relation("InspectorBookings")
   blockedDates     BlockedDate[]
-  cart             Cart?
 
   // Relaciones de Informe Legal
   legalReportsLocked    LegalReport[] @relation("LegalReportLockedBy")
@@ -114,6 +113,9 @@ model User {
 
   // Notificaciones in-app
   notifications         Notification[]
+
+  // Créditos de inspección prepagados
+  credits               UserCredit[]
 }
 
 enum UserStatus{
@@ -168,9 +170,9 @@ model InspectionPlan {
   description String         @db.Text
   price       Int            // En soles (ej: 150 = S/150.00)
 
-  items     InspectionPlanItem[]
-  bookings  Booking[]
-  cartItems CartItem[]
+  items       InspectionPlanItem[]
+  bookings    Booking[]
+  userCredits UserCredit[]
 }
 
 model InspectionPlanItem {
@@ -747,36 +749,43 @@ model Notification {
 }
 
 // ============================================
-// CARRITO DE COMPRAS
+// CRÉDITOS DE INSPECCIÓN (Sistema prepago)
 // ============================================
 
-model Cart {
-  id        String     @id @default(cuid())
-  userId    String     @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
-
-  @@index([userId])
-}
-
-model CartItem {
-  id               String   @id @default(cuid())
-  cartId           String
+model UserCredit {
+  id               String         @id @default(cuid())
+  userId           String
   inspectionPlanId Int
-  quantity         Int      @default(1)
-  tempVehicleData  Json?    // { brandId, brandName, modelId, modelName, year, plate }
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  quantity         Int            @default(1)  // Créditos disponibles de este tipo
 
-  cart             Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  // Tracking de compra
+  purchasedAt      DateTime       @default(now())
+  expiresAt        DateTime?      // Opcional: vencimiento del crédito
+
+  // Referencia al pago original (para auditoría)
+  paymentId        Int?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   inspectionPlan   InspectionPlan @relation(fields: [inspectionPlanId], references: [id])
 
-  @@unique([cartId, inspectionPlanId])
-  @@index([cartId])
+  @@unique([userId, inspectionPlanId]) // Un registro por tipo de plan por usuario
+  @@index([userId])
   @@index([inspectionPlanId])
+}
+
+// Historial de uso de créditos (para auditoría)
+model CreditUsage {
+  id               String   @id @default(cuid())
+  userId           String
+  inspectionPlanId Int
+  bookingId        Int      @unique  // La reserva que usó el crédito
+  usedAt           DateTime @default(now())
+
+  @@index([userId])
+  @@index([bookingId])
 }
 
 // ============================================
