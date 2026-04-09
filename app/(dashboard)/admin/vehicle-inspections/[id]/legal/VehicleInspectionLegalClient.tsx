@@ -247,12 +247,12 @@ export function VehicleInspectionLegalClient({
 
     startTransition(async () => {
       try {
-        // Guardar datos primero
+        // Guardar solo otherObservations (los estados de categorías ya se guardan automáticamente en sourceStatuses)
         await fetch(`/api/admin/vehicle-inspections/${inspectionId}/legal/save`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            legalReportData: reportData,
+            otherObservations: reportData.otherObservations,
           }),
         });
 

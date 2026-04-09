@@ -50,8 +50,8 @@ export default function PlanSelector({
 
       <div className={styles.plansList}>
         {plans.map((plan) => {
-          // Determinamos si es el plan Premium (el más caro = índice 2 o type "completa")
-          const isPremium = plan.type === "completa" || plan.id === 3;
+          // Determinamos si es el plan Premium (solo el de título "Inspección Premium")
+          const isPremium = plan.title === "Inspección Premium";
           const isSelected = selectedPlanId === plan.id;
 
           return (

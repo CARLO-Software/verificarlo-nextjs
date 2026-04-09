@@ -195,10 +195,41 @@ export default function BookingCalendar({
     return date < today;
   };
 
+  // Calcula el último día permitido (fin de la próxima semana - domingo)
+  const getMaxAllowedDate = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Obtener el día de la semana (0 = domingo, 1 = lunes, ... 6 = sábado)
+    const dayOfWeek = today.getDay();
+    // Calcular días hasta el domingo de la próxima semana
+    // Si hoy es domingo (0), faltan 7 días para el próximo domingo
+    // Si hoy es lunes (1), faltan 13 días (6 días hasta domingo + 7 días)
+    const daysUntilEndOfNextWeek = dayOfWeek === 0 ? 7 : (7 - dayOfWeek) + 7;
+    const maxDate = new Date(today);
+    maxDate.setDate(today.getDate() + daysUntilEndOfNextWeek);
+    return maxDate;
+  };
+
+  // ¿El día está fuera del rango permitido? (más allá de la próxima semana)
+  const isBeyondMaxDate = (day: number) => {
+    const date = new Date(currentYear, currentMonth, day);
+    date.setHours(0, 0, 0, 0);
+    return date > getMaxAllowedDate();
+  };
+
   // ¿Se puede ir al mes anterior? (no si ya estamos en el mes actual)
   const canGoPrev = () => {
     const today = new Date();
     return !(currentYear === today.getFullYear() && currentMonth === today.getMonth());
+  };
+
+  // ¿Se puede ir al mes siguiente? (solo si la fecha máxima está en ese mes)
+  const canGoNext = () => {
+    const maxDate = getMaxAllowedDate();
+    // Si el mes actual ya contiene o supera el mes de la fecha máxima, no se puede avanzar
+    if (currentYear > maxDate.getFullYear()) return false;
+    if (currentYear === maxDate.getFullYear() && currentMonth >= maxDate.getMonth()) return false;
+    return true;
   };
 
   // ============================================
@@ -265,6 +296,7 @@ export default function BookingCalendar({
         <button
           type="button"
           onClick={goToNextMonth}
+          disabled={!canGoNext()}
           className={styles.navButton}
           aria-label="Mes siguiente"
         >
@@ -316,30 +348,32 @@ export default function BookingCalendar({
             const dateStr = getDateString(day);
             const available = isAvailable(day);
             const past = isPast(day);
+            const beyondMax = isBeyondMaxDate(day);
             const today = isToday(day);
             const selected = selectedDate === dateStr;
+            const isDisabled = past || beyondMax || !available;
 
             return (
               <button
                 type="button"
                 key={day}
                 // onClick llama a onDateSelect (función del padre)
-                // Solo si está disponible y no es pasado
+                // Solo si está disponible, no es pasado y no excede el máximo
                 onClick={() => {
-                  if (available && !past) {
+                  if (available && !past && !beyondMax) {
                     onDateSelect(dateStr); // Notificamos al padre
                   }
                 }}
-                disabled={past || !available}
+                disabled={isDisabled}
                 // Template literals para combinar múltiples clases CSS
                 // Las clases se aplican condicionalmente
                 className={`
                   ${styles.day}
-                  ${past ? styles.past : ""}
+                  ${past || beyondMax ? styles.past : ""}
                   ${today ? styles.today : ""}
                   ${selected ? styles.selected : ""}
-                  ${available && !past ? styles.available : ""}
-                  ${!available && !past ? styles.unavailable : ""}
+                  ${available && !past && !beyondMax ? styles.available : ""}
+                  ${(!available || beyondMax) && !past ? styles.unavailable : ""}
                 `}
                 aria-label={`${day} de ${MONTHS[currentMonth]}`}
                 aria-selected={selected}

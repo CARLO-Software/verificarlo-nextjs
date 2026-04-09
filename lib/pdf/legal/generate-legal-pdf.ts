@@ -65,10 +65,11 @@ export async function getLegalReportDataForPDF(
   const sourceObservations = legalReportData.sourceObservations || {};
 
   // Debug: Ver qué datos tenemos
+  console.log('[PDF DEBUG] legalReportData completo:', JSON.stringify(legalReportData, null, 2));
   console.log('[PDF DEBUG] sourceStatuses:', JSON.stringify(sourceStatuses, null, 2));
   console.log('[PDF DEBUG] sourceObservations:', JSON.stringify(sourceObservations, null, 2));
 
-  // Mapeo de campos antiguos a IDs de categorías
+  // Mapeo de campos a IDs de categorías (nuevo sistema)
   const fieldToCategoryMap: Record<string, string> = {
     ownerHistory: 'historial_propietarios',
     sunarpLiens: 'gravamenes_sunat',
@@ -80,38 +81,39 @@ export async function getLegalReportDataForPDF(
     satTickets: 'papeletas_sat',
     callaoTickets: 'papeletas_callao',
     sutranTickets: 'papeletas_sutran',
-    theftHistory: 'siniestralidad', // No tiene categoría propia, usar siniestralidad
+    theftHistory: 'siniestralidad',
     transportRegistry: 'registro_transportes',
-    lastTransfer: 'historial_propietarios', // Usar misma categoría que historial
+    lastTransfer: 'historial_propietarios',
     accidentHistory: 'siniestralidad',
   };
 
-  // Construir campos del informe usando las categorías
+  // Construir campos del informe
   const fields = Object.entries(LEGAL_FIELD_LABELS).map(([key, label]) => {
     const categoryId = fieldToCategoryMap[key];
-    let categoryStatus: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' = 'PENDING';
-    let categoryObservation = '';
+    let finalStatus: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' = 'PENDING';
+    let finalObservation = '';
 
-    if (categoryId) {
-      const status = sourceStatuses[categoryId];
-      const observation = sourceObservations[categoryId];
-
-      console.log(`[PDF DEBUG] Campo: ${key} (${label}) → Categoría: ${categoryId}`);
-      console.log(`[PDF DEBUG]   Status: ${status}, Observation: ${observation}`);
-
-      if (status) {
-        categoryStatus = status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
-      }
-      if (observation) {
-        categoryObservation = observation;
+    // 1. Intentar obtener del nuevo sistema (sourceStatuses por categoryId)
+    if (categoryId && sourceStatuses[categoryId]) {
+      finalStatus = sourceStatuses[categoryId] as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+      finalObservation = sourceObservations[categoryId] || '';
+      console.log(`[PDF] Campo ${key} → Categoría ${categoryId}: ${finalStatus}`);
+    }
+    // 2. Fallback: sistema antiguo (campo directo en legalReportData)
+    else if (legalReportData[key] && typeof legalReportData[key] === 'object') {
+      const oldData = legalReportData[key];
+      if (oldData.status) {
+        finalStatus = oldData.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+        finalObservation = oldData.text || '';
+        console.log(`[PDF] Campo ${key} (sistema antiguo): ${finalStatus}`);
       }
     }
 
     return {
       key,
       label,
-      status: categoryStatus,
-      text: categoryObservation,
+      status: finalStatus,
+      text: finalObservation,
     };
   });
 
