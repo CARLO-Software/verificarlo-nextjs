@@ -42,8 +42,7 @@ interface InspectionCardProps {
 const statusBorderColors: Record<string, string> = {
   PENDING_PAYMENT: 'border-l-gray-400',
   PENDING_VERIFICATION: 'border-l-orange-400',
-  PAID: 'border-l-blue-400',
-  CONFIRMED: 'border-l-[#FFE14C]',
+  PAID: 'border-l-green-500',
   COMPLETED: 'border-l-green-500',
   CANCELLED: 'border-l-gray-300',
   NO_SHOW: 'border-l-gray-300',
@@ -61,13 +60,12 @@ export function InspectionCard({
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
   const isCompleted = inspection.status === 'COMPLETED';
-  const isInProgress = inspection.status === 'CONFIRMED' || inspection.status === 'PAID';
+  const isInProgress = inspection.status === 'PAID';
   const isPendingPayment = inspection.status === 'PENDING_PAYMENT';
   const isCancelable = [
     'PENDING_PAYMENT',
     'PENDING_VERIFICATION',
     'PAID',
-    'CONFIRMED',
   ].includes(inspection.status);
   const displayStatus = inspection.hasCriticalObservations ? 'CRITICAL' : inspection.status;
   const borderColor = statusBorderColors[displayStatus];

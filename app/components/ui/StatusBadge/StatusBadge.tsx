@@ -28,13 +28,8 @@ const statusConfig: Record<string, {
   },
   PAID: {
     label: 'Pagado',
-    bg: 'bg-blue-50',
-    text: 'text-blue-600',
-  },
-  CONFIRMED: {
-    label: 'Confirmada',
-    bg: 'bg-amber-50',
-    text: 'text-amber-600',
+    bg: 'bg-green-50',
+    text: 'text-green-600',
   },
   COMPLETED: {
     label: 'Completada',

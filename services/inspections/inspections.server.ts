@@ -574,9 +574,7 @@ export async function updateInspectionStatus(
   const updateData: any = { status };
 
   // Actualizar timestamps según el estado
-  if (status === 'CONFIRMED') {
-    updateData.confirmedAt = new Date();
-  } else if (status === 'COMPLETED') {
+  if (status === 'COMPLETED') {
     updateData.completedAt = new Date();
   } else if (status === 'CANCELLED') {
     updateData.cancelledAt = new Date();
@@ -612,21 +610,14 @@ export async function assignInspector(bookingId: number, inspectorId: string, au
     throw new Error('Inspector no válido');
   }
 
-  // Solo asignar inspector, sin cambiar el estado automáticamente
+  // Solo asignar inspector, sin cambiar el estado
   // El estado se maneja por separado con updateInspectionStatus
-  const updateData: { inspectorId: string; status?: 'CONFIRMED'; confirmedAt?: Date } = {
-    inspectorId,
-  };
-
-  // Solo confirmar automáticamente si se indica explícitamente
-  if (autoConfirm) {
-    updateData.status = 'CONFIRMED';
-    updateData.confirmedAt = new Date();
-  }
-
   return db.booking.update({
     where: { id: bookingId },
-    data: updateData,
+    data: {
+      inspectorId,
+      confirmedAt: new Date(),
+    },
   });
 }
 
@@ -777,10 +768,38 @@ export async function createManualBooking(input: ManualBookingInput) {
   const endTime = new Date(startTime);
   endTime.setMinutes(endTime.getMinutes() + 60);
 
-  // 6. Determinar el estado inicial
+  // 6. Determinar el estado inicial y asignar inspector si es necesario
   let status: BookingStatus = 'PENDING_PAYMENT';
+  let assignedInspectorId = input.inspectorId || null;
+
   if (input.isPaid) {
-    status = input.inspectorId ? 'CONFIRMED' : 'PAID';
+    // Si está pagado pero no tiene inspector, asignar uno al azar
+    if (!input.inspectorId) {
+      // Obtener inspectores disponibles para este slot
+      const availableInspectors = await db.user.findMany({
+        where: {
+          role: 'INSPECTOR',
+          isInspectorAvailable: true,
+          inspectorBookings: {
+            none: {
+              date: new Date(input.date),
+              timeSlot: input.timeSlot,
+              status: 'PAID',
+            },
+          },
+        },
+        select: { id: true, name: true },
+      });
+
+      if (availableInspectors.length > 0) {
+        // Seleccionar uno al azar
+        const randomIndex = Math.floor(Math.random() * availableInspectors.length);
+        assignedInspectorId = availableInspectors[randomIndex].id;
+      }
+      status = 'PAID';
+    } else {
+      status = 'PAID';
+    }
   }
 
   // 7. Crear el booking
@@ -789,14 +808,14 @@ export async function createManualBooking(input: ManualBookingInput) {
       clientId: client.id,
       vehicleId: vehicle.id,
       inspectionPlanId: input.inspectionPlanId,
-      inspectorId: input.inspectorId || null,
+      inspectorId: assignedInspectorId,
       date: new Date(input.date),
       timeSlot: input.timeSlot,
       startTime,
       endTime,
       status,
       adminNotes: input.adminNotes || `Reserva creada manualmente por admin (WhatsApp)`,
-      confirmedAt: status === 'CONFIRMED' ? new Date() : null,
+      confirmedAt: assignedInspectorId ? new Date() : null,
     },
     include: {
       client: { select: { id: true, name: true, email: true, password: true } },

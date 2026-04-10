@@ -39,13 +39,11 @@ export default async function MisInspeccionesPage() {
 function getProgressForStatus(status: string) {
   switch (status) {
     case "PENDING_PAYMENT":
-      return { current: 1, total: 4, label: "Pendiente de pago" };
+      return { current: 1, total: 3, label: "Pendiente de pago" };
     case "PAID":
-      return { current: 2, total: 4, label: "Pago confirmado" };
-    case "CONFIRMED":
-      return { current: 3, total: 4, label: "Inspector asignado" };
+      return { current: 2, total: 3, label: "Pagado" };
     case "COMPLETED":
-      return { current: 4, total: 4, label: "Completada" };
+      return { current: 3, total: 3, label: "Completada" };
     default:
       return undefined;
   }

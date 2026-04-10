@@ -107,7 +107,9 @@ export async function POST(req: NextRequest) {
     const endTime = addMinutes(startTime, INSPECTION_DURATION_MINUTES);
     const expiresAt = addMinutes(new Date(), BOOKING_EXPIRATION_MINUTES);
 
-    // Crear reserva y pago pendiente en transacción
+    // Crear reserva y pago en transacción
+    // TODO: Cuando Culqi esté configurado, cambiar status inicial a PENDING_PAYMENT
+    // y crear payment con status PENDING, luego actualizar después del pago real.
     const booking = await db.$transaction(async (tx) => {
       const newBooking = await tx.booking.create({
         data: {
@@ -118,8 +120,8 @@ export async function POST(req: NextRequest) {
           timeSlot,
           startTime,
           endTime,
-          status: "PENDING_PAYMENT",
-          expiresAt,
+          status: "PAID", // Simulamos pago completado mientras no haya Culqi
+          expiresAt: null,
         },
       });
 
@@ -127,24 +129,12 @@ export async function POST(req: NextRequest) {
         data: {
           bookingId: newBooking.id,
           amount: inspectionPlan.price * 100, // Convertir a céntimos para Culqi
-          status: "PENDING",
+          status: "COMPLETED", // Simulamos pago completado
+          paidAt: new Date(),
         },
       });
 
       return newBooking;
-    });
-
-    // TODO: Eliminar bloque completo cuando Culqi esté configurado.
-    // Simula el pago para poder probar la asignación de inspectores sin pasarela.
-    await db.$transaction(async (tx) => {
-      await tx.booking.update({
-        where: { id: booking.id },
-        data: { status: "PAID", expiresAt: null },
-      });
-      await tx.payment.update({
-        where: { bookingId: booking.id },
-        data: { status: "COMPLETED", paidAt: new Date() },
-      });
     });
 
     const assignment = await assignInspector(booking.id);

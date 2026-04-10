@@ -30,7 +30,7 @@ function PendingContent() {
     onTerminal: (statusData: PaymentStatusData) => {
       const { paymentStatus, bookingStatus } = statusData;
 
-      if (paymentStatus === "COMPLETED" || bookingStatus === "CONFIRMED" || bookingStatus === "PAID") {
+      if (paymentStatus === "COMPLETED" || bookingStatus === "PAID") {
         router.replace(`/payment/success?bookingId=${bookingId}`);
       } else if (paymentStatus === "FAILED" || bookingStatus === "EXPIRED") {
         const reason = bookingStatus === "EXPIRED" ? "expired" : "declined";

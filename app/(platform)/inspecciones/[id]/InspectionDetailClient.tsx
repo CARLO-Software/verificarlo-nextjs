@@ -135,15 +135,8 @@ const statusConfig: Record<string, {
     label: 'Pagado',
     description: 'Estamos asignando un inspector a tu cita',
     icon: CheckCircle2,
-    gradient: 'from-blue-500 to-indigo-500',
-    iconBg: 'bg-blue-100 text-blue-600',
-  },
-  CONFIRMED: {
-    label: 'Confirmada',
-    description: 'Tu inspección está programada y lista',
-    icon: Calendar,
-    gradient: 'from-indigo-500 to-purple-500',
-    iconBg: 'bg-indigo-100 text-indigo-600',
+    gradient: 'from-green-500 to-emerald-500',
+    iconBg: 'bg-green-100 text-green-600',
   },
   COMPLETED: {
     label: 'Completada',
@@ -187,7 +180,7 @@ export function InspectionDetailClient({ inspection }: Props) {
   const hoursUntil = differenceInHours(new Date(inspection.startTime), new Date());
   const canCancelWithRefund = hoursUntil >= 24;
   const canCancel = hoursUntil > 0;
-  const isPending = ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID', 'CONFIRMED'].includes(inspection.status);
+  const isPending = ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID'].includes(inspection.status);
   const isCompleted = inspection.status === 'COMPLETED';
   // Estado de cancelación (disponible para uso futuro)
   const _isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);

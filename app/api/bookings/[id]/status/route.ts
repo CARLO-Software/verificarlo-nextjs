@@ -11,7 +11,7 @@ import { db } from "@/lib/db";
 
 // Estados que indican que el proceso terminó (no hay que seguir haciendo polling)
 const TERMINAL_BOOKING_STATUSES = new Set([
-  "CONFIRMED",
+  "PAID",
   "COMPLETED",
   "CANCELLED",
   "EXPIRED",
@@ -107,7 +107,7 @@ export async function GET(
     timeSlot: booking.timeSlot,
     expiresAt: booking.expiresAt,
 
-    // Assigned inspector (available once CONFIRMED)
+    // Assigned inspector (available once PAID)
     inspector: booking.inspector ?? null,
 
     // Plan

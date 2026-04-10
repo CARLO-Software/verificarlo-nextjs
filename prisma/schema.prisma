@@ -31,8 +31,7 @@ enum InspectionType {
 enum BookingStatus {
   PENDING_PAYMENT      // Slot reservado, esperando pago (30 min max)
   PENDING_VERIFICATION // Pago enviado (Yape/Transfer), esperando verificación admin
-  PAID                 // Pagado, asignando inspector
-  CONFIRMED            // Pagado + inspector asignado
+  PAID                 // Pagado (inspector se asigna por separado)
   COMPLETED            // Inspección realizada
   CANCELLED            // Cancelada por cliente/admin
   NO_SHOW              // Cliente no se presentó

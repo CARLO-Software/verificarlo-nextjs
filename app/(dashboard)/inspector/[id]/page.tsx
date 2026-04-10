@@ -97,7 +97,7 @@ export default async function InspectionDetailPage({ params }: PageProps) {
   }
 
   // Verificar que la inspección esté en estado correcto
-  if (!["CONFIRMED", "COMPLETED"].includes(booking.status)) {
+  if (!["PAID", "COMPLETED"].includes(booking.status)) {
     redirect("/inspector");
   }
 

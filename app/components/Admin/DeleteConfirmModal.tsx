@@ -8,7 +8,6 @@ interface BookingStats {
   PENDING_PAYMENT: number;
   PENDING_VERIFICATION: number;
   PAID: number;
-  CONFIRMED: number;
   COMPLETED: number;
   CANCELLED: number;
   NO_SHOW: number;
@@ -26,7 +25,6 @@ const STATUS_LABELS: Record<string, string> = {
   PENDING_PAYMENT: "Pendientes de pago",
   PENDING_VERIFICATION: "Pendientes de verificación",
   PAID: "Pagadas",
-  CONFIRMED: "Confirmadas",
   COMPLETED: "Completadas",
   CANCELLED: "Canceladas",
   NO_SHOW: "No presentados",

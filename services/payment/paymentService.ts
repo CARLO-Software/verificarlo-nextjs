@@ -120,7 +120,7 @@ export async function handleChargeSucceeded(
 
   // Guard: already in a terminal state (e.g. admin already marked it)
   if (
-    booking.status === "CONFIRMED" ||
+    booking.status === "PAID" ||
     booking.status === "COMPLETED" ||
     booking.payment.status === "COMPLETED"
   ) {
@@ -183,7 +183,7 @@ export async function handleChargeSucceeded(
   }
 
   console.log(
-    `[PaymentService] ✓ charge.succeeded — booking ${bookingId} → PAID/CONFIRMED`
+    `[PaymentService] ✓ charge.succeeded — booking ${bookingId} → PAID`
   );
 }
 

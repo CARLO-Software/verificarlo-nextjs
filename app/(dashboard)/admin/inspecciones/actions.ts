@@ -60,18 +60,60 @@ export async function saveInspectionChangesAction(
   }
 ) {
   try {
+    const { db } = await import('@/lib/db');
+
     const results: {
       status?: boolean;
       inspector?: boolean;
       notes?: boolean;
       dateTime?: boolean;
       autoAssigned?: { inspectorId: string; inspectorName: string };
+      vehicleInspectionCreated?: boolean;
     } = {};
 
     // Actualizar estado si cambió
     if (changes.status) {
       await updateInspectionStatus(id, changes.status);
       results.status = true;
+
+      // Si cambia a PAID, verificar y crear VehicleInspection si no existe
+      if (changes.status === 'PAID') {
+        // Obtener el booking con sus datos completos
+        const booking = await db.booking.findUnique({
+          where: { id },
+          include: {
+            vehicle: {
+              include: {
+                model: { include: { brand: true } },
+                vehicleInspections: {
+                  take: 1,
+                  orderBy: { createdAt: 'desc' },
+                },
+              },
+            },
+            client: { select: { id: true, name: true } },
+          },
+        });
+
+        // Solo crear VehicleInspection si no existe para este vehículo
+        if (booking && booking.vehicle.vehicleInspections.length === 0) {
+          const { createVehicleInspection } = await import('@/lib/vehicle-inspection/create-inspection');
+          const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+          const dateStr = booking.date.toISOString().split('T')[0];
+
+          await createVehicleInspection({
+            bookingId: booking.id,
+            vehicleId: booking.vehicleId,
+            clientId: booking.clientId,
+            plate: booking.vehicle.plate,
+            vehicleDescription,
+            clientName: booking.client.name,
+            scheduledDate: dateStr,
+            scheduledTime: booking.timeSlot,
+          });
+          results.vehicleInspectionCreated = true;
+        }
+      }
     }
 
     // Asignar inspector si cambió (manual)

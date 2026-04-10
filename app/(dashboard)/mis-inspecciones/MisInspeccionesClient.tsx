@@ -42,7 +42,7 @@ interface MisInspeccionesClientProps {
 const filterOptions = [
   { value: 'all', label: 'Todos' },
   { value: 'PENDING_PAYMENT', label: 'Pendientes' },
-  { value: 'CONFIRMED', label: 'En proceso' },
+  { value: 'PAID', label: 'Pagadas' },
   { value: 'COMPLETED', label: 'Completadas' },
   { value: 'CANCELLED', label: 'Canceladas' },
 ];
@@ -61,10 +61,7 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
       // "Pendientes" incluye PENDING_PAYMENT y PENDING_VERIFICATION
       if (statusFilter === 'PENDING_PAYMENT' && !['PENDING_PAYMENT', 'PENDING_VERIFICATION'].includes(inspection.status)) {
         return false;
-      // "En proceso" incluye PAID y CONFIRMED
-      } else if (statusFilter === 'CONFIRMED' && !['PAID', 'CONFIRMED'].includes(inspection.status)) {
-        return false;
-      } else if (!['PENDING_PAYMENT', 'CONFIRMED'].includes(statusFilter) && inspection.status !== statusFilter) {
+      } else if (statusFilter !== 'PENDING_PAYMENT' && inspection.status !== statusFilter) {
         return false;
       }
     }

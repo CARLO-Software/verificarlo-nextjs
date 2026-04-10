@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
     const bookingsOnDate = await db.booking.count({
       where: {
         date: startOfDay(parsedDate),
-        status: { in: ["CONFIRMED", "PAID"] },
+        status: "PAID",
       },
     });
 

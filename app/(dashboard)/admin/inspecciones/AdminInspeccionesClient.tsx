@@ -375,7 +375,6 @@ function InspectionDetailPanel({
                       <option value="PENDING_PAYMENT">Pendiente de pago</option>
                       <option value="PENDING_VERIFICATION">Pendiente verificación</option>
                       <option value="PAID">Pagado</option>
-                      <option value="CONFIRMED">Confirmado</option>
                       <option value="COMPLETED">Completado</option>
                       <option value="CANCELLED">Cancelado</option>
                       <option value="NO_SHOW">No se presentó</option>
@@ -1278,92 +1277,221 @@ export function AdminInspeccionesClient({
 
   return (
     <div className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <h1 className="text-2xl sm:text-3xl font-semibold text-[#2D2D2D]">
-              Gestión de Inspecciones
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#2D2D2D]">
+              Inspecciones
             </h1>
             <button
               onClick={() => setShowCreatePanel(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors text-sm sm:text-base whitespace-nowrap"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              Nueva inspección
+              <span className="hidden xs:inline">Nueva</span>
+              <span className="xs:hidden">+</span>
+              <span className="hidden sm:inline">inspección</span>
             </button>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6">
-            {statsConfig.map((stat) => (
-              <div
-                key={stat.key}
-                className={`${stat.bg} rounded-lg p-4`}
-              >
-                <p className={`text-2xl font-bold ${stat.color}`}>
-                  {stats[stat.key as keyof Stats]}
-                </p>
-                <p className="text-sm text-gray-600">{stat.label}</p>
-              </div>
-            ))}
+          {/* Stats - Horizontal scroll en móvil */}
+          <div className="mt-4 sm:mt-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-5 sm:overflow-visible">
+              {statsConfig.map((stat) => (
+                <div
+                  key={stat.key}
+                  className={`${stat.bg} rounded-lg p-3 sm:p-4 flex-shrink-0 w-32 sm:w-auto`}
+                >
+                  <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>
+                    {stats[stat.key as keyof Stats]}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">{stat.label}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="flex-1">
+        <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="w-full">
             <input
               type="text"
-              placeholder="Buscar por cliente, vehículo o código..."
+              placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C]"
+              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] text-sm sm:text-base"
             />
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {filterPills.map((pill) => (
-              <button
-                key={pill.value}
-                onClick={() => setFilter(pill.value)}
-                className={`
-                  px-4 py-2 rounded-full text-sm font-medium transition-all
-                  ${filter === pill.value
-                    ? 'bg-[#FFE14C] text-[#2D2D2D]'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:border-[#FFE14C]'
-                  }
-                `}
-              >
-                {pill.label}
-              </button>
-            ))}
+          {/* Filter pills con scroll horizontal en móvil */}
+          <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible">
+              {filterPills.map((pill) => (
+                <button
+                  key={pill.value}
+                  onClick={() => setFilter(pill.value)}
+                  className={`
+                    px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex-shrink-0
+                    ${filter === pill.value
+                      ? 'bg-[#FFE14C] text-[#2D2D2D]'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#FFE14C]'
+                    }
+                  `}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        {/* Mobile Cards View */}
+        <div className="sm:hidden space-y-3">
+          {filteredInspections.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center text-gray-500">
+              No se encontraron inspecciones
+            </div>
+          ) : (
+            filteredInspections.map((inspection) => (
+              <div
+                key={inspection.id}
+                className="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#FFE14C] transition-colors"
+                onClick={() => setSelectedInspection(inspection)}
+              >
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Avatar name={inspection.client.name} size="sm" />
+                    <div className="min-w-0">
+                      <p className="font-medium text-[#2D2D2D] text-sm truncate">{inspection.client.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{inspection.client.email}</p>
+                    </div>
+                  </div>
+                  <StatusBadge status={inspection.status} size="sm" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <div>
+                    <p className="font-medium text-[#2D2D2D]">
+                      {inspection.vehicle.brand} {inspection.vehicle.model}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {inspection.vehicle.year}{inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-500">{formatearFechaHoraCorta(inspection.startTime)}</p>
+                    {inspection.inspector && (
+                      <p className="text-xs text-gray-400">{inspection.inspector.name}</p>
+                    )}
+                  </div>
+                </div>
+                {/* Mobile action buttons */}
+                <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                  {inspection.status === 'PENDING_VERIFICATION' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleVerifyPayment(inspection.id);
+                      }}
+                      disabled={verifyingId === inspection.id}
+                      className="p-2 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
+                      title="Verificar pago"
+                    >
+                      {verifyingId === inspection.id ? (
+                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  {inspection.vehicleInspection &&
+                    inspection.vehicleInspection.legalStatus !== 'BLOQUEADO' &&
+                    inspection.vehicleInspection.legalStatus !== 'COMPLETADO' && (
+                      <a
+                        href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`p-2 rounded-lg transition-colors ${
+                          inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                            ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
+                            : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
+                        }`}
+                        title="Revisión legal"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        </svg>
+                      </a>
+                    )}
+                  {inspection.status === 'COMPLETED' && inspection.reportId && (
+                    <a
+                      href={`/admin/inspecciones/${inspection.reportId}/legal`}
+                      onClick={(e) => e.stopPropagation()}
+                      className={`p-2 rounded-lg transition-colors ${
+                        inspection.legalReportStatus === 'COMPLETED'
+                          ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
+                          : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
+                      }`}
+                      title="Informe legal"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </a>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedInspection(inspection);
+                    }}
+                    className="p-2 text-gray-400 hover:text-[#FFE14C] hover:bg-gray-100 rounded-lg transition-colors"
+                    title="Ver detalles"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+          {/* Mobile pagination */}
+          <div className="text-center py-3">
+            <p className="text-sm text-gray-500">
+              {filteredInspections.length} de {stats.total} inspecciones
+            </p>
+          </div>
+        </div>
+
+        {/* Desktop Table */}
+        <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Cliente
                   </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Vehículo
                   </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden md:table-cell">
                     Fecha
                   </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
                     Inspector
                   </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Estado
                   </th>
-                  <th className="text-right text-xs font-semibold text-gray-500 uppercase px-6 py-4">
+                  <th className="text-right text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Acciones
                   </th>
                 </tr>
@@ -1383,27 +1511,27 @@ export function AdminInspeccionesClient({
                       style={{ animationDelay: `${index * 50}ms` }}
                       onClick={() => setSelectedInspection(inspection)}
                     >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-4 lg:px-6 py-3 lg:py-4">
+                        <div className="flex items-center gap-2 lg:gap-3">
                           <Avatar name={inspection.client.name} size="sm" />
-                          <div>
-                            <p className="font-medium text-[#2D2D2D]">{inspection.client.name}</p>
-                            <p className="text-xs text-gray-500">{inspection.client.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-[#2D2D2D] text-sm lg:text-base truncate">{inspection.client.name}</p>
+                            <p className="text-xs text-gray-500 truncate hidden lg:block">{inspection.client.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="font-medium text-[#2D2D2D]">
+                      <td className="px-4 lg:px-6 py-3 lg:py-4">
+                        <p className="font-medium text-[#2D2D2D] text-sm lg:text-base">
                           {inspection.vehicle.brand} {inspection.vehicle.model}
                         </p>
                         <p className="text-xs text-gray-500">
                           {inspection.vehicle.year}{inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ''}
                         </p>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-[#2D2D2D]">{formatearFechaHoraCorta(inspection.startTime)}</p>
+                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden md:table-cell">
+                        <p className="text-[#2D2D2D] text-sm">{formatearFechaHoraCorta(inspection.startTime)}</p>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
                         {inspection.inspector ? (
                           <div className="flex items-center gap-2">
                             <Avatar name={inspection.inspector.name} size="sm" />
@@ -1413,11 +1541,11 @@ export function AdminInspeccionesClient({
                           <span className="text-sm text-gray-400 italic">Sin asignar</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 lg:px-6 py-3 lg:py-4">
                         <StatusBadge status={inspection.status} size="sm" />
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2">
+                      <td className="px-4 lg:px-6 py-3 lg:py-4">
+                        <div className="flex justify-end gap-1 lg:gap-2">
                           {/* Botón verificar pago - solo para PENDING_VERIFICATION */}
                           {inspection.status === 'PENDING_VERIFICATION' && (
                             <button

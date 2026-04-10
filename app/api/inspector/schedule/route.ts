@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     const bookings = await db.booking.findMany({
       where: {
         inspectorId: session.user.id,
-        status: { in: ["CONFIRMED", "COMPLETED"] },
+        status: { in: ["PAID", "COMPLETED"] },
         startTime: {
           gte: startDate,
           lte: endDate,
@@ -192,9 +192,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (action === "complete") {
-      if (booking.status !== "CONFIRMED") {
+      if (booking.status !== "PAID") {
         return NextResponse.json(
-          { error: "Solo se pueden completar citas confirmadas" },
+          { error: "Solo se pueden completar citas pagadas" },
           { status: 400 }
         );
       }
@@ -215,9 +215,9 @@ export async function PATCH(req: NextRequest) {
     }
 
     if (action === "no_show") {
-      if (booking.status !== "CONFIRMED") {
+      if (booking.status !== "PAID") {
         return NextResponse.json(
-          { error: "Solo se pueden marcar como no-show citas confirmadas" },
+          { error: "Solo se pueden marcar como no-show citas pagadas" },
           { status: 400 }
         );
       }

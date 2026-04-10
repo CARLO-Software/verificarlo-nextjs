@@ -114,9 +114,9 @@ async function verifyInspectorAccess(bookingId: number) {
     throw new Error('No autorizado para modificar este informe');
   }
 
-  // La inspección debe estar en estado CONFIRMED o COMPLETED
-  if (!['CONFIRMED', 'COMPLETED'].includes(booking.status)) {
-    throw new Error('La inspección debe estar confirmada para crear el informe');
+  // La inspección debe estar en estado PAID o COMPLETED
+  if (!['PAID', 'COMPLETED'].includes(booking.status)) {
+    throw new Error('La inspección debe estar pagada para crear el informe');
   }
 
   return { booking, userId, isAdmin };
@@ -856,7 +856,7 @@ export async function getInspectorPendingInspections() {
   const bookings = await db.booking.findMany({
     where: {
       inspectorId: userId,
-      status: 'CONFIRMED',
+      status: 'PAID',
     },
     include: {
       client: {

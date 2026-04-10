@@ -3,7 +3,7 @@
 // ============================================================================
 // /payment/success
 // Llegamos aquí después de confirmar que el webhook de Culqi
-// actualizó el estado a COMPLETED/CONFIRMED.
+// actualizó el estado a COMPLETED/PAID.
 // ============================================================================
 
 import { Suspense } from "react";

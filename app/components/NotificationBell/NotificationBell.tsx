@@ -163,28 +163,27 @@ export function NotificationBell() {
     }
 
     // Determinar qué ID usar según el rol:
-    // - ADMIN: usa VehicleInspection.id (inspectionId) → /admin/vehicle-inspections/[id]
+    // - ADMIN: usa VehicleInspection.id (inspectionId) → /admin/vehicle-inspections/[id]/legal
     // - INSPECTOR/CLIENT: usa Booking.id (bookingId) → /inspector/[id] o /mis-inspecciones/[id]
-    let targetId: number | null = null;
-    let baseRoute: string;
+    let targetUrl: string;
 
     if (userRole === 'ADMIN') {
-      targetId = notification.inspectionId;
-      baseRoute = '/admin/vehicle-inspections';
+      if (notification.inspectionId) {
+        targetUrl = `/admin/vehicle-inspections/${notification.inspectionId}/legal`;
+      } else {
+        targetUrl = '/admin/inspecciones';
+      }
     } else if (userRole === 'INSPECTOR') {
-      targetId = notification.bookingId;
-      baseRoute = '/inspector';
+      targetUrl = notification.bookingId
+        ? `/inspector/${notification.bookingId}`
+        : '/inspector';
     } else {
-      targetId = notification.bookingId;
-      baseRoute = '/mis-inspecciones';
+      targetUrl = notification.bookingId
+        ? `/mis-inspecciones/${notification.bookingId}`
+        : '/mis-inspecciones';
     }
 
-    if (targetId) {
-      window.location.href = `${baseRoute}/${targetId}`;
-    } else {
-      // Si no hay ID, ir a la lista principal
-      window.location.href = baseRoute;
-    }
+    window.location.href = targetUrl;
 
     setIsOpen(false);
   };

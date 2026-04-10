@@ -20,10 +20,10 @@ export async function POST() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    // Buscar bookings pagados/confirmados sin VehicleInspection
+    // Buscar bookings pagados sin VehicleInspection
     const bookingsWithoutInspection = await db.booking.findMany({
       where: {
-        status: { in: ["PAID", "CONFIRMED", "COMPLETED"] },
+        status: { in: ["PAID", "COMPLETED"] },
       },
       include: {
         vehicle: {

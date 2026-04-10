@@ -50,7 +50,6 @@ export async function POST(
       "PENDING_PAYMENT",
       "PENDING_VERIFICATION",
       "PAID",
-      "CONFIRMED",
     ];
 
     if (!cancelableStatuses.includes(booking.status)) {
@@ -61,7 +60,7 @@ export async function POST(
     }
 
     // Solo aplicar regla de 24 horas para reservas ya pagadas
-    const requiresTimeCheck = ["PAID", "CONFIRMED"].includes(booking.status);
+    const requiresTimeCheck = booking.status === "PAID";
 
     if (requiresTimeCheck) {
       const hoursUntilAppointment = differenceInHours(

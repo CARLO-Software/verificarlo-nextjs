@@ -25,15 +25,15 @@ export default async function ClientHomePage() {
   // Calcular estadísticas
   const stats = {
     pending: inspections.filter((i) =>
-      ['PENDING_PAYMENT', 'PAID', 'CONFIRMED'].includes(i.status)
+      ['PENDING_PAYMENT', 'PAID'].includes(i.status)
     ).length,
-    inProgress: inspections.filter((i) => i.status === 'CONFIRMED').length,
+    inProgress: inspections.filter((i) => i.status === 'PAID').length,
     completed: inspections.filter((i) => i.status === 'COMPLETED').length,
   };
 
   // Próxima inspección (la más cercana que no esté completada/cancelada)
   const upcomingInspection = inspections
-    .filter((i) => ['PENDING_PAYMENT', 'PAID', 'CONFIRMED'].includes(i.status))
+    .filter((i) => ['PENDING_PAYMENT', 'PAID'].includes(i.status))
     .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0];
 
   // Actividad reciente (últimas 3 completadas)
@@ -231,11 +231,7 @@ function StatusBadge({ status }: { status: string }) {
     },
     PAID: {
       label: 'Pagado',
-      className: 'bg-blue-100 text-blue-700',
-    },
-    CONFIRMED: {
-      label: 'Confirmada',
-      className: 'bg-indigo-100 text-indigo-700',
+      className: 'bg-green-100 text-green-700',
     },
     COMPLETED: {
       label: 'Completada',

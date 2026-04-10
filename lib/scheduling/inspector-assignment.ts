@@ -72,7 +72,7 @@ export async function assignInspector(
         where: {
           inspectorId: inspector.id,
           date: booking.date,
-          status: { in: ["CONFIRMED", "COMPLETED"] },
+          status: { in: ["PAID", "COMPLETED"] },
         },
       });
 
@@ -83,7 +83,7 @@ export async function assignInspector(
             inspectorId: inspector.id,
             date: booking.date,
             timeSlot: booking.timeSlot,
-            status: { in: ["CONFIRMED", "PAID"] },
+            status: "PAID",
           },
         })
         .then((result) => !!result);
@@ -113,12 +113,11 @@ export async function assignInspector(
   // Asignar al inspector con menor carga
   const selectedInspector = availableInspectors[0];
 
-  // Actualizar booking
+  // Actualizar booking - solo asignar inspector, mantener estado PAID
   await db.booking.update({
     where: { id: bookingId },
     data: {
       inspectorId: selectedInspector.id,
-      status: "CONFIRMED",
       confirmedAt: new Date(),
     },
   });
@@ -140,12 +139,12 @@ export async function reassignInspectorBookings(
   date: Date,
   _reason: string
 ): Promise<ReassignmentResult> {
-  // Obtener todas las citas confirmadas del inspector para esa fecha
+  // Obtener todas las citas pagadas del inspector para esa fecha
   const bookings = await db.booking.findMany({
     where: {
       inspectorId,
       date: startOfDay(date),
-      status: "CONFIRMED",
+      status: "PAID",
     },
     include: {
       client: { select: { name: true, email: true, phone: true } },
@@ -176,7 +175,7 @@ export async function reassignInspectorBookings(
           none: {
             date: startOfDay(date),
             timeSlot: booking.timeSlot,
-            status: { in: ["CONFIRMED", "PAID"] },
+            status: "PAID",
           },
         },
       },
@@ -238,7 +237,7 @@ export async function getInspectorsWorkload(date: Date) {
         where: {
           inspectorId: inspector.id,
           date: startOfDay(date),
-          status: { in: ["CONFIRMED", "COMPLETED"] },
+          status: { in: ["PAID", "COMPLETED"] },
         },
         select: { timeSlot: true, status: true },
         orderBy: { timeSlot: "asc" },

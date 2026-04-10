@@ -30,7 +30,7 @@ export default async function InspectorPage() {
     where: {
       inspectorId: userId,
       status: {
-        in: ["CONFIRMED", "COMPLETED"],
+        in: ["PAID", "COMPLETED"],
       },
     },
     include: {
@@ -65,7 +65,7 @@ export default async function InspectorPage() {
       },
     },
     orderBy: [
-      { status: "asc" }, // CONFIRMED primero
+      { status: "asc" }, // PAID primero
       { startTime: "asc" },
     ],
   });
@@ -105,7 +105,7 @@ export default async function InspectorPage() {
   }));
 
   // Separar pendientes y completadas
-  const pendingInspections = inspections.filter((i) => i.status === "CONFIRMED");
+  const pendingInspections = inspections.filter((i) => i.status === "PAID");
   const completedInspections = inspections.filter((i) => i.status === "COMPLETED");
 
   return (

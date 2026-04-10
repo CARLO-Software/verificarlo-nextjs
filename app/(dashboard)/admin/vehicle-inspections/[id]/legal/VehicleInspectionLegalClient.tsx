@@ -298,7 +298,7 @@ export function VehicleInspectionLegalClient({
     <div className={styles.container}>
       {/* Header */}
       <header className={styles.header}>
-        <Link href="/admin/vehicle-inspections" className={styles.backButton}>
+        <Link href="/admin/inspecciones" className={styles.backButton}>
           <ArrowLeft size={20} />
         </Link>
         <div className={styles.headerInfo}>

@@ -52,13 +52,8 @@ const statusConfig: Record<string, { label: string; className: string; dot: stri
   },
   PAID: {
     label: 'Pagado',
-    className: 'bg-blue-50 text-blue-700 border-blue-200',
-    dot: 'bg-blue-500',
-  },
-  CONFIRMED: {
-    label: 'Confirmada',
-    className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-    dot: 'bg-indigo-500',
+    className: 'bg-green-50 text-green-700 border-green-200',
+    dot: 'bg-green-500',
   },
   COMPLETED: {
     label: 'Completada',
@@ -115,7 +110,7 @@ export function InspectionsListClient({ inspections, brands }: Props) {
       // Filtro por estado
       if (filter !== 'all') {
         if (filter === 'pending') {
-          if (!['PENDING_PAYMENT', 'PAID', 'CONFIRMED'].includes(inspection.status)) {
+          if (!['PENDING_PAYMENT', 'PAID'].includes(inspection.status)) {
             return false;
           }
         } else if (filter === 'completed') {

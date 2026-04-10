@@ -8,7 +8,6 @@ import { Prisma } from "@prisma/client";
 export type BookingStatus =
   | "PENDING_PAYMENT"
   | "PAID"
-  | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"
   | "NO_SHOW"

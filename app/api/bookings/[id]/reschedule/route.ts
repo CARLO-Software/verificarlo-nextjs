@@ -61,10 +61,10 @@ export async function POST(
       );
     }
 
-    // Verificar que esté confirmada
-    if (booking.status !== "CONFIRMED") {
+    // Verificar que esté pagada
+    if (booking.status !== "PAID") {
       return NextResponse.json(
-        { error: "Solo se pueden reprogramar citas confirmadas" },
+        { error: "Solo se pueden reprogramar citas pagadas" },
         { status: 400 }
       );
     }

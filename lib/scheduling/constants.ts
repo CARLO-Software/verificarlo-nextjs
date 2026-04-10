@@ -46,7 +46,6 @@ export const BLOCKING_STATUSES = [
   "PENDING_PAYMENT",
   "PENDING_VERIFICATION",
   "PAID",
-  "CONFIRMED",
 ] as const;
 
 //Timeslot brinda los horarios que están permitidos

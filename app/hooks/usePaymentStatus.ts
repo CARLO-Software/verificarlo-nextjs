@@ -3,7 +3,7 @@
 // ============================================================================
 // HOOK — usePaymentStatus
 // Hace polling al endpoint /api/bookings/[id]/status y para automáticamente
-// cuando se alcanza un estado terminal (CONFIRMED, FAILED, EXPIRED, etc.)
+// cuando se alcanza un estado terminal (PAID, FAILED, EXPIRED, etc.)
 // ============================================================================
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -14,7 +14,6 @@ type BookingStatus =
   | "PENDING_PAYMENT"
   | "PENDING_VERIFICATION"
   | "PAID"
-  | "CONFIRMED"
   | "COMPLETED"
   | "CANCELLED"
   | "NO_SHOW"
@@ -68,7 +67,7 @@ export interface UsePaymentStatusReturn {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const TERMINAL_BOOKING: BookingStatus[] = [
-  "CONFIRMED",
+  "PAID",
   "COMPLETED",
   "CANCELLED",
   "EXPIRED",

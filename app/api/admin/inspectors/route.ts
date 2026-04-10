@@ -296,14 +296,14 @@ export async function DELETE(req: NextRequest) {
     const pendingBookings = await db.booking.count({
       where: {
         inspectorId,
-        status: "CONFIRMED",
+        status: "PAID",
       },
     });
 
     if (pendingBookings > 0) {
       return NextResponse.json(
         {
-          error: `El inspector tiene ${pendingBookings} cita(s) confirmada(s). Reasígnelas antes de degradar.`,
+          error: `El inspector tiene ${pendingBookings} cita(s) pagada(s). Reasígnelas antes de degradar.`,
         },
         { status: 400 }
       );

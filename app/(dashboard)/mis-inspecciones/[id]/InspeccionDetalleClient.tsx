@@ -98,8 +98,8 @@ export function InspeccionDetalleClient({
   const isPendingPayment = inspection.status === "PENDING_PAYMENT";
   const isPendingVerification = inspection.status === "PENDING_VERIFICATION";
   const isCompleted = inspection.status === "COMPLETED";
-  const isPaid = ["PAID", "CONFIRMED", "COMPLETED"].includes(inspection.status);
-  const _canCancel = ["PENDING_PAYMENT", "PENDING_VERIFICATION", "PAID", "CONFIRMED"].includes(inspection.status);
+  const isPaid = ["PAID", "COMPLETED"].includes(inspection.status);
+  const _canCancel = ["PENDING_PAYMENT", "PENDING_VERIFICATION", "PAID"].includes(inspection.status);
 
   // Renderizar vista según estado
   if (isPendingPayment) {
@@ -639,7 +639,6 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
 
   const statusLabels: Record<string, string> = {
     PAID: "Pago confirmado",
-    CONFIRMED: "Inspector asignado",
   };
 
   return (
