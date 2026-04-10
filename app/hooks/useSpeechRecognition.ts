@@ -4,6 +4,43 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 export type SpeechStatus = "idle" | "listening" | "processing" | "error" | "unsupported";
 
+/**
+ * Post-procesa el texto para convertir palabras de puntuación en símbolos.
+ * Ej: "Coma se encontró algo" → ", se encontró algo"
+ */
+function cleanPunctuation(text: string): string {
+  return text
+    // Puntuación básica
+    .replace(/\bcoma\b/gi, ',')
+    .replace(/\bpunto y coma\b/gi, ';')
+    .replace(/\bdos puntos\b/gi, ':')
+    .replace(/\bpunto\b/gi, '.')
+    // Signos de interrogación/exclamación
+    .replace(/\b(signo de |abre |abrir )interrogación\b/gi, '¿')
+    .replace(/\b(cierra |cerrar )interrogación\b/gi, '?')
+    .replace(/\binterrogación\b/gi, '?')
+    .replace(/\b(signo de |abre |abrir )exclamación\b/gi, '¡')
+    .replace(/\b(cierra |cerrar )exclamación\b/gi, '!')
+    .replace(/\bexclamación\b/gi, '!')
+    // Paréntesis
+    .replace(/\b(abre |abrir )paréntesis\b/gi, '(')
+    .replace(/\b(cierra |cerrar )paréntesis\b/gi, ')')
+    // Comillas
+    .replace(/\b(abre |abrir )comillas\b/gi, '"')
+    .replace(/\b(cierra |cerrar )comillas\b/gi, '"')
+    .replace(/\bcomillas\b/gi, '"')
+    // Guiones
+    .replace(/\bguión\b/gi, '-')
+    .replace(/\bguión bajo\b/gi, '_')
+    // Nueva línea
+    .replace(/\b(nueva línea|salto de línea|enter)\b/gi, '\n')
+    // Limpiar espacios extra alrededor de puntuación
+    .replace(/\s+([,.:;?!)\]])/g, '$1')  // Quitar espacio ANTES de puntuación de cierre
+    .replace(/([¿¡(\[])\s+/g, '$1')       // Quitar espacio DESPUÉS de puntuación de apertura
+    .replace(/\s+/g, ' ')                 // Múltiples espacios → uno solo
+    .trim();
+}
+
 interface UseSpeechRecognitionOptions {
   lang?: string;
   onResult?: (transcript: string) => void;
@@ -84,10 +121,11 @@ export function useSpeechRecognition(
       }
 
       if (finalTranscript) {
-        console.log("[Speech] Final:", finalTranscript);
-        setTranscript(finalTranscript);
+        const cleanedTranscript = cleanPunctuation(finalTranscript);
+        console.log("[Speech] Final:", finalTranscript, "→", cleanedTranscript);
+        setTranscript(cleanedTranscript);
         setStatus("idle");
-        onResultRef.current?.(finalTranscript);
+        onResultRef.current?.(cleanedTranscript);
       }
     };
 

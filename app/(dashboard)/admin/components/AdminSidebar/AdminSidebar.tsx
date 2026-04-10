@@ -60,50 +60,75 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   return (
     <>
-      {isOpen && (
-        <div className={styles.overlay} onClick={onClose} />
-      )}
+      {/* Overlay para mobile */}
+      <div
+        className={`${styles.overlay} ${isOpen ? styles.overlayVisible : ''}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
+        role="navigation"
+        aria-label="Menú principal"
       >
-        <Link href="/admin" className={styles.logo}>
-          <div>
+        {/* Logo */}
+        <Link href="/admin" className={styles.logo} onClick={onClose}>
+          <div className={styles.logoIcon}>V</div>
+          <div className={styles.logoTextContainer}>
             <div className={styles.logoText}>VerifiCARLO</div>
             <div className={styles.logoSub}>Panel Admin</div>
           </div>
         </Link>
 
+        {/* Navegación */}
         <nav className={styles.nav}>
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href, item.exact);
             const badgeCount = item.badgeKey === 'legalReviews' ? legalReviewsCount : 0;
+
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`${styles.navLink} ${active ? styles.navLinkActive : ''}`}
                 onClick={onClose}
+                title={item.label}
               >
-                <Icon size={20} />
+                <span className={styles.navIcon}>
+                  <Icon size={20} />
+                </span>
                 <span className={styles.navLinkLabel}>
                   {item.label}
                   {badgeCount > 0 && (
-                    <span className={styles.badge}>{badgeCount > 99 ? '99+' : badgeCount}</span>
+                    <span className={styles.badge}>
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
                   )}
                 </span>
+                {/* Badge flotante para modo colapsado (tablet) */}
+                {badgeCount > 0 && (
+                  <span className={`${styles.badge} ${styles.badgeCollapsed}`}>
+                    {badgeCount > 9 ? '9+' : badgeCount}
+                  </span>
+                )}
               </Link>
             );
           })}
         </nav>
 
+        {/* Footer con logout */}
         <div className={styles.footer}>
           <button
             className={styles.logoutBtn}
             onClick={() => signOut({ callbackUrl: '/' })}
+            title="Cerrar sesión"
           >
-            <LogOut size={20} />
-            Cerrar sesión
+            <span className={styles.navIcon}>
+              <LogOut size={20} />
+            </span>
+            <span className={styles.logoutText}>Cerrar sesión</span>
           </button>
         </div>
       </aside>
