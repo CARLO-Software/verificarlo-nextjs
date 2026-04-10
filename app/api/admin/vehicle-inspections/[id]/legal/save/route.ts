@@ -28,7 +28,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { legalNotes, legalReportData } = body;
+    const { legalNotes, legalReportData, otherObservations } = body;
 
     // Verificar que existe y está en proceso
     const inspection = await db.vehicleInspection.findUnique({
@@ -54,13 +54,38 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
+    // Preparar datos a guardar
+    let dataToUpdate: Record<string, any> = {};
+
+    if (legalNotes !== undefined) {
+      dataToUpdate.legalNotes = legalNotes;
+    }
+
+    // Si se envía otherObservations, actualizar solo ese campo dentro de legalReportData
+    // sin sobrescribir sourceStatuses y sourceObservations
+    if (otherObservations !== undefined) {
+      const currentReportData = (inspection.legalReportData as Record<string, any>) || {};
+      dataToUpdate.legalReportData = {
+        ...currentReportData,
+        otherObservations,
+      };
+    }
+
+    // Si se envía legalReportData completo (legacy), usarlo pero preservar sourceStatuses
+    if (legalReportData !== undefined && otherObservations === undefined) {
+      const currentReportData = (inspection.legalReportData as Record<string, any>) || {};
+      dataToUpdate.legalReportData = {
+        ...legalReportData,
+        // Preservar sourceStatuses y sourceObservations existentes
+        sourceStatuses: currentReportData.sourceStatuses || legalReportData.sourceStatuses,
+        sourceObservations: currentReportData.sourceObservations || legalReportData.sourceObservations,
+      };
+    }
+
     // Guardar datos
     const updated = await db.vehicleInspection.update({
       where: { id: inspectionId },
-      data: {
-        legalNotes: legalNotes ?? undefined,
-        legalReportData: legalReportData ?? undefined,
-      },
+      data: dataToUpdate,
     });
 
     return NextResponse.json({

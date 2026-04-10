@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   // === PORTADA ===
   coverPage: {
     flex: 1,
-    backgroundColor: colors.black,
+    backgroundColor: colors.white,
     padding: 50,
     justifyContent: 'center',
     alignItems: 'center',
@@ -47,10 +47,17 @@ const styles = StyleSheet.create({
     width: 180,
     marginBottom: 40,
   },
+  coverLogoText: {
+    fontSize: 48,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 40,
+    letterSpacing: 2,
+  },
   coverTitle: {
     fontSize: 36,
     fontWeight: 700,
-    color: colors.white,
+    color: colors.black,
     marginBottom: 12,
     letterSpacing: 2,
   },
@@ -75,7 +82,7 @@ const styles = StyleSheet.create({
   },
   coverDate: {
     fontSize: 12,
-    color: colors.gray,
+    color: colors.black,
   },
   coverFooter: {
     position: 'absolute',
@@ -88,13 +95,41 @@ const styles = StyleSheet.create({
   },
   coverFooterText: {
     fontSize: 9,
-    color: colors.gray,
+    color: colors.black,
   },
 
   // === PÁGINA DE RESUMEN ===
   summaryPage: {
     flex: 1,
     padding: 30,
+  },
+
+  // Header del resumen con logo
+  summaryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  summaryHeaderLeft: {
+    flexDirection: 'column',
+  },
+  summaryHeaderTitle: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 4,
+  },
+  summaryHeaderSubtitle: {
+    fontSize: 9,
+    color: colors.gray,
+  },
+  summaryHeaderLogo: {
+    width: 120,
+    height: 'auto',
   },
 
   // Título de sección
@@ -126,11 +161,24 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
     padding: 8,
-    minHeight: 45,
+    minHeight: 50,
   },
   gridItemRight: {
     borderLeftWidth: 1,
     borderLeftColor: '#E5E5E5',
+  },
+  // Fondos de estado para los items
+  gridItemOK: {
+    backgroundColor: '#F0FDF4', // Verde muy claro
+  },
+  gridItemWARNING: {
+    backgroundColor: '#FFFBEB', // Amarillo muy claro
+  },
+  gridItemCRITICAL: {
+    backgroundColor: '#FEF2F2', // Rojo muy claro
+  },
+  gridItemPENDING: {
+    backgroundColor: colors.white,
   },
 
   // Icono y badge de estado
@@ -148,13 +196,15 @@ const styles = StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    bottom: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.white,
   },
   checkBadgeOK: {
     backgroundColor: colors.green,
@@ -169,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.gray,
   },
   checkText: {
-    fontSize: 6,
+    fontSize: 9,
     color: colors.white,
     fontWeight: 700,
   },
@@ -179,16 +229,63 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  itemLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
   itemLabel: {
     fontSize: 8,
     fontWeight: 700,
     color: colors.black,
-    marginBottom: 2,
+  },
+  // Indicador de estado con icono
+  statusIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    marginLeft: 6,
+    gap: 3,
+  },
+  statusIndicatorOK: {
+    backgroundColor: colors.green,
+  },
+  statusIndicatorWARNING: {
+    backgroundColor: colors.yellow,
+  },
+  statusIndicatorCRITICAL: {
+    backgroundColor: colors.red,
+  },
+  statusIndicatorPENDING: {
+    backgroundColor: colors.gray,
+  },
+  statusIcon: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: colors.white,
+  },
+  statusIndicatorText: {
+    fontSize: 7,
+    fontWeight: 700,
+    color: colors.white,
   },
   itemText: {
     fontSize: 7,
     color: colors.gray,
     lineHeight: 1.3,
+  },
+  // Texto de observación con color según estado
+  itemTextOK: {
+    color: '#166534', // Verde oscuro
+  },
+  itemTextWARNING: {
+    color: '#92400E', // Amarillo oscuro
+  },
+  itemTextCRITICAL: {
+    color: '#991B1B', // Rojo oscuro
+    fontWeight: 700,
   },
 
   // Sección de observaciones
@@ -332,7 +429,7 @@ const FIELD_ICONS: Record<string, string> = {
 function StatusBadge({ status }: { status: string }) {
   const getSymbol = () => {
     switch (status) {
-      case 'OK': return 'V';
+      case 'OK': return '√';
       case 'WARNING': return '!';
       case 'CRITICAL': return 'X';
       default: return '?';
@@ -355,6 +452,56 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+// Obtener el estilo de fondo según estado
+function getItemBgStyle(status: string) {
+  switch (status) {
+    case 'OK': return styles.gridItemOK;
+    case 'WARNING': return styles.gridItemWARNING;
+    case 'CRITICAL': return styles.gridItemCRITICAL;
+    default: return styles.gridItemPENDING;
+  }
+}
+
+// Obtener el estilo del indicador según estado
+function getStatusIndicatorStyle(status: string) {
+  switch (status) {
+    case 'OK': return styles.statusIndicatorOK;
+    case 'WARNING': return styles.statusIndicatorWARNING;
+    case 'CRITICAL': return styles.statusIndicatorCRITICAL;
+    default: return styles.statusIndicatorPENDING;
+  }
+}
+
+// Obtener el estilo del texto según estado
+function getItemTextStyle(status: string) {
+  switch (status) {
+    case 'OK': return styles.itemTextOK;
+    case 'WARNING': return styles.itemTextWARNING;
+    case 'CRITICAL': return styles.itemTextCRITICAL;
+    default: return {};
+  }
+}
+
+// Obtener el texto e icono del indicador según estado
+function getStatusLabel(status: string): { icon: string; text: string } {
+  switch (status) {
+    case 'OK': return { icon: '√', text: 'OK' };
+    case 'WARNING': return { icon: '!', text: 'OBSERVACIÓN' };
+    case 'CRITICAL': return { icon: 'X', text: 'CRÍTICO' };
+    default: return { icon: '?', text: 'PENDIENTE' };
+  }
+}
+
+// Obtener texto por defecto según estado
+function getDefaultText(status: string): string {
+  switch (status) {
+    case 'OK': return 'Sin problemas detectados';
+    case 'WARNING': return 'Requiere atención';
+    case 'CRITICAL': return 'Problema detectado';
+    default: return 'Pendiente de verificación';
+  }
+}
+
 // Componente para cada item del grid
 function GridItem({
   field,
@@ -364,17 +511,26 @@ function GridItem({
   isRight: boolean;
 }) {
   const iconUrl = FIELD_ICONS[field.key];
+  const baseStyle = isRight ? [styles.gridItem, styles.gridItemRight] : [styles.gridItem];
+  const bgStyle = getItemBgStyle(field.status);
+  const displayText = field.text || getDefaultText(field.status);
 
   return (
-    <View style={isRight ? [styles.gridItem, styles.gridItemRight] : styles.gridItem}>
+    <View style={[...baseStyle, bgStyle]}>
       <View style={styles.iconContainer}>
         {iconUrl && <Image src={iconUrl} style={styles.fieldIcon} />}
         <StatusBadge status={field.status} />
       </View>
       <View style={styles.itemContent}>
-        <Text style={styles.itemLabel}>{field.label}</Text>
-        <Text style={styles.itemText}>
-          {field.text || 'Sin observaciones'}
+        <View style={styles.itemLabelRow}>
+          <Text style={styles.itemLabel}>{field.label}</Text>
+          <View style={[styles.statusIndicator, getStatusIndicatorStyle(field.status)]}>
+            <Text style={styles.statusIcon}>{getStatusLabel(field.status).icon}</Text>
+            <Text style={styles.statusIndicatorText}>{getStatusLabel(field.status).text}</Text>
+          </View>
+        </View>
+        <Text style={[styles.itemText, getItemTextStyle(field.status)]}>
+          {displayText}
         </Text>
       </View>
     </View>
@@ -390,8 +546,8 @@ const DISCLAIMER_LINES = [
 
 // Componente principal del PDF
 export default function LegalReportPDF({ data }: { data: LegalReportData }) {
-  // Logo desde el sitio de producción
-  const logoUrl = 'https://verificarlo.com/assets/images/verificarlo-logo.png';
+  // Logo negativo desde el sitio de producción
+  const logoUrl = 'https://verificarlo.com/assets/images/negativo.png';
 
   // Organizar campos en pares para el grid de 2 columnas
   const fieldPairs: Array<[typeof data.fields[0], typeof data.fields[0] | null]> = [];
@@ -404,7 +560,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
       {/* PÁGINA 1: PORTADA */}
       <Page size="A4" style={styles.page}>
         <View style={styles.coverPage}>
-          <Image src={logoUrl} style={styles.coverLogo} />
+          <Text style={styles.coverLogoText}>VerifiCARLO</Text>
 
           <Text style={styles.coverTitle}>INFORME LEGAL</Text>
           <Text style={styles.coverSubtitle}>VERIFICACION VEHICULAR</Text>
@@ -425,6 +581,15 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
       {/* PÁGINA 2: RESUMEN DEL VEHÍCULO (todo en una página) */}
       <Page size="A4" style={styles.page}>
         <View style={styles.summaryPage}>
+          {/* Header con logo */}
+          <View style={styles.summaryHeader}>
+            <View style={styles.summaryHeaderLeft}>
+              <Text style={styles.summaryHeaderTitle}>{data.vehicleDescription}</Text>
+              <Text style={styles.summaryHeaderSubtitle}>Placa: {data.plate} | Cliente: {data.clientName}</Text>
+            </View>
+            <Image src="https://verificarlo.com/assets/images/negativo.png" style={styles.summaryHeaderLogo} />
+          </View>
+
           {/* Título */}
           <View style={styles.sectionTitle}>
             <Text style={styles.sectionTitleText}>RESUMEN DEL VEHICULO</Text>

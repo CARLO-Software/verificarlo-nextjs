@@ -2,33 +2,35 @@ import { PrismaClient } from "@prisma/client";
 import { vehicles } from "./data/vehicles";
 import { inspectionPlans, inspectionPlanItems } from "./data/inspections";
 
-const prisma = new PrismaClient();
+// Seed script uses its own PrismaClient instance (runs outside Next.js runtime)
+const prisma = new PrismaClient({
+  log: ["error", "warn"],
+});
 
 // ============================================
 // FUNCIONES AUXILIARES
 // ============================================
 
 /**
- * Procesa las marcas de vehículos usando upsert en batch
+ * Procesa las marcas de vehículos usando upsert secuencialmente
+ * para evitar agotar el connection pool
  */
 async function seedBrands(): Promise<Map<string, number>> {
   console.log("📦 Procesando marcas...");
 
   const uniqueBrands = [...new Set(vehicles.map((v) => v.brand))];
 
-  // Upsert de cada marca individualmente
-  await Promise.all(
-    uniqueBrands.map((brandName) =>
-      prisma.brand.upsert({
-        where: { name: brandName },
-        update: { logo: `/assets/icons/${brandName.toLowerCase()}.svg` },
-        create: {
-          name: brandName,
-          logo: `/assets/icons/${brandName.toLowerCase()}.svg`,
-        },
-      })
-    )
-  );
+  // Procesar secuencialmente para evitar sobrecargar el pool
+  for (const brandName of uniqueBrands) {
+    await prisma.brand.upsert({
+      where: { name: brandName },
+      update: { logo: `/assets/icons/${brandName.toLowerCase()}.svg` },
+      create: {
+        name: brandName,
+        logo: `/assets/icons/${brandName.toLowerCase()}.svg`,
+      },
+    });
+  }
 
   // Obtener el mapa de marcas con sus IDs
   const brandsInDb = await prisma.brand.findMany();
@@ -121,30 +123,29 @@ async function seedModels(brandMap: Map<string, number>): Promise<void> {
 }
 
 /**
- * Procesa los planes de inspección usando upsert
+ * Procesa los planes de inspección usando upsert secuencialmente
  */
 async function seedInspectionPlans(): Promise<Map<string, number>> {
   console.log("📦 Procesando planes de inspección...");
 
-  await Promise.all(
-    inspectionPlans.map((plan) =>
-      prisma.inspectionPlan.upsert({
-        where: { id: plan.id },
-        update: {
-          type: plan.type,
-          title: plan.title,
-          description: plan.description,
-          price: plan.price,
-        },
-        create: {
-          type: plan.type,
-          title: plan.title,
-          description: plan.description,
-          price: plan.price,
-        },
-      })
-    )
-  );
+  // Procesar secuencialmente
+  for (const plan of inspectionPlans) {
+    await prisma.inspectionPlan.upsert({
+      where: { id: plan.id },
+      update: {
+        type: plan.type,
+        title: plan.title,
+        description: plan.description,
+        price: plan.price,
+      },
+      create: {
+        type: plan.type,
+        title: plan.title,
+        description: plan.description,
+        price: plan.price,
+      },
+    });
+  }
 
   // Obtener el mapa de planes con sus IDs
   const plansInDb = await prisma.inspectionPlan.findMany();

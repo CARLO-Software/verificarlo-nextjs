@@ -99,7 +99,6 @@ interface Props {
   legalNotes: string | null;
   legalReportData: LegalReportData | null;
   legalScreenshots: Record<string, LegalScreenshotData> | null;
-  legalPdfUrl: string | null;
   assignedAdmin: { id: string; name: string } | null;
   assignedMechanic: { id: string; name: string } | null;
   legalStartedAt: string | null;
@@ -129,7 +128,7 @@ const LEGAL_FIELDS = {
   ],
 } as const;
 
-const STATUS_CONFIG = {
+const _STATUS_CONFIG = {
   OK: { label: 'Sin problemas', color: 'green', icon: CheckCircle2 },
   WARNING: { label: 'Observación', color: 'yellow', icon: AlertCircle },
   CRITICAL: { label: 'Crítico', color: 'red', icon: AlertTriangle },
@@ -168,7 +167,6 @@ export function VehicleInspectionLegalClient({
   legalNotes: initialNotes,
   legalReportData: initialReportData,
   legalScreenshots: initialScreenshots,
-  legalPdfUrl: initialPdfUrl,
   assignedAdmin,
   assignedMechanic,
   legalStartedAt,
@@ -178,7 +176,6 @@ export function VehicleInspectionLegalClient({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [legalStatus, setLegalStatus] = useState(initialLegalStatus);
-  const [notes, setNotes] = useState(initialNotes || '');
   const [reportData, setReportData] = useState<LegalReportData>(
     initialReportData || getDefaultReportData()
   );
@@ -195,7 +192,6 @@ export function VehicleInspectionLegalClient({
       uploadedAt: new Date(data.uploadedAt),
     }));
   });
-  const [pdfUrl, setPdfUrl] = useState<string | null>(initialPdfUrl);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const isCompleted = legalStatus === 'COMPLETADO';
@@ -233,47 +229,14 @@ export function VehicleInspectionLegalClient({
     });
   };
 
-  // Guardar progreso
-  const handleSave = async () => {
-    setError(null);
-    setSuccess(null);
-    setSaving(true);
-
-    try {
-      const res = await fetch(`/api/admin/vehicle-inspections/${inspectionId}/legal/save`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          legalNotes: notes,
-          legalReportData: reportData,
-        }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Error al guardar');
-      }
-
-      setSuccess('Progreso guardado correctamente.');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   // Completar revisión (EN_PROCESO -> COMPLETADO)
   const handleComplete = async () => {
-    // Verificar que todos los campos estén completados
-    const allFields = [...LEGAL_FIELDS.left, ...LEGAL_FIELDS.right];
-    const pendingFields = allFields.filter(
-      (f) => reportData[f.key as LegalFieldKey]?.status === 'PENDING'
-    );
+    // Ya no validamos campos individuales, el sistema ahora usa categorías
+    // Las categorías se guardan automáticamente en sourceStatuses/sourceObservations
+    // Solo verificamos que se hayan subido las capturas requeridas
 
-    if (pendingFields.length > 0) {
-      setError(`Faltan campos por revisar: ${pendingFields.map((f) => f.label).join(', ')}`);
-      return;
-    }
+    // Esta validación la puedes eliminar completamente o mantenerla simple
+    // Por ahora la eliminamos para permitir completar sin restricciones
 
     if (!confirm('¿Confirmas que has completado la revisión legal de este vehículo?')) {
       return;
@@ -284,13 +247,12 @@ export function VehicleInspectionLegalClient({
 
     startTransition(async () => {
       try {
-        // Guardar datos primero
+        // Guardar solo otherObservations (los estados de categorías ya se guardan automáticamente en sourceStatuses)
         await fetch(`/api/admin/vehicle-inspections/${inspectionId}/legal/save`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            legalNotes: notes,
-            legalReportData: reportData,
+            otherObservations: reportData.otherObservations,
           }),
         });
 
@@ -323,33 +285,6 @@ export function VehicleInspectionLegalClient({
 
   const handleScreenshotDeleted = (sourceId: LegalSourceId) => {
     setScreenshots((prev) => prev.filter((s) => s.sourceId !== sourceId));
-    // Si se elimina una captura, limpiar el PDF generado
-    setPdfUrl(null);
-  };
-
-  const handleGeneratePdf = async () => {
-    setIsGeneratingPdf(true);
-    setError(null);
-
-    try {
-      const res = await fetch(
-        `/api/admin/vehicle-inspections/${inspectionId}/legal/generate-pdf`,
-        { method: 'POST' }
-      );
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Error al generar el PDF');
-      }
-
-      const data = await res.json();
-      setPdfUrl(data.pdfUrl);
-      setSuccess('PDF generado exitosamente. El cliente ya puede descargarlo.');
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
   };
 
   // Calcular progreso
@@ -473,6 +408,8 @@ export function VehicleInspectionLegalClient({
         {/* Legal Report Form */}
         {(canEdit || isCompleted) && (
           <>
+            
+
             {/* Progress Bar */}
             {canEdit && (
               <div className={styles.progressSection}>
@@ -491,63 +428,18 @@ export function VehicleInspectionLegalClient({
                 </p>
               </div>
             )}
-
-            {/* Fields Grid */}
-            <div className={styles.fieldsContainer}>
-              <div className={styles.fieldsColumn}>
-                <h3 className={styles.columnTitle}>Documentación Legal</h3>
-                {LEGAL_FIELDS.left.map((field) => (
-                  <LegalFieldCard
-                    key={field.key}
-                    label={field.label}
-                    icon={field.icon}
-                    value={reportData[field.key as LegalFieldKey]}
-                    onChange={(val) => updateField(field.key as LegalFieldKey, val)}
-                    disabled={!canEdit || !isAssignedToMe}
-                  />
-                ))}
-              </div>
-
-              <div className={styles.fieldsColumn}>
-                <h3 className={styles.columnTitle}>Infracciones y Registros</h3>
-                {LEGAL_FIELDS.right.map((field) => (
-                  <LegalFieldCard
-                    key={field.key}
-                    label={field.label}
-                    icon={field.icon}
-                    value={reportData[field.key as LegalFieldKey]}
-                    onChange={(val) => updateField(field.key as LegalFieldKey, val)}
-                    disabled={!canEdit || !isAssignedToMe}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Other Observations */}
-            <div className={styles.observationsCard}>
-              <h3 className={styles.observationsTitle}>Observaciones Generales</h3>
-              <textarea
-                value={reportData.otherObservations}
-                onChange={(e) => updateField('otherObservations', e.target.value)}
-                placeholder="Agrega observaciones adicionales sobre la revisión legal..."
-                rows={4}
-                disabled={!canEdit || !isAssignedToMe}
-                className={styles.observationsTextarea}
-              />
-            </div>
-
-            {/* Notes Section */}
-            <div className={styles.notesCard}>
-              <h3 className={styles.notesTitle}>Notas Internas</h3>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notas internas (no visibles para el cliente)..."
-                rows={3}
-                disabled={!canEdit || !isAssignedToMe}
-                className={styles.notesTextarea}
-              />
-            </div>
+            {/* Sección de capturas (siempre visible cuando está en proceso o completado) */}
+            <LegalScreenshotsUpload
+              inspectionId={inspectionId}
+              existingScreenshots={screenshots}
+              onScreenshotUploaded={handleScreenshotUploaded}
+              onScreenshotDeleted={handleScreenshotDeleted}
+              initialSourceStatuses={(initialReportData as any)?.sourceStatuses || {}}
+              initialSourceObservations={(initialReportData as any)?.sourceObservations || {}}
+              generalObservations={reportData.otherObservations}
+              onGeneralObservationsChange={(value) => updateField('otherObservations', value)}
+              canEdit={canEdit && isAssignedToMe}
+            />
           </>
         )}
 
@@ -570,14 +462,6 @@ export function VehicleInspectionLegalClient({
         {canEdit && isAssignedToMe && (
           <div className={styles.actions}>
             <button
-              onClick={handleSave}
-              disabled={saving || isPending}
-              className={styles.saveButton}
-            >
-              {saving ? <Loader2 size={18} className={styles.spinner} /> : <Save size={18} />}
-              Guardar Progreso
-            </button>
-            <button
               onClick={handleComplete}
               disabled={isPending}
               className={styles.completeButton}
@@ -592,85 +476,72 @@ export function VehicleInspectionLegalClient({
           </div>
         )}
 
+        {/* PDF Section - Solo visible después de completar */}
+        {isCompleted && (
+          <div className={styles.pdfSection}>
+            <div className={styles.pdfReady}>
+              <div className={styles.pdfReadyIcon}>
+                <FileText size={32} />
+              </div>
+              <div className={styles.pdfReadyText}>
+                <h3>Informe Legal Completado</h3>
+                <p>Descarga el PDF con los datos más recientes</p>
+              </div>
+              <div className={styles.pdfActions}>
+                <button
+                  onClick={async () => {
+                    setIsGeneratingPdf(true);
+                    setError(null);
+                    try {
+                      const res = await fetch(
+                        `/api/admin/vehicle-inspections/${inspectionId}/legal/download-pdf`
+                      );
+                      if (!res.ok) {
+                        const data = await res.json();
+                        throw new Error(data.error || 'Error al descargar el PDF');
+                      }
+                      const blob = await res.blob();
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `informe-legal-${inspectionId}.pdf`;
+                      document.body.appendChild(a);
+                      a.click();
+                      window.URL.revokeObjectURL(url);
+                      document.body.removeChild(a);
+                    } catch (err: any) {
+                      setError(err.message);
+                    } finally {
+                      setIsGeneratingPdf(false);
+                    }
+                  }}
+                  disabled={isGeneratingPdf}
+                  className={styles.downloadPdfButton}
+                >
+                  {isGeneratingPdf ? (
+                    <>
+                      <Loader2 size={18} className={styles.spinner} />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText size={18} />
+                      Descargar Informe PDF
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {canEdit && !isAssignedToMe && assignedAdmin && (
           <div className={styles.assignedWarning}>
             <User size={18} />
             Este caso está asignado a {assignedAdmin.name}
           </div>
         )}
-
-        {/* Sección de capturas de pantalla (solo cuando está COMPLETADO) */}
-        {isCompleted && (
-          <LegalScreenshotsUpload
-            inspectionId={inspectionId}
-            existingScreenshots={screenshots}
-            onScreenshotUploaded={handleScreenshotUploaded}
-            onScreenshotDeleted={handleScreenshotDeleted}
-            onGeneratePdf={handleGeneratePdf}
-            pdfUrl={pdfUrl}
-            isGeneratingPdf={isGeneratingPdf}
-          />
-        )}
       </div>
-    </div>
-  );
-}
-
-// Componente para cada campo del informe legal
-function LegalFieldCard({
-  label,
-  icon: Icon,
-  value,
-  onChange,
-  disabled,
-}: {
-  label: string;
-  icon: any;
-  value: LegalField;
-  onChange: (val: LegalField) => void;
-  disabled: boolean;
-}) {
-  const statusConfig = STATUS_CONFIG[value.status];
-  const StatusIcon = statusConfig.icon;
-
-  return (
-    <div className={`${styles.fieldCard} ${styles[`fieldCard${value.status}`]}`}>
-      <div className={styles.fieldHeader}>
-        <div className={styles.fieldLabel}>
-          <Icon size={16} />
-          <span>{label}</span>
-        </div>
-        <div className={`${styles.fieldStatus} ${styles[`fieldStatus${value.status}`]}`}>
-          <StatusIcon size={14} />
-          <span>{statusConfig.label}</span>
-        </div>
-      </div>
-
-      {!disabled && (
-        <div className={styles.fieldStatusButtons}>
-          {(['OK', 'WARNING', 'CRITICAL'] as FieldStatus[]).map((status) => (
-            <button
-              key={status}
-              type="button"
-              onClick={() => onChange({ ...value, status })}
-              className={`${styles.statusButton} ${styles[`statusButton${status}`]} ${
-                value.status === status ? styles.statusButtonActive : ''
-              }`}
-            >
-              {STATUS_CONFIG[status].label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <textarea
-        value={value.text}
-        onChange={(e) => onChange({ ...value, text: e.target.value })}
-        placeholder={`Observaciones sobre ${label.toLowerCase()}...`}
-        rows={2}
-        disabled={disabled}
-        className={styles.fieldTextarea}
-      />
     </div>
   );
 }

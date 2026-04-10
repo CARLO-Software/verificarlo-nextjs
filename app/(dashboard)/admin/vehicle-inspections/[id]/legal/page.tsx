@@ -81,7 +81,6 @@ export default async function VehicleInspectionLegalPage({ params }: PageProps) 
       legalNotes={inspection.legalNotes}
       legalReportData={legalReportData}
       legalScreenshots={legalScreenshots}
-      legalPdfUrl={inspection.legalPdfUrl}
       assignedAdmin={inspection.assignedAdmin}
       assignedMechanic={inspection.assignedMechanic}
       legalStartedAt={inspection.legalStartedAt?.toISOString() || null}

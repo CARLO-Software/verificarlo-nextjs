@@ -51,7 +51,7 @@ export function VerificationCodeEmail({
           <Hr style={hr} />
 
           <Section style={footer}>
-            <Text style={footerText}>© VerifiCARLO — verificarlo.pe</Text>
+            <Text style={footerText}>© VerifiCARLO — verificarlo.com</Text>
           </Section>
         </Container>
       </Body>

@@ -60,14 +60,60 @@ export async function getLegalReportDataForPDF(
   const legalReportData = (inspection.legalReportData as Record<string, any>) || {};
   const legalScreenshots = (inspection.legalScreenshots as Record<string, any>) || {};
 
+  // Obtener estados y observaciones de categorías (nuevo sistema)
+  const sourceStatuses = legalReportData.sourceStatuses || {};
+  const sourceObservations = legalReportData.sourceObservations || {};
+
+  // Debug: Ver qué datos tenemos
+  console.log('[PDF DEBUG] legalReportData completo:', JSON.stringify(legalReportData, null, 2));
+  console.log('[PDF DEBUG] sourceStatuses:', JSON.stringify(sourceStatuses, null, 2));
+  console.log('[PDF DEBUG] sourceObservations:', JSON.stringify(sourceObservations, null, 2));
+
+  // Mapeo de campos a IDs de categorías (nuevo sistema)
+  const fieldToCategoryMap: Record<string, string> = {
+    ownerHistory: 'historial_propietarios',
+    sunarpLiens: 'gravamenes_sunat',
+    satCaptureOrder: 'orden_captura_sunat',
+    soat: 'soat',
+    techReview: 'revision_tecnica',
+    vehicleTax: 'impuesto_vehicular',
+    gasConversion: 'conversion_gas',
+    satTickets: 'papeletas_sat',
+    callaoTickets: 'papeletas_callao',
+    sutranTickets: 'papeletas_sutran',
+    theftHistory: 'siniestralidad',
+    transportRegistry: 'registro_transportes',
+    lastTransfer: 'historial_propietarios',
+    accidentHistory: 'siniestralidad',
+  };
+
   // Construir campos del informe
   const fields = Object.entries(LEGAL_FIELD_LABELS).map(([key, label]) => {
-    const field = legalReportData[key] || { status: 'PENDING', text: '' };
+    const categoryId = fieldToCategoryMap[key];
+    let finalStatus: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' = 'PENDING';
+    let finalObservation = '';
+
+    // 1. Intentar obtener del nuevo sistema (sourceStatuses por categoryId)
+    if (categoryId && sourceStatuses[categoryId]) {
+      finalStatus = sourceStatuses[categoryId] as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+      finalObservation = sourceObservations[categoryId] || '';
+      console.log(`[PDF] Campo ${key} → Categoría ${categoryId}: ${finalStatus}`);
+    }
+    // 2. Fallback: sistema antiguo (campo directo en legalReportData)
+    else if (legalReportData[key] && typeof legalReportData[key] === 'object') {
+      const oldData = legalReportData[key];
+      if (oldData.status) {
+        finalStatus = oldData.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+        finalObservation = oldData.text || '';
+        console.log(`[PDF] Campo ${key} (sistema antiguo): ${finalStatus}`);
+      }
+    }
+
     return {
       key,
       label,
-      status: field.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING',
-      text: field.text || '',
+      status: finalStatus,
+      text: finalObservation,
     };
   });
 
@@ -88,7 +134,7 @@ export async function getLegalReportDataForPDF(
     plate: inspection.plate || 'SIN PLACA',
     vehicleDescription,
     clientName: inspection.client.name,
-    date: format(inspection.updatedAt, "dd 'de' MMMM 'de' yyyy", { locale: es }),
+    date: format(inspection.updatedAt, "dd 'de' MMMM 'de' yyyy 'a las' HH:mm 'hrs'", { locale: es }),
     fields,
     otherObservations: legalReportData.otherObservations || '',
     screenshots,

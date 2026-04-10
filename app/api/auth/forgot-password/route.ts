@@ -10,41 +10,53 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Email requerido." }, { status: 400 });
   }
 
+  const normalizedEmail = email.toLowerCase().trim();
+
+  // Single query: fetch only password existence and Google provider check
   const user = await db.user.findUnique({
-    where: { email: email.toLowerCase().trim() },
-    include: { accounts: true },
+    where: { email: normalizedEmail },
+    select: {
+      name: true,
+      password: true,
+      accounts: {
+        where: { provider: "google" },
+        select: { id: true },
+        take: 1,
+      },
+    },
   });
 
   // Siempre responder igual para no revelar si el email existe
   const okResponse = NextResponse.json({
-    message: "Si el correo está registrado, recibirás un enlace en tu bandeja de entrada.",
+    message:
+      "Si el correo está registrado, recibirás un enlace en tu bandeja de entrada.",
   });
 
   if (!user) return okResponse;
 
   // Usuarios de Google sin contraseña no pueden resetear por este flujo
-  const hasPassword = !!user.password;
-  const hasGoogle = user.accounts.some((a) => a.provider === "google");
-  if (!hasPassword && hasGoogle) return okResponse;
+  if (!user.password && user.accounts.length > 0) return okResponse;
 
   // Generar token único
   const rawToken = crypto.randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+  const identifier = `reset:${normalizedEmail}`;
 
-  // Limpiar tokens anteriores y guardar el nuevo
-  await db.verificationToken.deleteMany({
-    where: { identifier: `reset:${email}` },
-  });
-  await db.verificationToken.create({
-    data: { identifier: `reset:${email}`, token: rawToken, expires },
-  });
+  // Single DB round trip: delete old tokens + insert new in one statement
+  await db.$executeRaw`
+    WITH deleted AS (
+      DELETE FROM "VerificationToken" WHERE identifier = ${identifier}
+    )
+    INSERT INTO "VerificationToken" (identifier, token, expires)
+    VALUES (${identifier}, ${rawToken}, ${expires})
+  `;
 
   const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${rawToken}`;
 
   const resend = getResendClient();
-  await resend.emails.send({
+  const { data, error } = await resend.emails.send({
     from: EMAIL_FROM,
-    to: email,
+    to: normalizedEmail,
     subject: "Restablece tu contraseña — VerifiCARLO",
     html: `
 <!DOCTYPE html>
@@ -71,7 +83,7 @@ export async function POST(req: Request) {
           </p>
         </td></tr>
         <tr><td style="background:#f9fafb;padding:16px 40px;text-align:center;border-top:1px solid #f3f4f6;">
-          <p style="margin:0;font-size:12px;color:#9ca3af;">© 2025 VerifiCARLO — verificarlo.pe</p>
+          <p style="margin:0;font-size:12px;color:#9ca3af;">© 2025 VerifiCARLO — verificarlo.com</p>
         </td></tr>
       </table>
     </td></tr>
@@ -79,6 +91,12 @@ export async function POST(req: Request) {
 </body>
 </html>`,
   });
+
+  if (error) {
+    console.error("[forgot-password] Error enviando email:", error);
+  } else {
+    console.log("[forgot-password] Email enviado:", data?.id);
+  }
 
   return okResponse;
 }

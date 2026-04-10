@@ -1,32 +1,28 @@
-//Es el punto de conexión con la base de datos
+// lib/db.ts - Singleton PrismaClient with connection pool optimization
 
-// lib/db.ts
 import { PrismaClient } from "@prisma/client";
 
+// Extend global type to store prisma instance
 declare global {
-  // Evita múltiples instancias en dev (hot reload)
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var __prisma: PrismaClient | undefined;
 }
 
-const prismaClientSingleton = () => {
+function createPrismaClient(): PrismaClient {
   return new PrismaClient({
-    log: ["error", "warn"],
-    datasources: {
-      db: {
-        url: process.env.DATABASE_URL,
-      },
-    },
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["error", "warn"]
+        : ["error"],
   });
-};
+}
 
-export const db = global.prisma ?? prismaClientSingleton();
+// Singleton pattern using globalThis to survive hot reloads in development
+export const db: PrismaClient = globalThis.__prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
-  global.prisma = db;
+  globalThis.__prisma = db;
 }
 
-// Manejo de desconexión graceful
-process.on("beforeExit", async () => {
-  await db.$disconnect();
-});
+// Also export as 'prisma' for compatibility
+export const prisma = db;

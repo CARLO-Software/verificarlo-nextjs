@@ -11,6 +11,9 @@ import {
   getBrandsAction,
   getModelsAction,
   getInspectionPlansAction,
+  searchClientsAction,
+  getAvailabilityForDateAction,
+  getAvailableInspectorsForSlotAction,
 } from './actions';
 
 interface Inspection {
@@ -83,7 +86,10 @@ interface InspectionPlan {
 interface Stats {
   pendingAdmin: number;
   pendingMechanic: number;
-  completed: number;
+  completedByMechanic: number;
+  completedByAdmin: number;
+  fullyCompleted: number;
+  completed: number; // Para compatibilidad (alias de fullyCompleted)
   total: number;
 }
 
@@ -96,14 +102,18 @@ interface AdminInspeccionesClientProps {
 const statsConfig = [
   { key: 'pendingAdmin', label: 'Pendientes admin', color: 'text-amber-600', bg: 'bg-amber-50' },
   { key: 'pendingMechanic', label: 'Pendientes mecanico', color: 'text-blue-600', bg: 'bg-blue-50' },
-  { key: 'completed', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
+  { key: 'completedByMechanic', label: 'Listo mecanico', color: 'text-cyan-600', bg: 'bg-cyan-50' },
+  { key: 'completedByAdmin', label: 'Listo admin', color: 'text-purple-600', bg: 'bg-purple-50' },
+  { key: 'fullyCompleted', label: 'Completadas', color: 'text-green-600', bg: 'bg-green-50' },
 ];
 
 const filterPills = [
   { value: 'all', label: 'Todos' },
   { value: 'PENDING_ADMIN', label: 'Pendientes admin' },
   { value: 'PENDING_MECHANIC', label: 'Pendientes mecanico' },
-  { value: 'COMPLETED', label: 'Completadas' },
+  { value: 'COMPLETED_MECHANIC', label: 'Listo mecanico' },
+  { value: 'COMPLETED_ADMIN', label: 'Listo admin' },
+  { value: 'FULLY_COMPLETED', label: 'Completadas' },
 ];
 
 function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
@@ -526,6 +536,17 @@ function InspectionDetailPanel({
 // Panel para crear inspección manual
 // ============================================
 
+interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+}
+
+interface InspectorWithAvailability extends Inspector {
+  available?: boolean;
+}
+
 function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors: Inspector[]; onClose: () => void; onSuccess: () => void; }) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -536,6 +557,21 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
   const [plans, setPlans] = useState<InspectionPlan[]>([]);
   const [loadingBrands, setLoadingBrands] = useState(true);
   const [loadingModels, setLoadingModels] = useState(false);
+
+  // Búsqueda de clientes
+  const [clientSearchQuery, setClientSearchQuery] = useState('');
+  const [searchedClients, setSearchedClients] = useState<Client[]>([]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [searchingClients, setSearchingClients] = useState(false);
+
+  // Disponibilidad de horarios
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  // Inspectores disponibles con disponibilidad
+  const [inspectorsWithAvailability, setInspectorsWithAvailability] = useState<InspectorWithAvailability[]>([]);
+  const [loadingInspectors, setLoadingInspectors] = useState(false);
 
   // Formulario
   const [formData, setFormData] = useState({
@@ -549,7 +585,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     plate: '',
     inspectionPlanId: '',
     date: '',
-    timeSlot: '09:00',
+    timeSlot: '',
     inspectorId: '',
     adminNotes: '',
     isPaid: false,
@@ -592,6 +628,77 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     loadModels();
   }, [formData.brandId]);
 
+  // Buscar clientes con debounce
+  useEffect(() => {
+    if (!clientSearchQuery || clientSearchQuery.length < 2) {
+      setSearchedClients([]);
+      return;
+    }
+
+    const timeoutId = setTimeout(async () => {
+      setSearchingClients(true);
+      const res = await searchClientsAction(clientSearchQuery);
+      if (res.success && res.clients) {
+        setSearchedClients(res.clients);
+      }
+      setSearchingClients(false);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [clientSearchQuery]);
+
+  // Cargar disponibilidad de horarios cuando cambia la fecha
+  useEffect(() => {
+    if (!formData.date) {
+      setAvailableTimeSlots([]);
+      return;
+    }
+
+    async function loadAvailability() {
+      setLoadingSlots(true);
+      const res = await getAvailabilityForDateAction(formData.date);
+      if (res.success && res.availability) {
+        const available = res.availability.slots
+          .filter((slot: { available: boolean }) => slot.available)
+          .map((slot: { time: string }) => slot.time);
+        setAvailableTimeSlots(available);
+
+        // Si el slot seleccionado ya no está disponible, limpiarlo
+        if (formData.timeSlot && !available.includes(formData.timeSlot)) {
+          setFormData(prev => ({ ...prev, timeSlot: '', inspectorId: '' }));
+        }
+      }
+      setLoadingSlots(false);
+    }
+    loadAvailability();
+  }, [formData.date]);
+
+  // Cargar inspectores disponibles cuando cambia fecha o hora
+  useEffect(() => {
+    if (!formData.date || !formData.timeSlot) {
+      setInspectorsWithAvailability(inspectors.map(i => ({ ...i, available: true })));
+      return;
+    }
+
+    async function loadInspectorsAvailability() {
+      setLoadingInspectors(true);
+      const res = await getAvailableInspectorsForSlotAction(formData.date, formData.timeSlot);
+      if (res.success && res.inspectors) {
+        setInspectorsWithAvailability(res.inspectors);
+
+        // Si el inspector seleccionado ya no está disponible, limpiarlo
+        const selectedInspectorAvailable = res.inspectors.find(
+          (i: InspectorWithAvailability) => i.id === formData.inspectorId && i.available
+        );
+        if (formData.inspectorId && !selectedInspectorAvailable) {
+          setFormData(prev => ({ ...prev, inspectorId: '' }));
+        }
+      }
+      setLoadingInspectors(false);
+    }
+    loadInspectorsAvailability();
+  }, [formData.date, formData.timeSlot, inspectors]);
+
   // Obtener rango de años del modelo seleccionado
   const selectedModel = models.find(m => m.id === Number(formData.modelId));
   const yearRange = selectedModel
@@ -601,22 +708,55 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     )
     : Array.from({ length: 30 }, (_, i) => new Date().getFullYear() - i);
 
-  // Horarios disponibles
-  const timeSlots = [
-    '09:00', '10:30', '12:00', '14:00', '15:30',
-  ];
+  // Handlers para selección de cliente
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    setFormData({
+      ...formData,
+      clientName: client.name,
+      clientEmail: client.email,
+      clientPhone: client.phone || '',
+    });
+    setShowNewClientForm(false);
+    setClientSearchQuery('');
+    setSearchedClients([]);
+  };
+
+  const handleCreateNewClient = () => {
+    setShowNewClientForm(true);
+    setSelectedClient(null);
+    setClientSearchQuery('');
+    setSearchedClients([]);
+    setFormData({
+      ...formData,
+      clientName: '',
+      clientEmail: '',
+      clientPhone: '',
+      passClient: '',
+    });
+  };
 
   const handleSubmit = () => {
     setMessage(null);
 
     // Validaciones básicas
-    if (!formData.clientName.trim()) {
-      setMessage({ type: 'error', text: 'El nombre del cliente es requerido' });
+    if (!selectedClient && !showNewClientForm) {
+      setMessage({ type: 'error', text: 'Busca un cliente existente o crea uno nuevo' });
       return;
     }
-    if (!formData.clientEmail.trim() || !formData.clientEmail.includes('@')) {
-      setMessage({ type: 'error', text: 'Email inválido' });
-      return;
+    if (showNewClientForm) {
+      if (!formData.clientName.trim()) {
+        setMessage({ type: 'error', text: 'El nombre del cliente es requerido' });
+        return;
+      }
+      if (!formData.clientEmail.trim() || !formData.clientEmail.includes('@')) {
+        setMessage({ type: 'error', text: 'Email inválido' });
+        return;
+      }
+      if (!formData.passClient.trim()) {
+        setMessage({ type: 'error', text: 'La contraseña del cliente es requerida para nuevos clientes' });
+        return;
+      }
     }
     if (!formData.modelId) {
       setMessage({ type: 'error', text: 'Selecciona un modelo de vehículo' });
@@ -628,6 +768,10 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     }
     if (!formData.date) {
       setMessage({ type: 'error', text: 'Selecciona una fecha' });
+      return;
+    }
+    if (!formData.timeSlot) {
+      setMessage({ type: 'error', text: 'Selecciona un horario' });
       return;
     }
 
@@ -692,41 +836,125 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Datos del cliente */}
+            {/* Buscar o crear cliente */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
-                Datos del cliente
+                Cliente
               </h3>
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="Nombre completo *"
-                  value={formData.clientName}
-                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                />
-                <input
-                  type="email"
-                  placeholder="Email *"
-                  value={formData.clientEmail}
-                  onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  value={formData.passClient}
-                  onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                />
-                <input
-                  type="tel"
-                  placeholder="Teléfono (opcional)"
-                  value={formData.clientPhone}
-                  onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                />
-              </div>
+
+              {!selectedClient && !showNewClientForm && (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Buscar cliente por nombre, email o teléfono..."
+                      value={clientSearchQuery}
+                      onChange={(e) => setClientSearchQuery(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    />
+                    {searchingClients && (
+                      <div className="absolute right-3 top-2.5">
+                        <svg className="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Resultados de búsqueda */}
+                  {searchedClients.length > 0 && (
+                    <div className="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                      {searchedClients.map((client) => (
+                        <button
+                          key={client.id}
+                          onClick={() => handleSelectClient(client)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-0"
+                        >
+                          <p className="font-medium text-sm text-[#2D2D2D]">{client.name}</p>
+                          <p className="text-xs text-gray-500">{client.email}</p>
+                          {client.phone && <p className="text-xs text-gray-400">{client.phone}</p>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {clientSearchQuery.length >= 2 && !searchingClients && searchedClients.length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-2">
+                      No se encontraron clientes
+                    </p>
+                  )}
+
+                  <button
+                    onClick={handleCreateNewClient}
+                    className="w-full px-3 py-2 border-2 border-dashed border-gray-200 text-gray-600 rounded-lg hover:border-[#FFE14C] hover:text-[#2D2D2D] transition-colors text-sm font-medium"
+                  >
+                    + Crear nuevo cliente
+                  </button>
+                </div>
+              )}
+
+              {selectedClient && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                    <div>
+                      <p className="font-medium text-sm text-[#2D2D2D]">{selectedClient.name}</p>
+                      <p className="text-xs text-gray-500">{selectedClient.email}</p>
+                      {selectedClient.phone && <p className="text-xs text-gray-400">{selectedClient.phone}</p>}
+                    </div>
+                    <button
+                      onClick={() => setSelectedClient(null)}
+                      className="p-1 hover:bg-gray-100 rounded transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {showNewClientForm && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs text-gray-500">Creando nuevo cliente</p>
+                    <button
+                      onClick={() => setShowNewClientForm(false)}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Nombre completo *"
+                    value={formData.clientName}
+                    onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email *"
+                    value={formData.clientEmail}
+                    onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Contraseña para el cliente *"
+                    value={formData.passClient}
+                    onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                  <input
+                    type="tel"
+                    placeholder="Teléfono (opcional)"
+                    value={formData.clientPhone}
+                    onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Datos del vehículo */}
@@ -812,20 +1040,39 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                 <input
                   type="date"
                   value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value, timeSlot: '', inspectorId: '' })}
                   min={new Date().toISOString().split('T')[0]}
                   className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                 />
-                <select
-                  value={formData.timeSlot}
-                  onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                >
-                  {timeSlots.map((slot) => (
-                    <option key={slot} value={slot}>{slot}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={formData.timeSlot}
+                    onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value, inspectorId: '' })}
+                    disabled={!formData.date || loadingSlots}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100 disabled:cursor-not-allowed w-full"
+                  >
+                    <option value="">
+                      {loadingSlots ? 'Cargando...' : formData.date ? 'Selecciona horario *' : 'Primero selecciona fecha'}
+                    </option>
+                    {availableTimeSlots.map((slot) => (
+                      <option key={slot} value={slot}>{slot}</option>
+                    ))}
+                  </select>
+                  {loadingSlots && (
+                    <div className="absolute right-3 top-2.5">
+                      <svg className="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
               </div>
+              {formData.date && availableTimeSlots.length === 0 && !loadingSlots && (
+                <p className="text-xs text-amber-600 mt-2">
+                  ⚠️ No hay horarios disponibles para esta fecha
+                </p>
+              )}
             </div>
 
             {/* Inspector */}
@@ -833,16 +1080,46 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Inspector (opcional)
               </h3>
-              <select
-                value={formData.inspectorId}
-                onChange={(e) => setFormData({ ...formData, inspectorId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-              >
-                <option value="">Sin asignar</option>
-                {inspectors.map((inspector) => (
-                  <option key={inspector.id} value={inspector.id}>{inspector.name}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={formData.inspectorId}
+                  onChange={(e) => setFormData({ ...formData, inspectorId: e.target.value })}
+                  disabled={loadingInspectors}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100"
+                >
+                  <option value="">Sin asignar (se asignará automáticamente)</option>
+                  {inspectorsWithAvailability.length > 0 ? (
+                    inspectorsWithAvailability.map((inspector) => (
+                      <option
+                        key={inspector.id}
+                        value={inspector.id}
+                        disabled={!inspector.available}
+                      >
+                        {inspector.name} {inspector.available === false ? '(Ocupado)' : ''}
+                      </option>
+                    ))
+                  ) : (
+                    inspectors.map((inspector) => (
+                      <option key={inspector.id} value={inspector.id}>
+                        {inspector.name}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {loadingInspectors && (
+                  <div className="absolute right-3 top-2.5">
+                    <svg className="w-4 h-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {formData.date && formData.timeSlot && (
+                <p className="text-xs text-gray-500 mt-2">
+                  💡 Los inspectores ocupados se mostrarán deshabilitados
+                </p>
+              )}
             </div>
 
             {/* Notas */}
@@ -961,8 +1238,18 @@ export function AdminInspeccionesClient({
         if (!vi || !['PENDIENTE', 'EN_PROCESO'].includes(vi.mechanicalStatus)) {
           return false;
         }
-      } else if (filter === 'COMPLETED') {
-        // Inspecciones completadas (ambos estados completados)
+      } else if (filter === 'COMPLETED_MECHANIC') {
+        // Solo mecánico completó (mecánico listo, admin pendiente)
+        if (!vi || vi.mechanicalStatus !== 'COMPLETADO' || vi.legalStatus === 'COMPLETADO') {
+          return false;
+        }
+      } else if (filter === 'COMPLETED_ADMIN') {
+        // Solo admin completó (admin listo, mecánico pendiente)
+        if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus === 'COMPLETADO') {
+          return false;
+        }
+      } else if (filter === 'FULLY_COMPLETED') {
+        // Inspecciones completamente terminadas (ambos completados)
         if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus !== 'COMPLETADO') {
           return false;
         }

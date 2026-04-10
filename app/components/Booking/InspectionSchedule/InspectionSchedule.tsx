@@ -26,6 +26,7 @@ interface ContactData {
   fullName: string;
   phone: string;
   marketingOptIn: boolean;
+  termsAccepted: boolean;
 }
 
 interface InspectionScheduleProps {
@@ -181,6 +182,51 @@ export default function InspectionSchedule({
             <span className={styles.checkboxText}>
               Deseo recibir consejos para mi compra y ofertas exclusivas de
               Verificarlo.
+            </span>
+          </label>
+        </div>
+
+        {/* =================================================================
+            CHECKBOX: Términos y Condiciones (OBLIGATORIO)
+            =================================================================
+            Este checkbox es obligatorio para continuar con la reserva.
+            Los enlaces abren en nueva pestaña para que el usuario pueda leer
+            los documentos sin perder el progreso del formulario.
+            ================================================================= */}
+        <div className={styles.checkboxWrapper}>
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              checked={contactData.termsAccepted}
+              onChange={(e) =>
+                onContactChange({
+                  ...contactData,
+                  termsAccepted: e.target.checked,
+                })
+              }
+              className={styles.circularCheckbox}
+              required
+            />
+            <span className={styles.checkboxText}>
+              Acepto los{" "}
+              <a
+                href="/terminos-y-condiciones"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.legalLink}
+              >
+                Términos y Condiciones
+              </a>
+              {" "}y la{" "}
+              <a
+                href="/politica-de-privacidad"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.legalLink}
+              >
+                Política de Privacidad
+              </a>
+              {" "}<span className={styles.required}>*</span>
             </span>
           </label>
         </div>

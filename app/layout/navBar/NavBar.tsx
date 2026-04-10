@@ -212,15 +212,15 @@ export default function NavBar() {
           </Link>
         </div>
 
-        <Link
-          href="/login"
-          className={styles["user-icon-button"]}
-          aria-label="Iniciar sesión"
-        >
-          <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
-
-
-        </Link>
+        <div className={styles["navbar-actions"]}>
+          <Link
+            href="/login"
+            className={styles["user-icon-button"]}
+            aria-label="Iniciar sesión"
+          >
+            <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
+          </Link>
+        </div>
 
         {/* Botón hamburguesa para móvil - se oculta cuando el menú está abierto */}
         {!isMobileMenuOpen && (

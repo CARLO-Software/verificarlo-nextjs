@@ -161,7 +161,7 @@ export default function PDFFooter({
               <Text style={styles.footerLogoText}>V</Text>
             </View>
             <Text style={styles.footerText}>VerifiCARLO</Text>
-            <Text style={styles.footerContact}>soporte@verificarlo.pe</Text>
+            <Text style={styles.footerContact}>contacto@carlo.pe</Text>
           </View>
           {/* 📚 CONCEPTO REACT-PDF - Función render:
               Usamos `render` para obtener pageNumber y totalPages dinámicamente */}
@@ -199,7 +199,7 @@ export default function PDFFooter({
 
             <View style={styles.verificationBox}>
               <Text style={styles.verificationLabel}>Verificar este informe en</Text>
-              <Text style={styles.verificationUrl}>verificarlo.pe/validar</Text>
+              <Text style={styles.verificationUrl}>verificarlo.com/validar</Text>
             </View>
           </View>
         </View>

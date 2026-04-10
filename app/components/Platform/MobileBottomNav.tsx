@@ -2,6 +2,7 @@
  * MobileBottomNav: Navegación inferior fija para móviles.
  * Patrón de UX nativo (como apps iOS/Android) que reemplaza
  * la navegación horizontal en pantallas pequeñas (<768px).
+ * Incluye FAB de carrito flotante.
  */
 'use client';
 
@@ -20,8 +21,9 @@ export function MobileBottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
-      <div className="flex items-center justify-around h-16 px-2">
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
+        <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = item.href === '/app'
@@ -56,7 +58,8 @@ export function MobileBottomNav() {
       </div>
 
       {/* Safe area for iOS */}
-      <div className="h-safe-area-inset-bottom bg-white" />
-    </nav>
+        <div className="h-safe-area-inset-bottom bg-white" />
+      </nav>
+    </>
   );
 }

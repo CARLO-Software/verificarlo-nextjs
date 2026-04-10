@@ -54,7 +54,7 @@ export async function sendVerificationCodeEmail(options: {
           <tr>
             <td style="background:#f9fafb;padding:16px 40px;text-align:center;border-top:1px solid #f3f4f6;">
               <p style="margin:0;font-size:12px;color:#9ca3af;">
-                © 2025 VerifiCARLO — verificarlo.pe
+                © 2025 VerifiCARLO — verificarlo.com
               </p>
             </td>
           </tr>

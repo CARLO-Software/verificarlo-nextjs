@@ -346,7 +346,14 @@ export async function getInspectionStats() {
     throw new Error('No autorizado');
   }
 
-  const [pendingAdmin, pendingMechanic, completed, total] = await Promise.all([
+  const [
+    pendingAdmin,
+    pendingMechanic,
+    completedByMechanic,
+    completedByAdmin,
+    fullyCompleted,
+    total
+  ] = await Promise.all([
     // Pendientes admin: legalStatus es PENDIENTE o EN_PROCESO
     db.vehicleInspection.count({
       where: { legalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
@@ -355,7 +362,21 @@ export async function getInspectionStats() {
     db.vehicleInspection.count({
       where: { mechanicalStatus: { in: ['PENDIENTE', 'EN_PROCESO'] } },
     }),
-    // Completadas: ambos estados COMPLETADO
+    // Completado solo por mecánico (mecánico terminó, admin no)
+    db.vehicleInspection.count({
+      where: {
+        mechanicalStatus: 'COMPLETADO',
+        legalStatus: { not: 'COMPLETADO' },
+      },
+    }),
+    // Completado solo por admin (admin terminó, mecánico no)
+    db.vehicleInspection.count({
+      where: {
+        legalStatus: 'COMPLETADO',
+        mechanicalStatus: { not: 'COMPLETADO' },
+      },
+    }),
+    // Completado total: ambos estados COMPLETADO
     db.vehicleInspection.count({
       where: {
         legalStatus: 'COMPLETADO',
@@ -369,7 +390,11 @@ export async function getInspectionStats() {
   return {
     pendingAdmin,
     pendingMechanic,
-    completed,
+    completedByMechanic,
+    completedByAdmin,
+    fullyCompleted,
+    // Mantener 'completed' para compatibilidad (ahora es fullyCompleted)
+    completed: fullyCompleted,
     total,
   };
 }
@@ -690,11 +715,16 @@ export async function createManualBooking(input: ManualBookingInput) {
   });
 
   if (!client) {
+    // Hashear la contraseña antes de crear el usuario
+    const bcrypt = await import('bcryptjs');
+    const hashedPassword = await bcrypt.hash(input.passClient || 'temp123', 10);
+
     client = await db.user.create({
       data: {
         name: input.clientName.trim(),
         email: input.clientEmail.toLowerCase().trim(),
         phone: input.clientPhone?.trim() || null,
+        password: hashedPassword,
         role: 'CLIENT',
       },
     });
@@ -790,6 +820,21 @@ export async function createManualBooking(input: ManualBookingInput) {
         paidAt: new Date(),
         receiptNumber: `MAN-${booking.id}-${Date.now()}`,
       },
+    });
+
+    // 9. Si está pagado, crear VehicleInspection y enviar notificaciones
+    const { createVehicleInspection } = await import('@/lib/vehicle-inspection/create-inspection');
+    const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+
+    await createVehicleInspection({
+      bookingId: booking.id,
+      vehicleId: vehicle.id,
+      clientId: client.id,
+      plate: normalizedPlate,
+      vehicleDescription,
+      clientName: client.name,
+      scheduledDate: input.date,
+      scheduledTime: input.timeSlot,
     });
   }
 

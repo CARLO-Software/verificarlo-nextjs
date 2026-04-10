@@ -222,6 +222,18 @@
   line-height: 1.5;
 }
 
+/* Enlaces legales dentro del checkbox de términos */
+.legalLink {
+  color: #f59e0b;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.legalLink:hover {
+  color: #d97706;
+}
+
 /* =============================================================================
    Nota al pie
    ============================================================================= */

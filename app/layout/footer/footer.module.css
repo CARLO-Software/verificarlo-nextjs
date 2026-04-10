@@ -276,6 +276,40 @@
 }
 
 /* ============================================
+   Sección de Enlaces Legales
+   ============================================ */
+
+.legalSection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 28px 0;
+  text-align: center;
+}
+
+.legalLink {
+  color: var(--shark--400);
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legalLink:hover {
+  color: var(--bright-sun--300);
+  text-decoration: underline;
+}
+
+.legalSeparator {
+  color: var(--shark--600);
+  margin: 0 4px;
+  font-size: 13px;
+}
+
+/* ============================================
    Libro de Reclamaciones
    ============================================ */
 

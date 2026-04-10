@@ -11,10 +11,12 @@ interface GoogleButtonProps {
 //* Esto es importante //Si es exitoso dirige a login
 export function GoogleButton({
   text = "Continuar con Google",
+  callbackUrl,
 }: GoogleButtonProps) {
 
   const handleGoogleSignIn = () => {
-    signIn("google");
+    // Si hay callbackUrl, usarlo para redirigir después del login con Google
+    signIn("google", { callbackUrl: callbackUrl || "/perfil" });
   };
 
   return (

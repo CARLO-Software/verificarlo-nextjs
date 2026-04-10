@@ -1,17 +1,21 @@
 "use client" //si no se ponia era use client de todas maneras, porque se está haciendo uso del useState
 import { useState, useEffect, useRef } from "react";
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { LoginFormData, FormErrors } from "./types";
 import { useToast } from "@/app/components/Toast";
 
 
 export function useLogin() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { showToast } = useToast();
     const { data: session, status } = useSession();
     const hasShownToast = useRef(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
+
+    // Leer callbackUrl de los parámetros de la URL
+    const callbackUrl = searchParams.get("callbackUrl");
 
     useEffect(() => {
         if (status !== "authenticated") return;
@@ -22,12 +26,18 @@ export function useLogin() {
         const role = session.user.role;
         showToast("Bienvenido!", "success");
 
+        // Si hay callbackUrl y el usuario es CLIENT, redirigir ahí
+        if (callbackUrl && role === "CLIENT") {
+            router.replace(callbackUrl);
+            return;
+        }
+
         const redirectMap: Record<string, string> = {
             ADMIN: "/admin",
             INSPECTOR: "/inspector",
         };
         router.replace(redirectMap[role] || "/perfil");
-    }, [status, session?.user?.role, showToast, router]);
+    }, [status, session?.user?.role, showToast, router, callbackUrl]);
 
 
     const [formData, setFormData] = useState<LoginFormData>({
