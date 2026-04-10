@@ -1,22 +1,22 @@
 // ============================================
 // Estilos compartidos para componentes PDF
-// Paleta: Amarillo VerifiCARLO, Gris Grafito, Negro, Blanco
-// Rediseño estratégico: Enfoque en decisión y claridad económica
+// REDISEÑO: Sistema de colores estricto para decisión clara
+// Rojo = Crítico | Amarillo = Observación | Verde = OK | Gris = Neutro
 // ============================================
 
 import { StyleSheet } from '@react-pdf/renderer';
 
-// Colores de marca VerifiCARLO - Paleta profesional refinada
+// Sistema de colores estricto - Solo 4 significados semánticos
 export const colors = {
-  // PRIMARIOS
-  brand: '#F5D849',              // Amarillo VerifiCARLO
+  // MARCA
+  brand: '#F5D849',              // Amarillo VerifiCARLO (solo branding)
   brandDark: '#C9A900',          // Amarillo para texto sobre blanco
-  graphite: '#1F2937',           // Gris grafito principal (más oscuro)
 
-  // NEUTROS
-  charcoal: '#374151',           // Gris carbón (texto principal)
-  slate: '#6B7280',              // Gris pizarra (texto secundario)
-  silver: '#9CA3AF',             // Gris plata (texto terciario)
+  // NEUTROS (para texto y estructura)
+  graphite: '#1F2937',           // Títulos y texto principal
+  charcoal: '#374151',           // Texto secundario
+  slate: '#6B7280',              // Texto terciario
+  silver: '#9CA3AF',             // Texto muy sutil
 
   // FONDOS
   white: '#FFFFFF',
@@ -24,30 +24,43 @@ export const colors = {
   lightGray: '#F3F4F6',
   borderGray: '#E5E7EB',
 
-  // ESTADOS SEMÁNTICOS (protagonistas del informe)
-  success: '#047857',            // Verde más profundo
-  successBg: '#ECFDF5',
-  successBorder: '#A7F3D0',
+  // ============================================
+  // SEMÁFORO DE DECISIÓN (colores protagonistas)
+  // ============================================
 
-  warning: '#B45309',            // Ámbar más oscuro (legibilidad)
+  // ROJO - Defectos críticos (NO COMPRAR)
+  danger: '#DC2626',             // Rojo vibrante para máxima visibilidad
+  dangerDark: '#B91C1C',         // Rojo para texto
+  dangerBg: '#FEF2F2',
+  dangerBgStrong: '#FEE2E2',     // Fondo más intenso para banners
+  dangerBorder: '#FECACA',
+
+  // AMARILLO - Observaciones (NEGOCIAR)
+  warning: '#D97706',            // Ámbar para observaciones
+  warningDark: '#B45309',        // Ámbar para texto
   warningBg: '#FFFBEB',
+  warningBgStrong: '#FEF3C7',    // Fondo más intenso para banners
   warningBorder: '#FDE68A',
 
-  danger: '#B91C1C',             // Rojo más profundo
-  dangerBg: '#FEF2F2',
-  dangerBorder: '#FECACA',
+  // VERDE - Todo OK (COMPRA SEGURA)
+  success: '#059669',            // Verde para aprobado
+  successDark: '#047857',        // Verde para texto
+  successBg: '#ECFDF5',
+  successBgStrong: '#D1FAE5',    // Fondo más intenso para banners
+  successBorder: '#A7F3D0',
 
   black: '#000000',
 };
 
-// Función helper para obtener colores de veredicto
-// Rediseñado: Mensajes orientados a ACCIÓN, no solo estados
+// Configuración de veredicto - Mensajes claros y directos
 export function getVerdictConfig(status: string, estimatedCost?: number | null): {
   label: string;
   subtitle: string;
   description: string;
   color: string;
+  colorDark: string;
   bgColor: string;
+  bgColorStrong: string;
   borderColor: string;
   icon: string;
 } {
@@ -55,30 +68,40 @@ export function getVerdictConfig(status: string, estimatedCost?: number | null):
     case 'OK':
       return {
         label: 'COMPRA SEGURA',
-        subtitle: 'Puede proceder con confianza',
-        description: 'Sin reparaciones urgentes detectadas. El vehículo cumple con los estándares de seguridad y funcionamiento.',
+        subtitle: 'El vehículo está en buenas condiciones',
+        description: 'No se encontraron defectos ni observaciones significativas.',
         color: colors.success,
+        colorDark: colors.successDark,
         bgColor: colors.successBg,
+        bgColorStrong: colors.successBgStrong,
         borderColor: colors.successBorder,
         icon: '✓',
       };
     case 'WARNING':
       return {
-        label: 'COMPRA CON NEGOCIACIÓN',
-        subtitle: estimatedCost ? `Negocie S/ ${estimatedCost.toLocaleString('es-PE')} de descuento` : 'Negocie el precio antes de comprar',
-        description: 'El vehículo presenta observaciones que no afectan la seguridad inmediata, pero requieren correcciones. Use el costo estimado como base de negociación.',
+        label: 'NEGOCIAR PRECIO',
+        subtitle: estimatedCost
+          ? `Descuento sugerido: S/ ${estimatedCost.toLocaleString('es-PE')}`
+          : 'Requiere reparaciones menores',
+        description: 'Observaciones detectadas que no afectan la seguridad pero requieren atención.',
         color: colors.warning,
+        colorDark: colors.warningDark,
         bgColor: colors.warningBg,
+        bgColorStrong: colors.warningBgStrong,
         borderColor: colors.warningBorder,
         icon: '!',
       };
     case 'CRITICAL':
       return {
         label: 'NO COMPRAR',
-        subtitle: estimatedCost ? `Riesgo de gastos mayores a S/ ${estimatedCost.toLocaleString('es-PE')}` : 'No recomendamos esta compra',
-        description: 'El vehículo presenta defectos que comprometen la seguridad o requieren reparaciones significativas. No recomendamos la compra en las condiciones actuales.',
+        subtitle: estimatedCost
+          ? `Reparaciones estimadas: S/ ${estimatedCost.toLocaleString('es-PE')}+`
+          : 'Defectos críticos detectados',
+        description: 'El vehículo presenta problemas que comprometen la seguridad o requieren reparaciones costosas.',
         color: colors.danger,
+        colorDark: colors.dangerDark,
         bgColor: colors.dangerBg,
+        bgColorStrong: colors.dangerBgStrong,
         borderColor: colors.dangerBorder,
         icon: '✕',
       };
@@ -88,56 +111,102 @@ export function getVerdictConfig(status: string, estimatedCost?: number | null):
         subtitle: 'Inspección en proceso',
         description: 'La inspección no ha sido completada.',
         color: colors.slate,
+        colorDark: colors.slate,
         bgColor: colors.lightGray,
+        bgColorStrong: colors.lightGray,
         borderColor: colors.borderGray,
         icon: '?',
       };
   }
 }
 
-// Función helper para obtener color de categoría (semáforo)
+// Indicador de categoría (semáforo visual)
 export function getCategoryIndicator(status: string): {
   color: string;
+  bgColor: string;
   label: string;
 } {
   switch (status) {
     case 'OK':
-      return { color: colors.success, label: 'Sin problemas' };
+      return {
+        color: colors.success,
+        bgColor: colors.successBg,
+        label: 'OK',
+      };
     case 'WARNING':
     case 'OBSERVACION':
-      return { color: colors.warning, label: 'Observaciones' };
+      return {
+        color: colors.warning,
+        bgColor: colors.warningBg,
+        label: 'Observaciones',
+      };
     case 'CRITICAL':
     case 'DEFECTO':
-      return { color: colors.danger, label: 'Requiere atención' };
+      return {
+        color: colors.danger,
+        bgColor: colors.dangerBg,
+        label: 'Defectos',
+      };
     default:
-      return { color: colors.silver, label: 'Pendiente' };
+      return {
+        color: colors.silver,
+        bgColor: colors.lightGray,
+        label: '-',
+      };
   }
 }
 
-// Función para badges de checklist
-export function getStatusColor(status: string): { bg: string; text: string } {
+// Colores para badges de estado
+export function getStatusColor(status: string): {
+  bg: string;
+  bgStrong: string;
+  text: string;
+  border: string;
+} {
   switch (status) {
     case 'OK':
-      return { bg: colors.successBg, text: colors.success };
+      return {
+        bg: colors.successBg,
+        bgStrong: colors.successBgStrong,
+        text: colors.successDark,
+        border: colors.successBorder,
+      };
     case 'WARNING':
     case 'OBSERVACION':
-      return { bg: colors.warningBg, text: colors.warning };
+      return {
+        bg: colors.warningBg,
+        bgStrong: colors.warningBgStrong,
+        text: colors.warningDark,
+        border: colors.warningBorder,
+      };
     case 'CRITICAL':
     case 'DEFECTO':
-      return { bg: colors.dangerBg, text: colors.danger };
+      return {
+        bg: colors.dangerBg,
+        bgStrong: colors.dangerBgStrong,
+        text: colors.dangerDark,
+        border: colors.dangerBorder,
+      };
     default:
-      return { bg: colors.lightGray, text: colors.slate };
+      return {
+        bg: colors.lightGray,
+        bgStrong: colors.lightGray,
+        text: colors.slate,
+        border: colors.borderGray,
+      };
   }
 }
 
-// Función legacy para compatibilidad
+// Texto de estado para badges
 export function getStatusText(status: string): string {
   switch (status) {
     case 'OK':
       return 'OK';
     case 'WARNING':
+    case 'OBSERVACION':
       return 'OBSERVACIÓN';
     case 'CRITICAL':
+    case 'DEFECTO':
       return 'DEFECTO';
     default:
       return '-';
@@ -149,11 +218,12 @@ export const baseStyles = StyleSheet.create({
   page: {
     flexDirection: 'column',
     backgroundColor: colors.white,
-    padding: 40,
+    padding: 30,
+    paddingBottom: 70,
     fontFamily: 'Helvetica',
   },
   section: {
-    marginBottom: 15,
+    marginBottom: 12,
   },
   row: {
     flexDirection: 'row',
@@ -162,12 +232,21 @@ export const baseStyles = StyleSheet.create({
   col: {
     flexDirection: 'column',
   },
+  card: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 10,
+  },
 });
 
-// Estilos de tipografía
+// Tipografía consistente
 export const typography = StyleSheet.create({
+  // Títulos
   h1: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.graphite,
     marginBottom: 8,
@@ -177,6 +256,8 @@ export const typography = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.graphite,
     marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   h3: {
     fontSize: 11,
@@ -184,17 +265,25 @@ export const typography = StyleSheet.create({
     color: colors.charcoal,
     marginBottom: 4,
   },
+  // Cuerpo de texto
   body: {
     fontSize: 9,
     color: colors.charcoal,
     lineHeight: 1.5,
   },
-  small: {
+  bodySmall: {
     fontSize: 8,
+    color: colors.charcoal,
+    lineHeight: 1.4,
+  },
+  // Texto secundario
+  small: {
+    fontSize: 7,
     color: colors.slate,
   },
+  // Labels y valores
   label: {
-    fontSize: 8,
+    fontSize: 7,
     color: colors.slate,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -204,5 +293,11 @@ export const typography = StyleSheet.create({
     fontSize: 10,
     color: colors.graphite,
     fontWeight: 'bold',
+  },
+  // Números destacados
+  bigNumber: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: colors.graphite,
   },
 });

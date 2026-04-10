@@ -24,7 +24,6 @@ interface ReportFull extends ReportSummary {
   bodyStatus: InspectionResultStatus;
   bodyScore: number | null;
   executiveSummary: string | null;
-  recommendations: string | null;
   completedAt: Date | null;
   legalReport?: {
     id: number;
@@ -469,7 +468,6 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           overallScore: true,
           overallStatus: true,
           executiveSummary: true,
-          recommendations: true,
           completedAt: true,
           pdfUrl: true,
           legalReport: {

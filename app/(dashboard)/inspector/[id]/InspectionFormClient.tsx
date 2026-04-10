@@ -28,16 +28,12 @@ interface Report {
   interiorObservations?: JsonValue;
   checklistResults?: InspectionResults;
   mileageAtInspection: number | null;
-  vinNumber: string | null;
-  engineNumber: string | null;
-  actualColor: string | null;
   ownershipCardVerified: boolean;
   soatValid: boolean;
   soatExpiryDate: string | null;
   technicalReviewValid: boolean;
   technicalReviewExpiryDate: string | null;
   executiveSummary: string | null;
-  recommendations: string | null;
   estimatedRepairCost: number | null;
   overallScore: number | null;
   overallStatus: ResultStatus;
@@ -345,9 +341,6 @@ function InfoSection({
   onPlateRegistered: (plate: string) => void;
 }) {
   const { showToast } = useToast();
-  const [vinNumber, setVinNumber] = useState(report?.vinNumber || "");
-  const [engineNumber, setEngineNumber] = useState(report?.engineNumber || "");
-  const [actualColor, setActualColor] = useState(report?.actualColor || "");
   const [saving, setSaving] = useState(false);
 
   // Estado para registro de placa
@@ -431,9 +424,6 @@ function InfoSection({
           section: "vehicle",
           data: {
             mileageAtInspection: inspection.vehicle.mileage,
-            vinNumber: vinNumber || null,
-            engineNumber: engineNumber || null,
-            actualColor: actualColor || null,
           },
         }),
       });
@@ -441,9 +431,6 @@ function InfoSection({
       if (res.ok) {
         onUpdate({
           mileageAtInspection: inspection.vehicle.mileage,
-          vinNumber: vinNumber || null,
-          engineNumber: engineNumber || null,
-          actualColor: actualColor || null,
         });
       }
     } catch (err) {
@@ -524,9 +511,9 @@ function InfoSection({
         <div className={styles.plateRegisterCard}>
           <div className={styles.plateRegisterHeader}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2"/>
-              <circle cx="6" cy="12" r="1.5" fill="currentColor"/>
-              <circle cx="18" cy="12" r="1.5" fill="currentColor"/>
+              <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+              <circle cx="6" cy="12" r="1.5" fill="currentColor" />
+              <circle cx="18" cy="12" r="1.5" fill="currentColor" />
             </svg>
             <div>
               <h3 className={styles.plateRegisterTitle}>Registrar Placa del Vehículo</h3>
@@ -565,7 +552,7 @@ function InfoSection({
               ) : (
                 <>
                   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                    <path d="M15 4.5L6.75 12.75L3 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M15 4.5L6.75 12.75L3 9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                   Registrar Placa
                 </>
@@ -607,42 +594,9 @@ function InfoSection({
       <div className={styles.formSection}>
         <h3 className={styles.formSectionTitle}>Verificación del Inspector</h3>
         <p className={styles.formSectionSubtitle}>Datos que debes verificar físicamente</p>
-        <div className={styles.formGrid}>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Número VIN</label>
-            <input
-              type="text"
-              value={vinNumber}
-              onChange={(e) => setVinNumber(e.target.value.toUpperCase())}
-              placeholder="17 caracteres"
-              maxLength={17}
-              className={styles.input}
-              disabled={disabled}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Número de motor</label>
-            <input
-              type="text"
-              value={engineNumber}
-              onChange={(e) => setEngineNumber(e.target.value.toUpperCase())}
-              placeholder="Número de motor"
-              className={styles.input}
-              disabled={disabled}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Color real del vehículo</label>
-            <input
-              type="text"
-              value={actualColor}
-              onChange={(e) => setActualColor(e.target.value)}
-              placeholder="Ej: Gris plata metálico"
-              className={styles.input}
-              disabled={disabled}
-            />
-          </div>
-        </div>
+        {/* <div className={styles.formGrid}>
+        quizas el kilometraje este aca
+        </div> */}
         {!disabled && (
           <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
             {saving ? "Guardando..." : "Guardar verificación"}
@@ -821,13 +775,13 @@ function VoiceTextarea({
           >
             {isListening ? (
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="6" y="6" width="8" height="8" rx="1" fill="currentColor"/>
+                <rect x="6" y="6" width="8" height="8" rx="1" fill="currentColor" />
               </svg>
             ) : (
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="currentColor"/>
-                <path d="M5 9a5 5 0 0 0 10 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M10 14v4M7 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M10 2a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" fill="currentColor" />
+                <path d="M5 9a5 5 0 0 0 10 0" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M10 14v4M7 18h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             )}
           </button>
@@ -836,7 +790,7 @@ function VoiceTextarea({
       {isListening && (
         <div className={`${styles.voiceStatusHint} ${styles["voiceStatusHint--recording"]}`}>
           <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-            <circle cx="4" cy="4" r="4" fill="currentColor"/>
+            <circle cx="4" cy="4" r="4" fill="currentColor" />
           </svg>
           Escuchando... Habla ahora
         </div>
@@ -862,7 +816,6 @@ function SummarySection({
   disabled: boolean;
 }) {
   const [summary, setSummary] = useState(report.executiveSummary || "");
-  const [recommendations, setRecommendations] = useState(report.recommendations || "");
   const [repairCost, setRepairCost] = useState(report.estimatedRepairCost?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
@@ -888,14 +841,12 @@ function SummarySection({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           executiveSummary: summary || null,
-          recommendations: recommendations || null,
           estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
         }),
       });
 
       onUpdate({
         executiveSummary: summary || null,
-        recommendations: recommendations || null,
         estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
       });
     } catch (error) {
@@ -1019,14 +970,6 @@ function SummarySection({
         label="Resumen ejecutivo"
       />
 
-      {/* Recomendaciones con micrófono */}
-      <VoiceTextarea
-        value={recommendations}
-        onChange={setRecommendations}
-        placeholder="Recomendaciones para el cliente. Puedes dictar con el micrófono..."
-        disabled={disabled}
-        label="Recomendaciones"
-      />
 
       {/* Costo estimado */}
       <div className={styles.formGroup}>

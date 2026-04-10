@@ -33,9 +33,6 @@ export interface UpdateReportInput {
 
   // Datos del vehículo
   mileageAtInspection?: number;
-  vinNumber?: string;
-  engineNumber?: string;
-  actualColor?: string;
 
   // Verificación de documentos
   ownershipCardVerified?: boolean;
@@ -46,7 +43,6 @@ export interface UpdateReportInput {
 
   // Resumen
   executiveSummary?: string;
-  recommendations?: string;
   estimatedRepairCost?: number;
 }
 
@@ -234,9 +230,6 @@ export async function updateReport(reportId: number, input: UpdateReportInput) {
 
   // Datos del vehículo
   if (input.mileageAtInspection !== undefined) updateData.mileageAtInspection = input.mileageAtInspection;
-  if (input.vinNumber !== undefined) updateData.vinNumber = input.vinNumber;
-  if (input.engineNumber !== undefined) updateData.engineNumber = input.engineNumber;
-  if (input.actualColor !== undefined) updateData.actualColor = input.actualColor;
 
   // Verificación de documentos
   if (input.ownershipCardVerified !== undefined) updateData.ownershipCardVerified = input.ownershipCardVerified;
@@ -247,7 +240,6 @@ export async function updateReport(reportId: number, input: UpdateReportInput) {
 
   // Resumen
   if (input.executiveSummary !== undefined) updateData.executiveSummary = input.executiveSummary;
-  if (input.recommendations !== undefined) updateData.recommendations = input.recommendations;
   if (input.estimatedRepairCost !== undefined) updateData.estimatedRepairCost = input.estimatedRepairCost;
 
   const updatedReport = await db.inspectionReport.update({
@@ -362,9 +354,6 @@ export async function updateVehicleData(
   reportId: number,
   data: {
     mileageAtInspection?: number;
-    vinNumber?: string;
-    engineNumber?: string;
-    actualColor?: string;
   }
 ) {
   const report = await db.inspectionReport.findUnique({
@@ -601,7 +590,23 @@ export async function completeReport(reportId: number) {
     select: { name: true },
   });
 
-  // Actualizar informe y booking en una transacción
+  // Obtener el booking para conseguir el vehicleId
+  const booking = await db.booking.findUnique({
+    where: { id: report.bookingId },
+    select: { vehicleId: true, clientId: true },
+  });
+
+  // Obtener el VehicleInspection asociado al vehículo
+  const vehicleInspection = booking ? await db.vehicleInspection.findFirst({
+    where: {
+      vehicleId: booking.vehicleId,
+      clientId: booking.clientId,
+    },
+    select: { id: true },
+    orderBy: { createdAt: 'desc' },
+  }) : null;
+
+  // Actualizar informe, booking y vehicleInspection en una transacción
   const [updatedReport] = await db.$transaction([
     db.inspectionReport.update({
       where: { id: reportId },
@@ -627,6 +632,16 @@ export async function completeReport(reportId: number) {
         completedAt: new Date(),
       },
     }),
+    // Actualizar VehicleInspection.mechanicalStatus a COMPLETADO
+    ...(vehicleInspection ? [
+      db.vehicleInspection.update({
+        where: { id: vehicleInspection.id },
+        data: {
+          mechanicalStatus: 'COMPLETADO',
+          mechanicCompletedAt: new Date(),
+        },
+      }),
+    ] : []),
   ]);
 
   // Generar PDF en segundo plano (no bloquea la respuesta)

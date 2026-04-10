@@ -78,7 +78,6 @@ export default async function InspeccionDetallePage({ params }: PageProps) {
             overallScore: booking.report.overallScore,
             overallStatus: booking.report.overallStatus,
             executiveSummary: booking.report.executiveSummary,
-            recommendations: booking.report.recommendations,
             completedAt: booking.report.completedAt?.toISOString() || null,
             // Usar la API de Next.js para servir el PDF (no Cloudinary)
             pdfUrl: null,

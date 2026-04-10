@@ -1,14 +1,10 @@
 /**
- * InspectionDetailClient: Vista detallada de una inspección.
- *
- * Muestra toda la información con acciones contextuales según estado:
- * - PENDIENTE/CONFIRMADA: Cancelar (con regla 24h), Reprogramar
- * - COMPLETADA: Descargar informe, ver resultados
- * - CANCELADA: Solo información histórica
+ * InspectionDetailClient: Vista premium de una inspección.
+ * Diseño +$10k: Glassmorphism, animaciones fluidas, jerarquía clara
  */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -34,6 +30,10 @@ import {
   Navigation,
   HelpCircle,
   Info,
+  Sparkles,
+  Shield,
+  ChevronRight,
+  ExternalLink,
 } from 'lucide-react';
 import { BookingStatus } from '@prisma/client';
 import { getVerdict, getScoreCategoryInfo, type ScoreCategory } from '@/lib/inspection-verdict';
@@ -79,7 +79,6 @@ interface Inspection {
     bodyScore: number | null;
     bodyStatus: string;
     executiveSummary: string | null;
-    recommendations: string | null;
     pdfUrl: string | null;
     completedAt: Date | null;
     legalReport: {
@@ -109,62 +108,70 @@ interface Props {
   inspection: Inspection;
 }
 
-// Configuración de estados
+// Configuración de estados con diseño premium
 const statusConfig: Record<string, {
   label: string;
   description: string;
   icon: React.ElementType;
   gradient: string;
-  iconBg: string;
+  glowColor: string;
+  bgPattern: string;
 }> = {
   PENDING_PAYMENT: {
     label: 'Pendiente de pago',
     description: 'Completa el pago para confirmar tu inspección',
     icon: Clock,
-    gradient: 'from-amber-500 to-orange-500',
-    iconBg: 'bg-amber-100 text-amber-600',
+    gradient: 'from-amber-500 via-orange-500 to-amber-600',
+    glowColor: 'shadow-amber-500/30',
+    bgPattern: 'radial-gradient(circle at 20% 80%, rgba(251,191,36,0.15) 0%, transparent 50%)',
   },
   PENDING_VERIFICATION: {
     label: 'Verificando pago',
-    description: 'Tu pago está siendo verificado por nuestro equipo',
+    description: 'Tu pago está siendo verificado',
     icon: Clock,
-    gradient: 'from-orange-500 to-amber-500',
-    iconBg: 'bg-orange-100 text-orange-600',
+    gradient: 'from-orange-500 via-amber-500 to-orange-600',
+    glowColor: 'shadow-orange-500/30',
+    bgPattern: 'radial-gradient(circle at 80% 20%, rgba(249,115,22,0.15) 0%, transparent 50%)',
   },
   PAID: {
-    label: 'Pagado',
-    description: 'Estamos asignando un inspector a tu cita',
+    label: 'Confirmada',
+    description: 'Tu inspección está programada',
     icon: CheckCircle2,
-    gradient: 'from-green-500 to-emerald-500',
-    iconBg: 'bg-green-100 text-green-600',
+    gradient: 'from-emerald-500 via-green-500 to-teal-500',
+    glowColor: 'shadow-emerald-500/30',
+    bgPattern: 'radial-gradient(circle at 20% 80%, rgba(16,185,129,0.15) 0%, transparent 50%)',
   },
   COMPLETED: {
     label: 'Completada',
-    description: 'Inspección finalizada exitosamente',
-    icon: CheckCircle2,
-    gradient: 'from-green-500 to-emerald-500',
-    iconBg: 'bg-green-100 text-green-600',
+    description: 'Tu informe está listo',
+    icon: Sparkles,
+    gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+    glowColor: 'shadow-emerald-500/40',
+    bgPattern: 'radial-gradient(circle at 80% 20%, rgba(20,184,166,0.2) 0%, transparent 50%)',
   },
   CANCELLED: {
     label: 'Cancelada',
     description: 'Esta inspección fue cancelada',
     icon: XCircle,
-    gradient: 'from-red-500 to-rose-500',
-    iconBg: 'bg-red-100 text-red-600',
+    gradient: 'from-gray-600 via-gray-700 to-gray-800',
+    glowColor: 'shadow-gray-500/20',
+    bgPattern: 'none',
   },
   NO_SHOW: {
     label: 'No asistió',
     description: 'No te presentaste a la cita',
     icon: AlertCircle,
-    gradient: 'from-gray-500 to-gray-600',
-    iconBg: 'bg-gray-100 text-gray-600',
+    gradient: 'from-gray-500 via-gray-600 to-gray-700',
+    glowColor: 'shadow-gray-500/20',
+    bgPattern: 'none',
   },
   EXPIRED: {
     label: 'Expirada',
     description: 'El tiempo de pago expiró',
     icon: Clock,
-    gradient: 'from-gray-500 to-gray-600',
-    iconBg: 'bg-gray-100 text-gray-600',
+    gradient: 'from-gray-500 via-gray-600 to-gray-700',
+    glowColor: 'shadow-gray-500/20',
+    bgPattern: 'none',
   },
 };
 
@@ -172,6 +179,11 @@ export function InspectionDetailClient({ inspection }: Props) {
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const status = statusConfig[inspection.status] || statusConfig.PENDING_PAYMENT;
   const StatusIcon = status.icon;
@@ -182,12 +194,9 @@ export function InspectionDetailClient({ inspection }: Props) {
   const canCancel = hoursUntil > 0;
   const isPending = ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID'].includes(inspection.status);
   const isCompleted = inspection.status === 'COMPLETED';
-  // Estado de cancelación (disponible para uso futuro)
-  const _isCancelled = ['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status);
-
 
   // Formatear fecha
-  const formattedDate = format(new Date(inspection.startTime), "EEEE, d 'de' MMMM yyyy", { locale: es });
+  const formattedDate = format(new Date(inspection.startTime), "EEEE d 'de' MMMM", { locale: es });
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   const handleCancel = async () => {
@@ -214,324 +223,327 @@ export function InspectionDetailClient({ inspection }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
-      {/* Header con estado */}
-      <div className={`bg-gradient-to-r ${status.gradient} text-white`}>
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
-          {/* Back button */}
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 pb-32 md:pb-12">
+      {/* ═══════════════════════════════════════════════════════════════
+          HEADER PREMIUM - Glassmorphism + Gradientes
+      ═══════════════════════════════════════════════════════════════ */}
+      <div className="relative overflow-hidden">
+        {/* Fondo con gradiente y patrón */}
+        <div
+          className={`absolute inset-0 bg-gradient-to-br ${status.gradient}`}
+          style={{ backgroundImage: status.bgPattern }}
+        />
+
+        {/* Elementos decorativos flotantes */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-black/10 rounded-full blur-3xl" />
+        </div>
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          {/* Back button - Glassmorphism */}
           <Link
             href="/inspecciones"
-            className="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 transition-colors"
+            className={`
+              inline-flex items-center gap-2 mb-6
+              px-4 py-2 rounded-full
+              bg-white/20 backdrop-blur-md border border-white/30
+              text-white/90 hover:text-white hover:bg-white/30
+              transition-all duration-300 ease-out
+              ${mounted ? 'animate-in fade-in slide-in-from-left-4 duration-500' : 'opacity-0'}
+            `}
           >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Volver</span>
+            <ArrowLeft size={16} />
+            <span className="text-sm font-medium">Mis inspecciones</span>
           </Link>
 
-          {/* Status badge grande */}
-          <div className="flex items-start gap-4">
+          {/* Status principal */}
+          <div className={`
+            flex items-start gap-5
+            ${mounted ? 'animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100' : 'opacity-0'}
+          `}>
+            {/* Ícono con glow */}
             <div className={`
-              w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm
+              relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl
+              bg-white/20 backdrop-blur-md border border-white/30
               flex items-center justify-center
-              animate-in zoom-in duration-300
+              shadow-2xl ${status.glowColor}
             `}>
-              <StatusIcon size={28} />
+              <StatusIcon size={32} className="text-white" />
+              {isCompleted && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center">
+                  <CheckCircle2 size={14} className="text-emerald-500" />
+                </div>
+              )}
             </div>
 
-            <div className="flex-1">
-              <p className="text-white/70 text-sm font-medium mb-1">{inspection.code}</p>
-              <h1 className="text-2xl sm:text-3xl font-bold mb-1">{status.label}</h1>
-              <p className="text-white/80 text-sm">{status.description}</p>
+            <div className="flex-1 min-w-0">
+              {/* Código con pill */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm mb-2">
+                <span className="text-white/80 text-xs font-mono">{inspection.code}</span>
+              </div>
+
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 tracking-tight">
+                {status.label}
+              </h1>
+              <p className="text-white/80 text-sm sm:text-base">
+                {status.description}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-4">
-        {/* Card principal de fecha/hora */}
+      {/* ═══════════════════════════════════════════════════════════════
+          CONTENIDO PRINCIPAL
+      ═══════════════════════════════════════════════════════════════ */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-6 relative z-10">
+
+        {/* ─── CARD FECHA/HORA (Solo si pending) ─────────────────────── */}
         {isPending && (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-[#F5D849]/20 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">
-                  {format(new Date(inspection.startTime), 'd')}
-                </span>
-                <span className="text-xs font-medium text-gray-500 uppercase">
-                  {format(new Date(inspection.startTime), 'MMM', { locale: es })}
-                </span>
+          <div className={`
+            bg-white rounded-3xl shadow-xl shadow-gray-200/50
+            border border-gray-100/50
+            p-6 mb-6 overflow-hidden
+            ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200' : 'opacity-0'}
+          `}>
+            <div className="flex items-center gap-5">
+              {/* Calendario visual */}
+              <div className="relative">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#F5D849] to-[#f0c424] flex flex-col items-center justify-center shadow-lg shadow-yellow-200/50">
+                  <span className="text-3xl font-bold text-gray-900">
+                    {format(new Date(inspection.startTime), 'd')}
+                  </span>
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    {format(new Date(inspection.startTime), 'MMM', { locale: es })}
+                  </span>
+                </div>
+                {/* Indicador de estado */}
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <CheckCircle2 size={12} className="text-white" />
+                </div>
               </div>
 
               <div className="flex-1">
-                <p className="font-semibold text-gray-900">{capitalizedDate}</p>
-                <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Clock size={14} />
-                    {inspection.timeSlot}
+                <p className="text-lg font-semibold text-gray-900">{capitalizedDate}</p>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2">
+                  <span className="flex items-center gap-1.5 text-gray-600">
+                    <Clock size={14} className="text-gray-400" />
+                    <span className="font-medium">{inspection.timeSlot}</span>
                   </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin size={14} />
-                    Centro de inspección
+                  <span className="flex items-center gap-1.5 text-gray-600">
+                    <MapPin size={14} className="text-gray-400" />
+                    <span>A domicilio</span>
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Countdown si está próxima */}
-            {hoursUntil > 0 && hoursUntil < 48 && (
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-500">
-                  {hoursUntil < 24 ? (
-                    <span className="text-amber-600 font-medium">
-                      ⏰ Faltan menos de 24 horas
-                    </span>
-                  ) : (
-                    <span>Faltan aproximadamente {Math.floor(hoursUntil)} horas</span>
-                  )}
-                </p>
+            {/* Countdown premium */}
+            {hoursUntil > 0 && hoursUntil < 72 && (
+              <div className="mt-5 pt-5 border-t border-gray-100">
+                <div className={`
+                  flex items-center gap-3 px-4 py-3 rounded-xl
+                  ${hoursUntil < 24
+                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200'
+                    : 'bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200'
+                  }
+                `}>
+                  <div className={`
+                    w-10 h-10 rounded-full flex items-center justify-center
+                    ${hoursUntil < 24 ? 'bg-amber-100' : 'bg-emerald-100'}
+                  `}>
+                    <Clock size={18} className={hoursUntil < 24 ? 'text-amber-600' : 'text-emerald-600'} />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-semibold ${hoursUntil < 24 ? 'text-amber-800' : 'text-emerald-800'}`}>
+                      {hoursUntil < 24 ? 'Tu cita es pronto' : 'Faltan'}
+                    </p>
+                    <p className={`text-xs ${hoursUntil < 24 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                      {hoursUntil < 24
+                        ? `Menos de ${Math.ceil(hoursUntil)} horas`
+                        : `Aproximadamente ${Math.floor(hoursUntil)} horas`
+                      }
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        {/* Timeline de progreso */}
+        {/* ─── TIMELINE PREMIUM ──────────────────────────────────────── */}
         <InspectionTimeline
           createdAt={inspection.createdAt}
           mechanicalCompletedAt={inspection.report?.completedAt || null}
           legalCompletedAt={inspection.report?.legalReport?.completedAt || null}
           vehicleInspection={inspection.vehicleInspection}
           bookingId={inspection.id}
+          mounted={mounted}
         />
 
-        {/* Ubicación: Origen y Destino */}
+        {/* ─── RESULTADOS (Si completada) ────────────────────────────── */}
+        {isCompleted && inspection.report && (
+          <ResultsCard
+            report={inspection.report}
+            inspectionId={inspection.id}
+            mounted={mounted}
+          />
+        )}
+
+        {/* ─── GRID DE INFO ──────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {/* Vehículo */}
+          <InfoCard
+            icon={Car}
+            title="Vehículo"
+            delay={400}
+            mounted={mounted}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center border border-gray-200">
+                <Car size={24} className="text-gray-500" />
+              </div>
+              <div>
+                <p className="font-semibold text-gray-900 text-lg">
+                  {inspection.vehicle.brand} {inspection.vehicle.model}
+                </p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-sm text-gray-500">{inspection.vehicle.year}</span>
+                  {inspection.vehicle.plate && (
+                    <span className="px-2 py-0.5 bg-[#F5D849]/20 text-gray-700 text-xs font-semibold rounded-md">
+                      {inspection.vehicle.plate}
+                    </span>
+                  )}
+                  {inspection.vehicle.mileage && (
+                    <span className="text-sm text-gray-400">
+                      {inspection.vehicle.mileage.toLocaleString()} km
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </InfoCard>
+
+          {/* Servicio */}
+          <InfoCard
+            icon={FileText}
+            title="Servicio"
+            delay={450}
+            mounted={mounted}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-gray-900">{inspection.plan.title}</p>
+                <p className="text-sm text-gray-500 capitalize mt-0.5">
+                  Inspección {inspection.plan.type.toLowerCase()}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-gray-900">
+                  S/ {inspection.plan.price}
+                </p>
+                <p className="text-xs text-emerald-600 font-medium">Pagado</p>
+              </div>
+            </div>
+          </InfoCard>
+        </div>
+
+        {/* ─── UBICACIÓN ─────────────────────────────────────────────── */}
         <LocationSection
           clientAddress={inspection.clientLocation.address}
           clientDistrict={inspection.clientLocation.district}
+          mounted={mounted}
         />
 
-        {/* Resultados si está completada */}
-        {isCompleted && inspection.report && (() => {
-          const verdict = getVerdict(inspection.report.overallScore, inspection.report.overallStatus);
-          const bgGradient = verdict.type === 'SAFE'
-            ? 'from-green-50 to-emerald-50 border-green-100'
-            : verdict.type === 'NEGOTIATE'
-              ? 'from-amber-50 to-yellow-50 border-amber-100'
-              : verdict.type === 'DONT_BUY'
-                ? 'from-red-50 to-rose-50 border-red-100'
-                : 'from-gray-50 to-slate-50 border-gray-100';
-          const scoreColor = verdict.type === 'SAFE'
-            ? 'text-green-700'
-            : verdict.type === 'NEGOTIATE'
-              ? 'text-amber-700'
-              : verdict.type === 'DONT_BUY'
-                ? 'text-red-700'
-                : 'text-gray-700';
-
-          return (
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-6 animate-in slide-in-from-bottom duration-500">
-            {/* Score principal */}
-            <div className={`p-6 bg-gradient-to-r ${bgGradient} border-b`}>
-              <div className="flex flex-col gap-4">
-                {/* Puntaje */}
-                <div>
-                  <p className={`text-sm font-medium ${scoreColor} mb-1`}>Puntaje General</p>
-                  <div className="flex items-baseline gap-2">
-                    <span className={`text-4xl font-bold ${scoreColor}`}>
-                      {inspection.report.overallScore || '--'}
-                    </span>
-                    <span className={`text-lg ${scoreColor} opacity-80`}>/100</span>
-                  </div>
-                </div>
-
-                {/* Badge de veredicto mejorado */}
-                <div className={`
-                  p-4 rounded-xl border-2
-                  ${verdict.bgColor} ${verdict.borderColor}
-                `}>
-                  <div className="flex items-start gap-3">
-                    <span className="text-2xl">{verdict.icon}</span>
-                    <div>
-                      <p className={`font-bold text-lg ${verdict.color}`}>
-                        {verdict.label}
-                      </p>
-                      <p className={`text-sm mt-0.5 ${verdict.color} opacity-80`}>
-                        {verdict.subtitle}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Info de cómo se calcula */}
-                <ScoreCalculationInfo
-                  legalScore={inspection.report.legalScore}
-                  mechanicalScore={inspection.report.mechanicalScore}
-                  bodyScore={inspection.report.bodyScore}
-                />
-              </div>
-            </div>
-
-            {/* Desglose de puntajes */}
-            <div className="grid grid-cols-3 divide-x divide-gray-100">
-              <ScoreCard
-                label="Legal"
-                score={inspection.report.legalScore}
-                status={inspection.report.legalStatus}
-                category="legal"
-              />
-              <ScoreCard
-                label="Mecánica"
-                score={inspection.report.mechanicalScore}
-                status={inspection.report.mechanicalStatus}
-                category="mechanical"
-              />
-              <ScoreCard
-                label="Carrocería"
-                score={inspection.report.bodyScore}
-                status={inspection.report.bodyStatus}
-                category="body"
-              />
-            </div>
-
-            {/* Botón de descarga */}
-            {inspection.report.completedAt && (
-              <div className="p-4 bg-gray-50 border-t border-gray-100">
-                <a
-                  href={`/api/inspections/${inspection.id}/report/pdf`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    flex items-center justify-center gap-3 w-full
-                    bg-gradient-to-r from-[#F5D849] to-[#f0d24a]
-                    hover:from-[#e5c83a] hover:to-[#e0c23a]
-                    text-gray-900 font-semibold
-                    py-3 px-6 rounded-xl
-                    shadow-lg shadow-yellow-200/50
-                    transition-all duration-300
-                    hover:shadow-xl hover:scale-[1.02]
-                    active:scale-[0.98]
-                  "
-                >
-                  <Download size={20} />
-                  Descargar Informe PDF
-                </a>
-              </div>
-            )}
-          </div>
-          );
-        })()}
-
-        {/* Información del vehículo */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-100">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <Car size={16} />
-            Vehículo
-          </h2>
-
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center">
-              <Car size={24} className="text-gray-400" />
-            </div>
-            <div>
-              <p className="font-semibold text-gray-900 text-lg">
-                {inspection.vehicle.brand} {inspection.vehicle.model}
-              </p>
-              <p className="text-sm text-gray-500">
-                {inspection.vehicle.year}
-                {inspection.vehicle.plate && ` • ${inspection.vehicle.plate}`}
-                {inspection.vehicle.mileage && ` • ${inspection.vehicle.mileage.toLocaleString()} km`}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Información del servicio */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-150">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
-            <FileText size={16} />
-            Servicio
-          </h2>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-gray-900">{inspection.plan.title}</p>
-              <p className="text-sm text-gray-500 capitalize">Tipo: {inspection.plan.type}</p>
-            </div>
-            <p className="text-xl font-bold text-gray-900">
-              S/ {inspection.plan.price}
-            </p>
-          </div>
-        </div>
-
-        {/* Inspector asignado */}
+        {/* ─── INSPECTOR ─────────────────────────────────────────────── */}
         {inspection.inspector && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-200">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
-              <User size={16} />
-              Inspector asignado
-            </h2>
-
+          <InfoCard
+            icon={User}
+            title="Inspector asignado"
+            delay={550}
+            mounted={mounted}
+            className="mb-6"
+          >
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
-                <span className="text-sm font-semibold text-white">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-lg">
+                <span className="text-base font-bold text-white">
                   {inspection.inspector.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                 </span>
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-gray-900">{inspection.inspector.name}</p>
-                <p className="text-sm text-gray-500">Inspector certificado</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Shield size={12} className="text-emerald-500" />
+                  <span className="text-sm text-emerald-600 font-medium">Inspector certificado</span>
+                </div>
               </div>
             </div>
-          </div>
+          </InfoCard>
         )}
 
-        {/* Notas del cliente */}
+        {/* ─── NOTAS DEL CLIENTE ─────────────────────────────────────── */}
         {inspection.clientNotes && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-250">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Tus notas
-            </h2>
-            <p className="text-gray-700 text-sm">{inspection.clientNotes}</p>
-          </div>
+          <InfoCard
+            icon={FileText}
+            title="Tus notas"
+            delay={600}
+            mounted={mounted}
+            className="mb-6"
+          >
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {inspection.clientNotes}
+            </p>
+          </InfoCard>
         )}
 
-        {/* Resumen y recomendaciones (si completada) */}
+        {/* ─── RESUMEN DEL INSPECTOR ─────────────────────────────────── */}
         {isCompleted && inspection.report?.executiveSummary && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500 delay-300">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Resumen del inspector
-            </h2>
-            <p className="text-gray-700 text-sm">{inspection.report.executiveSummary}</p>
-
-            {inspection.report.recommendations && (
-              <>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mt-4 mb-2">
-                  Recomendaciones
-                </h3>
-                <p className="text-gray-700 text-sm">{inspection.report.recommendations}</p>
-              </>
-            )}
-          </div>
+          <InfoCard
+            icon={Sparkles}
+            title="Resumen del inspector"
+            delay={650}
+            mounted={mounted}
+            className="mb-6"
+            highlight
+          >
+            <p className="text-gray-700 text-sm leading-relaxed">
+              {inspection.report.executiveSummary}
+            </p>
+          </InfoCard>
         )}
 
-        {/* Acciones para inspecciones pendientes */}
+        {/* ─── ACCIONES (Si pending) ─────────────────────────────────── */}
         {isPending && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 animate-in slide-in-from-bottom duration-500 delay-300">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          <div className={`
+            bg-white rounded-3xl shadow-xl shadow-gray-200/50
+            border border-gray-100/50
+            p-6 mb-6
+            ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-700' : 'opacity-0'}
+          `}>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
               Acciones
-            </h2>
+            </h3>
 
             <div className="space-y-3">
               {/* Reprogramar */}
               <Link
                 href={`/agendar?reschedule=${inspection.id}`}
                 className="
-                  flex items-center justify-center gap-2 w-full
-                  py-3 px-4 rounded-xl
-                  bg-gray-100 hover:bg-gray-200
-                  text-gray-700 font-medium
-                  transition-colors
+                  group flex items-center justify-between w-full
+                  py-4 px-5 rounded-2xl
+                  bg-gray-50 hover:bg-gray-100
+                  border border-gray-200 hover:border-gray-300
+                  transition-all duration-300
                 "
               >
-                <RefreshCw size={18} />
-                Reprogramar inspección
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                    <RefreshCw size={18} className="text-gray-600" />
+                  </div>
+                  <span className="font-medium text-gray-700">Reprogramar inspección</span>
+                </div>
+                <ChevronRight size={18} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
               </Link>
 
               {/* Cancelar */}
@@ -539,40 +551,61 @@ export function InspectionDetailClient({ inspection }: Props) {
                 <button
                   onClick={() => setShowCancelModal(true)}
                   className="
-                    flex items-center justify-center gap-2 w-full
-                    py-3 px-4 rounded-xl
-                    border-2 border-red-200 hover:border-red-300 hover:bg-red-50
-                    text-red-600 font-medium
-                    transition-colors
+                    group flex items-center justify-between w-full
+                    py-4 px-5 rounded-2xl
+                    bg-red-50 hover:bg-red-100
+                    border-2 border-red-200 hover:border-red-300
+                    transition-all duration-300
                   "
                 >
-                  <XCircle size={18} />
-                  Cancelar inspección
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                      <XCircle size={18} className="text-red-500" />
+                    </div>
+                    <span className="font-medium text-red-600">Cancelar inspección</span>
+                  </div>
+                  <ChevronRight size={18} className="text-red-400 group-hover:translate-x-1 transition-transform" />
                 </button>
               ) : (
-                <p className="text-sm text-gray-400 text-center py-2">
-                  Ya no es posible cancelar esta inspección
-                </p>
+                <div className="py-3 px-5 rounded-2xl bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-400 text-center">
+                    Ya no es posible cancelar esta inspección
+                  </p>
+                </div>
               )}
 
               {/* Aviso de 24h */}
               {canCancel && !canCancelWithRefund && (
-                <p className="text-xs text-amber-600 text-center bg-amber-50 rounded-lg py-2 px-3">
-                  ⚠️ Faltan menos de 24 horas. La cancelación no incluye reembolso.
-                </p>
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                  <AlertTriangle size={16} className="text-amber-600 flex-shrink-0" />
+                  <p className="text-xs text-amber-700">
+                    Faltan menos de 24 horas. La cancelación no incluye reembolso.
+                  </p>
+                </div>
               )}
             </div>
           </div>
         )}
 
-        {/* Contacto de soporte */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-gray-500 mb-2">¿Necesitas ayuda?</p>
+        {/* ─── SOPORTE ───────────────────────────────────────────────── */}
+        <div className={`
+          text-center py-6
+          ${mounted ? 'animate-in fade-in duration-700 delay-[800ms]' : 'opacity-0'}
+        `}>
+          <p className="text-sm text-gray-400 mb-3">¿Necesitas ayuda?</p>
           <a
             href="https://wa.me/51999999999"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-[#c4a82f] hover:text-[#a08825] font-medium text-sm"
+            className="
+              inline-flex items-center gap-2
+              px-5 py-2.5 rounded-full
+              bg-gradient-to-r from-emerald-500 to-teal-500
+              text-white font-medium text-sm
+              shadow-lg shadow-emerald-200/50
+              hover:shadow-xl hover:scale-105
+              transition-all duration-300
+            "
           >
             <Phone size={16} />
             Contactar soporte
@@ -593,79 +626,177 @@ export function InspectionDetailClient({ inspection }: Props) {
   );
 }
 
-// Componente que explica cómo se calcula el puntaje general
-function ScoreCalculationInfo({ legalScore, mechanicalScore, bodyScore }: {
-  legalScore: number | null;
-  mechanicalScore: number | null;
-  bodyScore: number | null;
-}) {
-  const [isExpanded, setIsExpanded] = useState(false);
+// ═══════════════════════════════════════════════════════════════════════
+// COMPONENTES AUXILIARES
+// ═══════════════════════════════════════════════════════════════════════
 
-  // Calcular contribuciones
-  const legalContrib = legalScore ? (legalScore * 0.3).toFixed(1) : '--';
-  const mechContrib = mechanicalScore ? (mechanicalScore * 0.4).toFixed(1) : '--';
-  const bodyContrib = bodyScore ? (bodyScore * 0.3).toFixed(1) : '--';
+// Card de información genérico
+function InfoCard({
+  icon: Icon,
+  title,
+  children,
+  delay = 0,
+  mounted = true,
+  className = '',
+  highlight = false,
+}: {
+  icon: React.ElementType;
+  title: string;
+  children: React.ReactNode;
+  delay?: number;
+  mounted?: boolean;
+  className?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`
+        bg-white rounded-3xl shadow-xl shadow-gray-200/50
+        border border-gray-100/50 p-6
+        ${highlight ? 'ring-2 ring-[#F5D849]/30' : ''}
+        ${mounted ? `animate-in fade-in slide-in-from-bottom-6 duration-700` : 'opacity-0'}
+        ${className}
+      `}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="flex items-center gap-2 mb-4">
+        <Icon size={14} className="text-gray-400" />
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          {title}
+        </h3>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Tarjeta de resultados premium
+function ResultsCard({
+  report,
+  inspectionId,
+  mounted,
+}: {
+  report: NonNullable<Inspection['report']>;
+  inspectionId: number;
+  mounted: boolean;
+}) {
+  const verdict = getVerdict(report.overallScore, report.overallStatus);
+
+  const gradientMap = {
+    SAFE: 'from-emerald-500 via-green-500 to-teal-500',
+    NEGOTIATE: 'from-amber-500 via-orange-500 to-yellow-500',
+    DONT_BUY: 'from-red-500 via-rose-500 to-pink-500',
+    PENDING: 'from-gray-400 via-gray-500 to-gray-600',
+  };
+
+  const bgMap = {
+    SAFE: 'from-emerald-50 to-teal-50 border-emerald-200',
+    NEGOTIATE: 'from-amber-50 to-orange-50 border-amber-200',
+    DONT_BUY: 'from-red-50 to-rose-50 border-red-200',
+    PENDING: 'from-gray-50 to-slate-50 border-gray-200',
+  };
 
   return (
-    <div className="mt-3">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="
-          flex items-center gap-2 text-xs text-gray-500 hover:text-gray-700
-          transition-colors w-full justify-center
-        "
-      >
-        <Info size={14} />
-        <span>{isExpanded ? 'Ocultar' : '¿Cómo se calcula?'}</span>
-      </button>
+    <div className={`
+      bg-white rounded-3xl shadow-xl shadow-gray-200/50
+      border border-gray-100/50 overflow-hidden mb-6
+      ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-300' : 'opacity-0'}
+    `}>
+      {/* Header con veredicto */}
+      <div className={`
+        relative p-6 bg-gradient-to-r ${bgMap[verdict.type]} border-b
+        overflow-hidden
+      `}>
+        {/* Fondo decorativo */}
+        <div className="absolute inset-0">
+          <div className={`absolute -top-24 -right-24 w-64 h-64 bg-gradient-to-br ${gradientMap[verdict.type]} opacity-10 rounded-full blur-3xl`} />
+        </div>
 
-      {isExpanded && (
-        <div className="
-          mt-3 p-4 bg-white/80 rounded-lg border border-gray-200
-          animate-in slide-in-from-top-2 duration-200
-        ">
-          <p className="text-xs text-gray-600 mb-3">
-            Cada área se evalúa de 0 a 100. El puntaje general es la suma ponderada:
-          </p>
+        <div className="relative">
+          {/* Score principal */}
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className={`text-sm font-medium ${verdict.color} mb-1`}>Puntaje General</p>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-5xl font-bold ${verdict.color}`}>
+                  {report.overallScore ?? '--'}
+                </span>
+                <span className={`text-xl ${verdict.color} opacity-60`}>/100</span>
+              </div>
+            </div>
 
-          {/* Tabla de cálculo */}
-          <div className="space-y-2 text-xs">
-            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
-              <span className="text-gray-600">Legal</span>
-              <span className="font-mono text-gray-700">
-                {legalScore ?? '--'} × 30% = <strong>{legalContrib}</strong>
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
-              <span className="text-gray-600">Mecánica</span>
-              <span className="font-mono text-gray-700">
-                {mechanicalScore ?? '--'} × 40% = <strong>{mechContrib}</strong>
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5 border-b border-gray-100">
-              <span className="text-gray-600">Carrocería</span>
-              <span className="font-mono text-gray-700">
-                {bodyScore ?? '--'} × 30% = <strong>{bodyContrib}</strong>
-              </span>
-            </div>
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-gray-900 font-medium">Total</span>
-              <span className="font-mono text-gray-900 font-bold">
-                {legalContrib} + {mechContrib} + {bodyContrib} = {
-                  legalScore && mechanicalScore && bodyScore
-                    ? Math.round(legalScore * 0.3 + mechanicalScore * 0.4 + bodyScore * 0.3)
-                    : '--'
-                }
-              </span>
+            {/* Badge de veredicto */}
+            <div className={`
+              p-4 rounded-2xl border-2
+              ${verdict.bgColor} ${verdict.borderColor}
+              shadow-lg
+            `}>
+              <div className="text-center">
+                <span className="text-4xl block mb-1">{verdict.icon}</span>
+                <p className={`font-bold text-sm ${verdict.color}`}>{verdict.label}</p>
+              </div>
             </div>
           </div>
+
+          {/* Descripción */}
+          <p className={`text-sm ${verdict.color} opacity-80`}>
+            {verdict.subtitle}
+          </p>
+        </div>
+      </div>
+
+      {/* Grid de scores */}
+      <div className="grid grid-cols-3 divide-x divide-gray-100">
+        <ScoreCard
+          label="Legal"
+          score={report.legalScore}
+          status={report.legalStatus}
+          category="legal"
+        />
+        <ScoreCard
+          label="Mecánica"
+          score={report.mechanicalScore}
+          status={report.mechanicalStatus}
+          category="mechanical"
+        />
+        <ScoreCard
+          label="Carrocería"
+          score={report.bodyScore}
+          status={report.bodyStatus}
+          category="body"
+        />
+      </div>
+
+      {/* Botón de descarga premium */}
+      {report.completedAt && (
+        <div className="p-5 bg-gradient-to-r from-gray-50 to-white border-t border-gray-100">
+          <a
+            href={`/api/inspections/${inspectionId}/report/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              group flex items-center justify-center gap-3 w-full
+              bg-gradient-to-r from-[#F5D849] via-[#f0d24a] to-[#F5D849]
+              hover:from-[#e5c83a] hover:via-[#e0c23a] hover:to-[#e5c83a]
+              text-gray-900 font-bold
+              py-4 px-6 rounded-2xl
+              shadow-xl shadow-yellow-300/40
+              transition-all duration-300
+              hover:shadow-2xl hover:scale-[1.02]
+              active:scale-[0.98]
+            "
+          >
+            <Download size={20} className="group-hover:animate-bounce" />
+            Descargar Informe Completo
+            <ExternalLink size={16} className="opacity-60" />
+          </a>
         </div>
       )}
     </div>
   );
 }
 
-// Componente de score individual
+// Score card individual
 function ScoreCard({ label, score, status, category }: {
   label: string;
   score: number | null;
@@ -675,49 +806,62 @@ function ScoreCard({ label, score, status, category }: {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const getStatusColor = (s: string) => {
-    if (s === 'OK') return 'text-green-600';
+    if (s === 'OK') return 'text-emerald-600';
     if (s === 'WARNING') return 'text-amber-600';
     if (s === 'CRITICAL') return 'text-red-600';
     return 'text-gray-400';
   };
 
+  const getStatusBg = (s: string) => {
+    if (s === 'OK') return 'bg-emerald-100';
+    if (s === 'WARNING') return 'bg-amber-100';
+    if (s === 'CRITICAL') return 'bg-red-100';
+    return 'bg-gray-100';
+  };
+
   const categoryInfo = category ? getScoreCategoryInfo(category) : null;
 
   return (
-    <div className="p-4 text-center relative">
-      <div className="flex items-center justify-center gap-1 mb-1">
-        <p className="text-xs font-medium text-gray-500 uppercase">{label}</p>
+    <div className="p-5 text-center relative group hover:bg-gray-50 transition-colors">
+      <div className="flex items-center justify-center gap-1.5 mb-2">
+        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
         {categoryInfo && (
           <button
             onClick={() => setShowTooltip(!showTooltip)}
             onMouseEnter={() => setShowTooltip(true)}
             onMouseLeave={() => setShowTooltip(false)}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label={`Información sobre ${label}`}
+            className="text-gray-300 hover:text-gray-500 transition-colors"
           >
-            <HelpCircle size={14} />
+            <HelpCircle size={12} />
           </button>
         )}
       </div>
-      <p className={`text-2xl font-bold ${getStatusColor(status)}`}>
-        {score ?? '--'}
-      </p>
+
+      <div className={`
+        inline-flex items-center justify-center
+        w-14 h-14 rounded-2xl mb-2
+        ${getStatusBg(status)}
+      `}>
+        <span className={`text-2xl font-bold ${getStatusColor(status)}`}>
+          {score ?? '--'}
+        </span>
+      </div>
 
       {/* Tooltip */}
       {showTooltip && categoryInfo && (
         <div className="
           absolute z-50 left-1/2 -translate-x-1/2 top-full mt-2
-          w-64 p-3 rounded-xl shadow-lg border border-gray-200
+          w-64 p-4 rounded-2xl shadow-xl border border-gray-200
           bg-white text-left
           animate-in fade-in zoom-in-95 duration-200
         ">
           <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-l border-t border-gray-200 rotate-45" />
-          <p className="font-semibold text-gray-900 text-sm mb-1">{categoryInfo.title}</p>
-          <p className="text-xs text-gray-600 mb-2">{categoryInfo.description}</p>
-          <ul className="space-y-1">
+          <p className="font-bold text-gray-900 text-sm mb-1">{categoryInfo.title}</p>
+          <p className="text-xs text-gray-600 mb-3">{categoryInfo.description}</p>
+          <ul className="space-y-1.5">
             {categoryInfo.items.map((item, idx) => (
-              <li key={idx} className="text-xs text-gray-500 flex items-start gap-1.5">
-                <span className="text-[#F5D849] mt-0.5">•</span>
+              <li key={idx} className="text-xs text-gray-500 flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#F5D849] mt-1.5 flex-shrink-0" />
                 {item}
               </li>
             ))}
@@ -728,7 +872,7 @@ function ScoreCard({ label, score, status, category }: {
   );
 }
 
-// Timeline de progreso de la inspección (soporta flujo paralelo y secuencial)
+// Timeline de progreso premium
 type LegalStatusType = "BLOQUEADO" | "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
 type MechanicalStatusType = "PENDIENTE" | "EN_PROCESO" | "COMPLETADO";
 
@@ -755,390 +899,343 @@ function InspectionTimeline({
   legalCompletedAt,
   vehicleInspection,
   bookingId,
+  mounted,
 }: {
   createdAt: Date;
   mechanicalCompletedAt: Date | null;
   legalCompletedAt: Date | null;
   vehicleInspection?: VehicleInspectionData | null;
   bookingId: number;
+  mounted: boolean;
 }) {
-  // Si hay vehicleInspection, usar el nuevo flujo dual
   if (vehicleInspection) {
     const { legalStatus, mechanicalStatus, assignedMechanic, assignedAdmin } = vehicleInspection;
-
-    // Determinar si es flujo paralelo (con placa desde inicio) o secuencial (sin placa)
-    // Si tiene placa Y legalUnlockedAt es null, fue paralelo desde el inicio
     const isParallelFlow = vehicleInspection.plate !== null && vehicleInspection.legalUnlockedAt === null;
-
-    const getStatusInfo = (status: LegalStatusType | MechanicalStatusType, type: 'legal' | 'mechanical') => {
-      if (type === 'legal') {
-        switch (status) {
-          case 'BLOQUEADO': return { label: 'Bloqueado', color: 'bg-gray-100 text-gray-400', description: 'Esperando placa' };
-          case 'PENDIENTE': return { label: 'Pendiente', color: 'bg-amber-100 text-amber-600', description: 'Listo para revisión' };
-          case 'EN_PROCESO': return { label: 'En proceso', color: 'bg-blue-100 text-blue-600', description: 'Revisión en curso' };
-          case 'COMPLETADO': return { label: 'Completado', color: 'bg-green-100 text-green-600', description: 'Revisión finalizada' };
-        }
-      } else {
-        switch (status) {
-          case 'PENDIENTE': return { label: 'Pendiente', color: 'bg-amber-100 text-amber-600', description: 'Esperando inicio' };
-          case 'EN_PROCESO': return { label: 'En proceso', color: 'bg-blue-100 text-blue-600', description: 'Inspección en curso' };
-          case 'COMPLETADO': return { label: 'Completado', color: 'bg-green-100 text-green-600', description: 'Inspección finalizada' };
-        }
-      }
-      return { label: 'Pendiente', color: 'bg-gray-100 text-gray-400', description: '' };
-    };
-
-    const mechanicalInfo = getStatusInfo(mechanicalStatus, 'mechanical');
-    const legalInfo = getStatusInfo(legalStatus, 'legal');
     const allCompleted = mechanicalStatus === 'COMPLETADO' && legalStatus === 'COMPLETADO';
 
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-6 flex items-center gap-2">
-          <Clock size={16} />
-          Progreso de la inspección
+      <div className={`
+        bg-white rounded-3xl shadow-xl shadow-gray-200/50
+        border border-gray-100/50 p-6 mb-6 overflow-hidden
+        ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-250' : 'opacity-0'}
+      `}>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Clock size={14} className="text-gray-400" />
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              Progreso
+            </h3>
+          </div>
           {isParallelFlow && (
-            <span className="ml-2 text-xs font-normal bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
-              Flujo paralelo
+            <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-700 uppercase tracking-wider">
+              Paralelo
             </span>
           )}
-        </h2>
+        </div>
 
-        {/* Paso 1: Inspección creada */}
-        <div className="flex gap-4 mb-4">
-          <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center">
-            <CheckCircle2 size={20} />
+        {/* Paso inicial */}
+        <div className="flex gap-4 mb-6">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+            <CheckCircle2 size={20} className="text-white" />
           </div>
           <div className="flex-1">
-            <p className="font-medium text-gray-900">Inspección creada</p>
+            <p className="font-semibold text-gray-900">Inspección creada</p>
             <p className="text-sm text-gray-500">Tu solicitud fue registrada</p>
-            <p className="text-xs text-green-600 mt-1 font-medium">
+            <p className="text-xs text-emerald-600 mt-1 font-medium">
               {format(new Date(createdAt), "d MMM yyyy, HH:mm", { locale: es })}
             </p>
           </div>
         </div>
 
-        {isParallelFlow ? (
-          // ─── FLUJO PARALELO ───────────────────────────────────────────
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Inspección Mecánica */}
-              <div className={`p-4 rounded-xl border-2 ${mechanicalStatus === 'COMPLETADO' ? 'border-green-200 bg-green-50' : mechanicalStatus === 'EN_PROCESO' ? 'border-blue-200 bg-blue-50' : 'border-amber-200 bg-amber-50'}`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-8 h-8 rounded-lg ${mechanicalInfo.color} flex items-center justify-center`}>
-                    <Wrench size={16} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Inspección mecánica</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${mechanicalInfo.color}`}>
-                      {mechanicalInfo.label}
-                    </span>
-                  </div>
-                </div>
-                {assignedMechanic && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                    <User size={12} /> {assignedMechanic.name}
-                  </p>
-                )}
-                {vehicleInspection.mechanicCompletedAt && (
-                  <p className="text-xs text-green-600 mt-1">
-                    {format(new Date(vehicleInspection.mechanicCompletedAt), "d MMM, HH:mm", { locale: es })}
-                  </p>
-                )}
-                {mechanicalStatus === 'COMPLETADO' && (
-                  <a
-                    href={`/api/inspections/${bookingId}/report/pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 flex items-center justify-center gap-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <Download size={14} />
-                    Descargar informe mecánico
-                  </a>
-                )}
-              </div>
+        {/* Grid de inspecciones (paralelo o secuencial) */}
+        <div className={`grid ${isParallelFlow ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'} gap-4`}>
+          {/* Inspección Mecánica */}
+          <FlowCard
+            title="Inspección mecánica"
+            status={mechanicalStatus}
+            icon={Wrench}
+            assignedTo={assignedMechanic?.name}
+            completedAt={vehicleInspection.mechanicCompletedAt}
+            downloadUrl={mechanicalStatus === 'COMPLETADO' ? `/api/inspections/${bookingId}/report/pdf` : undefined}
+            downloadLabel="Descargar informe mecánico"
+          />
 
-              {/* Revisión Legal */}
-              <div className={`p-4 rounded-xl border-2 ${legalStatus === 'COMPLETADO' ? 'border-green-200 bg-green-50' : legalStatus === 'EN_PROCESO' ? 'border-blue-200 bg-blue-50' : legalStatus === 'BLOQUEADO' ? 'border-gray-200 bg-gray-50' : 'border-amber-200 bg-amber-50'}`}>
-                <div className="flex items-center gap-3 mb-2">
-                  <div className={`w-8 h-8 rounded-lg ${legalInfo.color} flex items-center justify-center`}>
-                    <Scale size={16} />
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">Revisión legal</p>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${legalInfo.color}`}>
-                      {legalInfo.label}
-                    </span>
-                  </div>
-                </div>
-                {assignedAdmin && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-2">
-                    <User size={12} /> {assignedAdmin.name}
-                  </p>
-                )}
-                {vehicleInspection.legalCompletedAt && (
-                  <p className="text-xs text-green-600 mt-1">
-                    {format(new Date(vehicleInspection.legalCompletedAt), "d MMM, HH:mm", { locale: es })}
-                  </p>
-                )}
-                {legalStatus === 'COMPLETADO' && (
-                  <a
-                    href={`/api/admin/vehicle-inspections/${vehicleInspection.id}/legal/download-pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-3 flex items-center justify-center gap-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-2 rounded-lg transition-colors"
-                  >
-                    <Download size={14} />
-                    Descargar informe legal
-                  </a>
-                )}
-              </div>
+          {/* Revisión Legal */}
+          <FlowCard
+            title="Revisión legal"
+            status={legalStatus}
+            icon={Scale}
+            assignedTo={legalStatus !== 'BLOQUEADO' ? assignedAdmin?.name : undefined}
+            completedAt={vehicleInspection.legalCompletedAt}
+            downloadUrl={legalStatus === 'COMPLETADO' ? `/api/admin/vehicle-inspections/${vehicleInspection.id}/legal/download-pdf` : undefined}
+            downloadLabel="Descargar informe legal"
+            isBlocked={legalStatus === 'BLOQUEADO'}
+          />
+        </div>
+
+        {/* Completado */}
+        {allCompleted && (
+          <div className="mt-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 flex items-center justify-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center">
+              <Sparkles size={16} className="text-white" />
             </div>
-
-            {allCompleted && (
-              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 flex items-center justify-center gap-2">
-                <CheckCircle2 size={18} className="text-green-600" />
-                <span className="font-medium text-green-700">Inspección completada</span>
-              </div>
-            )}
-          </div>
-        ) : (
-          // ─── FLUJO SECUENCIAL ─────────────────────────────────────────
-          <div className="relative">
-            {/* Línea conectora */}
-            <div className="absolute left-5 top-0 bottom-0 w-0.5 bg-gray-200" />
-
-            {/* Inspección Mecánica */}
-            <div className="flex gap-4 relative">
-              <div className={`w-10 h-10 rounded-full ${mechanicalInfo.color} flex items-center justify-center z-10`}>
-                {mechanicalStatus === 'COMPLETADO' ? <CheckCircle2 size={20} /> : <Wrench size={20} />}
-              </div>
-              <div className="flex-1 pb-6">
-                <div className="flex items-center gap-2">
-                  <p className={`font-medium ${mechanicalStatus === 'COMPLETADO' ? 'text-gray-900' : 'text-gray-600'}`}>
-                    Inspección mecánica
-                  </p>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${mechanicalInfo.color}`}>
-                    {mechanicalInfo.label}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">{mechanicalInfo.description}</p>
-                {assignedMechanic && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                    <User size={12} /> {assignedMechanic.name}
-                  </p>
-                )}
-                {mechanicalStatus === 'COMPLETADO' && (
-                  <a
-                    href={`/api/inspections/${bookingId}/report/pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <Download size={14} />
-                    Descargar informe mecánico
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Revisión Legal */}
-            <div className="flex gap-4 relative">
-              <div className={`w-10 h-10 rounded-full ${legalInfo.color} flex items-center justify-center z-10`}>
-                {legalStatus === 'COMPLETADO' ? <CheckCircle2 size={20} /> : legalStatus === 'BLOQUEADO' ? <AlertCircle size={20} /> : <Scale size={20} />}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <p className={`font-medium ${legalStatus === 'COMPLETADO' ? 'text-gray-900' : legalStatus === 'BLOQUEADO' ? 'text-gray-400' : 'text-gray-600'}`}>
-                    Revisión legal
-                  </p>
-                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${legalInfo.color}`}>
-                    {legalInfo.label}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {legalStatus === 'BLOQUEADO'
-                    ? 'Esperando que se registre la placa del vehículo'
-                    : legalInfo.description}
-                </p>
-                {assignedAdmin && legalStatus !== 'BLOQUEADO' && (
-                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                    <User size={12} /> {assignedAdmin.name}
-                  </p>
-                )}
-                {legalStatus === 'COMPLETADO' && (
-                  <a
-                    href={`/api/admin/vehicle-inspections/${vehicleInspection.id}/legal/download-pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-2 inline-flex items-center gap-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    <Download size={14} />
-                    Descargar informe legal
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {allCompleted && (
-              <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200 flex items-center justify-center gap-2">
-                <CheckCircle2 size={18} className="text-green-600" />
-                <span className="font-medium text-green-700">Inspección completada</span>
-              </div>
-            )}
+            <span className="font-bold text-emerald-700">Inspección completada</span>
           </div>
         )}
       </div>
     );
   }
 
-  // Fallback: flujo simple (sin vehicleInspection)
-  const steps = [
-    {
-      id: 1,
-      label: 'Inspección creada',
-      description: 'Tu solicitud fue registrada',
-      icon: Circle,
-      completedAt: createdAt,
-      isCompleted: true,
-    },
-    {
-      id: 2,
-      label: 'Inspección mecánica',
-      description: 'Revisión técnica del vehículo',
-      icon: Wrench,
-      completedAt: mechanicalCompletedAt,
-      isCompleted: !!mechanicalCompletedAt,
-    },
-    {
-      id: 3,
-      label: 'Revisión legal',
-      description: 'Verificación documental completa',
-      icon: Scale,
-      completedAt: legalCompletedAt,
-      isCompleted: !!legalCompletedAt,
-    },
-  ];
-
+  // Fallback simple
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-6 flex items-center gap-2">
-        <Clock size={16} />
-        Progreso de la inspección
-      </h2>
+    <div className={`
+      bg-white rounded-3xl shadow-xl shadow-gray-200/50
+      border border-gray-100/50 p-6 mb-6
+      ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-250' : 'opacity-0'}
+    `}>
+      <div className="flex items-center gap-2 mb-6">
+        <Clock size={14} className="text-gray-400" />
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Progreso
+        </h3>
+      </div>
 
-      <div className="relative">
-        {steps.map((step, index) => {
-          const StepIcon = step.icon;
-          const isLast = index === steps.length - 1;
-
-          return (
-            <div key={step.id} className="flex gap-4">
-              {/* Línea y círculo */}
-              <div className="flex flex-col items-center">
-                <div
-                  className={`
-                    w-10 h-10 rounded-full flex items-center justify-center
-                    transition-all duration-300
-                    ${step.isCompleted
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-gray-100 text-gray-400'
-                    }
-                  `}
-                >
-                  {step.isCompleted ? (
-                    <CheckCircle2 size={20} />
-                  ) : (
-                    <StepIcon size={20} />
-                  )}
-                </div>
-                {!isLast && (
-                  <div
-                    className={`
-                      w-0.5 h-12 my-1
-                      ${step.isCompleted && steps[index + 1]?.isCompleted
-                        ? 'bg-green-300'
-                        : step.isCompleted
-                          ? 'bg-gradient-to-b from-green-300 to-gray-200'
-                          : 'bg-gray-200'
-                      }
-                    `}
-                  />
-                )}
-              </div>
-
-              {/* Contenido */}
-              <div className={`flex-1 ${!isLast ? 'pb-6' : ''}`}>
-                <p
-                  className={`
-                    font-medium
-                    ${step.isCompleted ? 'text-gray-900' : 'text-gray-400'}
-                  `}
-                >
-                  {step.label}
-                </p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  {step.description}
-                </p>
-                {step.completedAt && (
-                  <p className="text-xs text-green-600 mt-1 font-medium">
-                    {format(new Date(step.completedAt), "d MMM yyyy, HH:mm", { locale: es })}
-                  </p>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="space-y-4">
+        <TimelineStep
+          label="Inspección creada"
+          description="Tu solicitud fue registrada"
+          completedAt={createdAt}
+          isCompleted
+          icon={Circle}
+        />
+        <TimelineStep
+          label="Inspección mecánica"
+          description="Revisión técnica del vehículo"
+          completedAt={mechanicalCompletedAt}
+          isCompleted={!!mechanicalCompletedAt}
+          icon={Wrench}
+        />
+        <TimelineStep
+          label="Revisión legal"
+          description="Verificación documental"
+          completedAt={legalCompletedAt}
+          isCompleted={!!legalCompletedAt}
+          icon={Scale}
+          isLast
+        />
       </div>
     </div>
   );
 }
 
-// Sección de origen y destino
+function FlowCard({
+  title,
+  status,
+  icon: Icon,
+  assignedTo,
+  completedAt,
+  downloadUrl,
+  downloadLabel,
+  isBlocked,
+}: {
+  title: string;
+  status: LegalStatusType | MechanicalStatusType;
+  icon: React.ElementType;
+  assignedTo?: string;
+  completedAt?: Date | null;
+  downloadUrl?: string;
+  downloadLabel?: string;
+  isBlocked?: boolean;
+}) {
+  const statusStyles = {
+    COMPLETADO: {
+      border: 'border-emerald-200',
+      bg: 'bg-gradient-to-br from-emerald-50 to-teal-50',
+      iconBg: 'bg-emerald-500',
+      badge: 'bg-emerald-100 text-emerald-700',
+    },
+    EN_PROCESO: {
+      border: 'border-blue-200',
+      bg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
+      iconBg: 'bg-blue-500',
+      badge: 'bg-blue-100 text-blue-700',
+    },
+    PENDIENTE: {
+      border: 'border-amber-200',
+      bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
+      iconBg: 'bg-amber-500',
+      badge: 'bg-amber-100 text-amber-700',
+    },
+    BLOQUEADO: {
+      border: 'border-gray-200',
+      bg: 'bg-gradient-to-br from-gray-50 to-slate-50',
+      iconBg: 'bg-gray-400',
+      badge: 'bg-gray-100 text-gray-500',
+    },
+  };
+
+  const style = statusStyles[status] || statusStyles.PENDIENTE;
+  const statusLabels = {
+    COMPLETADO: 'Completado',
+    EN_PROCESO: 'En proceso',
+    PENDIENTE: 'Pendiente',
+    BLOQUEADO: 'Bloqueado',
+  };
+
+  return (
+    <div className={`p-5 rounded-2xl border-2 ${style.border} ${style.bg}`}>
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-10 h-10 rounded-xl ${style.iconBg} flex items-center justify-center shadow-lg`}>
+          {status === 'COMPLETADO' ? (
+            <CheckCircle2 size={18} className="text-white" />
+          ) : isBlocked ? (
+            <AlertCircle size={18} className="text-white" />
+          ) : (
+            <Icon size={18} className="text-white" />
+          )}
+        </div>
+        <div className="flex-1">
+          <p className="font-semibold text-gray-900">{title}</p>
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${style.badge} uppercase`}>
+            {statusLabels[status]}
+          </span>
+        </div>
+      </div>
+
+      {assignedTo && (
+        <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-2">
+          <User size={12} /> {assignedTo}
+        </p>
+      )}
+
+      {isBlocked && (
+        <p className="text-xs text-gray-400 italic">
+          Esperando que se registre la placa
+        </p>
+      )}
+
+      {completedAt && (
+        <p className="text-xs text-emerald-600 font-medium">
+          {format(new Date(completedAt), "d MMM, HH:mm", { locale: es })}
+        </p>
+      )}
+
+      {downloadUrl && (
+        <a
+          href={downloadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-4 py-2.5 rounded-xl transition-colors"
+        >
+          <Download size={14} />
+          {downloadLabel}
+        </a>
+      )}
+    </div>
+  );
+}
+
+function TimelineStep({
+  label,
+  description,
+  completedAt,
+  isCompleted,
+  icon: Icon,
+  isLast,
+}: {
+  label: string;
+  description: string;
+  completedAt?: Date | null;
+  isCompleted: boolean;
+  icon: React.ElementType;
+  isLast?: boolean;
+}) {
+  return (
+    <div className="flex gap-4">
+      <div className="flex flex-col items-center">
+        <div className={`
+          w-10 h-10 rounded-xl flex items-center justify-center
+          ${isCompleted
+            ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-200'
+            : 'bg-gray-100'
+          }
+        `}>
+          {isCompleted ? (
+            <CheckCircle2 size={18} className="text-white" />
+          ) : (
+            <Icon size={18} className="text-gray-400" />
+          )}
+        </div>
+        {!isLast && (
+          <div className={`w-0.5 h-8 my-1 ${isCompleted ? 'bg-emerald-300' : 'bg-gray-200'}`} />
+        )}
+      </div>
+      <div className="flex-1 pb-4">
+        <p className={`font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>{label}</p>
+        <p className="text-sm text-gray-500">{description}</p>
+        {completedAt && (
+          <p className="text-xs text-emerald-600 mt-1 font-medium">
+            {format(new Date(completedAt), "d MMM yyyy, HH:mm", { locale: es })}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Sección de ubicación
 function LocationSection({
   clientAddress,
   clientDistrict,
+  mounted,
 }: {
   clientAddress: string | null;
   clientDistrict: string | null;
+  mounted: boolean;
 }) {
-  const companyAddress = "Av. Javier Prado Este 4200, Santiago de Surco"; // Dirección de la empresa
+  const companyAddress = "Av. Javier Prado Este 4200, Santiago de Surco";
   const hasClientLocation = clientAddress || clientDistrict;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 animate-in slide-in-from-bottom duration-500">
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4 flex items-center gap-2">
-        <Navigation size={16} />
-        Ubicación
-      </h2>
+    <div className={`
+      bg-white rounded-3xl shadow-xl shadow-gray-200/50
+      border border-gray-100/50 p-6 mb-6
+      ${mounted ? 'animate-in fade-in slide-in-from-bottom-6 duration-700 delay-350' : 'opacity-0'}
+    `}>
+      <div className="flex items-center gap-2 mb-5">
+        <Navigation size={14} className="text-gray-400" />
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Ubicación
+        </h3>
+      </div>
 
       <div className="space-y-4">
-        {/* Origen - Empresa */}
-        <div className="flex gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-            <Building2 size={18} className="text-blue-600" />
+        {/* Origen */}
+        <div className="flex gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
+            <Building2 size={20} className="text-white" />
           </div>
-          <div className="flex-1">
-            <p className="text-xs font-medium text-gray-500 uppercase">Origen</p>
-            <p className="font-medium text-gray-900">VerifiCARLO - Centro de inspección</p>
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Origen</p>
+            <p className="font-semibold text-gray-900">VerifiCARLO</p>
             <p className="text-sm text-gray-500">{companyAddress}</p>
           </div>
         </div>
 
         {/* Línea conectora */}
-        <div className="ml-5 border-l-2 border-dashed border-gray-200 h-4" />
+        <div className="ml-6 border-l-2 border-dashed border-gray-200 h-6" />
 
-        {/* Destino - Cliente */}
-        <div className="flex gap-3">
-          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-            <MapPin size={18} className="text-green-600" />
+        {/* Destino */}
+        <div className="flex gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200">
+            <MapPin size={20} className="text-white" />
           </div>
-          <div className="flex-1">
-            <p className="text-xs font-medium text-gray-500 uppercase">Destino</p>
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Destino</p>
             {hasClientLocation ? (
               <>
-                <p className="font-medium text-gray-900">
-                  {clientDistrict || 'Ubicación del cliente'}
+                <p className="font-semibold text-gray-900">
+                  {clientDistrict || 'Tu ubicación'}
                 </p>
                 {clientAddress && (
                   <p className="text-sm text-gray-500">{clientAddress}</p>
@@ -1156,7 +1253,7 @@ function LocationSection({
   );
 }
 
-// Modal de cancelación
+// Modal de cancelación premium
 function CancelModal({
   canRefund,
   isLoading,
@@ -1172,36 +1269,48 @@ function CancelModal({
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="
         relative w-full sm:max-w-md
-        bg-white rounded-t-3xl sm:rounded-2xl
-        p-6 pb-8 sm:p-6
+        bg-white rounded-t-[2rem] sm:rounded-3xl
+        p-6 pb-10 sm:p-8
         animate-in slide-in-from-bottom sm:zoom-in-95 duration-300
+        shadow-2xl
       ">
-        {/* Icono de advertencia */}
+        {/* Icono */}
         <div className={`
-          w-16 h-16 rounded-full mx-auto mb-4
+          w-20 h-20 rounded-3xl mx-auto mb-6
           flex items-center justify-center
-          ${canRefund ? 'bg-amber-100' : 'bg-red-100'}
+          ${canRefund
+            ? 'bg-gradient-to-br from-amber-100 to-orange-100'
+            : 'bg-gradient-to-br from-red-100 to-rose-100'
+          }
         `}>
-          <AlertTriangle size={32} className={canRefund ? 'text-amber-600' : 'text-red-600'} />
+          <AlertTriangle
+            size={40}
+            className={canRefund ? 'text-amber-600' : 'text-red-600'}
+          />
         </div>
 
-        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+        <h3 className="text-2xl font-bold text-gray-900 text-center mb-3">
           ¿Cancelar inspección?
         </h3>
 
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-gray-600 text-center mb-8">
           {canRefund ? (
-            <>Recibirás un <span className="font-semibold text-green-600">reembolso completo</span> en 3-5 días hábiles.</>
+            <>
+              Recibirás un{' '}
+              <span className="font-bold text-emerald-600">reembolso completo</span>
+              {' '}en 3-5 días hábiles.
+            </>
           ) : (
             <>
-              <span className="font-semibold text-red-600">No aplica reembolso</span> porque faltan menos de 24 horas para la cita.
+              <span className="font-bold text-red-600">No aplica reembolso</span>
+              {' '}porque faltan menos de 24 horas para tu cita.
             </>
           )}
         </p>
@@ -1211,10 +1320,10 @@ function CancelModal({
             onClick={onClose}
             disabled={isLoading}
             className="
-              flex-1 py-3 px-4 rounded-xl
+              flex-1 py-4 px-6 rounded-2xl
               bg-gray-100 hover:bg-gray-200
-              text-gray-700 font-medium
-              transition-colors
+              text-gray-700 font-semibold
+              transition-all duration-300
               disabled:opacity-50
             "
           >
@@ -1225,20 +1334,21 @@ function CancelModal({
             onClick={onCancel}
             disabled={isLoading}
             className={`
-              flex-1 py-3 px-4 rounded-xl
-              font-medium transition-colors
+              flex-1 py-4 px-6 rounded-2xl
+              font-semibold transition-all duration-300
               disabled:opacity-50
               flex items-center justify-center gap-2
+              shadow-lg
               ${canRefund
-                ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                : 'bg-red-500 hover:bg-red-600 text-white'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-amber-200'
+                : 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white shadow-red-200'
               }
             `}
           >
             {isLoading ? (
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={20} className="animate-spin" />
             ) : (
-              'Confirmar cancelación'
+              'Confirmar'
             )}
           </button>
         </div>

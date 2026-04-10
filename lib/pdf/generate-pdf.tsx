@@ -135,10 +135,7 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
       model: booking.vehicle.model.name,
       year: booking.vehicle.year,
       plate: booking.vehicle.plate,
-      vin: report.vinNumber,
       mileage: report.mileageAtInspection || booking.vehicle.mileage,
-      color: report.actualColor,
-      engineNumber: report.engineNumber,
     },
 
     overallScore: report.overallScore || 0,
@@ -153,7 +150,6 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
     technicalReviewExpiryDate,
 
     executiveSummary: report.executiveSummary,
-    recommendations: report.recommendations,
     estimatedRepairCost: report.estimatedRepairCost
       ? Number(report.estimatedRepairCost)
       : null,

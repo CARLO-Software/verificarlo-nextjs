@@ -1,5 +1,6 @@
 // ============================================
 // PDFVehicleInfo - Datos del vehículo (compacto)
+// REDISEÑO: Una línea con toda la info relevante
 // ============================================
 
 import React from 'react';
@@ -11,62 +12,45 @@ interface PDFVehicleInfoProps {
   model: string;
   year: number;
   plate: string | null;
-  vin: string | null;
   mileage: number | null;
-  color: string | null;
-  engineNumber: string | null;
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: colors.offWhite,
     borderWidth: 1,
     borderColor: colors.borderGray,
     borderRadius: 6,
-    padding: 10,
-    marginBottom: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
   },
-  header: {
+  leftSection: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderGray,
+    gap: 12,
   },
   vehicleName: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.graphite,
   },
+  mileage: {
+    fontSize: 10,
+    color: colors.slate,
+  },
   plate: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: 'bold',
     color: colors.graphite,
     backgroundColor: colors.brand,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
     borderRadius: 4,
-  },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  item: {
-    width: '25%',
-  },
-  label: {
-    fontSize: 7,
-    color: colors.slate,
-    textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 2,
-  },
-  value: {
-    fontSize: 9,
-    color: colors.charcoal,
-    fontWeight: 'bold',
   },
 });
 
@@ -75,42 +59,24 @@ export default function PDFVehicleInfo({
   model,
   year,
   plate,
-  vin,
   mileage,
-  color,
-  engineNumber,
 }: PDFVehicleInfoProps) {
   const formatMileage = (km: number | null) => {
-    if (!km) return '-';
+    if (!km) return null;
     return `${km.toLocaleString('es-PE')} km`;
   };
 
+  const mileageText = formatMileage(mileage);
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.leftSection}>
         <Text style={styles.vehicleName}>
           {brand} {model} {year}
         </Text>
-        <Text style={styles.plate}>{plate || 'SIN PLACA'}</Text>
+        {mileageText && <Text style={styles.mileage}>{mileageText}</Text>}
       </View>
-      <View style={styles.grid}>
-        <View style={styles.item}>
-          <Text style={styles.label}>Kilometraje</Text>
-          <Text style={styles.value}>{formatMileage(mileage)}</Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.label}>Color</Text>
-          <Text style={styles.value}>{color || '-'}</Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.label}>VIN</Text>
-          <Text style={styles.value}>{vin ? vin.slice(-8) : '-'}</Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.label}>Motor</Text>
-          <Text style={styles.value}>{engineNumber ? engineNumber.slice(-8) : '-'}</Text>
-        </View>
-      </View>
+      <Text style={styles.plate}>{plate || 'SIN PLACA'}</Text>
     </View>
   );
 }

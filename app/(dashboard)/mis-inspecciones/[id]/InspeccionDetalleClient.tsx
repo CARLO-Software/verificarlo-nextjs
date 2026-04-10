@@ -63,7 +63,6 @@ interface InspectionData {
     overallScore: number | null;
     overallStatus: string;
     executiveSummary: string | null;
-    recommendations: string | null;
     completedAt: string | null;
     pdfUrl: string | null;
   } | null;
@@ -957,16 +956,6 @@ function CompletedView({ inspection }: { inspection: InspectionData }) {
               <h4 className={styles.summaryTitle}>Resumen</h4>
               <p className={styles.summaryText}>
                 {inspection.report.executiveSummary}
-              </p>
-            </div>
-          )}
-
-          {/* Recommendations */}
-          {inspection.report?.recommendations && (
-            <div className={styles.recommendationsSection}>
-              <h4 className={styles.recommendationsTitle}>Recomendaciones</h4>
-              <p className={styles.recommendationsText}>
-                {inspection.report.recommendations}
               </p>
             </div>
           )}

@@ -1,11 +1,7 @@
 // ============================================
-// PDFVerdict - Veredicto principal del informe
-// Rediseño: Más compacto y profesional
-//
-// 📚 CONCEPTO REACT - Props y Renderizado Condicional:
-// Este componente recibe `status` y `estimatedCost` como props.
-// Dependiendo del status, cambia completamente su apariencia.
-// Esto se llama "renderizado condicional basado en props".
+// PDFVerdict - Banner de decisión DOMINANTE
+// REDISEÑO: Grande, bold, imposible de ignorar
+// Rojo = NO COMPRAR | Amarillo = NEGOCIAR | Verde = COMPRA SEGURA
 // ============================================
 
 import React from 'react';
@@ -18,117 +14,94 @@ interface PDFVerdictProps {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 12,
+  // Banner principal - FULL WIDTH, muy visible
+  banner: {
+    marginBottom: 14,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-  verdictBox: {
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 10,
+  // Contenedor principal del veredicto
+  mainSection: {
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  // Estilo especial para el veredicto CRITICAL (NO COMPRAR)
-  // Usa borde más grueso y doble para hacerlo más notorio
-  verdictBoxCritical: {
-    borderWidth: 2,
-    borderRadius: 6,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+  // Ícono grande circular
+  iconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
-  },
-  // Ícono más grande para CRITICAL
-  iconContainerCritical: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10,
+    marginRight: 14,
   },
   iconText: {
-    fontSize: 12,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.white,
   },
-  iconTextCritical: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.white,
-  },
-  textContainer: {
+  // Contenido de texto
+  textContent: {
     flex: 1,
   },
-  verdictLabel: {
+  // Label principal - MUY GRANDE
+  mainLabel: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 3,
+  },
+  // Subtítulo con acción
+  subtitle: {
     fontSize: 11,
     fontWeight: 'bold',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    marginBottom: 1,
+    marginBottom: 2,
   },
-  // Label más destacado para CRITICAL
-  verdictLabelCritical: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    marginBottom: 1,
+  // Descripción breve
+  description: {
+    fontSize: 9,
+    lineHeight: 1.4,
+    opacity: 0.9,
   },
-  subtitle: {
-    fontSize: 8,
-    lineHeight: 1.3,
+  // Barra de acento lateral
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 6,
   },
 });
 
 export default function PDFVerdict({ status, estimatedCost }: PDFVerdictProps) {
   const config = getVerdictConfig(status, estimatedCost);
 
-  // 📚 CONCEPTO REACT - Renderizado condicional:
-  // Verificamos si es CRITICAL para aplicar estilos más notorios
-  const isCritical = status === 'CRITICAL';
+  // Usar fondo más intenso para mayor impacto visual
+  const bgColor = config.bgColorStrong;
+  const textColor = config.colorDark;
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[
-          // Usamos estilos diferentes según el estado
-          isCritical ? styles.verdictBoxCritical : styles.verdictBox,
-          {
-            borderColor: config.borderColor,
-            backgroundColor: config.bgColor,
-          },
-        ]}
-      >
-        <View
-          style={[
-            isCritical ? styles.iconContainerCritical : styles.iconContainer,
-            { backgroundColor: config.color }
-          ]}
-        >
-          <Text style={isCritical ? styles.iconTextCritical : styles.iconText}>
-            {config.icon}
-          </Text>
+    <View style={[styles.banner, { backgroundColor: bgColor }]}>
+      {/* Barra de acento lateral */}
+      <View style={[styles.accentBar, { backgroundColor: config.color }]} />
+
+      <View style={styles.mainSection}>
+        {/* Ícono circular grande */}
+        <View style={[styles.iconCircle, { backgroundColor: config.color }]}>
+          <Text style={styles.iconText}>{config.icon}</Text>
         </View>
 
-        <View style={styles.textContainer}>
-          <Text
-            style={[
-              isCritical ? styles.verdictLabelCritical : styles.verdictLabel,
-              { color: config.color }
-            ]}
-          >
+        {/* Contenido de texto */}
+        <View style={styles.textContent}>
+          <Text style={[styles.mainLabel, { color: textColor }]}>
             {config.label}
           </Text>
-          <Text style={[styles.subtitle, { color: config.color }]}>
+          <Text style={[styles.subtitle, { color: textColor }]}>
             {config.subtitle}
+          </Text>
+          <Text style={[styles.description, { color: textColor }]}>
+            {config.description}
           </Text>
         </View>
       </View>

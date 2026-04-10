@@ -1,6 +1,7 @@
 // ============================================
-// PDFChecklist - Detalle de inspección (formato compacto)
-// Rediseño: OBS/DEF con detalle, OK en texto corrido
+// PDFChecklist - Detalle de inspección con CARDS
+// REDISEÑO: Cada categoría es un card limpio
+// Bullets por severidad, OK en lista compacta
 // ============================================
 
 import React from 'react';
@@ -26,121 +27,115 @@ interface PDFChecklistProps {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 20,
+    marginBottom: 12,
   },
-  title: {
-    fontSize: 12,
+  pageTitle: {
+    fontSize: 11,
     fontWeight: 'bold',
     color: colors.graphite,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: 16,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderGray,
+    marginBottom: 12,
   },
-  category: {
-    marginBottom: 16,
+  // Card de categoría
+  card: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
+    borderRadius: 8,
+    marginBottom: 12,
+    overflow: 'hidden',
   },
-  categoryHeader: {
+  // Header del card
+  cardHeader: {
+    backgroundColor: colors.graphite,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: colors.graphite,
-    padding: 10,
-    borderRadius: 4,
-    marginBottom: 10,
-    gap: 6,
   },
-  categoryTitle: {
+  cardTitle: {
     fontSize: 10,
     fontWeight: 'bold',
     color: colors.white,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    minWidth: 100,
   },
-  categoryBadge: {
+  // Badges en header
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  badgeText: {
+    fontSize: 7,
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+  // Cuerpo del card
+  cardBody: {
+    padding: 12,
+  },
+  // Sección de defectos
+  defectsSection: {
+    marginBottom: 10,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.brand,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    flexShrink: 1,
-  },
-  categoryBadgeText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: colors.graphite,
-  },
-  // Hallazgos (defectos y observaciones)
-  findingsContainer: {
     marginBottom: 8,
   },
-  findingRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    backgroundColor: colors.offWhite,
-    borderRadius: 4,
-    marginBottom: 6,
-    minHeight: 28,
-  },
-  findingBullet: {
+  sectionDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 10,
-    marginTop: 2,
-    flexShrink: 0,
+    marginRight: 6,
   },
-  bulletDefecto: {
-    backgroundColor: colors.danger,
+  sectionTitle: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
-  bulletObservacion: {
-    backgroundColor: colors.warning,
+  // Items con bullet
+  bulletList: {
+    paddingLeft: 14,
   },
-  findingContent: {
+  bulletItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  bullet: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginRight: 8,
+    marginTop: 4,
+  },
+  bulletContent: {
     flex: 1,
-    minWidth: 0,
   },
-  findingName: {
+  bulletTitle: {
     fontSize: 9,
     fontWeight: 'bold',
     color: colors.graphite,
-    marginBottom: 3,
   },
-  findingComment: {
+  bulletComment: {
     fontSize: 8,
     color: colors.charcoal,
-    fontStyle: 'italic',
+    marginTop: 2,
     lineHeight: 1.4,
   },
-  findingSeverity: {
-    fontSize: 7,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 3,
-    marginLeft: 8,
-    flexShrink: 0,
-  },
-  severityDefecto: {
-    backgroundColor: colors.danger,
-    color: colors.white,
-  },
-  severityObservacion: {
-    backgroundColor: colors.warning,
-    color: colors.white,
-  },
-  // Items OK (texto corrido)
+  // Sección OK compacta
   okSection: {
     backgroundColor: colors.successBg,
-    borderRadius: 4,
+    borderRadius: 6,
     padding: 10,
     borderWidth: 1,
     borderColor: colors.successBorder,
@@ -167,121 +162,91 @@ const styles = StyleSheet.create({
   okTitle: {
     fontSize: 9,
     fontWeight: 'bold',
-    color: colors.success,
+    color: colors.successDark,
   },
-  okText: {
+  okList: {
     fontSize: 8,
     color: colors.charcoal,
     lineHeight: 1.5,
   },
-  // Cuando todo está OK
-  allOkSection: {
-    backgroundColor: colors.successBg,
-    borderRadius: 4,
-    padding: 12,
+  // Card cuando TODO OK
+  allOkCard: {
+    backgroundColor: colors.successBgStrong,
     borderWidth: 1,
     borderColor: colors.successBorder,
-  },
-  allOkHeader: {
-    flexDirection: 'row',
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 12,
     alignItems: 'center',
-    marginBottom: 8,
   },
   allOkIcon: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    marginBottom: 8,
   },
   allOkIconText: {
-    fontSize: 10,
+    fontSize: 14,
     fontWeight: 'bold',
     color: colors.white,
   },
   allOkTitle: {
     fontSize: 10,
     fontWeight: 'bold',
-    color: colors.success,
+    color: colors.successDark,
+    marginBottom: 6,
+    textTransform: 'uppercase',
   },
   allOkText: {
     fontSize: 8,
     color: colors.charcoal,
+    textAlign: 'center',
     lineHeight: 1.5,
   },
-  // Estilos para items "No Aplica"
+  // No aplica
   noAplicaSection: {
     backgroundColor: colors.lightGray,
-    borderRadius: 4,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: colors.borderGray,
+    borderRadius: 6,
+    padding: 8,
     marginTop: 8,
-  },
-  noAplicaHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  noAplicaIcon: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: colors.silver,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  noAplicaIconText: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    color: colors.white,
   },
   noAplicaTitle: {
-    fontSize: 9,
+    fontSize: 7,
     fontWeight: 'bold',
     color: colors.slate,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: 4,
   },
-  noAplicaText: {
-    fontSize: 8,
+  noAplicaList: {
+    fontSize: 7,
     color: colors.slate,
-    lineHeight: 1.5,
+    lineHeight: 1.4,
   },
-  // Estilos para fotos de hallazgos
-  findingWithPhoto: {
-    flexDirection: 'column',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    backgroundColor: colors.offWhite,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  findingMainRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    width: '100%',
-  },
-  photosContainer: {
+  // Fotos
+  photosRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    marginLeft: 14,
     gap: 6,
+    marginTop: 6,
+    marginLeft: 12,
   },
-  findingPhoto: {
-    width: 140,
-    height: 105,
+  photo: {
+    width: 110,
+    height: 82,
     borderRadius: 4,
     objectFit: 'cover',
-    border: `1px solid ${colors.borderGray}`,
+    borderWidth: 1,
+    borderColor: colors.borderGray,
   },
-  photoLabel: {
+  morePhotos: {
     fontSize: 7,
     color: colors.slate,
     marginTop: 4,
-    marginLeft: 14,
+    marginLeft: 12,
   },
 });
 
@@ -391,7 +356,7 @@ function getItemName(id: string): string {
 export default function PDFChecklist({ categories, photosByItem = {} }: PDFChecklistProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Detalle de Inspección</Text>
+      <Text style={styles.pageTitle}>Detalle de Inspección</Text>
 
       {categories.map((category) => {
         // Separar items por estado
@@ -400,157 +365,172 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
         const okItems = category.items.filter((i) => i.status === 'OK');
         const noAplica = category.items.filter((i) => i.status === 'NO_APLICA');
 
-        const hasProblems = defectos.length > 0 || observaciones.length > 0;
-        const totalRevisados = defectos.length + observaciones.length + okItems.length;
+        const hasDefects = defectos.length > 0;
+        const hasObservations = observaciones.length > 0;
+        const hasProblems = hasDefects || hasObservations;
 
-        // Construir badge descriptivo
-        const buildBadgeText = () => {
-          const parts: string[] = [];
-
-          if (defectos.length > 0) {
-            parts.push(`${defectos.length} defecto${defectos.length > 1 ? 's' : ''}`);
-          }
-          if (observaciones.length > 0) {
-            parts.push(`${observaciones.length} observación${observaciones.length > 1 ? 'es' : ''}`);
-          }
-
-          if (parts.length === 0) {
-            return `Todo OK de ${totalRevisados} revisados`;
-          }
-
-          return `${parts.join(' + ')} de ${totalRevisados} revisados`;
-        };
+        // Si todo está OK, mostrar card especial
+        if (!hasProblems && okItems.length > 0) {
+          return (
+            <View key={category.name} style={styles.allOkCard}>
+              <View style={styles.allOkIcon}>
+                <Text style={styles.allOkIconText}>✓</Text>
+              </View>
+              <Text style={styles.allOkTitle}>{category.name}</Text>
+              <Text style={styles.allOkText}>
+                {okItems.length} puntos revisados - Todo en buen estado
+              </Text>
+            </View>
+          );
+        }
 
         return (
-          <View key={category.name} style={styles.category}>
-            {/* Header de categoría */}
-            {/* 📚 CONCEPTO REACT - Estilos en línea con arreglos:
-                En react-pdf puedes combinar estilos pasando un array [estilo1, estilo2] */}
-            <View style={styles.categoryHeader}>
-              <Text style={styles.categoryTitle}>
-                {category.name}
-              </Text>
-              <View style={styles.categoryBadge}>
-                <Text style={styles.categoryBadgeText}>
-                  {buildBadgeText()}
-                </Text>
+          <View key={category.name} style={styles.card} wrap={false}>
+            {/* Header del card */}
+            <View style={styles.cardHeader}>
+              <Text style={styles.cardTitle}>{category.name}</Text>
+              <View style={styles.badgesRow}>
+                {hasDefects && (
+                  <View style={[styles.badge, { backgroundColor: colors.danger }]}>
+                    <Text style={styles.badgeText}>
+                      {defectos.length} defecto{defectos.length > 1 ? 's' : ''}
+                    </Text>
+                  </View>
+                )}
+                {hasObservations && (
+                  <View style={[styles.badge, { backgroundColor: colors.warning }]}>
+                    <Text style={styles.badgeText}>
+                      {observaciones.length} obs.
+                    </Text>
+                  </View>
+                )}
+                {okItems.length > 0 && (
+                  <View style={[styles.badge, { backgroundColor: colors.success }]}>
+                    <Text style={styles.badgeText}>{okItems.length} OK</Text>
+                  </View>
+                )}
               </View>
             </View>
 
-            {/* Defectos y observaciones con detalle y fotos */}
-            {hasProblems && (
-              <View style={styles.findingsContainer}>
-                {defectos.map((item) => {
-                  const itemPhotos = photosByItem[item.id] || [];
-                  const hasPhotos = itemPhotos.length > 0;
-
-                  return (
-                    <View key={item.id} style={hasPhotos ? styles.findingWithPhoto : styles.findingRow}>
-                      <View style={hasPhotos ? styles.findingMainRow : undefined}>
-                        <View style={[styles.findingBullet, styles.bulletDefecto]} />
-                        <View style={styles.findingContent}>
-                          <Text style={styles.findingName}>{item.name}</Text>
-                          {item.comment && (
-                            <Text style={styles.findingComment}>{item.comment}</Text>
-                          )}
-                        </View>
-                        <Text style={[styles.findingSeverity, styles.severityDefecto]}>
-                          DEFECTO
-                        </Text>
-                      </View>
-                      {hasPhotos && (
-                        <>
-                          <View style={styles.photosContainer}>
-                            {itemPhotos.slice(0, 3).map((photoUrl, idx) => (
-                              <Image key={idx} src={photoUrl} style={styles.findingPhoto} />
-                            ))}
-                          </View>
-                          {itemPhotos.length > 3 && (
-                            <Text style={styles.photoLabel}>
-                              +{itemPhotos.length - 3} foto(s) adicional(es)
-                            </Text>
-                          )}
-                        </>
-                      )}
-                    </View>
-                  );
-                })}
-                {observaciones.map((item) => {
-                  const itemPhotos = photosByItem[item.id] || [];
-                  const hasPhotos = itemPhotos.length > 0;
-
-                  return (
-                    <View key={item.id} style={hasPhotos ? styles.findingWithPhoto : styles.findingRow}>
-                      <View style={hasPhotos ? styles.findingMainRow : undefined}>
-                        <View style={[styles.findingBullet, styles.bulletObservacion]} />
-                        <View style={styles.findingContent}>
-                          <Text style={styles.findingName}>{item.name}</Text>
-                          {item.comment && (
-                            <Text style={styles.findingComment}>{item.comment}</Text>
-                          )}
-                        </View>
-                        <Text style={[styles.findingSeverity, styles.severityObservacion]}>
-                          OBSERVACIÓN
-                        </Text>
-                      </View>
-                      {hasPhotos && (
-                        <>
-                          <View style={styles.photosContainer}>
-                            {itemPhotos.slice(0, 3).map((photoUrl, idx) => (
-                              <Image key={idx} src={photoUrl} style={styles.findingPhoto} />
-                            ))}
-                          </View>
-                          {itemPhotos.length > 3 && (
-                            <Text style={styles.photoLabel}>
-                              +{itemPhotos.length - 3} foto(s) adicional(es)
-                            </Text>
-                          )}
-                        </>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            {/* Items OK en texto corrido */}
-            {okItems.length > 0 && (
-              <View style={hasProblems ? styles.okSection : styles.allOkSection}>
-                <View style={hasProblems ? styles.okHeader : styles.allOkHeader}>
-                  <View style={hasProblems ? styles.okIcon : styles.allOkIcon}>
-                    <Text style={hasProblems ? styles.okIconText : styles.allOkIconText}>
-                      ✓
+            {/* Cuerpo del card */}
+            <View style={styles.cardBody}>
+              {/* Defectos */}
+              {hasDefects && (
+                <View style={styles.defectsSection}>
+                  <View style={styles.sectionHeader}>
+                    <View style={[styles.sectionDot, { backgroundColor: colors.danger }]} />
+                    <Text style={[styles.sectionTitle, { color: colors.dangerDark }]}>
+                      Defectos Detectados
                     </Text>
                   </View>
-                  <Text style={hasProblems ? styles.okTitle : styles.allOkTitle}>
-                    {hasProblems
-                      ? `En buen estado (${okItems.length})`
-                      : `Los ${okItems.length} puntos se encuentran en buen estado`}
+                  <View style={styles.bulletList}>
+                    {defectos.map((item) => {
+                      const itemPhotos = photosByItem[item.id] || [];
+                      return (
+                        <View key={item.id}>
+                          <View style={styles.bulletItem}>
+                            <View style={[styles.bullet, { backgroundColor: colors.danger }]} />
+                            <View style={styles.bulletContent}>
+                              <Text style={styles.bulletTitle}>{item.name}</Text>
+                              {item.comment && (
+                                <Text style={styles.bulletComment}>{item.comment}</Text>
+                              )}
+                            </View>
+                          </View>
+                          {itemPhotos.length > 0 && (
+                            <>
+                              <View style={styles.photosRow}>
+                                {itemPhotos.slice(0, 3).map((url, idx) => (
+                                  <Image key={idx} src={url} style={styles.photo} />
+                                ))}
+                              </View>
+                              {itemPhotos.length > 3 && (
+                                <Text style={styles.morePhotos}>
+                                  +{itemPhotos.length - 3} foto(s) adicional(es)
+                                </Text>
+                              )}
+                            </>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {/* Observaciones */}
+              {hasObservations && (
+                <View style={styles.defectsSection}>
+                  <View style={styles.sectionHeader}>
+                    <View style={[styles.sectionDot, { backgroundColor: colors.warning }]} />
+                    <Text style={[styles.sectionTitle, { color: colors.warningDark }]}>
+                      Observaciones
+                    </Text>
+                  </View>
+                  <View style={styles.bulletList}>
+                    {observaciones.map((item) => {
+                      const itemPhotos = photosByItem[item.id] || [];
+                      return (
+                        <View key={item.id}>
+                          <View style={styles.bulletItem}>
+                            <View style={[styles.bullet, { backgroundColor: colors.warning }]} />
+                            <View style={styles.bulletContent}>
+                              <Text style={styles.bulletTitle}>{item.name}</Text>
+                              {item.comment && (
+                                <Text style={styles.bulletComment}>{item.comment}</Text>
+                              )}
+                            </View>
+                          </View>
+                          {itemPhotos.length > 0 && (
+                            <>
+                              <View style={styles.photosRow}>
+                                {itemPhotos.slice(0, 3).map((url, idx) => (
+                                  <Image key={idx} src={url} style={styles.photo} />
+                                ))}
+                              </View>
+                              {itemPhotos.length > 3 && (
+                                <Text style={styles.morePhotos}>
+                                  +{itemPhotos.length - 3} foto(s) adicional(es)
+                                </Text>
+                              )}
+                            </>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {/* Items OK */}
+              {okItems.length > 0 && (
+                <View style={styles.okSection}>
+                  <View style={styles.okHeader}>
+                    <View style={styles.okIcon}>
+                      <Text style={styles.okIconText}>✓</Text>
+                    </View>
+                    <Text style={styles.okTitle}>
+                      En buen estado ({okItems.length})
+                    </Text>
+                  </View>
+                  <Text style={styles.okList}>
+                    {okItems.map((item) => item.name).join(' • ')}
                   </Text>
                 </View>
-                <Text style={hasProblems ? styles.okText : styles.allOkText}>
-                  {okItems.map((item) => item.name).join(' • ')}
-                </Text>
-              </View>
-            )}
+              )}
 
-            {/* 📚 CONCEPTO REACT - Renderizado condicional con && */}
-            {/* Solo mostramos esta sección si hay items que no aplican */}
-            {noAplica.length > 0 && (
-              <View style={styles.noAplicaSection}>
-                <View style={styles.noAplicaHeader}>
-                  <View style={styles.noAplicaIcon}>
-                    <Text style={styles.noAplicaIconText}>–</Text>
-                  </View>
+              {/* No aplica */}
+              {noAplica.length > 0 && (
+                <View style={styles.noAplicaSection}>
                   <Text style={styles.noAplicaTitle}>
                     No aplica ({noAplica.length})
                   </Text>
+                  <Text style={styles.noAplicaList}>
+                    {noAplica.map((item) => item.name).join(' • ')}
+                  </Text>
                 </View>
-                <Text style={styles.noAplicaText}>
-                  {noAplica.map((item) => item.name).join(' • ')}
-                </Text>
-              </View>
-            )}
+              )}
+            </View>
           </View>
         );
       })}

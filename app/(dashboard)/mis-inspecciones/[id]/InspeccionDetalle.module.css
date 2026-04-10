@@ -605,30 +605,6 @@
   line-height: 1.5;
 }
 
-/* Recommendations Section */
-.recommendationsSection {
-  padding: 16px;
-  background: #FEF3C7;
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.recommendationsTitle {
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #92400E;
-  margin: 0 0 8px 0;
-}
-
-.recommendationsText {
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  color: #78350F;
-  margin: 0;
-  line-height: 1.5;
-}
-
 /* Notes Section */
 .notesSection {
   padding: 16px;

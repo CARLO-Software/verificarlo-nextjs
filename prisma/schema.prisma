@@ -385,15 +385,6 @@ model InspectionReport {
   // Kilometraje registrado en inspección
   mileageAtInspection Int?
 
-  // VIN/Número de chasis (verificado)
-  vinNumber String? @db.VarChar(17)
-
-  // Número de motor
-  engineNumber String?
-
-  // Color real del vehículo
-  actualColor String?
-
   // ============================================
   // RESUMEN Y RECOMENDACIONES
   // ============================================
@@ -406,9 +397,6 @@ model InspectionReport {
 
   // Resumen ejecutivo (texto libre)
   executiveSummary String? @db.Text
-
-  // Recomendaciones del inspector
-  recommendations String? @db.Text
 
   // Presupuesto estimado de reparaciones (en soles)
   estimatedRepairCost Decimal? @db.Decimal(10, 2)
