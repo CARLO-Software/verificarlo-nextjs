@@ -37,7 +37,8 @@
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/health-insurance.png\" -o soat.png)",
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/car-service.png\" -o revision.png)",
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/user-group-man-man.png\" -o propietarios.png)",
-      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/agreement.png\" -o transferencia.png)"
+      "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/agreement.png\" -o transferencia.png)",
+      "Bash(find /c/Proyectos/verificarlo-nextjs -type f \\\\\\(-name *calendar* -o -name *date* -o -name *availability* \\\\\\))"
     ]
   }
 }
