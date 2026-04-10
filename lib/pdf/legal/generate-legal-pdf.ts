@@ -117,14 +117,33 @@ export async function getLegalReportDataForPDF(
     };
   });
 
-  // Construir lista de capturas
-  const screenshots = LEGAL_SOURCES
-    .filter((source) => legalScreenshots[source.id]?.imageUrl)
-    .map((source) => ({
-      sourceId: source.id,
-      sourceName: source.name,
-      imageUrl: legalScreenshots[source.id].imageUrl,
-    }));
+  // Construir lista de capturas (soporta múltiples imágenes por fuente)
+  const screenshots: { sourceId: string; sourceName: string; imageUrl: string }[] = [];
+
+  LEGAL_SOURCES.forEach((source) => {
+    const sourceData = legalScreenshots[source.id];
+    if (!sourceData) return;
+
+    if (Array.isArray(sourceData)) {
+      // Fuente con múltiples imágenes
+      sourceData.forEach((img, index) => {
+        if (img?.imageUrl) {
+          screenshots.push({
+            sourceId: source.id,
+            sourceName: sourceData.length > 1 ? `${source.name} (${index + 1})` : source.name,
+            imageUrl: img.imageUrl,
+          });
+        }
+      });
+    } else if (sourceData?.imageUrl) {
+      // Fuente con imagen única
+      screenshots.push({
+        sourceId: source.id,
+        sourceName: source.name,
+        imageUrl: sourceData.imageUrl,
+      });
+    }
+  });
 
   // Descripción del vehículo
   const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;

@@ -11,6 +11,7 @@ export interface LegalSource {
   url: string;
   required: boolean;
   tooltip?: string;
+  maxImages?: number; // Número máximo de imágenes permitidas (default: 1)
 }
 
 export interface LegalCategory {
@@ -33,6 +34,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Obtener los números de títulos, para saber el historial de propietarios, fecha de compra. Ver si tiene gravamen o modificaciones (cambio de motor/gas, etc)',
         url: 'https://sprl.sunarp.gob.pe/sprl/main/partidas-base-grafica-registral',
         required: true,
+        maxImages: 5,
       },
       {
         id: 'siguelo',
@@ -40,6 +42,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Ver más información sobre los títulos, el precio al que lo compraron.',
         url: 'https://sigueloplus.sunarp.gob.pe/siguelo/',
         required: true,
+        maxImages: 5,
       },
     ],
   },
@@ -55,6 +58,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         url: 'https://sigm.sunarp.gob.pe/garantias-mobiliarias/inicio',
         required: true,
         tooltip: 'Gravámenes',
+        maxImages: 5,
       },
     ],
   },
@@ -69,6 +73,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Verificar si tiene orden de captura en Lima',
         url: 'https://www.sat.gob.pe/VirtualSAT/principal.aspx?mysession=Wo6btvLxWZq6%2fzn85z5%2fD%2b35ItMPLtLJw9PWbLw%2bDKk%3d',
         required: true,
+        maxImages: 5,
       },
     ],
   },
@@ -83,6 +88,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Verificar si el SOAT está vigente',
         url: 'https://www.apeseg.org.pe/consultas-soat/',
         required: true,
+        maxImages: 5,
       },
     ],
   },
@@ -97,6 +103,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Verificar si tiene revisión técnica actualizada',
         url: 'https://rec.mtc.gob.pe/Citv/ArConsultaCitv',
         required: true,
+        maxImages: 5,
       },
     ],
   },
@@ -111,6 +118,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Verificar si hay impuesto vehicular pendiente, o deuda de una papeleta',
         url: 'https://www.sat.gob.pe/pagosenlinea/',
         required: true,
+        maxImages: 5,
       },
     ],
   },
@@ -125,6 +133,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
         description: 'Verificar si el vehículo tiene gas',
         url: 'https://infogas.com.pe/consulta-placa/',
         required: false,
+        maxImages: 5,
       },
     ],
   },

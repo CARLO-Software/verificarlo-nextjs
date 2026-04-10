@@ -1,7 +1,7 @@
 /**
  * API: Subir/Eliminar capturas de fuentes legales
- * POST - Subir una captura
- * DELETE - Eliminar una captura
+ * POST - Subir una captura (soporta múltiples imágenes por fuente)
+ * DELETE - Eliminar una captura (por sourceId e índice opcional)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,6 +9,20 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
+import { LEGAL_SOURCES } from "@/lib/constants/legal-sources";
+
+// Estructura de una imagen
+interface ScreenshotImage {
+  imageUrl: string;
+  publicId: string;
+  uploadedAt: string;
+}
+
+// Obtener el máximo de imágenes permitidas para una fuente
+function getMaxImagesForSource(sourceId: string): number {
+  const source = LEGAL_SOURCES.find((s) => s.id === sourceId);
+  return source?.maxImages || 1;
+}
 
 // POST - Subir una captura de pantalla
 export async function POST(
@@ -117,16 +131,46 @@ export async function POST(
         .end(buffer);
     });
 
-    // 8. Actualizar JSON de screenshots en la BD
+    // 8. Actualizar JSON de screenshots en la BD (soporta múltiples imágenes)
     const existingScreenshots = (inspection.legalScreenshots as Record<string, any>) || {};
-    const updatedScreenshots = {
-      ...existingScreenshots,
-      [sourceId]: {
-        imageUrl: uploadResult.secure_url,
-        publicId: uploadResult.public_id,
-        uploadedAt: new Date().toISOString(),
-      },
+    const maxImages = getMaxImagesForSource(sourceId);
+
+    // Nueva imagen
+    const newImage: ScreenshotImage = {
+      imageUrl: uploadResult.secure_url,
+      publicId: uploadResult.public_id,
+      uploadedAt: new Date().toISOString(),
     };
+
+    let updatedScreenshots;
+
+    if (maxImages > 1) {
+      // Fuente que soporta múltiples imágenes - usar array
+      const existingImages = Array.isArray(existingScreenshots[sourceId])
+        ? existingScreenshots[sourceId]
+        : existingScreenshots[sourceId]
+        ? [existingScreenshots[sourceId]] // Migrar formato antiguo a array
+        : [];
+
+      // Verificar límite
+      if (existingImages.length >= maxImages) {
+        return NextResponse.json(
+          { error: `Máximo ${maxImages} imágenes permitidas para esta fuente` },
+          { status: 400 }
+        );
+      }
+
+      updatedScreenshots = {
+        ...existingScreenshots,
+        [sourceId]: [...existingImages, newImage],
+      };
+    } else {
+      // Fuente con una sola imagen - formato original
+      updatedScreenshots = {
+        ...existingScreenshots,
+        [sourceId]: newImage,
+      };
+    }
 
     await db.vehicleInspection.update({
       where: { id: inspectionId },
@@ -136,6 +180,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       imageUrl: uploadResult.secure_url,
+      index: maxImages > 1 ? (Array.isArray(existingScreenshots[sourceId]) ? existingScreenshots[sourceId].length : (existingScreenshots[sourceId] ? 1 : 0)) : 0,
     });
   } catch (error: any) {
     console.error("Error uploading legal screenshot:", error);
@@ -146,7 +191,7 @@ export async function POST(
   }
 }
 
-// DELETE - Eliminar una captura
+// DELETE - Eliminar una captura (soporta índice para múltiples imágenes)
 export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -167,9 +212,11 @@ export async function DELETE(
       );
     }
 
-    // 3. Obtener sourceId del query param
+    // 3. Obtener sourceId e índice del query param
     const { searchParams } = new URL(req.url);
     const sourceId = searchParams.get("sourceId");
+    const indexParam = searchParams.get("index");
+    const imageIndex = indexParam !== null ? parseInt(indexParam) : null;
 
     if (!sourceId) {
       return NextResponse.json(
@@ -202,24 +249,71 @@ export async function DELETE(
       );
     }
 
-    // 5. Eliminar de Cloudinary si existe
+    // 5. Obtener screenshots existentes
     const existingScreenshots = (inspection.legalScreenshots as Record<string, any>) || {};
-    const screenshot = existingScreenshots[sourceId];
+    const sourceData = existingScreenshots[sourceId];
 
-    if (screenshot?.publicId) {
-      try {
-        await cloudinary.uploader.destroy(screenshot.publicId);
-      } catch (e) {
-        console.error("Error deleting from Cloudinary:", e);
-      }
+    if (!sourceData) {
+      return NextResponse.json(
+        { error: "No hay imágenes para esta fuente" },
+        { status: 404 }
+      );
     }
 
-    // 6. Actualizar JSON quitando el screenshot
-    const { [sourceId]: _, ...remainingScreenshots } = existingScreenshots;
+    let updatedScreenshots;
+    const maxImages = getMaxImagesForSource(sourceId);
+
+    if (maxImages > 1 && Array.isArray(sourceData)) {
+      // Fuente con múltiples imágenes
+      if (imageIndex === null || imageIndex < 0 || imageIndex >= sourceData.length) {
+        return NextResponse.json(
+          { error: "Índice de imagen inválido" },
+          { status: 400 }
+        );
+      }
+
+      // Eliminar de Cloudinary
+      const imageToDelete = sourceData[imageIndex];
+      if (imageToDelete?.publicId) {
+        try {
+          await cloudinary.uploader.destroy(imageToDelete.publicId);
+        } catch (e) {
+          console.error("Error deleting from Cloudinary:", e);
+        }
+      }
+
+      // Eliminar del array
+      const newImages = sourceData.filter((_: any, i: number) => i !== imageIndex);
+
+      if (newImages.length === 0) {
+        // Si no quedan imágenes, eliminar la key
+        const { [sourceId]: _, ...remaining } = existingScreenshots;
+        updatedScreenshots = remaining;
+      } else {
+        updatedScreenshots = {
+          ...existingScreenshots,
+          [sourceId]: newImages,
+        };
+      }
+    } else {
+      // Fuente con una sola imagen (formato original o migrado)
+      const screenshot = Array.isArray(sourceData) ? sourceData[0] : sourceData;
+
+      if (screenshot?.publicId) {
+        try {
+          await cloudinary.uploader.destroy(screenshot.publicId);
+        } catch (e) {
+          console.error("Error deleting from Cloudinary:", e);
+        }
+      }
+
+      const { [sourceId]: _, ...remaining } = existingScreenshots;
+      updatedScreenshots = remaining;
+    }
 
     await db.vehicleInspection.update({
       where: { id: inspectionId },
-      data: { legalScreenshots: remainingScreenshots },
+      data: { legalScreenshots: updatedScreenshots },
     });
 
     return NextResponse.json({ success: true });

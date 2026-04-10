@@ -34,13 +34,14 @@ export interface LegalScreenshot {
   sourceId: LegalSourceId;
   imageUrl: string;
   uploadedAt: Date;
+  index?: number; // Índice para fuentes con múltiples imágenes
 }
 
 interface Props {
   inspectionId: number;
   existingScreenshots: LegalScreenshot[];
   onScreenshotUploaded: (screenshot: LegalScreenshot) => void;
-  onScreenshotDeleted: (sourceId: LegalSourceId) => void;
+  onScreenshotDeleted: (sourceId: LegalSourceId, index?: number) => void;
   initialSourceStatuses?: Record<string, SourceStatus>;
   initialSourceObservations?: Record<string, string>;
   generalObservations: string;
@@ -79,9 +80,26 @@ export function LegalScreenshotsUpload({
     console.log('[COMPONENTE INIT] sourceObservations state:', sourceObservations);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Verificar si una fuente ya tiene captura
-  const getScreenshot = (sourceId: LegalSourceId) =>
-    existingScreenshots.find((s) => s.sourceId === sourceId);
+  // Obtener todas las capturas de una fuente (soporta múltiples imágenes)
+  const getScreenshots = (sourceId: LegalSourceId): LegalScreenshot[] =>
+    existingScreenshots.filter((s) => s.sourceId === sourceId);
+
+  // Verificar si una fuente ya tiene captura (al menos una)
+  const hasScreenshot = (sourceId: LegalSourceId): boolean =>
+    existingScreenshots.some((s) => s.sourceId === sourceId);
+
+  // Obtener el máximo de imágenes permitidas para una fuente
+  const getMaxImages = (sourceId: LegalSourceId): number => {
+    const source = LEGAL_SOURCES.find((s) => s.id === sourceId);
+    return source?.maxImages || 1;
+  };
+
+  // Verificar si se puede subir más imágenes
+  const canUploadMore = (sourceId: LegalSourceId): boolean => {
+    const current = getScreenshots(sourceId).length;
+    const max = getMaxImages(sourceId);
+    return current < max;
+  };
 
   // Obtener el estado de una fuente (por defecto PENDING) - Reservado para uso futuro
   const _getSourceStatus = (sourceId: string): SourceStatus => {
@@ -266,13 +284,16 @@ export function LegalScreenshotsUpload({
     return () => document.removeEventListener('paste', handlePaste);
   }, [activeSourceForPaste, uploadFile]);
 
-  // Eliminar captura
-  const handleDelete = async (sourceId: LegalSourceId) => {
+  // Eliminar captura (con índice opcional para múltiples imágenes)
+  const handleDelete = async (sourceId: LegalSourceId, index?: number) => {
     if (!confirm('¿Eliminar esta captura?')) return;
 
     try {
+      const maxImages = getMaxImages(sourceId);
+      const indexParam = maxImages > 1 && index !== undefined ? `&index=${index}` : '';
+
       const res = await fetch(
-        `/api/admin/vehicle-inspections/${inspectionId}/legal/screenshots?sourceId=${sourceId}`,
+        `/api/admin/vehicle-inspections/${inspectionId}/legal/screenshots?sourceId=${sourceId}${indexParam}`,
         { method: 'DELETE' }
       );
 
@@ -281,7 +302,7 @@ export function LegalScreenshotsUpload({
         throw new Error(data.error || 'Error al eliminar');
       }
 
-      onScreenshotDeleted(sourceId);
+      onScreenshotDeleted(sourceId, index);
     } catch (err: any) {
       setError(err.message);
     }
@@ -392,25 +413,33 @@ export function LegalScreenshotsUpload({
                 </div>
                 <div className={styles.sourcesList}>
                   {category.sources.map((source) => {
-                    const screenshot = getScreenshot(source.id as LegalSourceId);
+                    const screenshots = getScreenshots(source.id as LegalSourceId);
+                    const maxImages = getMaxImages(source.id as LegalSourceId);
+                    const canUpload = canUploadMore(source.id as LegalSourceId);
                     const isUploading = uploading === source.id;
                     const isActiveForPaste = activeSourceForPaste === source.id;
+                    const isMultiImage = maxImages > 1;
 
                     return (
                       <div
                         key={source.id}
                         className={`${styles.sourceRow} ${
-                          screenshot ? styles.sourceRowUploaded : ''
+                          screenshots.length > 0 ? styles.sourceRowUploaded : ''
                         } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
                       >
                         {/* Columna 1: Info + URL */}
                         <div className={styles.sourceInfo}>
                           <div className={styles.sourceNameRow}>
                             <h5 className={styles.sourceName}>
-                              {screenshot && <CheckCircle size={14} className={styles.checkIcon} />}
+                              {screenshots.length > 0 && <CheckCircle size={14} className={styles.checkIcon} />}
                               {source.name}
                               {source.required && (
                                 <span className={styles.requiredBadge}>*</span>
+                              )}
+                              {isMultiImage && (
+                                <span className={styles.multiImageBadge}>
+                                  {screenshots.length}/{maxImages}
+                                </span>
                               )}
                               {source.tooltip && (
                                 <span className={styles.sourceTooltip} title={source.tooltip}>
@@ -432,79 +461,135 @@ export function LegalScreenshotsUpload({
                           </a>
                         </div>
 
-                        {/* Columna 2: Preview de imagen o área de upload */}
-                        <div className={styles.sourceImageCol}>
-                          {screenshot ? (
-                            <div className={styles.thumbnailWrapper}>
-                              <Image
-                                src={screenshot.imageUrl}
-                                alt={source.name}
-                                fill
-                                className={styles.thumbnail}
-                                onClick={() => setPreviewImage(screenshot.imageUrl)}
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
-                              onClick={() => {
-                                setActiveSourceForPaste(source.id as LegalSourceId);
-                                fileInputRefs.current[source.id]?.click();
-                              }}
-                              onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                              tabIndex={0}
-                            >
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
-                                disabled={isUploading}
-                                ref={(el) => { fileInputRefs.current[source.id] = el; }}
-                                className={styles.fileInput}
-                              />
-                              {isUploading ? (
-                                <Loader2 size={20} className={styles.spinner} />
-                              ) : isActiveForPaste ? (
-                                <div className={styles.pasteHint}>
-                                  <Clipboard size={16} />
-                                  <span>Ctrl+V</span>
+                        {/* Columna 2: Preview de imágenes o área de upload */}
+                        <div className={isMultiImage ? styles.sourceImageColMulti : styles.sourceImageCol}>
+                          {isMultiImage ? (
+                            // Vista de múltiples imágenes
+                            <div className={styles.multiImageGrid}>
+                              {screenshots.map((screenshot, idx) => (
+                                <div key={idx} className={styles.multiThumbnailWrapper}>
+                                  <Image
+                                    src={screenshot.imageUrl}
+                                    alt={`${source.name} ${idx + 1}`}
+                                    fill
+                                    className={styles.thumbnail}
+                                    onClick={() => setPreviewImage(screenshot.imageUrl)}
+                                  />
+                                  <button
+                                    onClick={() => handleDelete(source.id as LegalSourceId, idx)}
+                                    className={styles.multiDeleteBtn}
+                                    title="Eliminar"
+                                  >
+                                    <X size={12} />
+                                  </button>
                                 </div>
-                              ) : (
-                                <Upload size={20} />
+                              ))}
+                              {canUpload && (
+                                <div
+                                  className={`${styles.multiUploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                                  onClick={() => {
+                                    setActiveSourceForPaste(source.id as LegalSourceId);
+                                    fileInputRefs.current[source.id]?.click();
+                                  }}
+                                  onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                  tabIndex={0}
+                                >
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                    disabled={isUploading}
+                                    ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                    className={styles.fileInput}
+                                  />
+                                  {isUploading ? (
+                                    <Loader2 size={16} className={styles.spinner} />
+                                  ) : isActiveForPaste ? (
+                                    <div className={styles.pasteHintSmall}>
+                                      <Clipboard size={12} />
+                                    </div>
+                                  ) : (
+                                    <Upload size={16} />
+                                  )}
+                                </div>
                               )}
                             </div>
+                          ) : (
+                            // Vista de imagen única (original)
+                            screenshots.length > 0 ? (
+                              <div className={styles.thumbnailWrapper}>
+                                <Image
+                                  src={screenshots[0].imageUrl}
+                                  alt={source.name}
+                                  fill
+                                  className={styles.thumbnail}
+                                  onClick={() => setPreviewImage(screenshots[0].imageUrl)}
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                                onClick={() => {
+                                  setActiveSourceForPaste(source.id as LegalSourceId);
+                                  fileInputRefs.current[source.id]?.click();
+                                }}
+                                onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                tabIndex={0}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                  disabled={isUploading}
+                                  ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                  className={styles.fileInput}
+                                />
+                                {isUploading ? (
+                                  <Loader2 size={20} className={styles.spinner} />
+                                ) : isActiveForPaste ? (
+                                  <div className={styles.pasteHint}>
+                                    <Clipboard size={16} />
+                                    <span>Ctrl+V</span>
+                                  </div>
+                                ) : (
+                                  <Upload size={20} />
+                                )}
+                              </div>
+                            )
                           )}
                         </div>
 
-                        {/* Columna 3: Acciones */}
-                        <div className={styles.sourceActions}>
-                          {screenshot ? (
-                            <>
+                        {/* Columna 3: Acciones (solo para vista de imagen única) */}
+                        {!isMultiImage && (
+                          <div className={styles.sourceActions}>
+                            {screenshots.length > 0 ? (
+                              <>
+                                <button
+                                  onClick={() => setPreviewImage(screenshots[0].imageUrl)}
+                                  className={styles.actionBtn}
+                                  title="Ver imagen"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(source.id as LegalSourceId)}
+                                  className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                                  title="Eliminar"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </>
+                            ) : (
                               <button
-                                onClick={() => setPreviewImage(screenshot.imageUrl)}
-                                className={styles.actionBtn}
-                                title="Ver imagen"
+                                onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
+                                title="Activar para pegar (Ctrl+V)"
                               >
-                                <Eye size={16} />
+                                <Clipboard size={16} />
                               </button>
-                              <button
-                                onClick={() => handleDelete(source.id as LegalSourceId)}
-                                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                                title="Eliminar"
-                              >
-                                <X size={16} />
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                              className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
-                              title="Activar para pegar (Ctrl+V)"
-                            >
-                              <Clipboard size={16} />
-                            </button>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -575,25 +660,33 @@ export function LegalScreenshotsUpload({
                 </div>
                 <div className={styles.sourcesList}>
                   {category.sources.map((source) => {
-                    const screenshot = getScreenshot(source.id as LegalSourceId);
+                    const screenshots = getScreenshots(source.id as LegalSourceId);
+                    const maxImages = getMaxImages(source.id as LegalSourceId);
+                    const canUpload = canUploadMore(source.id as LegalSourceId);
                     const isUploading = uploading === source.id;
                     const isActiveForPaste = activeSourceForPaste === source.id;
+                    const isMultiImage = maxImages > 1;
 
                     return (
                       <div
                         key={source.id}
                         className={`${styles.sourceRow} ${
-                          screenshot ? styles.sourceRowUploaded : ''
+                          screenshots.length > 0 ? styles.sourceRowUploaded : ''
                         } ${isActiveForPaste ? styles.sourceRowActive : ''}`}
                       >
                         {/* Columna 1: Info + URL */}
                         <div className={styles.sourceInfo}>
                           <div className={styles.sourceNameRow}>
                             <h5 className={styles.sourceName}>
-                              {screenshot && <CheckCircle size={14} className={styles.checkIcon} />}
+                              {screenshots.length > 0 && <CheckCircle size={14} className={styles.checkIcon} />}
                               {source.name}
                               {source.required && (
                                 <span className={styles.requiredBadge}>*</span>
+                              )}
+                              {isMultiImage && (
+                                <span className={styles.multiImageBadge}>
+                                  {screenshots.length}/{maxImages}
+                                </span>
                               )}
                               {source.tooltip && (
                                 <span className={styles.sourceTooltip} title={source.tooltip}>
@@ -615,79 +708,135 @@ export function LegalScreenshotsUpload({
                           </a>
                         </div>
 
-                        {/* Columna 2: Preview de imagen o área de upload */}
-                        <div className={styles.sourceImageCol}>
-                          {screenshot ? (
-                            <div className={styles.thumbnailWrapper}>
-                              <Image
-                                src={screenshot.imageUrl}
-                                alt={source.name}
-                                fill
-                                className={styles.thumbnail}
-                                onClick={() => setPreviewImage(screenshot.imageUrl)}
-                              />
-                            </div>
-                          ) : (
-                            <div
-                              className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
-                              onClick={() => {
-                                setActiveSourceForPaste(source.id as LegalSourceId);
-                                fileInputRefs.current[source.id]?.click();
-                              }}
-                              onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                              tabIndex={0}
-                            >
-                              <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
-                                disabled={isUploading}
-                                ref={(el) => { fileInputRefs.current[source.id] = el; }}
-                                className={styles.fileInput}
-                              />
-                              {isUploading ? (
-                                <Loader2 size={20} className={styles.spinner} />
-                              ) : isActiveForPaste ? (
-                                <div className={styles.pasteHint}>
-                                  <Clipboard size={16} />
-                                  <span>Ctrl+V</span>
+                        {/* Columna 2: Preview de imágenes o área de upload */}
+                        <div className={isMultiImage ? styles.sourceImageColMulti : styles.sourceImageCol}>
+                          {isMultiImage ? (
+                            // Vista de múltiples imágenes
+                            <div className={styles.multiImageGrid}>
+                              {screenshots.map((screenshot, idx) => (
+                                <div key={idx} className={styles.multiThumbnailWrapper}>
+                                  <Image
+                                    src={screenshot.imageUrl}
+                                    alt={`${source.name} ${idx + 1}`}
+                                    fill
+                                    className={styles.thumbnail}
+                                    onClick={() => setPreviewImage(screenshot.imageUrl)}
+                                  />
+                                  <button
+                                    onClick={() => handleDelete(source.id as LegalSourceId, idx)}
+                                    className={styles.multiDeleteBtn}
+                                    title="Eliminar"
+                                  >
+                                    <X size={12} />
+                                  </button>
                                 </div>
-                              ) : (
-                                <Upload size={20} />
+                              ))}
+                              {canUpload && (
+                                <div
+                                  className={`${styles.multiUploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                                  onClick={() => {
+                                    setActiveSourceForPaste(source.id as LegalSourceId);
+                                    fileInputRefs.current[source.id]?.click();
+                                  }}
+                                  onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                  tabIndex={0}
+                                >
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                    disabled={isUploading}
+                                    ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                    className={styles.fileInput}
+                                  />
+                                  {isUploading ? (
+                                    <Loader2 size={16} className={styles.spinner} />
+                                  ) : isActiveForPaste ? (
+                                    <div className={styles.pasteHintSmall}>
+                                      <Clipboard size={12} />
+                                    </div>
+                                  ) : (
+                                    <Upload size={16} />
+                                  )}
+                                </div>
                               )}
                             </div>
+                          ) : (
+                            // Vista de imagen única (original)
+                            screenshots.length > 0 ? (
+                              <div className={styles.thumbnailWrapper}>
+                                <Image
+                                  src={screenshots[0].imageUrl}
+                                  alt={source.name}
+                                  fill
+                                  className={styles.thumbnail}
+                                  onClick={() => setPreviewImage(screenshots[0].imageUrl)}
+                                />
+                              </div>
+                            ) : (
+                              <div
+                                className={`${styles.uploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
+                                onClick={() => {
+                                  setActiveSourceForPaste(source.id as LegalSourceId);
+                                  fileInputRefs.current[source.id]?.click();
+                                }}
+                                onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                tabIndex={0}
+                              >
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={(e) => handleFileChange(source.id as LegalSourceId, e)}
+                                  disabled={isUploading}
+                                  ref={(el) => { fileInputRefs.current[source.id] = el; }}
+                                  className={styles.fileInput}
+                                />
+                                {isUploading ? (
+                                  <Loader2 size={20} className={styles.spinner} />
+                                ) : isActiveForPaste ? (
+                                  <div className={styles.pasteHint}>
+                                    <Clipboard size={16} />
+                                    <span>Ctrl+V</span>
+                                  </div>
+                                ) : (
+                                  <Upload size={20} />
+                                )}
+                              </div>
+                            )
                           )}
                         </div>
 
-                        {/* Columna 3: Acciones */}
-                        <div className={styles.sourceActions}>
-                          {screenshot ? (
-                            <>
+                        {/* Columna 3: Acciones (solo para vista de imagen única) */}
+                        {!isMultiImage && (
+                          <div className={styles.sourceActions}>
+                            {screenshots.length > 0 ? (
+                              <>
+                                <button
+                                  onClick={() => setPreviewImage(screenshots[0].imageUrl)}
+                                  className={styles.actionBtn}
+                                  title="Ver imagen"
+                                >
+                                  <Eye size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(source.id as LegalSourceId)}
+                                  className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
+                                  title="Eliminar"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </>
+                            ) : (
                               <button
-                                onClick={() => setPreviewImage(screenshot.imageUrl)}
-                                className={styles.actionBtn}
-                                title="Ver imagen"
+                                onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
+                                title="Activar para pegar (Ctrl+V)"
                               >
-                                <Eye size={16} />
+                                <Clipboard size={16} />
                               </button>
-                              <button
-                                onClick={() => handleDelete(source.id as LegalSourceId)}
-                                className={`${styles.actionBtn} ${styles.actionBtnDanger}`}
-                                title="Eliminar"
-                              >
-                                <X size={16} />
-                              </button>
-                            </>
-                          ) : (
-                            <button
-                              onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                              className={`${styles.actionBtn} ${isActiveForPaste ? styles.actionBtnActive : ''}`}
-                              title="Activar para pegar (Ctrl+V)"
-                            >
-                              <Clipboard size={16} />
-                            </button>
-                          )}
-                        </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}

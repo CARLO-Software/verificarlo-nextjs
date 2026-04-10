@@ -82,10 +82,12 @@ interface LegalReportData {
 }
 
 interface LegalScreenshotData {
-  sourceId: string;
   imageUrl: string;
   uploadedAt: string;
 }
+
+// El valor puede ser un objeto único o un array (para fuentes con múltiples imágenes)
+type LegalScreenshotsMap = Record<string, LegalScreenshotData | LegalScreenshotData[]>;
 
 interface Props {
   inspectionId: number;
@@ -98,7 +100,7 @@ interface Props {
   mechanicalStatus: 'PENDIENTE' | 'EN_PROCESO' | 'COMPLETADO';
   legalNotes: string | null;
   legalReportData: LegalReportData | null;
-  legalScreenshots: Record<string, LegalScreenshotData> | null;
+  legalScreenshots: LegalScreenshotsMap | null;
   assignedAdmin: { id: string; name: string } | null;
   assignedMechanic: { id: string; name: string } | null;
   legalStartedAt: string | null;
@@ -183,14 +185,32 @@ export function VehicleInspectionLegalClient({
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Estado para capturas de pantalla y PDF
+  // Estado para capturas de pantalla y PDF (soporta múltiples imágenes por fuente)
   const [screenshots, setScreenshots] = useState<LegalScreenshot[]>(() => {
     if (!initialScreenshots) return [];
-    return Object.entries(initialScreenshots).map(([sourceId, data]) => ({
-      sourceId: sourceId as LegalSourceId,
-      imageUrl: data.imageUrl,
-      uploadedAt: new Date(data.uploadedAt),
-    }));
+    const result: LegalScreenshot[] = [];
+    Object.entries(initialScreenshots).forEach(([sourceId, data]) => {
+      if (Array.isArray(data)) {
+        // Fuente con múltiples imágenes
+        data.forEach((img, index) => {
+          result.push({
+            sourceId: sourceId as LegalSourceId,
+            imageUrl: img.imageUrl,
+            uploadedAt: new Date(img.uploadedAt),
+            index,
+          });
+        });
+      } else {
+        // Fuente con imagen única
+        result.push({
+          sourceId: sourceId as LegalSourceId,
+          imageUrl: data.imageUrl,
+          uploadedAt: new Date(data.uploadedAt),
+          index: 0,
+        });
+      }
+    });
+    return result;
   });
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
@@ -275,16 +295,35 @@ export function VehicleInspectionLegalClient({
     });
   };
 
-  // Handlers para capturas de pantalla
+  // Handlers para capturas de pantalla (soporta múltiples imágenes)
   const handleScreenshotUploaded = (screenshot: LegalScreenshot) => {
     setScreenshots((prev) => {
-      const filtered = prev.filter((s) => s.sourceId !== screenshot.sourceId);
-      return [...filtered, screenshot];
+      // Calcular el nuevo índice para esta fuente
+      const existingForSource = prev.filter((s) => s.sourceId === screenshot.sourceId);
+      const newIndex = existingForSource.length;
+      return [...prev, { ...screenshot, index: newIndex }];
     });
   };
 
-  const handleScreenshotDeleted = (sourceId: LegalSourceId) => {
-    setScreenshots((prev) => prev.filter((s) => s.sourceId !== sourceId));
+  const handleScreenshotDeleted = (sourceId: LegalSourceId, index?: number) => {
+    setScreenshots((prev) => {
+      if (index !== undefined) {
+        // Eliminar imagen específica y reindexar
+        const filtered = prev.filter(
+          (s) => !(s.sourceId === sourceId && s.index === index)
+        );
+        // Reindexar las imágenes restantes de esta fuente
+        let currentIndex = 0;
+        return filtered.map((s) => {
+          if (s.sourceId === sourceId) {
+            return { ...s, index: currentIndex++ };
+          }
+          return s;
+        });
+      }
+      // Eliminar todas las imágenes de esta fuente (comportamiento original)
+      return prev.filter((s) => s.sourceId !== sourceId);
+    });
   };
 
   // Calcular progreso

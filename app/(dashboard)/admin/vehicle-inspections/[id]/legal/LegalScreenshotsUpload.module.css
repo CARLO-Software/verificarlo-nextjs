@@ -794,6 +794,119 @@
   }
 }
 
+/* ============================================
+   Múltiples Imágenes por Fuente
+   ============================================ */
+
+/* Badge que muestra el contador de imágenes */
+.multiImageBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6366F1;
+  background: #EEF2FF;
+  border-radius: 10px;
+  margin-left: 4px;
+}
+
+/* Columna de imagen expandida para múltiples */
+.sourceImageColMulti {
+  flex-shrink: 0;
+  min-width: 200px;
+  max-width: 350px;
+}
+
+/* Grid de múltiples imágenes */
+.multiImageGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Wrapper de thumbnail en modo múltiple */
+.multiThumbnailWrapper {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 1px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+.multiThumbnailWrapper:hover .thumbnail {
+  transform: scale(1.05);
+}
+
+/* Botón de eliminar en cada thumbnail */
+.multiDeleteBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: rgba(220, 38, 38, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.multiThumbnailWrapper:hover .multiDeleteBtn {
+  opacity: 1;
+}
+
+.multiDeleteBtn:hover {
+  background: #DC2626;
+  transform: scale(1.1);
+}
+
+/* Caja de upload pequeña para modo múltiple */
+.multiUploadBox {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 2px dashed #D1D5DB;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.multiUploadBox:hover {
+  border-color: #6366F1;
+  color: #6366F1;
+  background: #F5F3FF;
+}
+
+.multiUploadBox.uploadBoxActive {
+  border-color: #6366F1;
+  border-style: solid;
+  background: #EEF2FF;
+  color: #6366F1;
+}
+
+/* Hint de paste pequeño */
+.pasteHintSmall {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {
