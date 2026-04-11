@@ -54,6 +54,32 @@
 
   --basics--white: #fff;
   --basics--black: #000;
+
+  /* ══════════════════════════════════════════════════════════════════
+     PREMIUM PLATFORM VARIABLES
+     ══════════════════════════════════════════════════════════════════ */
+
+  /* Glass morphism */
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+
+  /* Premium gradients */
+  --gradient-gold-radial: radial-gradient(circle at 30% 30%, rgba(253, 191, 18, 0.15), transparent 60%);
+  --gradient-premium-bg: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+
+  /* Glow effects */
+  --glow-gold: 0 0 20px rgba(253, 191, 18, 0.25);
+  --glow-gold-intense: 0 0 40px rgba(253, 191, 18, 0.4);
+
+  /* Premium shadows */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --shadow-card-hover: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --shadow-nav: 0 2px 20px rgba(0, 0, 0, 0.06);
+
+  /* Speed lines pattern */
+  --speed-lines-angle: 135deg;
+  --speed-lines-color: rgba(253, 191, 18, 0.03);
 }
 
 @media (prefers-color-scheme: dark) {

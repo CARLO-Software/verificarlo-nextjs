@@ -39,6 +39,7 @@ import { BookingStatus } from '@prisma/client';
 import { getVerdict, getScoreCategoryInfo, type ScoreCategory } from '@/lib/inspection-verdict';
 import { differenceInHours, format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { RescheduleModal } from '@/app/components/Dashboard';
 
 interface Inspection {
   id: number;
@@ -108,76 +109,77 @@ interface Props {
   inspection: Inspection;
 }
 
-// Configuración de estados con diseño premium
+// Configuración de estados - estilo minimalista
 const statusConfig: Record<string, {
   label: string;
   description: string;
   icon: React.ElementType;
-  gradient: string;
-  glowColor: string;
-  bgPattern: string;
+  iconColor: string;
+  badgeBg: string;
+  badgeText: string;
 }> = {
   PENDING_PAYMENT: {
     label: 'Pendiente de pago',
     description: 'Completa el pago para confirmar tu inspección',
     icon: Clock,
-    gradient: 'from-amber-500 via-orange-500 to-amber-600',
-    glowColor: 'shadow-amber-500/30',
-    bgPattern: 'radial-gradient(circle at 20% 80%, rgba(251,191,36,0.15) 0%, transparent 50%)',
+    iconColor: 'text-amber-600',
+    badgeBg: 'bg-amber-100',
+    badgeText: 'text-amber-700',
   },
   PENDING_VERIFICATION: {
     label: 'Verificando pago',
     description: 'Tu pago está siendo verificado',
     icon: Clock,
-    gradient: 'from-orange-500 via-amber-500 to-orange-600',
-    glowColor: 'shadow-orange-500/30',
-    bgPattern: 'radial-gradient(circle at 80% 20%, rgba(249,115,22,0.15) 0%, transparent 50%)',
+    iconColor: 'text-orange-600',
+    badgeBg: 'bg-orange-100',
+    badgeText: 'text-orange-700',
   },
   PAID: {
     label: 'Confirmada',
     description: 'Tu inspección está programada',
     icon: CheckCircle2,
-    gradient: 'from-emerald-500 via-green-500 to-teal-500',
-    glowColor: 'shadow-emerald-500/30',
-    bgPattern: 'radial-gradient(circle at 20% 80%, rgba(16,185,129,0.15) 0%, transparent 50%)',
+    iconColor: 'text-emerald-600',
+    badgeBg: 'bg-emerald-100',
+    badgeText: 'text-emerald-700',
   },
   COMPLETED: {
     label: 'Completada',
     description: 'Tu informe está listo',
-    icon: Sparkles,
-    gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
-    glowColor: 'shadow-emerald-500/40',
-    bgPattern: 'radial-gradient(circle at 80% 20%, rgba(20,184,166,0.2) 0%, transparent 50%)',
+    icon: CheckCircle2,
+    iconColor: 'text-emerald-600',
+    badgeBg: 'bg-emerald-100',
+    badgeText: 'text-emerald-700',
   },
   CANCELLED: {
     label: 'Cancelada',
     description: 'Esta inspección fue cancelada',
     icon: XCircle,
-    gradient: 'from-gray-600 via-gray-700 to-gray-800',
-    glowColor: 'shadow-gray-500/20',
-    bgPattern: 'none',
+    iconColor: 'text-gray-500',
+    badgeBg: 'bg-gray-100',
+    badgeText: 'text-gray-600',
   },
   NO_SHOW: {
     label: 'No asistió',
     description: 'No te presentaste a la cita',
     icon: AlertCircle,
-    gradient: 'from-gray-500 via-gray-600 to-gray-700',
-    glowColor: 'shadow-gray-500/20',
-    bgPattern: 'none',
+    iconColor: 'text-gray-500',
+    badgeBg: 'bg-gray-100',
+    badgeText: 'text-gray-600',
   },
   EXPIRED: {
     label: 'Expirada',
     description: 'El tiempo de pago expiró',
     icon: Clock,
-    gradient: 'from-gray-500 via-gray-600 to-gray-700',
-    glowColor: 'shadow-gray-500/20',
-    bgPattern: 'none',
+    iconColor: 'text-gray-500',
+    badgeBg: 'bg-gray-100',
+    badgeText: 'text-gray-600',
   },
 };
 
 export function InspectionDetailClient({ inspection }: Props) {
   const router = useRouter();
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -188,10 +190,11 @@ export function InspectionDetailClient({ inspection }: Props) {
   const status = statusConfig[inspection.status] || statusConfig.PENDING_PAYMENT;
   const StatusIcon = status.icon;
 
-  // Calcular si puede cancelar (más de 24h antes)
+  // Calcular si puede cancelar/reprogramar (más de 24h antes)
   const hoursUntil = differenceInHours(new Date(inspection.startTime), new Date());
   const canCancelWithRefund = hoursUntil >= 24;
   const canCancel = hoursUntil > 0;
+  const canReschedule = hoursUntil >= 24; // Solo se puede reprogramar con 24h+ de anticipación
   const isPending = ['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID'].includes(inspection.status);
   const isCompleted = inspection.status === 'COMPLETED';
 
@@ -223,70 +226,37 @@ export function InspectionDetailClient({ inspection }: Props) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 pb-32 md:pb-12">
-      {/* ═══════════════════════════════════════════════════════════════
-          HEADER PREMIUM - Glassmorphism + Gradientes
-      ═══════════════════════════════════════════════════════════════ */}
-      <div className="relative overflow-hidden">
-        {/* Fondo con gradiente y patrón */}
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${status.gradient}`}
-          style={{ backgroundImage: status.bgPattern }}
-        />
-
-        {/* Elementos decorativos flotantes */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-          <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-black/10 rounded-full blur-3xl" />
-        </div>
-
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-          {/* Back button - Glassmorphism */}
+    <div className="min-h-screen bg-gray-50 pb-32 md:pb-12">
+      {/* Header minimalista */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6">
+          {/* Back button */}
           <Link
             href="/inspecciones"
-            className={`
-              inline-flex items-center gap-2 mb-6
-              px-4 py-2 rounded-full
-              bg-white/20 backdrop-blur-md border border-white/30
-              text-white/90 hover:text-white hover:bg-white/30
-              transition-all duration-300 ease-out
-              ${mounted ? 'animate-in fade-in slide-in-from-left-4 duration-500' : 'opacity-0'}
-            `}
+            className="inline-flex items-center gap-2 px-3 py-2 -ml-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors mb-4"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={18} />
             <span className="text-sm font-medium">Mis inspecciones</span>
           </Link>
 
           {/* Status principal */}
-          <div className={`
-            flex items-start gap-5
-            ${mounted ? 'animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100' : 'opacity-0'}
-          `}>
-            {/* Ícono con glow */}
+          <div className="flex items-start gap-4">
+            {/* Ícono */}
             <div className={`
-              relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl
-              bg-white/20 backdrop-blur-md border border-white/30
+              w-12 h-12 rounded-xl ${status.badgeBg}
               flex items-center justify-center
-              shadow-2xl ${status.glowColor}
             `}>
-              <StatusIcon size={32} className="text-white" />
-              {isCompleted && (
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                  <CheckCircle2 size={14} className="text-emerald-500" />
-                </div>
-              )}
+              <StatusIcon size={24} className={status.iconColor} />
             </div>
 
             <div className="flex-1 min-w-0">
-              {/* Código con pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm mb-2">
-                <span className="text-white/80 text-xs font-mono">{inspection.code}</span>
-              </div>
+              {/* Código */}
+              <span className="text-xs font-mono text-gray-500">{inspection.code}</span>
 
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1 tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
                 {status.label}
               </h1>
-              <p className="text-white/80 text-sm sm:text-base">
+              <p className="text-gray-500 text-sm mt-1">
                 {status.description}
               </p>
             </div>
@@ -330,10 +300,6 @@ export function InspectionDetailClient({ inspection }: Props) {
                   <span className="flex items-center gap-1.5 text-gray-600">
                     <Clock size={14} className="text-gray-400" />
                     <span className="font-medium">{inspection.timeSlot}</span>
-                  </span>
-                  <span className="flex items-center gap-1.5 text-gray-600">
-                    <MapPin size={14} className="text-gray-400" />
-                    <span>A domicilio</span>
                   </span>
                 </div>
               </div>
@@ -449,13 +415,6 @@ export function InspectionDetailClient({ inspection }: Props) {
           </InfoCard>
         </div>
 
-        {/* ─── UBICACIÓN ─────────────────────────────────────────────── */}
-        <LocationSection
-          clientAddress={inspection.clientLocation.address}
-          clientDistrict={inspection.clientLocation.district}
-          mounted={mounted}
-        />
-
         {/* ─── INSPECTOR ─────────────────────────────────────────────── */}
         {inspection.inspector && (
           <InfoCard
@@ -526,25 +485,33 @@ export function InspectionDetailClient({ inspection }: Props) {
             </h3>
 
             <div className="space-y-3">
-              {/* Reprogramar */}
-              <Link
-                href={`/agendar?reschedule=${inspection.id}`}
-                className="
-                  group flex items-center justify-between w-full
-                  py-4 px-5 rounded-2xl
-                  bg-gray-50 hover:bg-gray-100
-                  border border-gray-200 hover:border-gray-300
-                  transition-all duration-300
-                "
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
-                    <RefreshCw size={18} className="text-gray-600" />
+              {/* Reprogramar (solo si faltan +24h) */}
+              {canReschedule ? (
+                <button
+                  onClick={() => setShowRescheduleModal(true)}
+                  className="
+                    group flex items-center justify-between w-full
+                    py-4 px-5 rounded-2xl
+                    bg-gray-50 hover:bg-gray-100
+                    border border-gray-200 hover:border-gray-300
+                    transition-all duration-300
+                  "
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                      <RefreshCw size={18} className="text-gray-600" />
+                    </div>
+                    <span className="font-medium text-gray-700">Reprogramar inspección</span>
                   </div>
-                  <span className="font-medium text-gray-700">Reprogramar inspección</span>
+                  <ChevronRight size={18} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
+                </button>
+              ) : (
+                <div className="py-3 px-5 rounded-2xl bg-gray-50 border border-gray-200">
+                  <p className="text-sm text-gray-400 text-center">
+                    Ya no es posible reprogramar (menos de 24h)
+                  </p>
                 </div>
-                <ChevronRight size={18} className="text-gray-400 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              )}
 
               {/* Cancelar */}
               {canCancel ? (
@@ -620,6 +587,16 @@ export function InspectionDetailClient({ inspection }: Props) {
           isLoading={isLoading}
           onCancel={handleCancel}
           onClose={() => setShowCancelModal(false)}
+        />
+      )}
+
+      {/* Modal de reprogramación */}
+      {showRescheduleModal && (
+        <RescheduleModal
+          bookingId={inspection.id}
+          currentDate={capitalizedDate}
+          currentTime={inspection.timeSlot}
+          onClose={() => setShowRescheduleModal(false)}
         />
       )}
     </div>

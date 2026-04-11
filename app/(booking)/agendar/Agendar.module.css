@@ -10,8 +10,7 @@
 }
 
 .content {
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* Header */
@@ -572,8 +571,7 @@
 }
 
 .formContent {
-  max-width: 580px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* Header del formulario */

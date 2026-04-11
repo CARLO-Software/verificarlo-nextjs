@@ -1,16 +1,11 @@
 /**
- * Layout del Dashboard Cliente (Platform).
- *
- * Separado del layout público (landing) para dar sensación de "aplicación".
- * - Header horizontal minimalista con navegación
- * - Bottom nav en móvil (patrón de app nativa)
- * - Protección de ruta: redirige a login si no hay sesión
- * - Redirige a página de suspensión si la cuenta está suspendida
+ * Platform Layout: Layout mínimo basado en decisiones.
+ * Sin sidebar, sin bottom nav. El contenido ES la navegación.
  */
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { PlatformHeader, MobileBottomNav } from '@/app/components/Platform';
+import { MinimalHeader } from '@/app/components/Dashboard';
 
 export default async function PlatformLayout({
   children,
@@ -19,17 +14,14 @@ export default async function PlatformLayout({
 }) {
   const session = await getServerSession(authOptions);
 
-  // Redirigir a login si no hay sesión
   if (!session?.user) {
     redirect('/login');
   }
 
-  // Verificar si el usuario está suspendido
   if (session.user.status === 'SUSPENDED') {
     redirect('/cuenta-suspendida');
   }
 
-  // Redirigir admins e inspectores a sus dashboards
   if (session.user.role === 'ADMIN') {
     redirect('/admin');
   }
@@ -39,17 +31,11 @@ export default async function PlatformLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header fijo superior */}
-      <PlatformHeader />
-
-      {/* Contenido principal */}
-      <main>
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      <MinimalHeader />
+      <main className="max-w-2xl mx-auto px-6 py-8">
         {children}
       </main>
-
-      {/* Navegación inferior móvil */}
-      <MobileBottomNav />
     </div>
   );
 }

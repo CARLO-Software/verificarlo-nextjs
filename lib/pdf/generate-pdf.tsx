@@ -41,6 +41,7 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
         include: {
           client: {
             select: {
+              id: true,
               name: true,
               email: true,
               phone: true,
@@ -77,6 +78,21 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
   }
 
   const { booking } = report;
+
+  // Buscar VehicleInspection para obtener la placa del mecánico (si existe)
+  const vehicleInspection = await db.vehicleInspection.findFirst({
+    where: {
+      vehicleId: booking.vehicle.id,
+      clientId: booking.client.id,
+    },
+    select: {
+      plate: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  // Usar placa del mecánico si existe, sino la del vehículo original
+  const plateToUse = vehicleInspection?.plate || booking.vehicle.plate;
 
   // Construir categorías con scores
   const categories = [
@@ -134,7 +150,7 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
       brand: booking.vehicle.model.brand.name,
       model: booking.vehicle.model.name,
       year: booking.vehicle.year,
-      plate: booking.vehicle.plate,
+      plate: plateToUse, // Usa placa del mecánico si existe, sino la del cliente
       mileage: report.mileageAtInspection || booking.vehicle.mileage,
     },
 
