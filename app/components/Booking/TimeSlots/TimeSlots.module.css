@@ -188,7 +188,7 @@
   font-size: 14px;
 }
 
-/* No slots state */
+/* No slots state - deprecated, use unavailableDay */
 .noSlots {
   display: flex;
   flex-direction: column;
@@ -210,6 +210,89 @@
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   color: var(--shark--500);
+}
+
+/* ============================================
+   Unavailable Day State (Todos los inspectores ocupados)
+   ============================================ */
+.unavailableDay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: linear-gradient(180deg, #FEF2F2 0%, #FFF 100%);
+  border-radius: 12px;
+  border: 1px dashed #FECACA;
+}
+
+.unavailableIcon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FEE2E2;
+  border-radius: 50%;
+  color: #EF4444;
+  margin-bottom: 1rem;
+}
+
+.unavailableContent {
+  margin-bottom: 1.25rem;
+}
+
+.unavailableBadge {
+  display: inline-block;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #DC2626;
+  background: #FEE2E2;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 0.75rem;
+}
+
+.unavailableTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--shark--900);
+  margin: 0 0 0.5rem 0;
+}
+
+.unavailableText {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+  color: var(--shark--600);
+  margin: 0;
+  line-height: 1.5;
+  max-width: 280px;
+}
+
+.unavailableHint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+  background: var(--shark--50);
+  border-radius: 8px;
+  color: var(--shark--600);
+}
+
+.unavailableHint svg {
+  flex-shrink: 0;
+}
+
+.unavailableHint span {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  text-align: left;
+  line-height: 1.4;
 }
 
 /* Responsive */

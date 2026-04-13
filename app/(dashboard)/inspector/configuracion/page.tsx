@@ -32,7 +32,7 @@ export default async function InspectorConfiguracionPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header simple */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-4">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center gap-4">
           <Link
             href="/inspector"
             className="p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -47,7 +47,7 @@ export default async function InspectorConfiguracionPage() {
       </nav>
 
       {/* Contenido */}
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="mx-auto px-4 py-6">
         <ChangePasswordSection hasPassword={hasPassword} />
       </div>
     </div>

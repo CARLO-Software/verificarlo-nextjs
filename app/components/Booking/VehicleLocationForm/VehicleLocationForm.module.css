@@ -169,6 +169,28 @@
   object-fit: contain;
 }
 
+/* Header del dropdown de calles */
+.dropdownHeader {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+}
+
+/* Icono de tipo de calle */
+.streetIcon {
+  font-size: 0.875rem;
+  width: 20px;
+  display: inline-flex;
+  justify-content: center;
+}
+
 /* =============================================================================
    Responsive
    ============================================================================= */

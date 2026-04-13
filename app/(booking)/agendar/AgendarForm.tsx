@@ -29,7 +29,6 @@ import VehicleLocationForm from "@/app/components/Booking/VehicleLocationForm/Ve
 import InspectionSchedule from "@/app/components/Booking/InspectionSchedule/InspectionSchedule";
 import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
 import PaymentForm from "@/app/components/Booking/PaymentForm/PaymentForm";
-import Confirmation from "@/app/components/Booking/Confirmation/Confirmation";
 
 // =============================================================================
 // TIPOS

@@ -1,8 +1,8 @@
 // =============================================================================
 // COMPONENTE: TransferModal (Modal de Transferencia Bancaria)
 // =============================================================================
-// Muestra los datos de la cuenta bancaria para que el usuario realice
-// la transferencia de la reserva.
+// Muestra los datos de las cuentas bancarias para que el usuario realice
+// la transferencia de la reserva. Permite seleccionar entre múltiples bancos.
 //
 // CONCEPTO: createPortal
 // Los modales usan createPortal para renderizarse directamente en document.body.
@@ -12,21 +12,24 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styles from "./PaymentMethods.module.css";
 
-interface BankData {
+interface BankAccount {
+  id: string;
   bank: string;
+  currency: string;
   accountNumber: string;
   cci: string;
   holder: string;
+  logo: string;
 }
 
 interface TransferModalProps {
   isOpen: boolean;
   onClose: () => void;
-  bankData: BankData;
+  bankAccounts: BankAccount[];
   amount: number;
   onSendVoucher: () => void;
 }
@@ -34,27 +37,39 @@ interface TransferModalProps {
 export default function TransferModal({
   isOpen,
   onClose,
-  bankData,
+  bankAccounts,
   amount,
   onSendVoucher,
 }: TransferModalProps) {
+  // Estado para la cuenta bancaria seleccionada
+  const [selectedAccountId, setSelectedAccountId] = useState(bankAccounts[0]?.id || "");
+
+  // Obtener la cuenta seleccionada
+  const selectedAccount = bankAccounts.find(acc => acc.id === selectedAccountId) || bankAccounts[0];
+
+  // Agrupar cuentas por banco para mostrar tabs
+  const banks = [...new Set(bankAccounts.map(acc => acc.bank))];
+
   // =============================================================================
   // EFECTO: Bloquear scroll del body cuando el modal está abierto
   // =============================================================================
-  // Esto mejora la UX evitando que el usuario scrollee la página detrás del modal.
-
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-
-    // Cleanup: restaurar scroll cuando el componente se desmonte
     return () => {
       document.body.style.overflow = "";
     };
   }, [isOpen]);
+
+  // Reset selección cuando se abre el modal
+  useEffect(() => {
+    if (isOpen && bankAccounts.length > 0) {
+      setSelectedAccountId(bankAccounts[0].id);
+    }
+  }, [isOpen, bankAccounts]);
 
   // =============================================================================
   // EFECTO: Cerrar modal con tecla ESC
@@ -79,7 +94,7 @@ export default function TransferModal({
     <div className={styles.modalOverlay} onClick={onClose}>
       <div
         className={styles.modalContent}
-        onClick={(e) => e.stopPropagation()} // Evita que el click cierre el modal
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Botón cerrar */}
         <button className={styles.modalClose} onClick={onClose} aria-label="Cerrar">
@@ -99,12 +114,13 @@ export default function TransferModal({
           </div>
           <h3 className={styles.modalTitle}>Transferencia Bancaria</h3>
           <p className={styles.modalSubtitle}>
-            Realiza el abono a nuestra cuenta y envíanos el comprobante
+            Selecciona tu banco y realiza el abono de la reserva
           </p>
         </div>
 
         {/* Body con datos */}
         <div className={styles.modalBody}>
+          {/* Monto a depositar */}
           <div className={styles.infoCard}>
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Monto a depositar:</span>
@@ -112,24 +128,71 @@ export default function TransferModal({
             </div>
           </div>
 
-          <div className={styles.infoCard}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Destino:</span>
-              <span className={styles.infoValue}>{bankData.bank}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Número de Cuenta:</span>
-              <span className={styles.infoValue}>{bankData.accountNumber}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Código Interbancario (CCI):</span>
-              <span className={styles.infoValue}>{bankData.cci}</span>
-            </div>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Titular:</span>
-              <span className={styles.infoValue}>{bankData.holder}</span>
+          {/* Selector de banco */}
+          <div className={styles.bankSelector}>
+            <span className={styles.bankSelectorLabel}>Selecciona tu banco:</span>
+            <div className={styles.bankTabs}>
+              {banks.map((bank) => (
+                <button
+                  key={bank}
+                  className={`${styles.bankTab} ${selectedAccount?.bank === bank ? styles.bankTabActive : ""}`}
+                  onClick={() => {
+                    const firstAccountOfBank = bankAccounts.find(acc => acc.bank === bank);
+                    if (firstAccountOfBank) setSelectedAccountId(firstAccountOfBank.id);
+                  }}
+                >
+                  <img
+                    src={bankAccounts.find(acc => acc.bank === bank)?.logo}
+                    alt={bank}
+                    className={styles.bankTabLogo}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = "none";
+                    }}
+                  />
+                  <span>{bank}</span>
+                </button>
+              ))}
             </div>
           </div>
+
+          {/* Selector de moneda */}
+          {selectedAccount && (
+            <div className={styles.currencySelector}>
+              {bankAccounts
+                .filter(acc => acc.bank === selectedAccount.bank)
+                .map((acc) => (
+                  <button
+                    key={acc.id}
+                    className={`${styles.currencyTab} ${selectedAccountId === acc.id ? styles.currencyTabActive : ""}`}
+                    onClick={() => setSelectedAccountId(acc.id)}
+                  >
+                    {acc.currency}
+                  </button>
+                ))}
+            </div>
+          )}
+
+          {/* Datos de la cuenta seleccionada */}
+          {selectedAccount && (
+            <div className={styles.infoCard}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Banco:</span>
+                <span className={styles.infoValue}>{selectedAccount.bank} - {selectedAccount.currency}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>N° de Cuenta:</span>
+                <span className={styles.infoValue}>{selectedAccount.accountNumber}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>CCI:</span>
+                <span className={styles.infoValue}>{selectedAccount.cci}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Titular:</span>
+                <span className={styles.infoValue}>{selectedAccount.holder}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer con botón */}
@@ -139,7 +202,7 @@ export default function TransferModal({
               <path d="M22 2L11 13" />
               <path d="M22 2L15 22L11 13L2 9L22 2Z" />
             </svg>
-            Enviar comprobante
+            Ya realicé la transferencia
           </button>
         </div>
       </div>

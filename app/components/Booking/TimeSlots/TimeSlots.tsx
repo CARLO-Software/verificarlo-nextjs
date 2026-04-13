@@ -105,16 +105,34 @@ export default function TimeSlots({
 
   const availableSlots = slots.filter((s) => s.available);
 
+  // Cuando no hay slots disponibles = todos los inspectores ocupados
   if (availableSlots.length === 0) {
     return (
       <div className={styles.container}>
-        <div className={styles.noSlots}>
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="20" fill="var(--shark--100)" />
-            <path d="M24 14v10l6 6" stroke="var(--shark--400)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <p>No hay horarios disponibles para esta fecha.</p>
-          <span>Por favor, selecciona otro día.</span>
+        <div className={styles.unavailableDay}>
+          <div className={styles.unavailableIcon}>
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+              <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2.5" />
+              <path d="M16 16L32 32M32 16L16 32" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div className={styles.unavailableContent}>
+            <span className={styles.unavailableBadge}>No disponible</span>
+            <h4 className={styles.unavailableTitle}>
+              Todos los inspectores ocupados
+            </h4>
+            <p className={styles.unavailableText}>
+              Lo sentimos, no hay cupos disponibles para esta fecha.
+              Por favor, selecciona otro día en el calendario.
+            </p>
+          </div>
+          <div className={styles.unavailableHint}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M8 14A6 6 0 108 2a6 6 0 000 12z" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M8 5v3l2 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <span>Los días con disponibilidad aparecen resaltados en el calendario</span>
+          </div>
         </div>
       </div>
     );

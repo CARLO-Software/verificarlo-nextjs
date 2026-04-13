@@ -298,6 +298,89 @@
   color: #6cb545;
 }
 
+/* =============================================================================
+   Selector de Banco y Moneda (TransferModal)
+   ============================================================================= */
+
+.bankSelector {
+  margin-bottom: 1rem;
+}
+
+.bankSelectorLabel {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.bankTabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.bankTab {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4b5563;
+  transition: all 0.2s;
+}
+
+.bankTab:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.bankTabActive {
+  border-color: #ffc107;
+  background: #fffef5;
+  color: #1a1a1a;
+}
+
+.bankTabLogo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.currencySelector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.currencyTab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.currencyTab:hover {
+  border-color: #d1d5db;
+}
+
+.currencyTabActive {
+  border-color: #6cb545;
+  background: #f0fdf4;
+  color: #166534;
+}
+
 /* Código QR */
 .qrWrapper {
   display: flex;

@@ -90,18 +90,19 @@ export default function TerminosCondicionesPage() {
         </p>
         <ul>
           <li>
-            <strong>Plan Básica:</strong> Inspección visual general, revisión
-            de documentos, prueba de motor en ralentí.
+            <strong>Plan Legal Express:</strong> Inspección de toda la
+            documentación y antecedentes legales del vehículo (gravámenes,
+            multas, impuestos, entre otros).
           </li>
           <li>
-            <strong>Plan Intermedia:</strong> Incluye lo del Plan Básica más
-            revisión de sistema eléctrico, frenos, suspensión y prueba de
-            manejo.
+            <strong>Plan Inspección Básica:</strong> Incluye la revisión
+            mecánica (escaneo, sistema eléctrico, frenos, suspensión y prueba
+            de manejo), además de la aprobación verbal.
           </li>
           <li>
-            <strong>Plan Completa (Premium):</strong> Incluye lo del Plan
-            Intermedia más escaneo de computadora (OBD), revisión de carrocería
-            con medidor de pintura, y análisis detallado de fluidos.
+            <strong>Plan Inspección Completa (Premium):</strong> Incluye lo del
+            Plan Básico más videoscopia, informe técnico y asesoría en
+            presupuestos de reparación.
           </li>
         </ul>
 
@@ -163,6 +164,7 @@ export default function TerminosCondicionesPage() {
           <li>
             Vehículo ubicado fuera del área de cobertura (Lima Metropolitana)
           </li>
+          <li>Horario fuera de disponibilidad</li>
           <li>
             Condiciones inseguras para realizar la inspección (ej. vehículo
             inoperativo, lugar peligroso)
@@ -184,7 +186,7 @@ export default function TerminosCondicionesPage() {
           </li>
           <li>
             <strong>Saldo restante:</strong> Se paga al inspector el día de la
-            inspección, antes del inicio del servicio.
+            inspección, al final del servicio.
           </li>
           <li>
             Los precios totales varían según el plan seleccionado y se
@@ -205,8 +207,8 @@ export default function TerminosCondicionesPage() {
           <li>Efectivo al inspector</li>
           <li>Yape o Plin al inspector</li>
           <li>
-            Pago online previo (con las mismas opciones del adelanto, si se
-            coordina anticipadamente)
+            Pago online previo o vía POS (con las mismas opciones del adelanto,
+            si se coordina anticipadamente)
           </li>
         </ul>
 
@@ -280,7 +282,7 @@ export default function TerminosCondicionesPage() {
 
         <h3>7.2. Duración</h3>
         <p>
-          La duración aproximada de la inspección es de 60 a 120 minutos,
+          La duración aproximada de la inspección es de 60 a 90 minutos,
           dependiendo del plan contratado y del estado del vehículo.
         </p>
 
@@ -307,8 +309,8 @@ export default function TerminosCondicionesPage() {
         <h3>7.5. Entrega del Reporte</h3>
         <p>
           El reporte de inspección se entrega al Cliente vía correo electrónico
-          dentro de las <strong>24-48 horas hábiles</strong> posteriores a la
-          inspección. El reporte incluye:
+          culminada la inspección, además puede visualizarlo dentro de la
+          plataforma de VerifiCARLO. El reporte incluye:
         </p>
         <ul>
           <li>Información del vehículo</li>
@@ -330,17 +332,17 @@ export default function TerminosCondicionesPage() {
             ubicación
           </li>
           <li>Asegurar que el vehículo esté disponible en la fecha y hora acordadas</li>
-          <li>Permitir al inspector acceso completo al vehículo</li>
+          <li>Solicitar el permiso al inspector para el acceso completo al vehículo</li>
           <li>
             Estar presente durante la inspección o designar a un representante
             autorizado
           </li>
           <li>
             No interferir con el trabajo del inspector ni presionarlo para
-            alterar los resultados
+            obtener los resultados
           </li>
           <li>
-            Pagar el saldo restante antes del inicio de la inspección
+            Pagar el saldo restante al final de la inspección
           </li>
         </ul>
       </section>

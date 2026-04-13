@@ -39,20 +39,71 @@ interface PaymentMethodsProps {
   onAlternativePaymentSuccess: () => void;
 }
 
-// Datos de ejemplo para los modales (REEMPLAZAR con datos reales)
+// Datos para los modales de pago
 const RESERVE_AMOUNT = 50;
 
-const BANK_DATA = {
-  bank: "BCP - Cuenta Ahorros Soles",
-  accountNumber: "1234 5678 9012 3456",
-  cci: "002 1234 5678 9012 3456 32",
-  holder: "VERIFICARLO",
-};
+// Cuentas bancarias disponibles
+const BANK_ACCOUNTS = [
+  {
+    id: "bcp-soles",
+    bank: "BCP",
+    currency: "Soles",
+    accountNumber: "193-8758156-0-20",
+    cci: "00219300875815602015",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/bcp.svg",
+  },
+  {
+    id: "bcp-dolares",
+    bank: "BCP",
+    currency: "Dólares",
+    accountNumber: "193-8748718-1-96",
+    cci: "00219300874871819615",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/bcp.svg",
+  },
+  {
+    id: "bbva-soles",
+    bank: "BBVA",
+    currency: "Soles",
+    accountNumber: "0011-0157-0200610827",
+    cci: "011-157-000200610827-54",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/bbva.svg",
+  },
+  {
+    id: "bbva-dolares",
+    bank: "BBVA",
+    currency: "Dólares",
+    accountNumber: "0011-0157-0200610843",
+    cci: "011-157-000200610843-51",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/bbva.svg",
+  },
+  {
+    id: "interbank-soles",
+    bank: "Interbank",
+    currency: "Soles",
+    accountNumber: "200-3004204040",
+    cci: "003-200-003004204040-39",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/interbank.svg",
+  },
+  {
+    id: "interbank-dolares",
+    bank: "Interbank",
+    currency: "Dólares",
+    accountNumber: "200-3004204058",
+    cci: "003-200-003004204058-31",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/interbank.svg",
+  },
+];
 
 const YAPE_DATA = {
-  phone: "987 654 321",
-  holder: "VERIFICARLO",
-  qrImage: "/assets/images/yape-qr.svg",
+  phone: "+51 934 140 010",
+  holder: "MOVE TECHNOLOGIES S.A.C.",
+  qrImage: "/assets/images/yape-qr.png",
 };
 
 export default function PaymentMethods({
@@ -262,7 +313,7 @@ export default function PaymentMethods({
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
-        bankData={BANK_DATA}
+        bankAccounts={BANK_ACCOUNTS}
         amount={RESERVE_AMOUNT}
         onSendVoucher={handleTransferComplete}
       />
