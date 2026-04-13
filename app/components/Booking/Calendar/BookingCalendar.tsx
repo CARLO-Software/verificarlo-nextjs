@@ -6,25 +6,18 @@ import styles from "./BookingCalendar.module.css";
 // ============================================
 // INTERFACES (TypeScript)
 // ============================================
-// Definimos la "forma" de los datos que esperamos.
-// Esto ayuda a detectar errores en tiempo de desarrollo.
 
-interface MonthAvailability {
+interface DayAvailability {
   date: string;           // "2024-02-15"
-  hasAvailability: boolean; // true si hay horarios disponibles ese día
+  hasAvailability: boolean;
 }
 
-// Props = propiedades que el componente PADRE pasa al HIJO
 interface BookingCalendarProps {
-  // Función callback: cuando el usuario selecciona una fecha,
-  // llamamos esta función para notificar al padre
   onDateSelect: (date: string) => void;
-
-  // La fecha actualmente seleccionada (controlada por el padre)
   selectedDate: string | null;
 }
 
-// Constantes fuera del componente = no se recrean en cada render
+// Constantes
 const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const MONTHS = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -32,292 +25,162 @@ const MONTHS = [
 ];
 
 // ============================================
-// COMPONENTE PRINCIPAL
+// COMPONENTE PRINCIPAL - Vista de 2 semanas
 // ============================================
-// Los props vienen del componente padre (ej: AgendarForm)
-// Usamos destructuring { onDateSelect, selectedDate } para extraerlos
 
 export default function BookingCalendar({
   onDateSelect,
   selectedDate,
 }: BookingCalendarProps) {
-
-  // ============================================
-  // ESTADO (useState)
-  // ============================================
-  // useState retorna [valor, funcionParaCambiarValor]
-  // Cuando el estado cambia, React RE-RENDERIZA el componente
-
-  // Estado para el mes/año que estamos viendo en el calendario
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  // Estado para guardar la disponibilidad del mes (viene del servidor)
-  const [availability, setAvailability] = useState<MonthAvailability[]>([]);
-
-  // Estado para mostrar spinner mientras carga
+  const [availability, setAvailability] = useState<DayAvailability[]>([]);
   const [loading, setLoading] = useState(true);
 
   // ============================================
-  // VALORES DERIVADOS
+  // Calcular rango de fechas (2 semanas)
   // ============================================
-  // No necesitan useState porque se calculan A PARTIR del estado existente
-  // Se recalculan automáticamente cuando currentDate cambia
+  const getTwoWeeksRange = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const currentYear = currentDate.getFullYear();   // ej: 2024
-  const currentMonth = currentDate.getMonth();     // 0-11 (0 = Enero)
+    // Obtener el lunes de esta semana
+    const dayOfWeek = today.getDay(); // 0 = domingo
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - daysToMonday);
 
-  // ============================================
-  // useEffect - EFECTOS SECUNDARIOS
-  // ============================================
-  // Se ejecuta DESPUÉS de que el componente se renderiza
-  //
-  // Sintaxis: useEffect(funcionAEjecutar, [dependencias])
-  //
-  // El array de dependencias controla CUÁNDO se ejecuta:
-  // - [] vacío = solo al montar el componente (1 vez)
-  // - [currentYear, currentMonth] = cada vez que estos valores cambien
-  // - sin array = en CADA render (evitar!)
+    // Obtener el domingo de la próxima semana (14 días desde el lunes)
+    const endOfNextWeek = new Date(startOfWeek);
+    endOfNextWeek.setDate(startOfWeek.getDate() + 13);
 
-  useEffect(() => {
-    // Cuando cambia el mes/año, traemos la disponibilidad del servidor
-    fetchMonthAvailability();
-  }, [currentYear, currentMonth]); // <-- Dependencias: se ejecuta cuando estos cambian
-
-  // ============================================
-  // FUNCIONES ASÍNCRONAS - FETCH DE DATOS
-  // ============================================
-  // async/await permite escribir código asíncrono de forma más legible
-
-  const fetchMonthAvailability = async () => {
-    setLoading(true); // Mostrar spinner
-
-    try {
-      // Formato: "2024-02" para consultar todo el mes
-      const monthStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}`;
-
-      // fetch() hace una petición HTTP al servidor
-      const res = await fetch(`/api/availability?month=${monthStr}`);
-
-      // .json() parsea la respuesta como JSON
-      const data = await res.json();
-
-      // Verificar que data sea un array antes de guardarlo
-      if (Array.isArray(data)) {
-        setAvailability(data);
-      } else {
-        // Si no es array (error de API), usar array vacío
-        console.error("API no retornó un array:", data);
-        setAvailability([]);
-      }
-
-    } catch (error) {
-      // Si hay error de red, lo mostramos en consola
-      console.error("Error fetching availability:", error);
-      setAvailability([]); // Reset a array vacío en caso de error
-    } finally {
-      // finally se ejecuta siempre (éxito o error)
-      setLoading(false); // Ocultar spinner
-    }
+    return { start: startOfWeek, end: endOfNextWeek };
   };
 
+  const { start: weekStart, end: weekEnd } = getTwoWeeksRange();
+
   // ============================================
-  // FUNCIONES HELPER - CÁLCULO DE DÍAS
+  // Generar los 14 días a mostrar
   // ============================================
-  // Estas funciones se recrean en cada render.
-  // Para optimizar, podrían usar useCallback, pero aquí no es necesario.
+  const getVisibleDays = () => {
+    const days: Date[] = [];
+    const current = new Date(weekStart);
 
-  const getDaysInMonth = () => {
-    // Primer día del mes actual
-    const firstDay = new Date(currentYear, currentMonth, 1);
-
-    // Último día del mes (día 0 del mes siguiente = último del actual)
-    const lastDay = new Date(currentYear, currentMonth + 1, 0);
-    const daysInMonth = lastDay.getDate(); // ej: 31 para enero
-
-    // getDay() retorna 0-6 (0 = Domingo)
-    // Ajustamos para que Lunes = 0
-    let startDayOfWeek = firstDay.getDay() - 1;
-    if (startDayOfWeek < 0) startDayOfWeek = 6; // Domingo -> 6
-
-    // Array con días del mes + nulls para espacios vacíos
-    const days: (number | null)[] = [];
-
-    // Agregar espacios vacíos al inicio (días del mes anterior)
-    for (let i = 0; i < startDayOfWeek; i++) {
-      days.push(null);
-    }
-
-    // Agregar los días del mes (1, 2, 3, ... 31)
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
+    for (let i = 0; i < 14; i++) {
+      days.push(new Date(current));
+      current.setDate(current.getDate() + 1);
     }
 
     return days;
   };
 
-  // Convierte día (número) a string formato ISO: "2024-02-15"
-  const getDateString = (day: number) => {
-    return `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-  };
-
   // ============================================
-  // FUNCIONES DE VALIDACIÓN
+  // Fetch de disponibilidad para ambos meses si es necesario
   // ============================================
-  // Determinan el estado visual de cada día
+  useEffect(() => {
+    fetchAvailability();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // ¿Hay disponibilidad para este día?
-  const isAvailable = (day: number) => {
-    // Verificar que availability sea un array
-    if (!Array.isArray(availability)) return false;
+  const fetchAvailability = async () => {
+    setLoading(true);
 
-    const dateStr = getDateString(day);
-    // .find() busca en el array de disponibilidad
-    const dayData = availability.find((a) => a.date === dateStr);
-    // Optional chaining (?.) evita error si dayData es undefined
-    return dayData?.hasAvailability || false;
-  };
+    try {
+      // Obtener meses únicos del rango
+      const months = new Set<string>();
+      const current = new Date(weekStart);
+      for (let i = 0; i < 14; i++) {
+        const monthStr = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, "0")}`;
+        months.add(monthStr);
+        current.setDate(current.getDate() + 1);
+      }
 
-  // ¿Es el día de hoy?
-  const isToday = (day: number) => {
-    const today = new Date();
-    return (
-      day === today.getDate() &&
-      currentMonth === today.getMonth() &&
-      currentYear === today.getFullYear()
-    );
-  };
+      // Fetch de cada mes
+      const allAvailability: DayAvailability[] = [];
+      for (const month of months) {
+        const res = await fetch(`/api/availability?month=${month}`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          allAvailability.push(...data);
+        }
+      }
 
-  // ¿Es un día pasado? (no se puede reservar)
-  const isPast = (day: number) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Comparar solo fechas, no horas
-    const date = new Date(currentYear, currentMonth, day);
-    return date < today;
-  };
-
-  // Calcula el último día permitido (fin de la próxima semana - domingo)
-  const getMaxAllowedDate = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    // Obtener el día de la semana (0 = domingo, 1 = lunes, ... 6 = sábado)
-    const dayOfWeek = today.getDay();
-    // Calcular días hasta el domingo de la próxima semana
-    // Si hoy es domingo (0), faltan 7 días para el próximo domingo
-    // Si hoy es lunes (1), faltan 13 días (6 días hasta domingo + 7 días)
-    const daysUntilEndOfNextWeek = dayOfWeek === 0 ? 7 : (7 - dayOfWeek) + 7;
-    const maxDate = new Date(today);
-    maxDate.setDate(today.getDate() + daysUntilEndOfNextWeek);
-    return maxDate;
-  };
-
-  // ¿El día está fuera del rango permitido? (más allá de la próxima semana)
-  const isBeyondMaxDate = (day: number) => {
-    const date = new Date(currentYear, currentMonth, day);
-    date.setHours(0, 0, 0, 0);
-    return date > getMaxAllowedDate();
-  };
-
-  // ¿Se puede ir al mes anterior? (no si ya estamos en el mes actual)
-  const canGoPrev = () => {
-    const today = new Date();
-    return !(currentYear === today.getFullYear() && currentMonth === today.getMonth());
-  };
-
-  // ¿Se puede ir al mes siguiente? (solo si la fecha máxima está en ese mes)
-  const canGoNext = () => {
-    const maxDate = getMaxAllowedDate();
-    // Si el mes actual ya contiene o supera el mes de la fecha máxima, no se puede avanzar
-    if (currentYear > maxDate.getFullYear()) return false;
-    if (currentYear === maxDate.getFullYear() && currentMonth >= maxDate.getMonth()) return false;
-    return true;
-  };
-
-  // ============================================
-  // HANDLERS - FUNCIONES QUE MANEJAN EVENTOS
-  // ============================================
-
-  const goToPrevMonth = () => {
-    if (canGoPrev()) {
-      // setCurrentDate actualiza el estado
-      // Esto dispara el useEffect que trae la disponibilidad del nuevo mes
-      setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
+      setAvailability(allAvailability);
+    } catch (error) {
+      console.error("Error fetching availability:", error);
+      setAvailability([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
+  // ============================================
+  // Funciones de validación
+  // ============================================
+  const formatDateString = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const isAvailable = (date: Date) => {
+    const dateStr = formatDateString(date);
+    const dayData = availability.find((a) => a.date === dateStr);
+    return dayData?.hasAvailability || false;
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+
+  const isPast = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    return checkDate < today;
   };
 
   // ============================================
-  // PREPARACIÓN PARA RENDER
+  // Título del calendario
   // ============================================
-  // Calculamos los días una vez antes del render
-  const days = getDaysInMonth();
+  const getCalendarTitle = () => {
+    const startMonth = MONTHS[weekStart.getMonth()];
+    const endMonth = MONTHS[weekEnd.getMonth()];
+
+    if (weekStart.getMonth() === weekEnd.getMonth()) {
+      return `${startMonth} ${weekStart.getFullYear()}`;
+    }
+
+    if (weekStart.getFullYear() === weekEnd.getFullYear()) {
+      return `${startMonth} - ${endMonth} ${weekStart.getFullYear()}`;
+    }
+
+    return `${startMonth} ${weekStart.getFullYear()} - ${endMonth} ${weekEnd.getFullYear()}`;
+  };
 
   // ============================================
-  // JSX - LO QUE SE RENDERIZA
+  // Preparar días para render
   // ============================================
-  // JSX es una sintaxis que parece HTML pero es JavaScript.
-  // Se convierte a React.createElement() bajo el capó.
+  const visibleDays = getVisibleDays();
+
+  // ============================================
+  // JSX - Vista compacta de 2 semanas
+  // ============================================
 
   return (
     <div className={styles.calendar}>
-      {/* ============================================
-          HEADER CON NAVEGACIÓN
-          ============================================ */}
-      <div className={styles.header}>
-        {/* Botón mes anterior
-            - type="button" evita que actúe como submit en formularios
-            - disabled={!canGoPrev()} lo deshabilita si no puede ir atrás
-            - aria-label mejora accesibilidad para lectores de pantalla */}
-        <button
-          type="button"
-          onClick={goToPrevMonth}
-          disabled={!canGoPrev()}
-          className={styles.navButton}
-          aria-label="Mes anterior"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M12 15L7 10L12 5"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
-        <h3 className={styles.monthTitle}>
-          {/* Accedemos al array MONTHS usando currentMonth como índice */}
-          {MONTHS[currentMonth]} {currentYear}
-        </h3>
-
-        <button
-          type="button"
-          onClick={goToNextMonth}
-          disabled={!canGoNext()}
-          className={styles.navButton}
-          aria-label="Mes siguiente"
-        >
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-            <path
-              d="M8 5L13 10L8 15"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+      {/* Header sin navegación */}
+      <div className={styles.headerCompact}>
+        <h3 className={styles.monthTitle}>{getCalendarTitle()}</h3>
       </div>
 
-      {/* ============================================
-          DÍAS DE LA SEMANA (Lun, Mar, ...)
-          ============================================ */}
+      {/* Días de la semana */}
       <div className={styles.weekdays}>
-        {/* .map() transforma cada elemento del array en JSX
-            key={day} es OBLIGATORIO para que React identifique cada elemento */}
         {WEEKDAYS.map((day) => (
           <div key={day} className={styles.weekday}>
             {day}
@@ -325,69 +188,50 @@ export default function BookingCalendar({
         ))}
       </div>
 
-      {/* ============================================
-          GRID DE DÍAS DEL MES
-          ============================================ */}
-      <div className={styles.days}>
-        {/* RENDERIZADO CONDICIONAL con operador ternario (? :)
-            Si loading es true, mostramos spinner
-            Si loading es false, mostramos los días */}
+      {/* Grid de 14 días (2 semanas) */}
+      <div className={styles.daysCompact}>
         {loading ? (
           <div className={styles.loading}>
             <div className={styles.spinner} />
           </div>
         ) : (
-          // .map() con índice para crear key única para días vacíos
-          days.map((day, index) => {
-            // Si day es null, es un espacio vacío (día del mes anterior)
-            if (day === null) {
-              return <div key={`empty-${index}`} className={styles.emptyDay} />;
-            }
-
-            // Calculamos propiedades del día para determinar su estado visual
-            const dateStr = getDateString(day);
-            const available = isAvailable(day);
-            const past = isPast(day);
-            const beyondMax = isBeyondMaxDate(day);
-            const today = isToday(day);
+          visibleDays.map((date) => {
+            const dateStr = formatDateString(date);
+            const available = isAvailable(date);
+            const past = isPast(date);
+            const today = isToday(date);
             const selected = selectedDate === dateStr;
-            const isDisabled = past || beyondMax || !available;
+            const isDisabled = past || !available;
 
             return (
               <button
                 type="button"
-                key={day}
-                // onClick llama a onDateSelect (función del padre)
-                // Solo si está disponible, no es pasado y no excede el máximo
+                key={dateStr}
                 onClick={() => {
-                  if (available && !past && !beyondMax) {
-                    onDateSelect(dateStr); // Notificamos al padre
+                  if (available && !past) {
+                    onDateSelect(dateStr);
                   }
                 }}
                 disabled={isDisabled}
-                // Template literals para combinar múltiples clases CSS
-                // Las clases se aplican condicionalmente
                 className={`
                   ${styles.day}
-                  ${past || beyondMax ? styles.past : ""}
+                  ${past ? styles.past : ""}
                   ${today ? styles.today : ""}
                   ${selected ? styles.selected : ""}
-                  ${available && !past && !beyondMax ? styles.available : ""}
-                  ${(!available || beyondMax) && !past ? styles.unavailable : ""}
+                  ${available && !past ? styles.available : ""}
+                  ${!available && !past ? styles.unavailable : ""}
                 `}
-                aria-label={`${day} de ${MONTHS[currentMonth]}`}
+                aria-label={`${date.getDate()} de ${MONTHS[date.getMonth()]}`}
                 aria-selected={selected}
               >
-                {day}
+                {date.getDate()}
               </button>
             );
           })
         )}
       </div>
 
-      {/* ============================================
-          LEYENDA
-          ============================================ */}
+      {/* Leyenda */}
       <div className={styles.legend}>
         <div className={styles.legendItem}>
           <span className={styles.dotAvailable} />

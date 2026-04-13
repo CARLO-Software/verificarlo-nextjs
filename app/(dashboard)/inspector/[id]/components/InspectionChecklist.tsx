@@ -419,6 +419,7 @@ export function InspectionChecklist({
                       disabled={disabled}
                       onStatusChange={handleStatusChange}
                       categoryId={activeCategory}
+                      sectionId={section.id}
                       // Props para fotos
                       reportId={reportId}
                       photos={itemPhotos}

@@ -126,6 +126,7 @@ export default async function InspectionDetailPage({ params }: PageProps) {
       type: booking.inspectionPlan.type,
       title: booking.inspectionPlan.title,
       items: booking.inspectionPlan.items.map((item) => item.label),
+      price: Number(booking.inspectionPlan.price),
     },
     report: booking.report
       ? {

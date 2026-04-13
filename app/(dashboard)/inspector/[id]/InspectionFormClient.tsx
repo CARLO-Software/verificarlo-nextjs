@@ -72,6 +72,7 @@ interface InspectionData {
     type: string;
     title: string;
     items: string[];
+    price: number;
   };
   report: Report | null;
   vehicleInspection: VehicleInspectionData | null;
@@ -464,51 +465,9 @@ function InfoSection({
 
   return (
     <div className={styles.section}>
-      {/* Datos ingresados por el cliente */}
-      <h2 className={styles.sectionTitle}>Datos de la Reserva</h2>
-      <p className={styles.sectionSubtitle}>Información proporcionada por el cliente</p>
-
-      <div className={styles.infoGrid}>
-        {/* Vehículo - Datos del cliente */}
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Vehículo</h3>
-          <p className={styles.infoCardValue}>
-            {inspection.vehicle.brand} {inspection.vehicle.model}
-          </p>
-          <p className={styles.infoCardSubvalue}>Año: {inspection.vehicle.year}</p>
-        </div>
-
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Placa</h3>
-          {hasPlate ? (
-            <p className={styles.infoCardValue}>{inspection.vehicle.plate}</p>
-          ) : (
-            <div className={styles.plateRegister}>
-              <p className={styles.infoCardValueMuted}>No especificada</p>
-              {isLegalBlocked && (
-                <span className={styles.legalBlockedBadge}>
-                  Legal bloqueado
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Kilometraje</h3>
-          <p className={styles.infoCardValue}>{formatMileage(inspection.vehicle.mileage)}</p>
-          <p className={styles.infoCardSubvalue}>Declarado por cliente</p>
-        </div>
-
-        <div className={styles.infoCard}>
-          <h3 className={styles.infoCardTitle}>Tipo de Inspección</h3>
-          <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
-        </div>
-      </div>
-
-      {/* Formulario de registro de placa (cuando no hay placa) */}
+      {/* PRIMERO: Formulario de registro de placa (cuando no hay placa) */}
       {canRegisterPlate && (
-        <div className={styles.plateRegisterCard}>
+        <div className={styles.plateRegisterCardTop}>
           <div className={styles.plateRegisterHeader}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
@@ -520,7 +479,7 @@ function InfoSection({
               <p className={styles.plateRegisterSubtitle}>
                 {isLegalBlocked
                   ? "El equipo legal está esperando la placa para iniciar la revisión"
-                  : "Registra la placa para que el equipo legal pueda continuar"}
+                  : "El cliente no ingresó la placa. Regístrala para notificar al administrador"}
               </p>
             </div>
           </div>
@@ -559,8 +518,66 @@ function InfoSection({
               )}
             </button>
           </div>
+          {isLegalBlocked && (
+            <span className={styles.legalBlockedBadgeInline}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 1L1 4v4.5c0 4 3 6.5 7 7.5 4-1 7-3.5 7-7.5V4L8 1z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 5v3M8 10.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              Revisión legal bloqueada hasta registrar placa
+            </span>
+          )}
         </div>
       )}
+
+      {/* Datos ingresados por el cliente */}
+      <h2 className={styles.sectionTitle}>Datos de la Reserva</h2>
+      <p className={styles.sectionSubtitle}>Información proporcionada por el cliente</p>
+
+      <div className={styles.infoGrid}>
+        {/* Vehículo - Datos del cliente */}
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Vehículo</h3>
+          <p className={styles.infoCardValue}>
+            {inspection.vehicle.brand} {inspection.vehicle.model}
+          </p>
+          <p className={styles.infoCardSubvalue}>Año: {inspection.vehicle.year}</p>
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Placa</h3>
+          {hasPlate ? (
+            <p className={styles.infoCardValue}>{inspection.vehicle.plate}</p>
+          ) : (
+            <p className={styles.infoCardValueMuted}>No especificada por cliente</p>
+          )}
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Kilometraje</h3>
+          <p className={styles.infoCardValue}>{formatMileage(inspection.vehicle.mileage)}</p>
+          <p className={styles.infoCardSubvalue}>Declarado por cliente</p>
+        </div>
+
+        <div className={styles.infoCard}>
+          <h3 className={styles.infoCardTitle}>Tipo de Inspección</h3>
+          <p className={styles.infoCardValue}>{inspection.inspectionPlan.title}</p>
+        </div>
+      </div>
+
+      {/* Monto a cobrar - destacado */}
+      <div className={styles.priceCard}>
+        <div className={styles.priceCardIcon}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+            <path d="M12 6v12M9 9c0-1.1.9-2 2-2h2a2 2 0 110 4h-2a2 2 0 100 4h2a2 2 0 002-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div className={styles.priceCardContent}>
+          <span className={styles.priceCardLabel}>Monto a cobrar al cliente</span>
+          <span className={styles.priceCardValue}>S/ {inspection.inspectionPlan.price.toFixed(2)}</span>
+        </div>
+      </div>
 
       {/* Datos de la cita */}
       <div className={styles.infoGrid} style={{ marginTop: "16px" }}>
@@ -590,19 +607,6 @@ function InfoSection({
         </ul>
       </div>
 
-      {/* Datos verificados por el inspector */}
-      <div className={styles.formSection}>
-        <h3 className={styles.formSectionTitle}>Verificación del Inspector</h3>
-        <p className={styles.formSectionSubtitle}>Datos que debes verificar físicamente</p>
-        {/* <div className={styles.formGrid}>
-        quizas el kilometraje este aca
-        </div> */}
-        {!disabled && (
-          <button onClick={handleSave} disabled={saving} className={styles.saveButton}>
-            {saving ? "Guardando..." : "Guardar verificación"}
-          </button>
-        )}
-      </div>
     </div>
   );
 }
@@ -988,9 +992,6 @@ function SummarySection({
 
       {!disabled && (
         <div className={styles.summaryActions}>
-          <button onClick={handleSaveSummary} disabled={saving} className={styles.saveButton}>
-            {saving ? "Guardando..." : "Guardar resumen"}
-          </button>
           <button
             onClick={handleComplete}
             disabled={completing || !canComplete}

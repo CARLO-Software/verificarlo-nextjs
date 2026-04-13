@@ -100,7 +100,7 @@ export function ItemPhotoCapture({
       return;
     }
 
-    if (photos.length >= maxPhotos) {
+    if (photos.length >= maxPhotos && maxPhotos < 999) {
       setError(`Máximo ${maxPhotos} fotos por item`);
       return;
     }
@@ -148,7 +148,7 @@ export function ItemPhotoCapture({
       return;
     }
 
-    if (validFiles.length > remainingSlots) {
+    if (validFiles.length > remainingSlots && maxPhotos < 999) {
       setError(`Solo se subirán ${remainingSlots} fotos (límite: ${maxPhotos})`);
     }
 
@@ -338,7 +338,7 @@ export function ItemPhotoCapture({
       {/* Contador */}
       {photos.length > 0 && (
         <div className={styles.counter}>
-          {photos.length}/{maxPhotos} fotos
+          {maxPhotos >= 999 ? `${photos.length} fotos` : `${photos.length}/${maxPhotos} fotos`}
         </div>
       )}
 

@@ -26,6 +26,8 @@ interface InspectionItemCardProps {
   onPhotoDeleted?: (photoId: number) => void;
   // Categoría para filtrar opciones (legal solo tiene OK/No aplica)
   categoryId?: string;
+  // Sección para configuración especial (pintura permite fotos ilimitadas)
+  sectionId?: string;
 }
 
 const STATUS_OPTIONS: {
@@ -73,6 +75,7 @@ export function InspectionItemCard({
   onPhotoAdded,
   onPhotoDeleted,
   categoryId,
+  sectionId,
 }: InspectionItemCardProps) {
   const [localComment, setLocalComment] = useState(comment);
   const [isCommentOpen, setIsCommentOpen] = useState(!!comment);
@@ -114,6 +117,13 @@ export function InspectionItemCard({
   };
 
   const showCommentSection = status === "OBSERVACION" || status === "DEFECTO";
+
+  // Mostrar fotos en cualquier estado seleccionado (OK, OBSERVACION, DEFECTO)
+  const showPhotoSection = status === "OK" || status === "OBSERVACION" || status === "DEFECTO";
+
+  // Sección de pintura permite fotos ilimitadas
+  const isPaintSection = sectionId === "carroceria-pintura";
+  const maxPhotosForItem = isPaintSection ? 999 : 5;
 
   return (
     <div className={`${styles.card} ${disabled ? styles.cardDisabled : ""}`}>
@@ -226,8 +236,8 @@ export function InspectionItemCard({
         </div>
       )}
 
-      {/* Sección de fotos para hallazgos */}
-      {showCommentSection && reportId && onPhotoAdded && onPhotoDeleted && (
+      {/* Sección de fotos - disponible en OK, OBSERVACION y DEFECTO */}
+      {showPhotoSection && reportId && onPhotoAdded && onPhotoDeleted && (
         <ItemPhotoCapture
           reportId={reportId}
           checklistItemId={id}
@@ -236,6 +246,7 @@ export function InspectionItemCard({
           onPhotoAdded={onPhotoAdded}
           onPhotoDeleted={onPhotoDeleted}
           disabled={disabled}
+          maxPhotos={maxPhotosForItem}
         />
       )}
     </div>

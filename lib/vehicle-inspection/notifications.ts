@@ -109,6 +109,41 @@ export async function notifyNewInspectionWithPlate(params: {
 }
 
 // ============================================
+// EVENTO: Mecánico registra placa (sin desbloqueo)
+// → notifica a TODOS los admins
+// ============================================
+
+export async function notifyPlateRegisteredByMechanic(params: {
+  inspectionId: number;
+  plate: string;
+  vehicleDescription: string;
+  mechanicName: string;
+}) {
+  const { inspectionId, plate, vehicleDescription, mechanicName } = params;
+
+  const adminIds = await getActiveAdminIds();
+  const adminEmails = await getActiveAdminEmails();
+
+  // In-app
+  await createInAppNotifications(adminIds, {
+    type: "NUEVA_INSPECCION",
+    title: "Placa registrada por mecánico",
+    message: `${vehicleDescription} (${plate}) — El mecánico ${mechanicName} registró la placa faltante del cliente.`,
+    inspectionId,
+  });
+
+  // Email
+  sendEmail({
+    to: adminEmails,
+    subject: `Placa registrada: ${vehicleDescription} (${plate})`,
+    react: null,
+    text: `El mecánico ${mechanicName} registró la placa de un vehículo.\n\nVehículo: ${vehicleDescription}\nPlaca registrada: ${plate}\n\nEsta placa fue ingresada porque el cliente no la proporcionó.`,
+  }).catch((err) =>
+    console.error("[notify] Error enviando email PLACA_REGISTRADA:", err)
+  );
+}
+
+// ============================================
 // EVENTO: Mecánico registra placa (desbloqueo legal)
 // → notifica a TODOS los admins
 // ============================================

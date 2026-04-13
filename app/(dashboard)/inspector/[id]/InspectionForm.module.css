@@ -313,6 +313,67 @@
 }
 
 /* ============================================
+   Price Card - Monto a cobrar destacado
+   ============================================ */
+.priceCard {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+  border: 2px solid #10B981;
+  border-radius: var(--form-radius-lg);
+  padding: 20px 24px;
+  margin-top: 20px;
+  margin-bottom: 24px;
+}
+
+.priceCardIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: white;
+  border-radius: 12px;
+  color: #10B981;
+  flex-shrink: 0;
+}
+
+.priceCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.priceCardLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: #065F46;
+}
+
+.priceCardValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: #047857;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 479px) {
+  .priceCard {
+    padding: 16px 18px;
+  }
+
+  .priceCardIcon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .priceCardValue {
+    font-size: 24px;
+  }
+}
+
+/* ============================================
    Plan Items - Inspection Points
    ============================================ */
 .planItems {
@@ -866,6 +927,30 @@
   background: linear-gradient(135deg, #FFFBEB 0%, #FEF9E7 100%);
   border: 2px solid #FDE68A;
   border-radius: var(--form-radius-lg);
+}
+
+/* Versión arriba - destacada con más énfasis */
+.plateRegisterCardTop {
+  margin-bottom: 24px;
+  padding: 24px 20px;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border: 2px solid #F59E0B;
+  border-radius: var(--form-radius-lg);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+}
+
+.legalBlockedBadgeInline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #DC2626;
 }
 
 .plateRegisterHeader {

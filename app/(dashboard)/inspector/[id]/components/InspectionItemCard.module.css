@@ -11,9 +11,11 @@
   transition: all 0.15s ease;
 }
 
-.card:hover {
-  border-color: #CBD5E1;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+@media (hover: hover) {
+  .card:hover {
+    border-color: #CBD5E1;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
 }
 
 .cardDisabled {
@@ -61,8 +63,10 @@
   white-space: nowrap;
 }
 
-.statusButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.8);
+@media (hover: hover) {
+  .statusButton:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.8);
+  }
 }
 
 .statusButton:disabled {
@@ -99,25 +103,27 @@
   box-shadow: 0 1px 2px rgba(100, 116, 139, 0.2);
 }
 
-/* Hover states when not active */
-.statusButton--green:hover:not(.statusButtonActive):not(:disabled) {
-  color: #10B981;
-  background: rgba(16, 185, 129, 0.1);
-}
+/* Hover states when not active - solo en dispositivos con ratón */
+@media (hover: hover) {
+  .statusButton--green:hover:not(.statusButtonActive):not(:disabled) {
+    color: #10B981;
+    background: rgba(16, 185, 129, 0.1);
+  }
 
-.statusButton--yellow:hover:not(.statusButtonActive):not(:disabled) {
-  color: #F59E0B;
-  background: rgba(245, 158, 11, 0.1);
-}
+  .statusButton--yellow:hover:not(.statusButtonActive):not(:disabled) {
+    color: #F59E0B;
+    background: rgba(245, 158, 11, 0.1);
+  }
 
-.statusButton--red:hover:not(.statusButtonActive):not(:disabled) {
-  color: #EF4444;
-  background: rgba(239, 68, 68, 0.1);
-}
+  .statusButton--red:hover:not(.statusButtonActive):not(:disabled) {
+    color: #EF4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
 
-.statusButton--gray:hover:not(.statusButtonActive):not(:disabled) {
-  color: #64748B;
-  background: rgba(100, 116, 139, 0.1);
+  .statusButton--gray:hover:not(.statusButtonActive):not(:disabled) {
+    color: #64748B;
+    background: rgba(100, 116, 139, 0.1);
+  }
 }
 
 /* Active/Tap states for mobile */
@@ -162,8 +168,10 @@
   transition: color 0.15s ease;
 }
 
-.addCommentButton:hover:not(:disabled) {
-  color: #64748B;
+@media (hover: hover) {
+  .addCommentButton:hover:not(:disabled) {
+    color: #64748B;
+  }
 }
 
 .addCommentButton svg {
@@ -260,9 +268,11 @@
   white-space: nowrap;
 }
 
-.commentChip:hover {
-  background: #E2E8F0;
-  border-color: #CBD5E1;
+@media (hover: hover) {
+  .commentChip:hover {
+    background: #E2E8F0;
+    border-color: #CBD5E1;
+  }
 }
 
 .commentChip:active {
@@ -277,8 +287,10 @@
   color: #B45309;
 }
 
-.commentChipActive:hover {
-  background: #FDE68A;
+@media (hover: hover) {
+  .commentChipActive:hover {
+    background: #FDE68A;
+  }
 }
 
 .commentChipActive:active {

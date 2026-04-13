@@ -20,6 +20,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   notifyLegalUnlocked,
+  notifyPlateRegisteredByMechanic,
 } from "@/lib/vehicle-inspection/notifications";
 
 interface RouteParams {
@@ -127,11 +128,22 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         return updatedInspection;
       });
 
-      // Notificar a admins solo si se desbloqueó legal
-      if (wasBlocked) {
-        const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;
+      // Notificar a admins siempre que se registre una placa
+      const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;
 
+      if (wasBlocked) {
+        // Si estaba bloqueado, usar notificación de desbloqueo
         notifyLegalUnlocked({
+          inspectionId,
+          plate: normalizedPlate,
+          vehicleDescription,
+          mechanicName: session.user.name ?? "Mecánico",
+        }).catch((err) =>
+          console.error("[PATCH mechanic register_plate] Error notificando:", err)
+        );
+      } else {
+        // Si no estaba bloqueado, notificar registro de placa
+        notifyPlateRegisteredByMechanic({
           inspectionId,
           plate: normalizedPlate,
           vehicleDescription,
