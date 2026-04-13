@@ -33,7 +33,8 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user || session.user.role !== "INSPECTOR") {
+    // Permitir acceso a INSPECTOR y ADMIN
+    if (!session?.user || !["INSPECTOR", "ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -58,20 +59,36 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
-    // Verificar que la inspección existe y está asignada a este mecánico
-    const inspection = await db.vehicleInspection.findFirst({
-      where: {
-        id: inspectionId,
-        assignedMechanicId: session.user.id,
-      },
-      include: {
-        vehicle: { include: { model: { include: { brand: true } } } },
-      },
-    });
+    const isAdmin = session.user.role === "ADMIN";
+
+    // Para register_plate: cualquier inspector o admin puede hacerlo
+    // Para otras acciones: solo el mecánico asignado
+    let inspection;
+
+    if (action === "register_plate") {
+      // Solo verificar que la inspección existe
+      inspection = await db.vehicleInspection.findUnique({
+        where: { id: inspectionId },
+        include: {
+          vehicle: { include: { model: { include: { brand: true } } } },
+        },
+      });
+    } else {
+      // Verificar que la inspección está asignada a este mecánico (o es admin)
+      inspection = await db.vehicleInspection.findFirst({
+        where: {
+          id: inspectionId,
+          ...(isAdmin ? {} : { assignedMechanicId: session.user.id }),
+        },
+        include: {
+          vehicle: { include: { model: { include: { brand: true } } } },
+        },
+      });
+    }
 
     if (!inspection) {
       return NextResponse.json(
-        { error: "Inspección no encontrada o no asignada a ti" },
+        { error: "Inspección no encontrada" },
         { status: 404 }
       );
     }
@@ -130,6 +147,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
       // Notificar a admins siempre que se registre una placa
       const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;
+      const registeredByName = session.user.name ?? (isAdmin ? "Administrador" : "Mecánico");
 
       if (wasBlocked) {
         // Si estaba bloqueado, usar notificación de desbloqueo
@@ -137,7 +155,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           inspectionId,
           plate: normalizedPlate,
           vehicleDescription,
-          mechanicName: session.user.name ?? "Mecánico",
+          mechanicName: registeredByName,
         }).catch((err) =>
           console.error("[PATCH mechanic register_plate] Error notificando:", err)
         );
@@ -147,7 +165,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
           inspectionId,
           plate: normalizedPlate,
           vehicleDescription,
-          mechanicName: session.user.name ?? "Mecánico",
+          mechanicName: registeredByName,
         }).catch((err) =>
           console.error("[PATCH mechanic register_plate] Error notificando:", err)
         );

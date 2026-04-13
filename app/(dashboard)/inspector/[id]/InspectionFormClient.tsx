@@ -91,6 +91,9 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   const [report, setReport] = useState<Report | null>(inspection.report);
   const [error, setError] = useState<string | null>(null);
 
+  // Estado local para la placa (para re-render cuando se registra)
+  const [vehiclePlate, setVehiclePlate] = useState<string | null>(inspection.vehicle.plate);
+
   // Estado para fotos agrupadas por checklistItemId
   const [photosByItem, setPhotosByItem] = useState<Record<string, Photo[]>>(() => {
     // Inicializar desde las fotos del reporte
@@ -232,7 +235,7 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
           <h1 className={styles.headerTitle}>{inspection.code}</h1>
           <p className={styles.headerSubtitle}>
             {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
-            {inspection.vehicle.plate && ` • ${inspection.vehicle.plate}`}
+            {vehiclePlate && ` • ${vehiclePlate}`}
           </p>
         </div>
         {isCompleted && (
@@ -277,16 +280,13 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
         {activeSection === "info" && (
           <InfoSection
             inspection={inspection}
+            vehiclePlate={vehiclePlate}
             report={report}
             onUpdate={(data) => setReport((prev) => prev ? { ...prev, ...data } : prev)}
             disabled={isCompleted}
             onPlateRegistered={(plate) => {
-              // Actualizar la placa localmente después de registrarla
-              inspection.vehicle.plate = plate;
-              if (inspection.vehicleInspection) {
-                inspection.vehicleInspection.plate = plate;
-                inspection.vehicleInspection.legalStatus = 'PENDIENTE';
-              }
+              // Actualizar estado local para re-render
+              setVehiclePlate(plate);
             }}
           />
         )}
@@ -330,12 +330,14 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
 // ============================================
 function InfoSection({
   inspection,
+  vehiclePlate,
   report,
   onUpdate,
   disabled,
   onPlateRegistered,
 }: {
   inspection: InspectionData;
+  vehiclePlate: string | null;
   report: Report | null;
   onUpdate: (data: Partial<Report>) => void;
   disabled: boolean;
@@ -348,7 +350,8 @@ function InfoSection({
   const [plateInput, setPlateInput] = useState("");
   const [plateError, setPlateError] = useState("");
   const [savingPlate, setSavingPlate] = useState(false);
-  const hasPlate = !!inspection.vehicle.plate;
+  // Usar el prop vehiclePlate (estado del padre) para determinar si hay placa
+  const hasPlate = !!vehiclePlate;
   const canRegisterPlate = !hasPlate && inspection.vehicleInspection;
   const isLegalBlocked = inspection.vehicleInspection?.legalStatus === 'BLOQUEADO';
 
@@ -360,7 +363,21 @@ function InfoSection({
   };
 
   const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toUpperCase();
+    let value = e.target.value.toUpperCase();
+
+    // Remover caracteres no válidos (solo letras, números y guión)
+    value = value.replace(/[^A-Z0-9-]/g, "");
+
+    // Remover guiones para procesar
+    const clean = value.replace(/-/g, "");
+
+    // Formatear automáticamente: XXX-XXX
+    if (clean.length <= 3) {
+      value = clean;
+    } else {
+      value = clean.slice(0, 3) + "-" + clean.slice(3, 6);
+    }
+
     setPlateInput(value);
 
     // Solo validar si hay algo escrito
@@ -547,7 +564,7 @@ function InfoSection({
         <div className={styles.infoCard}>
           <h3 className={styles.infoCardTitle}>Placa</h3>
           {hasPlate ? (
-            <p className={styles.infoCardValue}>{inspection.vehicle.plate}</p>
+            <p className={styles.infoCardValue}>{vehiclePlate}</p>
           ) : (
             <p className={styles.infoCardValueMuted}>No especificada por cliente</p>
           )}
