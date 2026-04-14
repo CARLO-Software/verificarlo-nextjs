@@ -183,6 +183,39 @@
   top: 0;
 }
 
+/* Dropdown de distritos - más alto para mostrar todos */
+.dropdownDistricts {
+  max-height: 320px;
+}
+
+/* Dropdown de calles - más alto para mostrar más opciones */
+.dropdownStreets {
+  max-height: 280px;
+}
+
+/* Grupo de distritos por zona */
+.districtGroup {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.districtGroup:last-child {
+  border-bottom: none;
+}
+
+.districtGroupHeader {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ffc107;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(to right, #fffbeb, #ffffff);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 1px solid #fef3c7;
+}
+
 /* Icono de tipo de calle */
 .streetIcon {
   font-size: 0.875rem;

@@ -33,7 +33,7 @@ export default async function PlatformLayout({
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <MinimalHeader />
-      <main className="max-w-2xl mx-auto px-6 py-8">
+      <main className="max-w-3xl mx-auto px-6 py-8">
         {children}
       </main>
     </div>

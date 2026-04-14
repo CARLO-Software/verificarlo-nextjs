@@ -19,7 +19,7 @@
 
 import { useState, useEffect } from "react";
 import styles from "./VehicleLocationForm.module.css";
-import { getDistrictsSorted, District } from "@/prisma/data/districts";
+import { District, searchDistrictsGrouped, DistrictGroup } from "@/prisma/data/districts";
 import { searchStreets, Street } from "@/prisma/data/streets";
 
 // =============================================================================
@@ -95,8 +95,8 @@ export default function VehicleLocationForm({
   const [districtQuery, setDistrictQuery] = useState(locationData.districtName);
   const [addressQuery, setAddressQuery] = useState(locationData.address);
 
-  // Lista de distritos (ordenados alfabéticamente)
-  const districts = getDistrictsSorted();
+  // Lista de distritos agrupados por zona
+  const districtGroups = searchDistrictsGrouped(districtQuery);
 
   // =============================================================================
   // EFECTO: Cargar modelos cuando cambia la marca
@@ -187,10 +187,6 @@ export default function VehicleLocationForm({
 
   const filteredModels = models.filter((m) =>
     m.name.toLowerCase().includes(modelQuery.toLowerCase())
-  );
-
-  const filteredDistricts = districts.filter((d) =>
-    d.name.toLowerCase().includes(districtQuery.toLowerCase())
   );
 
   // Filtrar calles según distrito seleccionado y búsqueda
@@ -369,19 +365,26 @@ export default function VehicleLocationForm({
                 }}
                 onFocus={() => setShowDistricts(true)}
                 onBlur={() => setTimeout(() => setShowDistricts(false), 200)}
-                placeholder="Buscar distrito..."
+                placeholder="Selecciona o busca un distrito..."
                 className={styles.input}
                 aria-required="true"
               />
-              {showDistricts && filteredDistricts.length > 0 && (
-                <div className={styles.dropdown}>
-                  {filteredDistricts.slice(0, 10).map((district) => (
-                    <div
-                      key={district.id}
-                      onClick={() => handleDistrictSelect(district)}
-                      className={styles.dropdownItem}
-                    >
-                      <span>{district.name}</span>
+              {showDistricts && districtGroups.length > 0 && (
+                <div className={`${styles.dropdown} ${styles.dropdownDistricts}`}>
+                  {districtGroups.map((group) => (
+                    <div key={group.zone} className={styles.districtGroup}>
+                      <div className={styles.districtGroupHeader}>
+                        {group.zoneName}
+                      </div>
+                      {group.districts.map((district) => (
+                        <div
+                          key={district.id}
+                          onClick={() => handleDistrictSelect(district)}
+                          className={styles.dropdownItem}
+                        >
+                          <span>{district.name}</span>
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
@@ -424,12 +427,12 @@ export default function VehicleLocationForm({
                 className={styles.input}
                 aria-required="true"
               />
-              {showStreets && filteredStreets.length > 0 && addressQuery.length < 20 && (
-                <div className={styles.dropdown}>
+              {showStreets && filteredStreets.length > 0 && addressQuery.length < 30 && (
+                <div className={`${styles.dropdown} ${styles.dropdownStreets}`}>
                   <div className={styles.dropdownHeader}>
                     Avenidas y calles en {locationData.districtName}
                   </div>
-                  {filteredStreets.slice(0, 8).map((street, index) => (
+                  {filteredStreets.slice(0, 12).map((street, index) => (
                     <div
                       key={index}
                       onClick={() => handleStreetSelect(street)}

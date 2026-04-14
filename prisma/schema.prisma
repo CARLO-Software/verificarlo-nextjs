@@ -812,3 +812,48 @@ model NewsletterSubscriber {
   email     String   @unique
   createdAt DateTime @default(now())
 }
+
+// ============================================
+// REELS EDUCATIVOS (Landing Page)
+// ============================================
+
+enum EmbedType {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE_SHORTS
+}
+
+enum ReelCategory {
+  TIPS        // Tips para comprar
+  FRAUDES     // Cómo detectar fraudes
+  PROCESO     // Proceso de inspección
+  TESTIMONIOS // Casos de éxito
+}
+
+model Reel {
+  id           Int          @id @default(autoincrement())
+  title        String       @db.VarChar(100)
+  description  String?      @db.VarChar(300)
+
+  // Embed (IG, TikTok, YouTube Shorts)
+  embedUrl     String       @db.VarChar(500)
+  embedType    EmbedType    @default(INSTAGRAM)
+
+  // Visual
+  thumbnailUrl String       @db.VarChar(500)
+
+  // Organización
+  category     ReelCategory @default(TIPS)
+  sortOrder    Int          @default(0)
+
+  // Métricas
+  views        Int          @default(0)
+
+  // Estado
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@index([category])
+}

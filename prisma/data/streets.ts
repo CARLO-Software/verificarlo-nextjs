@@ -409,15 +409,43 @@ export const getStreetsByDistrictId = (districtId: number): Street[] => {
   return streetsByDistrict[districtId] || [];
 };
 
-// Helper: Buscar calles en un distrito
+// Helper: Normalizar texto para búsqueda (quitar tildes y caracteres especiales)
+const normalizeText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // Quitar tildes
+    .replace(/[^a-z0-9\s]/g, "") // Quitar caracteres especiales
+    .trim();
+};
+
+// Helper: Buscar calles en un distrito con matching mejorado
 export const searchStreets = (districtId: number, query: string): Street[] => {
   const streets = getStreetsByDistrictId(districtId);
   if (!query.trim()) return streets;
 
-  const normalized = query.toLowerCase().trim();
-  return streets.filter((s) =>
-    s.name.toLowerCase().includes(normalized)
-  );
+  const normalizedQuery = normalizeText(query);
+  const queryWords = normalizedQuery.split(/\s+/).filter(Boolean);
+
+  // Si no hay palabras válidas, retornar todas
+  if (queryWords.length === 0) return streets;
+
+  // Buscar calles que contengan CUALQUIERA de las palabras de búsqueda
+  // Ordenar por relevancia: primero las que coinciden con más palabras
+  return streets
+    .map((street) => {
+      const normalizedStreet = normalizeText(street.name);
+
+      // Contar cuántas palabras de búsqueda coinciden
+      const matchCount = queryWords.filter((word) =>
+        normalizedStreet.includes(word)
+      ).length;
+
+      return { street, matchCount };
+    })
+    .filter((item) => item.matchCount > 0)
+    .sort((a, b) => b.matchCount - a.matchCount) // Más coincidencias primero
+    .map((item) => item.street);
 };
 
 // Helper: Formatear nombre completo de calle

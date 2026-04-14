@@ -1,0 +1,481 @@
+/* ============================================
+   REEL FORM - Estilos (crear/editar)
+   ============================================ */
+
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #666;
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+  transition: color 0.2s;
+}
+
+.backButton:hover {
+  color: #1a1a1a;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+/* Form Grid */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+  align-items: start;
+}
+
+.formFields {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* Error */
+.error {
+  padding: 0.75rem 1rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+/* Form Group */
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.375rem;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: #1a1a1a;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: #FF6B00;
+  box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+}
+
+.charCount {
+  display: block;
+  text-align: right;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  margin-top: 0.25rem;
+}
+
+.hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+/* Upload Zone */
+.uploadZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  border: 2px dashed #e5e7eb;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.uploadZone:hover {
+  border-color: #FF6B00;
+  background: #fff7ed;
+}
+
+.uploadZoneActive {
+  border-color: #FF6B00;
+  background: #fff7ed;
+  border-style: solid;
+}
+
+.uploadZoneUploading {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadIcon {
+  position: relative;
+  color: #9ca3af;
+}
+
+.uploadArrow {
+  position: absolute;
+  bottom: -2px;
+  right: -6px;
+  background: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.uploadText {
+  font-size: 0.875rem;
+  color: #4b5563;
+  text-align: center;
+}
+
+.uploadHint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  color: #FF6B00;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Uploaded Preview */
+.uploadedPreview {
+  position: relative;
+  width: 120px;
+  aspect-ratio: 9/16;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.uploadedPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeButton {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.removeButton:hover {
+  background: #dc2626;
+}
+
+/* Platform Selector */
+.platformSelector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.platformButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.platformButton:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+
+.platformActive {
+  border-color: #FF6B00;
+  background: #fff7ed;
+  color: #FF6B00;
+}
+
+/* Form Actions */
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f0f0f0;
+}
+
+.cancelButton {
+  padding: 0.625rem 1.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.submitButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  background: #FF6B00;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #e55f00;
+}
+
+.submitButton:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Preview Column */
+.previewColumn {
+  position: sticky;
+  top: 1rem;
+}
+
+.previewTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+/* Preview Card */
+.previewCard {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.thumbnailPreview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  background: #f3f4f6;
+  max-height: 300px;
+}
+
+.thumbnailPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnailPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #9ca3af;
+  gap: 0.5rem;
+}
+
+.thumbnailPlaceholder span {
+  font-size: 0.75rem;
+}
+
+.thumbnailOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.2);
+  color: white;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.thumbnailPreview:hover .thumbnailOverlay {
+  opacity: 1;
+}
+
+.previewInfo {
+  padding: 0.75rem 1rem;
+}
+
+.previewReelTitle {
+  display: block;
+  font-weight: 500;
+  color: #1a1a1a;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewCategory {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Embed Preview */
+.embedPreview {
+  margin-top: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.embedTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  margin: 0;
+}
+
+.embedContainer {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9/16;
+  max-height: 400px;
+}
+
+.embedContainer iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .previewColumn {
+    position: static;
+    order: -1;
+  }
+
+  .previewCard {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  .embedPreview {
+    max-width: 280px;
+    margin: 1.5rem auto 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .platformSelector {
+    flex-direction: column;
+  }
+
+  .platformButton {
+    justify-content: center;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

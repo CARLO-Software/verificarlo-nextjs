@@ -30,7 +30,7 @@ export function MinimalHeader() {
 
   return (
     <header className="h-16 border-b border-gray-100 bg-white">
-      <div className="h-full max-w-2xl mx-auto px-6 flex items-center justify-between">
+      <div className="h-full max-w-3xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
         <Link href="/app" className="flex items-center">
           <Image

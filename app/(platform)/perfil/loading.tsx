@@ -4,7 +4,7 @@
  */
 export default function ProfileLoading() {
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-pulse">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 animate-pulse">
       {/* Header */}
       <div className="mb-8">
         <div className="h-8 w-32 bg-gray-200 rounded-lg" />

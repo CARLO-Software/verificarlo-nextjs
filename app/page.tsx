@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import MetricasSection from "./landing/metricas/MetricasSection";
 import GoogleReviews from "./landing/googleReviews/GoogleReviews";
+import { ReelsSection } from "./components/Reels";
 import BlogSection from "./landing/blogSection/BlogSection";
 import FAQ from "./landing/faq/FAQ";
 
@@ -47,6 +48,9 @@ export default async function Home() {
 
         {/* TODO: Riesgos que pueden costar miles */}
         <RiesgosSection />
+
+        {/* Reels Educativos - Tips en video */}
+        <ReelsSection />
 
         {/* Blog Section */}
         <BlogSection />

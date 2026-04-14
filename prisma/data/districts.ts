@@ -98,3 +98,47 @@ export const searchDistricts = (query: string): District[] => {
     .filter((d) => d.name.toLowerCase().includes(normalized))
     .sort((a, b) => a.name.localeCompare(b.name, "es"));
 };
+
+// Información de zonas para mostrar en UI
+export const zoneInfo: Record<District["zone"], { name: string; order: number }> = {
+  "lima-centro": { name: "Lima Centro", order: 1 },
+  "lima-norte": { name: "Lima Norte", order: 2 },
+  "lima-sur": { name: "Lima Sur", order: 3 },
+  "lima-este": { name: "Lima Este", order: 4 },
+  "callao": { name: "Callao", order: 5 },
+};
+
+// Helper: Obtener distritos agrupados por zona
+export interface DistrictGroup {
+  zone: District["zone"];
+  zoneName: string;
+  districts: District[];
+}
+
+export const getDistrictsGroupedByZone = (): DistrictGroup[] => {
+  const zones: District["zone"][] = ["lima-centro", "lima-norte", "lima-sur", "lima-este", "callao"];
+
+  return zones.map((zone) => ({
+    zone,
+    zoneName: zoneInfo[zone].name,
+    districts: limaDistricts
+      .filter((d) => d.zone === zone)
+      .sort((a, b) => a.name.localeCompare(b.name, "es")),
+  }));
+};
+
+// Helper: Buscar distritos y devolver agrupados por zona
+export const searchDistrictsGrouped = (query: string): DistrictGroup[] => {
+  const normalized = query.toLowerCase().trim();
+  const zones: District["zone"][] = ["lima-centro", "lima-norte", "lima-sur", "lima-este", "callao"];
+
+  return zones
+    .map((zone) => ({
+      zone,
+      zoneName: zoneInfo[zone].name,
+      districts: limaDistricts
+        .filter((d) => d.zone === zone && (!normalized || d.name.toLowerCase().includes(normalized)))
+        .sort((a, b) => a.name.localeCompare(b.name, "es")),
+    }))
+    .filter((group) => group.districts.length > 0);
+};

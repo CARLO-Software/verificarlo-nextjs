@@ -1,0 +1,237 @@
+/* ============================================
+   REELS SECTION - Sección para landing page
+   ============================================ */
+
+.section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, #fffdf7 0%, #fff 100%);
+  overflow: hidden;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  gap: 24px;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #fff3e0;
+  color: #ff6b00;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin: 0;
+  max-width: 500px;
+}
+
+/* Nav Controls */
+.navControls {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.navButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #e5e5e5;
+  color: #1a1a1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.navButton:hover:not(.navDisabled) {
+  border-color: #ff6b00;
+  color: #ff6b00;
+}
+
+.navDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Scroll Wrapper */
+.scrollWrapper {
+  position: relative;
+}
+
+.gradientLeft,
+.gradientRight {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.gradientLeft {
+  left: 0;
+  background: linear-gradient(to right, #fffdf7, transparent);
+}
+
+.gradientRight {
+  right: 0;
+  background: linear-gradient(to left, #fffdf7, transparent);
+}
+
+/* Reels Grid */
+.reelsGrid {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 8px 4px 16px;
+  margin: 0 -4px;
+}
+
+.reelsGrid::-webkit-scrollbar {
+  display: none;
+}
+
+.reelsGrid > * {
+  scroll-snap-align: start;
+}
+
+/* Loading State */
+.loading {
+  display: flex;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.skeleton {
+  flex-shrink: 0;
+  width: 180px;
+  height: 360px;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Scroll Indicator */
+.scrollIndicator {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: #888;
+  font-size: 0.8rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .section {
+    padding: 60px 0;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .navControls {
+    display: none;
+  }
+
+  .scrollIndicator {
+    display: flex;
+  }
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 48px 0;
+  }
+
+  .container {
+    padding: 0 16px;
+  }
+
+  .header {
+    margin-bottom: 24px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+  }
+
+  .reelsGrid {
+    gap: 14px;
+  }
+
+  .skeleton {
+    width: 150px;
+    height: 300px;
+  }
+}

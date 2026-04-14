@@ -5,7 +5,7 @@
 export default function ConfiguracionesLoading() {
   return (
     <div className="min-h-[calc(100vh-5rem)] bg-gradient-to-b from-gray-50/50 to-white">
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Header skeleton */}
         <header className="mb-10">
           <div className="h-10 w-48 bg-gray-200 rounded-lg animate-pulse" />
