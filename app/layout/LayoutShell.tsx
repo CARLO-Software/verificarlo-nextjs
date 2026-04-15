@@ -20,7 +20,7 @@ import { MinimalHeader } from '@/app/components/Dashboard';
 const ADMIN_INSPECTOR_ROUTES = ['/admin', '/inspector'];
 
 // Rutas de la plataforma cliente (ya tienen layout en route group)
-const CLIENT_PLATFORM_ROUTES = ['/app', '/inspecciones', '/vehiculos', '/perfil', '/configuraciones'];
+const CLIENT_PLATFORM_ROUTES = ['/app', '/inspecciones', '/vehiculos', '/perfil', '/configuraciones', '/mis-inspecciones', '/mis-beneficios'];
 
 // Rutas legales (tienen su propio layout simple sin NavBar/Footer)
 const LEGAL_ROUTES = [

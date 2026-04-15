@@ -5,33 +5,41 @@ export default async function MisInspeccionesPage() {
   const inspections = await getClientInspections();
 
   // Transformar datos para el componente cliente
-  const formattedInspections = inspections.map((inspection) => ({
-    id: inspection.id,
-    code: inspection.code,
-    status: inspection.status,
-    date: inspection.date,
-    expiresAt: inspection.expiresAt,
-    vehicle: {
-      brand: inspection.vehicle.model.brand.name,
-      model: inspection.vehicle.model.name,
-      year: inspection.vehicle.year,
-      plate: inspection.vehicle.plate,
-    },
-    location: "Lima, Perú", // TODO: Agregar ubicación al modelo si es necesario
-    inspectionType: inspection.inspectionPlan.title,
-    progress: getProgressForStatus(inspection.status),
-    results:
-      inspection.status === "COMPLETED"
-        ? {
-            legal: "ok" as const,
-            mechanical: "ok" as const,
-            body: "ok" as const,
-          }
-        : undefined,
-    hasCriticalObservations: false, // TODO: Implementar lógica de observaciones críticas
-  }));
+  const formattedInspections = inspections.map((inspection) => {
+    // Determinar si tiene observaciones críticas basándose en el reporte
+    const hasCriticalObservations = inspection.report?.overallStatus === 'CRITICAL';
+    const hasObservations = inspection.report?.overallStatus === 'WARNING';
 
-  //!! Aquí se le pasa todas las Bookings realizados por el cliente (Es importante para la visualización de las cards en la sección del cliente)
+    return {
+      id: inspection.id,
+      code: inspection.code,
+      status: inspection.status,
+      date: inspection.date,
+      expiresAt: inspection.expiresAt,
+      vehicle: {
+        brand: inspection.vehicle.model.brand.name,
+        brandLogo: inspection.vehicle.model.brand.logo || undefined,
+        model: inspection.vehicle.model.name,
+        year: inspection.vehicle.year,
+        plate: inspection.vehicle.plate,
+      },
+      location: "Lima, Perú", // TODO: Agregar ubicación al modelo si es necesario
+      inspectionType: inspection.inspectionPlan.type, // 'LEGAL', 'BASIC', 'PREMIUM'
+      grade: null as number | null, // TODO: Obtener de VehicleInspection cuando se implemente
+      progress: getProgressForStatus(inspection.status),
+      results:
+        inspection.status === "COMPLETED"
+          ? {
+              legal: "ok" as const,
+              mechanical: "ok" as const,
+              body: "ok" as const,
+            }
+          : undefined,
+      hasCriticalObservations,
+      hasObservations,
+    };
+  });
+
   return <MisInspeccionesClient inspections={formattedInspections} />;
 }
 

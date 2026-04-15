@@ -182,18 +182,82 @@
 }
 
 .popularBadge {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  padding: 3px 8px;
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #1a1a1a;
+  gap: 5px;
+  padding: 4px 10px;
+  /* Glassmorphism */
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 25, 0.92) 0%,
+    rgba(35, 35, 45, 0.88) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Texto champagne */
+  color: #E8D5B7;
   font-family: 'Inter', sans-serif;
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border-radius: 100px;
   text-transform: uppercase;
   white-space: nowrap;
+  /* Sombras refinadas */
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* Para el shimmer */
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Borde dorado sutil */
+.popularBadge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 115, 0.5) 0%,
+    rgba(180, 145, 90, 0.25) 50%,
+    rgba(212, 175, 115, 0.5) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shimmer sutil */
+.popularBadge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+  animation: shimmer-footer-badge 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer-footer-badge {
+  0% { left: -100%; }
+  50%, 100% { left: 100%; }
 }
 
 /* Columna de Contacto */

@@ -96,7 +96,10 @@ export default function ServicesSection() {
                             <article key={inspection.type} className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
                                 {isPremium && (
                                     <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
-                                        <img src="/assets/images/estrellita.png" alt="Badge top" /> 9 de cada 10 eligen este
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
+                                        </svg>
+                                        <span>9 de cada 10 eligen este</span>
                                     </span>
                                 )}
                                 <div className={styles['services-box']}>
@@ -150,11 +153,11 @@ export default function ServicesSection() {
                                 key={inspection.type}
                                 className={`${styles['desktop-plan-card']} ${isPremium ? styles['desktop-plan-featured'] : ''}`}
                             >
-                                {/* Badge "Recomendado" para Premium - posicionado arriba */}
+                                {/* Badge "Más Popular" para Premium - diseño premium */}
                                 {isPremium && (
                                     <div className={styles['premium-badge-top']}>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
                                         </svg>
                                         <span>MÁS POPULAR</span>
                                     </div>

@@ -664,6 +664,10 @@ model VehicleInspection {
   legalStatus      LegalStatus      // BLOQUEADO si no hay placa al crear
   mechanicalStatus MechanicalStatus @default(PENDIENTE)
 
+  // Grado de inspección (1-4 estrellas) - asignado manualmente por el inspector
+  // 1 = Crítico, 2 = Observaciones importantes, 3 = Observaciones menores, 4 = Excelente
+  grade Int?
+
   // Notas por proceso
   legalNotes    String?  @db.Text
   mechanicNotes String?  @db.Text

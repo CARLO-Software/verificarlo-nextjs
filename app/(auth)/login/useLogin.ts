@@ -35,8 +35,9 @@ export function useLogin() {
         const redirectMap: Record<string, string> = {
             ADMIN: "/admin",
             INSPECTOR: "/inspector",
+            CLIENT: "/mis-inspecciones",
         };
-        router.replace(redirectMap[role] || "/perfil");
+        router.replace(redirectMap[role] || "/mis-inspecciones");
     }, [status, session?.user?.role, showToast, router, callbackUrl]);
 
 

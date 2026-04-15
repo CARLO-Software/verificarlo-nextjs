@@ -1,0 +1,54 @@
+/* GradeStars - Componente de estrellas de calificación */
+
+.container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  transition: all 0.2s ease;
+}
+
+.filled {
+  color: #D4AF73; /* Dorado premium */
+}
+
+.empty {
+  color: #2D2D35; /* Borde sutil oscuro */
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+/* Tamaños */
+.sm .star {
+  width: 14px;
+  height: 14px;
+}
+
+.md .star {
+  width: 18px;
+  height: 18px;
+}
+
+.lg .star {
+  width: 24px;
+  height: 24px;
+}
+
+.sm .label {
+  font-size: 11px;
+}
+
+.lg .label {
+  font-size: 14px;
+}

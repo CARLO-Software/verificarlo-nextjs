@@ -291,38 +291,93 @@
   position: relative;
 }
 
-/* Badge superior para el plan Premium
+/* Badge superior para el plan Premium (móvil)
    - Mensaje de prueba social: "9 de cada 10 eligen este"
-   - Posicionado en la parte superior de la card para captar atención inmediata
+   - Diseño premium con glassmorphism y shimmer sutil
 */
 .badge-top {
   position: absolute;
-  top: -12px;
+  top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: #ffe14c;
-  color: black;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 500;
-  font-size: 12px;
+  /* Glassmorphism: fondo oscuro semi-transparente con blur */
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 25, 0.92) 0%,
+    rgba(35, 35, 45, 0.88) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* Texto en tono champagne/dorado suave */
+  color: #E8D5B7;
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 11px;
   font-family: 'Inter', sans-serif;
-  line-height: 88%;
+  line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  /* Sombras refinadas */
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   z-index: 10;
-  letter-spacing: 0.5px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: max-content;
+  /* Contenedor para el efecto shimmer */
+  overflow: hidden;
+  isolation: isolate;
 }
 
-.badge-top img {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-  margin-bottom: 1px;
+/* Borde dorado con pseudo-elemento */
+.badge-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 115, 0.6) 0%,
+    rgba(180, 145, 90, 0.3) 50%,
+    rgba(212, 175, 115, 0.6) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Efecto shimmer sutil */
+.badge-top::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  animation: shimmer-badge 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.badge-top svg {
+  flex-shrink: 0;
 }
 
 .section-background {
@@ -1057,42 +1112,95 @@
     0 0 100px rgba(255, 215, 0, 0.25);
 }
 
-/* Badge "RECOMENDADO" en la parte superior del plan Premium */
+/* Badge "MÁS POPULAR" - Diseño premium con glassmorphism y shimmer sutil */
 .premium-badge-top {
   position: absolute;
-  top: -14px;
+  top: -16px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-  color: #1a1a1a;
-  padding: 10px 20px;
+  /* Glassmorphism: fondo oscuro semi-transparente con blur */
+  background: linear-gradient(
+    135deg,
+    rgba(20, 20, 25, 0.92) 0%,
+    rgba(35, 35, 45, 0.88) 100%
+  );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  /* Borde dorado sutil con gradiente */
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  /* Texto en tono champagne/dorado suave */
+  color: #E8D5B7;
+  padding: 10px 22px;
   border-radius: 100px;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   z-index: 20;
+  /* Sombras refinadas - profundidad sin saturación */
   box-shadow:
-    0 4px 15px rgba(255, 165, 0, 0.4),
-    0 2px 4px rgba(0, 0, 0, 0.1);
+    0 8px 32px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   white-space: nowrap;
-  animation: pulse-badge 2s ease-in-out infinite;
+  /* Contenedor para el efecto shimmer */
+  overflow: hidden;
+  isolation: isolate;
 }
 
-@keyframes pulse-badge {
-  0%, 100% {
-    box-shadow:
-      0 4px 15px rgba(255, 165, 0, 0.4),
-      0 2px 4px rgba(0, 0, 0, 0.1);
+/* Borde dorado con pseudo-elemento para mejor control */
+.premium-badge-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 100px;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 175, 115, 0.6) 0%,
+    rgba(180, 145, 90, 0.3) 50%,
+    rgba(212, 175, 115, 0.6) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Efecto shimmer sutil que recorre el badge */
+.premium-badge-top::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 100%
+  );
+  animation: shimmer-badge 4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer-badge {
+  0% {
+    left: -100%;
   }
-  50% {
-    box-shadow:
-      0 4px 20px rgba(255, 165, 0, 0.6),
-      0 2px 4px rgba(0, 0, 0, 0.1),
-      0 0 30px rgba(255, 215, 0, 0.3);
+  50%, 100% {
+    left: 100%;
   }
 }
 
@@ -1197,6 +1305,11 @@
   border-radius: 20px;
 }
 
+/* Ajuste para el plan Premium - la imagen debe tener border-radius menor por el borde de 3px */
+.desktop-plan-featured .carousel-image {
+  border-radius: 17px;
+}
+
 /* Degradado oscuro - cubre toda la card para legibilidad del texto */
 .carousel-gradient {
   position: absolute;
@@ -1211,6 +1324,11 @@
       rgba(0, 0, 0, 0.5) 100%);
   pointer-events: none;
   border-radius: 20px;
+}
+
+/* Ajuste para el plan Premium - el degradado debe tener border-radius menor por el borde de 3px */
+.desktop-plan-featured .carousel-gradient {
+  border-radius: 17px;
 }
 
 /* Contenido del plan - posicionado a la IZQUIERDA sobre la imagen */

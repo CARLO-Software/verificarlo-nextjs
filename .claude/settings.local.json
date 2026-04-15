@@ -38,9 +38,7 @@
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/car-service.png\" -o revision.png)",
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/user-group-man-man.png\" -o propietarios.png)",
       "Bash(curl -sL \"https://img.icons8.com/ios-filled/100/000000/agreement.png\" -o transferencia.png)",
-<<<<<<< HEAD
-      "Bash(find /c/Proyectos/verificarlo-nextjs -type f \\\\\\(-name *calendar* -o -name *date* -o -name *availability* \\\\\\))"
-=======
+      "Bash(find /c/Proyectos/verificarlo-nextjs -type f \\\\\\(-name *calendar* -o -name *date* -o -name *availability* \\\\\\))",
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(timeout:*)",
@@ -49,7 +47,6 @@
       "mcp__Neon__run_sql",
       "Bash(cmd //c \"taskkill /F /IM node.exe\")",
       "mcp__Neon__get_connection_string"
->>>>>>> 625fc62ac783821933c6936a8c6fea7832187c94
     ]
   }
 }
