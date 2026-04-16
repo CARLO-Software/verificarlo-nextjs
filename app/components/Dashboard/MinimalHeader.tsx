@@ -32,7 +32,7 @@ export function MinimalHeader() {
     <header className="h-16 border-b border-gray-100 bg-white">
       <div className="h-full max-w-3xl mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/app" className="flex items-center">
+        <Link href="/mis-inspecciones" className="flex items-center">
           <Image
             src="/assets/images/verificarlo-logo.png"
             alt="VerifiCARLO"

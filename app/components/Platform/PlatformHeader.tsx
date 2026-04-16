@@ -12,7 +12,7 @@ export function PlatformHeader() {
   return (
     <header className="h-14 border-b border-gray-100 bg-white">
       <div className="h-full max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between">
-        <Link href="/app" className="flex items-center">
+        <Link href="/mis-inspecciones" className="flex items-center">
           <Image
             src="/assets/images/verificarlo-logo.png"
             alt="VerifiCARLO"

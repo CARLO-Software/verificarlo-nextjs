@@ -40,7 +40,7 @@ export default async function ProfilePage() {
     <div className="space-y-6">
       {/* Back link */}
       <Link
-        href="/app"
+        href="/mis-inspecciones"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 transition-colors"
       >
         <ChevronLeft size={16} />

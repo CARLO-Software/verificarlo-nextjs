@@ -104,27 +104,13 @@
 .navbarBrand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  text-decoration: none;
 }
 
-.navbarLogo {
-  width: 40px;
+.navbarLogoImg {
   height: 40px;
-  background: var(--accent-gold);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--bg-dark);
-}
-
-.navbarTitle {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--text-white);
-  letter-spacing: -0.01em;
+  width: auto;
+  object-fit: contain;
 }
 
 .navbarLinks {

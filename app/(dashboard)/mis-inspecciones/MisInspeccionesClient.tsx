@@ -216,10 +216,16 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
         <div className={styles.darkContainer}>
           {/* Navbar */}
           <nav className={styles.navbar}>
-            <div className={styles.navbarBrand}>
-              <div className={styles.navbarLogo}>V</div>
-              <span className={styles.navbarTitle}>VerifiCARLO</span>
-            </div>
+            <Link href="/mis-inspecciones" className={styles.navbarBrand}>
+              <Image
+                src="/assets/images/verificarlo-logo.png"
+                alt="VerifiCARLO"
+                width={160}
+                height={40}
+                className={styles.navbarLogoImg}
+                priority
+              />
+            </Link>
 
             <div className={styles.navbarLinks}>
               <Link href="/mis-inspecciones" className={`${styles.navbarLink} ${styles.active}`}>
