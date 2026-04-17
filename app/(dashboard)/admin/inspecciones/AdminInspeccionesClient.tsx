@@ -250,20 +250,20 @@ function InspectionDetailPanel({
       {/* Panel */}
       <div
         className="
-          fixed right-0 top-0 h-full w-full max-w-lg
+          fixed right-0 top-0 h-full w-full sm:max-w-lg
           bg-white shadow-xl z-50
           animate-slideInRight
           flex flex-col
         "
       >
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[#2D2D2D]">
+              <h2 className="text-base sm:text-lg font-semibold text-[#2D2D2D]">
                 Inspección {inspection.code}
               </h2>
-              <div className="mt-2 flex items-center gap-2">
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
                 <StatusBadge status={editedStatus} />
                 {hasChanges && (
                   <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
@@ -274,7 +274,7 @@ function InspectionDetailPanel({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             >
               <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -282,36 +282,38 @@ function InspectionDetailPanel({
             </button>
           </div>
 
-          {/* Tabs */}
-          <div className="flex gap-1 mt-6">
-            {[
-              { id: 'details', label: 'Detalles' },
-              { id: 'checklist', label: 'Checklist' },
-              { id: 'evidence', label: 'Evidencias' },
-              { id: 'history', label: 'Historial' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={`
-                  px-4 py-2 text-sm font-medium rounded-lg
-                  transition-colors duration-200
-                  ${activeTab === tab.id
-                    ? 'bg-[#FFE14C]/20 text-[#2D2D2D]'
-                    : 'text-gray-500 hover:text-[#2D2D2D] hover:bg-gray-100'
-                  }
-                `}
-              >
-                {tab.label}
-              </button>
-            ))}
+          {/* Tabs - scrollable on mobile */}
+          <div className="-mx-4 px-4 sm:mx-0 sm:px-0 mt-4 sm:mt-6">
+            <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0 sm:overflow-visible">
+              {[
+                { id: 'details', label: 'Detalles' },
+                { id: 'checklist', label: 'Checklist' },
+                { id: 'evidence', label: 'Evidencias' },
+                { id: 'history', label: 'Historial' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={`
+                    px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium rounded-lg flex-shrink-0
+                    transition-colors duration-200
+                    ${activeTab === tab.id
+                      ? 'bg-[#FFE14C]/20 text-[#2D2D2D]'
+                      : 'text-gray-500 hover:text-[#2D2D2D] hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'details' && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Client info */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Cliente</h3>
@@ -496,11 +498,11 @@ function InspectionDetailPanel({
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200">
+        <div className="p-4 sm:p-6 border-t border-gray-200 bg-white">
           {/* Mensaje de feedback */}
           {saveMessage && (
             <div
-              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${saveMessage.type === 'success'
+              className={`mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${saveMessage.type === 'success'
                 ? 'bg-green-50 text-green-700'
                 : 'bg-red-50 text-red-700'
                 }`}
@@ -514,7 +516,7 @@ function InspectionDetailPanel({
               onClick={handleSave}
               disabled={isPending || !hasChanges}
               className={`
-                w-full px-4 py-2.5 font-semibold rounded-lg transition-all
+                w-full px-4 py-2.5 text-sm sm:text-base font-semibold rounded-lg transition-all
                 ${hasChanges
                   ? 'bg-[#FFE14C] text-[#2D2D2D] hover:bg-[#FFD700]'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -809,21 +811,21 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
       <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white shadow-xl z-50 animate-slideInRight flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full sm:max-w-lg bg-white shadow-xl z-50 animate-slideInRight flex flex-col">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-[#2D2D2D]">
+              <h2 className="text-base sm:text-lg font-semibold text-[#2D2D2D]">
                 Nueva Inspección Manual
               </h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Crear reserva para cliente de WhatsApp
               </p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
             >
               <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -833,8 +835,8 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Buscar o crear cliente */}
             <div className="bg-gray-50 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
@@ -1151,10 +1153,10 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-gray-200">
+        <div className="p-4 sm:p-6 border-t border-gray-200 bg-white">
           {message && (
             <div
-              className={`mb-4 px-4 py-2 rounded-lg text-sm font-medium ${message.type === 'success'
+              className={`mb-3 sm:mb-4 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium ${message.type === 'success'
                 ? 'bg-green-50 text-green-700'
                 : 'bg-red-50 text-red-700'
                 }`}
@@ -1163,20 +1165,20 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 sm:gap-3">
             <button
               onClick={onClose}
               disabled={isPending}
-              className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 text-gray-600 text-sm sm:text-base font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={isPending}
-              className="flex-1 px-4 py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors disabled:opacity-50"
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#FFE14C] text-[#2D2D2D] text-sm sm:text-base font-semibold rounded-lg hover:bg-[#FFD700] transition-colors disabled:opacity-50"
             >
-              {isPending ? 'Creando...' : 'Crear inspección'}
+              {isPending ? 'Creando...' : 'Crear'}
             </button>
           </div>
         </div>
