@@ -265,7 +265,9 @@ export function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className={styles.dropdown}>
+        <>
+          <div className={styles.mobileOverlay} onClick={() => setIsOpen(false)} />
+          <div className={styles.dropdown}>
           <div className={styles.header}>
             <h3 className={styles.title}>Notificaciones</h3>
             {unreadCount > 0 && (
@@ -317,6 +319,7 @@ export function NotificationBell() {
           </div>
 
         </div>
+        </>
       )}
     </div>
   );

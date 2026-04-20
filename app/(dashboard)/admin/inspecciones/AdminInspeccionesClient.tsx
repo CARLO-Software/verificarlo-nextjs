@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
+import { StatusBadge, LegalStatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { formatearFechaHoraCorta } from '@/app/domain/datetime';
 import { BookingStatus, InspectionType } from '@prisma/client';
 import {
@@ -1278,17 +1278,17 @@ export function AdminInspeccionesClient({
   };
 
   return (
-    <div className="bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+    <div className="bg-white w-full">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6 sm:mb-8">
+        <div className="mb-4 sm:mb-6">
           <div className="flex items-center justify-between gap-3">
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-[#2D2D2D]">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#2D2D2D]">
               Inspecciones
             </h1>
             <button
               onClick={() => setShowCreatePanel(true)}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors text-sm sm:text-base whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 bg-[#FFE14C] text-[#2D2D2D] font-semibold rounded-lg hover:bg-[#FFD700] transition-colors text-sm whitespace-nowrap relative z-10"
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -1300,17 +1300,17 @@ export function AdminInspeccionesClient({
           </div>
 
           {/* Stats - Horizontal scroll en móvil */}
-          <div className="mt-4 sm:mt-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-            <div className="flex gap-3 sm:gap-4 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-5 sm:overflow-visible">
+          <div className="mt-3 sm:mt-4">
+            <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 sm:pb-0 sm:grid sm:grid-cols-5 sm:overflow-visible -webkit-overflow-scrolling-touch">
               {statsConfig.map((stat) => (
                 <div
                   key={stat.key}
-                  className={`${stat.bg} rounded-lg p-3 sm:p-4 flex-shrink-0 w-32 sm:w-auto`}
+                  className={`${stat.bg} rounded-lg p-2.5 sm:p-3 flex-shrink-0 w-28 sm:w-auto`}
                 >
-                  <p className={`text-xl sm:text-2xl font-bold ${stat.color}`}>
+                  <p className={`text-lg sm:text-xl font-bold ${stat.color}`}>
                     {stats[stat.key as keyof Stats]}
                   </p>
-                  <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">{stat.label}</p>
+                  <p className="text-[10px] sm:text-xs text-gray-600 whitespace-nowrap">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -1318,19 +1318,19 @@ export function AdminInspeccionesClient({
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-4">
           <div className="w-full">
             <input
               type="text"
               placeholder="Buscar..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] text-sm sm:text-base"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] text-sm"
             />
           </div>
           {/* Filter pills con scroll horizontal en móvil */}
-          <div className="-mx-4 px-4 sm:mx-0 sm:px-0">
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible">
+          <div>
+            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible -webkit-overflow-scrolling-touch">
               {filterPills.map((pill) => (
                 <button
                   key={pill.value}
@@ -1371,7 +1371,7 @@ export function AdminInspeccionesClient({
                       <p className="text-xs text-gray-500 truncate">{inspection.client.email}</p>
                     </div>
                   </div>
-                  <StatusBadge status={inspection.status} size="sm" />
+                  <LegalStatusBadge status={inspection.vehicleInspection?.legalStatus} size="sm" />
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div>
@@ -1544,7 +1544,7 @@ export function AdminInspeccionesClient({
                         )}
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <StatusBadge status={inspection.status} size="sm" />
+                        <LegalStatusBadge status={inspection.vehicleInspection?.legalStatus} size="sm" />
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
                         <div className="flex justify-end gap-1 lg:gap-2">

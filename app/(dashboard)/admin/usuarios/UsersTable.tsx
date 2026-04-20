@@ -194,15 +194,15 @@ export function UsersTable() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-3 sm:space-y-4 w-full">
       {/* ==================== HEADER ==================== */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
             Usuarios
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Gestiona los usuarios registrados en la plataforma
+          <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            Gestiona los usuarios registrados
           </p>
         </div>
 
@@ -213,16 +213,16 @@ export function UsersTable() {
             bg-gradient-to-r from-yellow-400 to-yellow-500
             hover:from-yellow-500 hover:to-yellow-600
             text-gray-900 font-semibold
-            px-5 py-2.5 rounded-xl
-            shadow-lg shadow-yellow-400/25
-            hover:shadow-xl hover:shadow-yellow-400/30
-            transform hover:-translate-y-0.5
+            px-4 py-2 rounded-lg
+            shadow-md shadow-yellow-400/20
+            hover:shadow-lg hover:shadow-yellow-400/25
             transition-all duration-200
-            text-sm sm:text-base
+            text-sm
             w-full sm:w-auto
+            relative z-10
           "
         >
-          <Plus size={20} strokeWidth={2.5} />
+          <Plus size={18} strokeWidth={2.5} />
           Agregar usuario
         </button>
       </div>

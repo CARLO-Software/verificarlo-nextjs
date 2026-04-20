@@ -209,24 +209,41 @@
   backdrop-filter: blur(4px);
   z-index: 35;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  visibility: hidden;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .overlayVisible {
   opacity: 1;
+  visibility: visible;
+  pointer-events: auto !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   TABLET (768px - 1279px): Sidebar colapsado
+   TABLET (768px - 1279px): Sidebar colapsado con toggle
 ═══════════════════════════════════════════════════════════════════ */
 @media (min-width: 768px) and (max-width: 1279px) {
   .sidebar {
     width: 72px;
+    pointer-events: auto;
   }
 
-  .sidebar:hover {
+  /* Expandir con hover O cuando está abierto por el botón */
+  .sidebar:hover,
+  .sidebar.sidebarOpen {
     width: 260px;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Overlay visible en tablet cuando sidebar está abierto */
+  .overlay {
+    display: block;
+    pointer-events: none !important;
+  }
+
+  .overlay.overlayVisible {
+    pointer-events: auto !important;
   }
 
   .logo {
@@ -234,7 +251,8 @@
     justify-content: center;
   }
 
-  .sidebar:hover .logo {
+  .sidebar:hover .logo,
+  .sidebar.sidebarOpen .logo {
     justify-content: flex-start;
     padding: 1.25rem 1.5rem;
   }
@@ -244,7 +262,8 @@
     opacity: 0;
   }
 
-  .sidebar:hover .logoTextContainer {
+  .sidebar:hover .logoTextContainer,
+  .sidebar.sidebarOpen .logoTextContainer {
     width: auto;
     opacity: 1;
   }
@@ -253,7 +272,8 @@
     padding: 1rem 0.5rem;
   }
 
-  .sidebar:hover .nav {
+  .sidebar:hover .nav,
+  .sidebar.sidebarOpen .nav {
     padding: 1rem 0.75rem;
   }
 
@@ -262,7 +282,8 @@
     padding: 0.75rem;
   }
 
-  .sidebar:hover .navLink {
+  .sidebar:hover .navLink,
+  .sidebar.sidebarOpen .navLink {
     justify-content: flex-start;
   }
 
@@ -271,7 +292,8 @@
     opacity: 0;
   }
 
-  .sidebar:hover .navLinkLabel {
+  .sidebar:hover .navLinkLabel,
+  .sidebar.sidebarOpen .navLinkLabel {
     width: auto;
     opacity: 1;
   }
@@ -285,11 +307,13 @@
     display: inline-flex;
   }
 
-  .sidebar:hover .badge {
+  .sidebar:hover .badge,
+  .sidebar.sidebarOpen .badge {
     display: inline-flex;
   }
 
-  .sidebar:hover .badgeCollapsed {
+  .sidebar:hover .badgeCollapsed,
+  .sidebar.sidebarOpen .badgeCollapsed {
     display: none;
   }
 
@@ -297,7 +321,8 @@
     padding: 1rem 0.5rem;
   }
 
-  .sidebar:hover .footer {
+  .sidebar:hover .footer,
+  .sidebar.sidebarOpen .footer {
     padding: 1rem 0.75rem;
   }
 
@@ -306,7 +331,8 @@
     padding: 0.75rem;
   }
 
-  .sidebar:hover .logoutBtn {
+  .sidebar:hover .logoutBtn,
+  .sidebar.sidebarOpen .logoutBtn {
     justify-content: flex-start;
   }
 
@@ -315,7 +341,8 @@
     opacity: 0;
   }
 
-  .sidebar:hover .logoutText {
+  .sidebar:hover .logoutText,
+  .sidebar.sidebarOpen .logoutText {
     width: auto;
     opacity: 1;
   }
@@ -335,8 +362,14 @@
     transform: translateX(0);
   }
 
+  /* En móvil: overlay visible pero no bloquea clicks hasta que sidebar está abierto */
   .overlay {
     display: block;
+    pointer-events: none !important;
+  }
+
+  .overlay.overlayVisible {
+    pointer-events: auto !important;
   }
 
   .logoTextContainer {

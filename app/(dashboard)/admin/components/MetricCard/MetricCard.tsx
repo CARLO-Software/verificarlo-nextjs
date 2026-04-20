@@ -18,14 +18,14 @@ export function MetricCard({ title, value, icon: Icon, color }: MetricCardProps)
   const colors = colorMap[color];
 
   return (
-    <div className={`${colors.bg} rounded-xl p-5`}>
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-gray-500">{title}</span>
-        <div className={`${colors.icon}`}>
-          <Icon size={20} />
+    <div className={`${colors.bg} rounded-lg sm:rounded-xl p-2.5 sm:p-4 lg:p-5`}>
+      <div className="flex items-center justify-between mb-1.5 sm:mb-2 lg:mb-3">
+        <span className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-500 truncate pr-1">{title}</span>
+        <div className={`${colors.icon} flex-shrink-0`}>
+          <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
         </div>
       </div>
-      <p className={`text-2xl font-bold ${colors.text}`}>{value}</p>
+      <p className={`text-base sm:text-xl lg:text-2xl font-bold ${colors.text} truncate`}>{value}</p>
     </div>
   );
 }

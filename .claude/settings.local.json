@@ -46,7 +46,9 @@
       "mcp__Neon__list_branch_computes",
       "mcp__Neon__run_sql",
       "Bash(cmd //c \"taskkill /F /IM node.exe\")",
-      "mcp__Neon__get_connection_string"
+      "mcp__Neon__get_connection_string",
+      "Bash(grep -r \"overflow.*hidden\\\\|position.*fixed\\\\|position.*absolute\" app/\\\\\\(dashboard\\\\\\)/admin/*.css app/\\\\\\(dashboard\\\\\\)/admin/**/*.css)",
+      "Bash(npx next:*)"
     ]
   }
 }
