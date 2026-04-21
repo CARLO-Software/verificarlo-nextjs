@@ -5,6 +5,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { completeReport } from "@/services/reports/reports.server";
 
+interface CompleteReportBody {
+  mechanicalVerdict?: "APROBADO" | "OBSERVADO" | "NO_APROBADO";
+  hasSiniestro?: boolean;
+  hasKilometrajeAdulterado?: boolean;
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -19,7 +25,19 @@ export async function POST(
       );
     }
 
-    const report = await completeReport(reportId);
+    // Leer el body con el veredicto
+    let body: CompleteReportBody = {};
+    try {
+      body = await req.json();
+    } catch {
+      // Body vacío es válido para compatibilidad
+    }
+
+    const report = await completeReport(reportId, {
+      mechanicalVerdict: body.mechanicalVerdict,
+      hasSiniestro: body.hasSiniestro,
+      hasKilometrajeAdulterado: body.hasKilometrajeAdulterado,
+    });
 
     return NextResponse.json({
       success: true,

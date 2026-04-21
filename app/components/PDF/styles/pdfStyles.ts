@@ -53,7 +53,16 @@ export const colors = {
 };
 
 // Configuración de veredicto - Mensajes claros y directos
-export function getVerdictConfig(status: string, estimatedCost?: number | null): {
+// Ahora acepta el veredicto del mecánico y opcionalmente información de hallazgos críticos
+export function getVerdictConfig(
+  status: string,
+  estimatedCost?: number | null,
+  verdictInfo?: {
+    mechanicalVerdict?: string;
+    hasSiniestro?: boolean;
+    hasKilometrajeAdulterado?: boolean;
+  }
+): {
   label: string;
   subtitle: string;
   description: string;
@@ -64,12 +73,18 @@ export function getVerdictConfig(status: string, estimatedCost?: number | null):
   borderColor: string;
   icon: string;
 } {
-  switch (status) {
+  // Si hay veredicto del mecánico, usarlo en lugar del status calculado
+  const verdict = verdictInfo?.mechanicalVerdict || status;
+  const hasSiniestro = verdictInfo?.hasSiniestro || false;
+  const hasKilometrajeAdulterado = verdictInfo?.hasKilometrajeAdulterado || false;
+
+  switch (verdict) {
+    case 'APROBADO':
     case 'OK':
       return {
-        label: 'COMPRA SEGURA',
-        subtitle: 'El vehículo está en buenas condiciones',
-        description: 'No se encontraron defectos ni observaciones significativas.',
+        label: 'APROBADO',
+        subtitle: 'El vehículo está en óptimas condiciones',
+        description: 'Es una buena oportunidad de compra.',
         color: colors.success,
         colorDark: colors.successDark,
         bgColor: colors.successBg,
@@ -77,13 +92,14 @@ export function getVerdictConfig(status: string, estimatedCost?: number | null):
         borderColor: colors.successBorder,
         icon: '✓',
       };
+    case 'OBSERVADO':
     case 'WARNING':
       return {
-        label: 'NEGOCIAR PRECIO',
+        label: 'OBSERVADO',
         subtitle: estimatedCost
           ? `Descuento sugerido: S/ ${estimatedCost.toLocaleString('es-PE')}`
-          : 'Requiere reparaciones menores',
-        description: 'Observaciones detectadas que no afectan la seguridad pero requieren atención.',
+          : 'Se encontraron defectos menores',
+        description: 'Se sugiere negociar el precio con el vendedor.',
         color: colors.warning,
         colorDark: colors.warningDark,
         bgColor: colors.warningBg,
@@ -91,13 +107,26 @@ export function getVerdictConfig(status: string, estimatedCost?: number | null):
         borderColor: colors.warningBorder,
         icon: '!',
       };
+    case 'NO_APROBADO':
     case 'CRITICAL':
+      // Construir descripción basada en hallazgos críticos
+      let description = 'No se recomienda comprarlo.';
+      if (hasSiniestro && hasKilometrajeAdulterado) {
+        description = 'El vehículo ha tenido un siniestro y el kilometraje está adulterado. No se recomienda comprarlo.';
+      } else if (hasSiniestro) {
+        description = 'El vehículo ha tenido un siniestro. No se recomienda comprarlo.';
+      } else if (hasKilometrajeAdulterado) {
+        description = 'El vehículo tiene el kilometraje adulterado. No se recomienda comprarlo.';
+      }
+
       return {
-        label: 'NO COMPRAR',
+        label: 'NO APROBADO',
         subtitle: estimatedCost
           ? `Reparaciones estimadas: S/ ${estimatedCost.toLocaleString('es-PE')}+`
-          : 'Defectos críticos detectados',
-        description: 'El vehículo presenta problemas que comprometen la seguridad o requieren reparaciones costosas.',
+          : hasSiniestro || hasKilometrajeAdulterado
+            ? 'Hallazgos críticos detectados'
+            : 'Defectos críticos detectados',
+        description,
         color: colors.danger,
         colorDark: colors.dangerDark,
         bgColor: colors.dangerBg,

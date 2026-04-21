@@ -60,6 +60,14 @@ enum InspectionResultStatus {
   CRITICAL  // No aprobado - Requiere atención
 }
 
+// Veredicto final del mecánico (manual)
+enum MechanicalVerdict {
+  PENDING        // Aún no evaluado
+  APROBADO       // Vehículo en óptimas condiciones - Color verde
+  OBSERVADO      // Defectos menores encontrados - Color amarillo
+  NO_APROBADO    // Siniestro o kilometraje adulterado - Color rojo
+}
+
 // ============================================
 // AUTENTICACIÓN (NextAuth)
 // ============================================
@@ -394,6 +402,17 @@ model InspectionReport {
 
   // Resultado final
   overallStatus InspectionResultStatus @default(PENDING)
+
+  // ============================================
+  // VEREDICTO DEL MECÁNICO (Manual)
+  // ============================================
+
+  // Veredicto final asignado por el mecánico
+  mechanicalVerdict MechanicalVerdict @default(PENDING)
+
+  // Indicadores de problemas graves (auto-rechazo)
+  hasSiniestro            Boolean @default(false)  // Choque o accidente detectado
+  hasKilometrajeAdulterado Boolean @default(false)  // Odómetro manipulado
 
   // Resumen ejecutivo (texto libre)
   executiveSummary String? @db.Text

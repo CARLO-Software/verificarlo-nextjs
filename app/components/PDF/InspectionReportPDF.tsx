@@ -66,6 +66,11 @@ export interface PDFReportData {
   executiveSummary: string | null;
   estimatedRepairCost: number | null;
 
+  // Veredicto del mecánico
+  mechanicalVerdict?: string;
+  hasSiniestro?: boolean;
+  hasKilometrajeAdulterado?: boolean;
+
   // Inspector
   inspectorName: string;
   inspectorSignature: string | null;
@@ -130,6 +135,9 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
           <PDFVerdict
             status={data.overallStatus}
             estimatedCost={data.estimatedRepairCost}
+            mechanicalVerdict={data.mechanicalVerdict}
+            hasSiniestro={data.hasSiniestro}
+            hasKilometrajeAdulterado={data.hasKilometrajeAdulterado}
           />
 
           {/* KEY FINDINGS - Métricas clave */}

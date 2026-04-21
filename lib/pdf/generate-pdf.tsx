@@ -170,6 +170,11 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
       ? Number(report.estimatedRepairCost)
       : null,
 
+    // Veredicto del mecánico
+    mechanicalVerdict: report.mechanicalVerdict,
+    hasSiniestro: report.hasSiniestro,
+    hasKilometrajeAdulterado: report.hasKilometrajeAdulterado,
+
     inspectorName: booking.inspector?.name || 'Inspector',
     inspectorSignature: report.inspectorSignature,
 

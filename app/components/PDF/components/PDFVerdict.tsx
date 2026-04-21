@@ -11,6 +11,9 @@ import { colors, getVerdictConfig } from '../styles/pdfStyles';
 interface PDFVerdictProps {
   status: string;
   estimatedCost?: number | null;
+  mechanicalVerdict?: string;
+  hasSiniestro?: boolean;
+  hasKilometrajeAdulterado?: boolean;
 }
 
 const styles = StyleSheet.create({
@@ -74,8 +77,18 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function PDFVerdict({ status, estimatedCost }: PDFVerdictProps) {
-  const config = getVerdictConfig(status, estimatedCost);
+export default function PDFVerdict({
+  status,
+  estimatedCost,
+  mechanicalVerdict,
+  hasSiniestro,
+  hasKilometrajeAdulterado,
+}: PDFVerdictProps) {
+  const config = getVerdictConfig(status, estimatedCost, {
+    mechanicalVerdict,
+    hasSiniestro,
+    hasKilometrajeAdulterado,
+  });
 
   // Usar fondo más intenso para mayor impacto visual
   const bgColor = config.bgColorStrong;

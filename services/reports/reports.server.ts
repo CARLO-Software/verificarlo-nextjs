@@ -542,7 +542,13 @@ function calculateScoresFromChecklist(checklistResults: ChecklistResults): {
   };
 }
 
-export async function completeReport(reportId: number) {
+export interface CompleteReportInput {
+  mechanicalVerdict?: 'APROBADO' | 'OBSERVADO' | 'NO_APROBADO';
+  hasSiniestro?: boolean;
+  hasKilometrajeAdulterado?: boolean;
+}
+
+export async function completeReport(reportId: number, input?: CompleteReportInput) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: {
@@ -556,6 +562,21 @@ export async function completeReport(reportId: number) {
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
   const { userId } = await verifyInspectorAccess(report.bookingId);
+
+  // Procesar veredicto del mecánico
+  const hasSiniestro = input?.hasSiniestro ?? false;
+  const hasKilometrajeAdulterado = input?.hasKilometrajeAdulterado ?? false;
+
+  // Si hay siniestro o kilometraje adulterado, forzar NO_APROBADO
+  let mechanicalVerdict = input?.mechanicalVerdict || 'PENDING';
+  if (hasSiniestro || hasKilometrajeAdulterado) {
+    mechanicalVerdict = 'NO_APROBADO';
+  }
+
+  // Validar que se haya seleccionado un veredicto
+  if (mechanicalVerdict === 'PENDING') {
+    throw new Error('Debe seleccionar un veredicto antes de finalizar');
+  }
 
   // Validar que haya resultados del checklist
   const checklistResults = (report.checklistResults as unknown as ChecklistResults) || {};
@@ -621,6 +642,10 @@ export async function completeReport(reportId: number) {
         // Score general
         overallScore,
         overallStatus,
+        // Veredicto del mecánico
+        mechanicalVerdict: mechanicalVerdict as 'APROBADO' | 'OBSERVADO' | 'NO_APROBADO',
+        hasSiniestro,
+        hasKilometrajeAdulterado,
         completedAt: new Date(),
         inspectorSignature: `Firmado digitalmente por ${inspector?.name || 'Inspector'} - ${new Date().toISOString()}`,
       },

@@ -12,6 +12,8 @@ import type { JsonValue } from "@prisma/client/runtime/library";
 
 type ResultStatus = "PENDING" | "OK" | "WARNING" | "CRITICAL";
 
+type MechanicalVerdict = "PENDING" | "APROBADO" | "OBSERVADO" | "NO_APROBADO";
+
 interface Report {
   id: number;
   legalStatus: ResultStatus;
@@ -39,6 +41,10 @@ interface Report {
   overallStatus: ResultStatus;
   completedAt: string | null;
   photos: Photo[];
+  // Nuevos campos para el veredicto del mecánico
+  mechanicalVerdict?: MechanicalVerdict;
+  hasSiniestro?: boolean;
+  hasKilometrajeAdulterado?: boolean;
 }
 
 interface VehicleInspectionData {
@@ -847,6 +853,15 @@ function SummarySection({
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Estado para el veredicto del mecánico
+  const [verdict, setVerdict] = useState<MechanicalVerdict>(report.mechanicalVerdict || "PENDING");
+  const [hasSiniestro, setHasSiniestro] = useState(report.hasSiniestro || false);
+  const [hasKilometrajeAdulterado, setHasKilometrajeAdulterado] = useState(report.hasKilometrajeAdulterado || false);
+
+  // Si hay siniestro o kilometraje adulterado, el veredicto es automáticamente NO_APROBADO
+  const autoReject = hasSiniestro || hasKilometrajeAdulterado;
+  const effectiveVerdict = autoReject ? "NO_APROBADO" : verdict;
+
   // Calcular scores desde checklistResults
   const checklistResults = report.checklistResults || {};
   const scoresByCategory = calculateScoreByCategory(checklistResults);
@@ -857,7 +872,30 @@ function SummarySection({
     cat => !scoresByCategory[cat.id] || scoresByCategory[cat.id].completed === 0
   );
   const allCategoriesStarted = incompleteCategories.length === 0;
-  const canComplete = allCategoriesStarted && overallResult.status !== "PENDING";
+  // Ahora también requiere que se seleccione un veredicto
+  const canComplete = allCategoriesStarted && overallResult.status !== "PENDING" && effectiveVerdict !== "PENDING";
+
+  // Configuración de veredictos
+  const verdictOptions: { value: MechanicalVerdict; label: string; description: string; icon: string }[] = [
+    {
+      value: "APROBADO",
+      label: "APROBADO",
+      description: "El vehículo está en óptimas condiciones, es una buena oportunidad de compra.",
+      icon: "✓",
+    },
+    {
+      value: "OBSERVADO",
+      label: "OBSERVADO",
+      description: "Se encontraron defectos menores en el vehículo. Se sugiere negociar el precio con el vendedor.",
+      icon: "!",
+    },
+    {
+      value: "NO_APROBADO",
+      label: "NO APROBADO",
+      description: "El vehículo ha tenido un siniestro o el vehículo tiene el kilometraje adulterado. No se recomienda comprarlo.",
+      icon: "✕",
+    },
+  ];
 
   const handleSaveSummary = async () => {
     setSaving(true);
@@ -887,6 +925,8 @@ function SummarySection({
       if (incompleteCategories.length > 0) {
         const names = incompleteCategories.map(c => c.title).join(", ");
         setError(`Falta completar: ${names}`);
+      } else if (effectiveVerdict === "PENDING") {
+        setError("Debes seleccionar un veredicto antes de finalizar");
       } else {
         setError("Debe completar todas las secciones antes de finalizar");
       }
@@ -899,6 +939,12 @@ function SummarySection({
     try {
       const res = await fetch(`/api/reports/${report.id}/complete`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mechanicalVerdict: effectiveVerdict,
+          hasSiniestro,
+          hasKilometrajeAdulterado,
+        }),
       });
 
       const data = await res.json();
@@ -996,7 +1042,6 @@ function SummarySection({
         label="Resumen ejecutivo"
       />
 
-
       {/* Costo estimado */}
       <div className={styles.formGroup}>
         <label className={styles.label}>Costo estimado de reparaciones (S/)</label>
@@ -1009,6 +1054,122 @@ function SummarySection({
           disabled={disabled}
         />
       </div>
+
+      {/* Selector de Veredicto */}
+      {!disabled && (
+        <div className={styles.verdictSection}>
+          <h3 className={styles.verdictTitle}>Veredicto Final</h3>
+          <p className={styles.verdictSubtitle}>
+            Selecciona la recomendación para el cliente
+          </p>
+
+          {/* Checkboxes de hallazgos críticos */}
+          <div className={styles.criticalFindings}>
+            <h4 className={styles.criticalFindingsTitle}>
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <path d="M9 1.5L1.5 15h15L9 1.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 6.75v3M9 12.75h.007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              Hallazgos críticos
+            </h4>
+            <label className={`${styles.criticalCheckbox} ${disabled ? styles["criticalCheckbox--disabled"] : ""}`}>
+              <input
+                type="checkbox"
+                checked={hasSiniestro}
+                onChange={(e) => setHasSiniestro(e.target.checked)}
+                disabled={disabled}
+              />
+              <span>El vehículo ha tenido un siniestro (choque)</span>
+            </label>
+            <label className={`${styles.criticalCheckbox} ${disabled ? styles["criticalCheckbox--disabled"] : ""}`}>
+              <input
+                type="checkbox"
+                checked={hasKilometrajeAdulterado}
+                onChange={(e) => setHasKilometrajeAdulterado(e.target.checked)}
+                disabled={disabled}
+              />
+              <span>El kilometraje está adulterado</span>
+            </label>
+            {autoReject && (
+              <div className={styles.autoRejectWarning}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <circle cx="8" cy="8" r="7" stroke="currentColor" strokeWidth="1.5"/>
+                  <path d="M8 5v3M8 10.5h.007" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+                El veredicto será automáticamente "NO APROBADO" por los hallazgos críticos marcados
+              </div>
+            )}
+          </div>
+
+          {/* Opciones de veredicto */}
+          <div className={styles.verdictOptions}>
+            {verdictOptions.map((option) => {
+              const isSelected = effectiveVerdict === option.value;
+              const isDisabledByAutoReject = autoReject && option.value !== "NO_APROBADO";
+
+              return (
+                <div
+                  key={option.value}
+                  onClick={() => !isDisabledByAutoReject && !disabled && setVerdict(option.value)}
+                  className={`
+                    ${styles.verdictOption}
+                    ${isSelected ? styles["verdictOption--selected"] : ""}
+                    ${isDisabledByAutoReject ? styles["verdictOption--disabled"] : ""}
+                    ${styles[`verdictOption--${option.value.toLowerCase()}`]}
+                  `}
+                >
+                  <div className={styles.verdictRadio}>
+                    <div className={styles.verdictRadioInner} />
+                  </div>
+                  <div className={styles.verdictContent}>
+                    <p className={`${styles.verdictLabel} ${styles[`verdictLabel--${option.value.toLowerCase()}`]}`}>
+                      <span>{option.icon}</span>
+                      {option.label}
+                    </p>
+                    <p className={styles.verdictDescription}>{option.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Mostrar veredicto guardado cuando está completado */}
+      {disabled && report.mechanicalVerdict && report.mechanicalVerdict !== "PENDING" && (
+        <div className={styles.verdictSection}>
+          <h3 className={styles.verdictTitle}>Veredicto Final</h3>
+          <div className={`
+            ${styles.verdictOption}
+            ${styles["verdictOption--selected"]}
+            ${styles[`verdictOption--${report.mechanicalVerdict.toLowerCase()}`]}
+          `} style={{ cursor: "default" }}>
+            <div className={styles.verdictRadio}>
+              <div className={styles.verdictRadioInner} />
+            </div>
+            <div className={styles.verdictContent}>
+              <p className={`${styles.verdictLabel} ${styles[`verdictLabel--${report.mechanicalVerdict.toLowerCase()}`]}`}>
+                <span>{verdictOptions.find(v => v.value === report.mechanicalVerdict)?.icon}</span>
+                {report.mechanicalVerdict === "NO_APROBADO" ? "NO APROBADO" : report.mechanicalVerdict}
+              </p>
+              <p className={styles.verdictDescription}>
+                {verdictOptions.find(v => v.value === report.mechanicalVerdict)?.description}
+              </p>
+            </div>
+          </div>
+          {(report.hasSiniestro || report.hasKilometrajeAdulterado) && (
+            <div className={styles.criticalFindings} style={{ marginTop: 12 }}>
+              <h4 className={styles.criticalFindingsTitle}>Hallazgos críticos detectados:</h4>
+              {report.hasSiniestro && (
+                <p style={{ fontSize: 14, color: "#7F1D1D", margin: "4px 0" }}>• El vehículo ha tenido un siniestro (choque)</p>
+              )}
+              {report.hasKilometrajeAdulterado && (
+                <p style={{ fontSize: 14, color: "#7F1D1D", margin: "4px 0" }}>• El kilometraje está adulterado</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {error && <div className={styles.errorMessage}>{error}</div>}
 
