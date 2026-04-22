@@ -48,7 +48,8 @@
       "Bash(cmd //c \"taskkill /F /IM node.exe\")",
       "mcp__Neon__get_connection_string",
       "Bash(grep -r \"overflow.*hidden\\\\|position.*fixed\\\\|position.*absolute\" app/\\\\\\(dashboard\\\\\\)/admin/*.css app/\\\\\\(dashboard\\\\\\)/admin/**/*.css)",
-      "Bash(npx next:*)"
+      "Bash(npx next:*)",
+      "Bash(npm install *)"
     ]
   }
 }

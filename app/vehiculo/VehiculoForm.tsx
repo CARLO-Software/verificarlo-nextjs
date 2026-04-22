@@ -204,6 +204,7 @@ export default function VehiculoForm({ initialBrands, initialInspectionPlans }: 
     const [yearQuery, setYearQuery] = useState("");
     const [showYears, setShowYears] = useState(false);
     const [selectedYear, setSelectedYear] = useState<number | null>(null);
+    const [isOtherYear, setIsOtherYear] = useState(false);
 
     // Inspection & mileage
     const [selectedInspection, setSelectedInspection] = useState<number | null>(null);
@@ -327,15 +328,38 @@ export default function VehiculoForm({ initialBrands, initialInspectionPlans }: 
         setModelQuery(model.name);
         setShowModels(false);
         setFormData(prev => ({ ...prev, model: model.id }));
-        setSelectedYear(null); setYearQuery("");
+        setSelectedYear(null); setYearQuery(""); setIsOtherYear(false);
         setFormData(prev => ({ ...prev, year: null, mileage: null }));
     }
 
-    function handleYearSelect(year: number) {
-        setSelectedYear(year);
-        setYearQuery(year.toString());
-        setShowYears(false);
-        setFormData(prev => ({ ...prev, year: year, mileage: null }));
+    function handleYearSelect(year: number | "other") {
+        if (year === "other") {
+            setIsOtherYear(true);
+            setYearQuery("");
+            setShowYears(false);
+            setSelectedYear(null);
+            setFormData(prev => ({ ...prev, year: null, mileage: null }));
+        } else {
+            setIsOtherYear(false);
+            setSelectedYear(year);
+            setYearQuery(year.toString());
+            setShowYears(false);
+            setFormData(prev => ({ ...prev, year: year, mileage: null }));
+        }
+    }
+
+    function handleManualYearInput(value: string) {
+        if (/^\d*$/.test(value)) {
+            setYearQuery(value);
+            const yearNum = parseInt(value, 10);
+            if (value.length === 4 && yearNum >= 1900 && yearNum <= new Date().getFullYear() + 1) {
+                setSelectedYear(yearNum);
+                setFormData(prev => ({ ...prev, year: yearNum, mileage: null }));
+            } else {
+                setSelectedYear(null);
+                setFormData(prev => ({ ...prev, year: null, mileage: null }));
+            }
+        }
     }
 
     function handleLoginClick() { setShowLoginModal(false); router.push("/login"); }
@@ -485,14 +509,23 @@ export default function VehiculoForm({ initialBrands, initialInspectionPlans }: 
                                     </div>
 
                                     {/* Year Select */}
-                                    <div className={showYears ? styles.formGroupWithDropdownActive : styles.formGroupWithDropdown}>
+                                    <div className={showYears && !isOtherYear ? styles.formGroupWithDropdownActive : styles.formGroupWithDropdown}>
                                         <label htmlFor="year" className={styles.label}>Año del vehículo<span className={styles.required}>*</span></label>
-                                        <input type="text" id="year" name="year" value={yearQuery}
-                                            onChange={(e) => { if (/^\d*$/.test(e.target.value)) { setYearQuery(e.target.value); setShowYears(true); } }}
-                                            onFocus={() => { setShowBrands(false); setShowModels(false); setShowYears(true); }}
-                                            placeholder={!selectedModel ? "Primero selecciona un modelo" : "Busca el año"}
-                                            disabled={!selectedModel} required className={styles.input} />
-                                        {showYears && selectedModel && (
+                                        {isOtherYear ? (
+                                            <input type="text" id="year" name="year" value={yearQuery}
+                                                onChange={(e) => handleManualYearInput(e.target.value)}
+                                                placeholder="Escribe el año (ej. 2018)"
+                                                maxLength={4}
+                                                required className={styles.input}
+                                                autoFocus />
+                                        ) : (
+                                            <input type="text" id="year" name="year" value={yearQuery}
+                                                onChange={(e) => { if (/^\d*$/.test(e.target.value)) { setYearQuery(e.target.value); setShowYears(true); } }}
+                                                onFocus={() => { setShowBrands(false); setShowModels(false); setShowYears(true); }}
+                                                placeholder={!selectedModel ? "Primero selecciona un modelo" : "Busca el año"}
+                                                disabled={!selectedModel} required className={styles.input} />
+                                        )}
+                                        {showYears && selectedModel && !isOtherYear && (
                                             <ul className={styles.dropdown}>
                                                 {filteredYears.length > 0 ? (
                                                     filteredYears.slice(0, 10).map((year) => (
@@ -500,12 +533,16 @@ export default function VehiculoForm({ initialBrands, initialInspectionPlans }: 
                                                             <span>{year}</span>
                                                         </li>
                                                     ))
-                                                ) : (
-                                                    <li className={styles.noOption}>No se encontraron años</li>
-                                                )}
+                                                ) : null}
+                                                {/* Opción "Otro" siempre visible al final */}
+                                                <li className={styles.option} onClick={() => handleYearSelect("other")} style={{ borderTop: filteredYears.length > 0 ? '1px solid var(--shark--200)' : 'none', marginTop: filteredYears.length > 0 ? '4px' : '0', paddingTop: filteredYears.length > 0 ? '8px' : '0' }}>
+                                                    <span style={{ color: 'var(--shark--500)' }}>Otro (escribir manualmente)</span>
+                                                </li>
                                             </ul>
                                         )}
-                                        <span className={styles.helperText}>{!selectedModel ? "Selecciona un modelo primero" : "Selecciona el año de fabricación"}</span>
+                                        <span className={styles.helperText}>
+                                            {!selectedModel ? "Selecciona un modelo primero" : isOtherYear ? "Ingresa un año válido (1900 - " + (new Date().getFullYear() + 1) + ")" : "Selecciona el año de fabricación"}
+                                        </span>
                                     </div>
 
                                     {/* Mileage Input */}

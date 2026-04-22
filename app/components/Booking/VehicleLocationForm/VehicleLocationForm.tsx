@@ -19,8 +19,8 @@
 
 import { useState, useEffect } from "react";
 import styles from "./VehicleLocationForm.module.css";
-import { District, searchDistrictsGrouped, DistrictGroup } from "@/prisma/data/districts";
-import { searchStreets, Street } from "@/prisma/data/streets";
+import { District, searchDistrictsGrouped } from "@/prisma/data/districts";
+import AddressAutocomplete, { PlaceDetails } from "@/app/components/Booking/AddressAutocomplete";
 
 // =============================================================================
 // HELPERS: Funciones auxiliares para formateo
@@ -89,11 +89,14 @@ export default function VehicleLocationForm({
   const [showBrands, setShowBrands] = useState(false);
   const [showModels, setShowModels] = useState(false);
   const [showDistricts, setShowDistricts] = useState(false);
-  const [showStreets, setShowStreets] = useState(false);
   const [brandQuery, setBrandQuery] = useState(vehicleData.brandName);
   const [modelQuery, setModelQuery] = useState(vehicleData.modelName);
   const [districtQuery, setDistrictQuery] = useState(locationData.districtName);
-  const [addressQuery, setAddressQuery] = useState(locationData.address);
+  const [addressInput, setAddressInput] = useState(locationData.address);
+
+  // Estado para "Otro" año (entrada manual)
+  const [isOtherYear, setIsOtherYear] = useState(false);
+  const [manualYearInput, setManualYearInput] = useState("");
 
   // Lista de distritos agrupados por zona
   const districtGroups = searchDistrictsGrouped(districtQuery);
@@ -154,6 +157,8 @@ export default function VehicleLocationForm({
     });
     setModelQuery(model.name);
     setShowModels(false);
+    setIsOtherYear(false);
+    setManualYearInput("");
   };
 
   const handleDistrictSelect = (district: District) => {
@@ -164,7 +169,7 @@ export default function VehicleLocationForm({
       address: "", // Limpiar dirección al cambiar distrito
     });
     setDistrictQuery(district.name);
-    setAddressQuery(""); // Limpiar query de dirección
+    setAddressInput(""); // Limpiar input de dirección
     setShowDistricts(false);
   };
 
@@ -180,6 +185,44 @@ export default function VehicleLocationForm({
     return years;
   };
 
+  // Handler para cambio de año (select o "Otro")
+  const handleYearChange = (value: string) => {
+    if (value === "other") {
+      setIsOtherYear(true);
+      setManualYearInput("");
+      onVehicleChange({
+        ...vehicleData,
+        year: null,
+      });
+    } else {
+      setIsOtherYear(false);
+      onVehicleChange({
+        ...vehicleData,
+        year: Number(value),
+      });
+    }
+  };
+
+  // Handler para input manual de año
+  const handleManualYearInput = (value: string) => {
+    if (/^\d*$/.test(value)) {
+      setManualYearInput(value);
+      const yearNum = parseInt(value, 10);
+      const currentYear = new Date().getFullYear();
+      if (value.length === 4 && yearNum >= 1900 && yearNum <= currentYear + 1) {
+        onVehicleChange({
+          ...vehicleData,
+          year: yearNum,
+        });
+      } else {
+        onVehicleChange({
+          ...vehicleData,
+          year: null,
+        });
+      }
+    }
+  };
+
   // Filtrar listas según búsqueda
   const filteredBrands = brands.filter((b) =>
     b.name.toLowerCase().includes(brandQuery.toLowerCase())
@@ -189,21 +232,12 @@ export default function VehicleLocationForm({
     m.name.toLowerCase().includes(modelQuery.toLowerCase())
   );
 
-  // Filtrar calles según distrito seleccionado y búsqueda
-  const filteredStreets = locationData.districtId
-    ? searchStreets(locationData.districtId, addressQuery)
-    : [];
-
-  // Handler para seleccionar una calle del autocompletado
-  const handleStreetSelect = (street: Street) => {
-    // Agregar la calle seleccionada como inicio de la dirección
-    const newAddress = street.name + " ";
-    setAddressQuery(newAddress);
+  // Handler para cuando el usuario selecciona una dirección de Google Places
+  const handlePlaceSelect = (place: PlaceDetails) => {
     onLocationChange({
       ...locationData,
-      address: newAddress,
+      address: place.formatted_address,
     });
-    setShowStreets(false);
   };
 
   return (
@@ -302,25 +336,47 @@ export default function VehicleLocationForm({
             <label className={styles.label}>
               Año <span className={styles.required}>*</span>
             </label>
-            <select
-              value={vehicleData.year || ""}
-              onChange={(e) =>
-                onVehicleChange({
-                  ...vehicleData,
-                  year: Number(e.target.value),
-                })
-              }
-              disabled={!vehicleData.modelId}
-              className={styles.select}
-              aria-required="true"
-            >
-              <option value="">Seleccionar año</option>
-              {getAvailableYears().map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
+            {isOtherYear ? (
+              <>
+                <input
+                  type="text"
+                  value={manualYearInput}
+                  onChange={(e) => handleManualYearInput(e.target.value)}
+                  placeholder="Escribe el año (ej. 2018)"
+                  maxLength={4}
+                  className={styles.input}
+                  aria-required="true"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOtherYear(false);
+                    setManualYearInput("");
+                    onVehicleChange({ ...vehicleData, year: null });
+                  }}
+                  className={styles.linkButton}
+                >
+                  ← Volver a la lista
+                </button>
+              </>
+            ) : (
+              <select
+                value={vehicleData.year || ""}
+                onChange={(e) => handleYearChange(e.target.value)}
+                disabled={!vehicleData.modelId}
+                className={styles.select}
+                aria-required="true"
+              >
+                <option value="">Seleccionar año</option>
+                {getAvailableYears().map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
+                <option value="other">Otro (escribir manualmente)</option>
+              </select>
+            )}
           </div>
 
           {/* PLACA (opcional) */}
@@ -392,68 +448,27 @@ export default function VehicleLocationForm({
             </div>
           </div>
 
-          {/* DIRECCIÓN EXACTA */}
+          {/* DIRECCIÓN EXACTA - Google Places Autocomplete */}
           <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
             <label className={styles.label}>
               Dirección exacta <span className={styles.required}>*</span>
             </label>
-            <div className={styles.dropdownContainer}>
-              <input
-                type="text"
-                value={addressQuery}
-                onChange={(e) => {
-                  setAddressQuery(e.target.value);
-                  onLocationChange({
-                    ...locationData,
-                    address: e.target.value,
-                  });
-                  // Mostrar sugerencias solo si hay distrito seleccionado
-                  if (locationData.districtId) {
-                    setShowStreets(true);
-                  }
-                }}
-                onFocus={() => {
-                  if (locationData.districtId && addressQuery.length < 20) {
-                    setShowStreets(true);
-                  }
-                }}
-                onBlur={() => setTimeout(() => setShowStreets(false), 200)}
-                placeholder={
-                  locationData.districtId
-                    ? "Escribe para ver sugerencias de calles..."
-                    : "Primero selecciona un distrito"
-                }
-                disabled={!locationData.districtId}
-                className={styles.input}
-                aria-required="true"
-              />
-              {showStreets && filteredStreets.length > 0 && addressQuery.length < 30 && (
-                <div className={`${styles.dropdown} ${styles.dropdownStreets}`}>
-                  <div className={styles.dropdownHeader}>
-                    Avenidas y calles en {locationData.districtName}
-                  </div>
-                  {filteredStreets.slice(0, 12).map((street, index) => (
-                    <div
-                      key={index}
-                      onClick={() => handleStreetSelect(street)}
-                      className={styles.dropdownItem}
-                    >
-                      <span className={styles.streetIcon}>
-                        {street.type === "avenida" && "🛣️"}
-                        {street.type === "calle" && "🚶"}
-                        {street.type === "jiron" && "📍"}
-                        {street.type === "malecon" && "🌊"}
-                        {street.type === "alameda" && "🌳"}
-                        {street.type === "pasaje" && "🚪"}
-                      </span>
-                      <span>{street.name}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <AddressAutocomplete
+              value={addressInput}
+              onChange={(value) => {
+                setAddressInput(value);
+                onLocationChange({
+                  ...locationData,
+                  address: value,
+                });
+              }}
+              onPlaceSelect={handlePlaceSelect}
+              placeholder="Busca tu dirección..."
+              disabled={!locationData.districtId}
+              required
+            />
             <span className={styles.helperText}>
-              Selecciona una avenida y agrega el número y referencias
+              Escribe para buscar direcciones en Lima
             </span>
           </div>
         </div>
