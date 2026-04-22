@@ -99,6 +99,27 @@
 }
 
 /* ==========================================================================
+   MOBILE INPUT ZOOM FIX
+   iOS hace zoom automático cuando el font-size del input es menor a 16px.
+   Esto previene el zoom manteniendo un font-size mínimo de 16px en móvil.
+   ========================================================================== */
+@media screen and (max-width: 991px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ==========================================================================
    CSS RESET / NORMALIZE
    ========================================================================== */
 html {

@@ -936,6 +936,8 @@
 
   /* navbar-box se convierte en panel lateral premium */
   .navbar-box {
+    /* Oculto por defecto con display: none */
+    display: none;
     position: fixed;
     top: 0;
     right: 0;
@@ -952,15 +954,23 @@
     box-shadow: -8px 0 40px rgba(0, 0, 0, 0.12);
     z-index: 9999;
     overflow-y: auto;
-
-    /* Oculto por defecto */
     transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Cuando está abierto */
+  /* Cuando está abierto - mostrar con animación */
   .navbar-box-open {
+    display: flex;
     transform: translateX(0);
+    animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes slideIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
   }
 
   /* Título del sidebar - mostrar en móvil */
