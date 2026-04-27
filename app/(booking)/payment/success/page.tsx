@@ -4,14 +4,17 @@
 // /payment/success
 // Llegamos aquí después de confirmar que el webhook de Culqi
 // actualizó el estado a COMPLETED/PAID.
+// Redirige automáticamente a mis-inspecciones después de 5 segundos.
 // ============================================================================
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePaymentStatus } from "@/app/hooks/usePaymentStatus";
 import styles from "../payment.module.css";
 import { formatDate } from "@/lib/utils/formatDate";
+
+const REDIRECT_DELAY = 5; // segundos
 
 function SuccessContent() {
   const params = useSearchParams();
@@ -22,6 +25,26 @@ function SuccessContent() {
 
   // Single fetch — no polling needed on success page
   const { data, isLoading } = usePaymentStatus(bookingId, { intervalMs: 0 });
+
+  // Contador para redirección automática
+  const [countdown, setCountdown] = useState(REDIRECT_DELAY);
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          router.push("/mis-inspecciones");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isLoading, router]);
 
   if (!bookingId) {
     router.replace("/agendar");
@@ -52,6 +75,9 @@ function SuccessContent() {
         <h1 className={styles.title}>¡Pago exitoso!</h1>
         <p className={styles.subtitle}>
           Tu reserva ha sido confirmada. Nos pondremos en contacto contigo pronto.
+        </p>
+        <p className={styles.redirectNotice}>
+          Redirigiendo a tus inspecciones en {countdown} segundo{countdown !== 1 ? 's' : ''}...
         </p>
 
         {/* Booking details card */}

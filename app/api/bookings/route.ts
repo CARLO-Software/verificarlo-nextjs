@@ -15,6 +15,7 @@ import {
   INSPECTION_DURATION_MINUTES,
   BOOKING_EXPIRATION_MINUTES,
 } from "@/lib/scheduling/constants";
+import { crearFechaSinConversion } from "@/app/domain/datetime";
 
 // ============================================
 // POST - Crear reserva
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
           clientId: session.user.id,
           inspectionPlanId,
           vehicleId,
-          date: new Date(date),
+          date: crearFechaSinConversion(date), // Usar 12:00 UTC para evitar cambio de día
           timeSlot,
           startTime,
           endTime,

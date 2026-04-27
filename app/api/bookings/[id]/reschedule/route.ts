@@ -14,6 +14,7 @@ import {
   INSPECTION_DURATION_MINUTES,
   MIN_HOURS_BEFORE_CANCEL,
 } from "@/lib/scheduling/constants";
+import { crearFechaSinConversion } from "@/app/domain/datetime";
 
 export async function POST(
   req: NextRequest,
@@ -117,7 +118,7 @@ export async function POST(
     await db.booking.update({
       where: { id: bookingId },
       data: {
-        date: new Date(newDate),
+        date: crearFechaSinConversion(newDate), // Usar 12:00 UTC para evitar cambio de día
         timeSlot: newTimeSlot,
         startTime: newStartTime,
         endTime: newEndTime,

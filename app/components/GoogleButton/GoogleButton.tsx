@@ -8,15 +8,15 @@ interface GoogleButtonProps {
   callbackUrl?: string;
 }
 
-//* Esto es importante //Si es exitoso dirige a login
 export function GoogleButton({
   text = "Continuar con Google",
   callbackUrl,
 }: GoogleButtonProps) {
 
   const handleGoogleSignIn = () => {
-    // Si hay callbackUrl, usarlo para redirigir después del login con Google
-    signIn("google", { callbackUrl: callbackUrl || "/perfil" });
+    const finalCallbackUrl = callbackUrl || "/mis-inspecciones";
+    console.log("[GoogleButton] Iniciando login con Google, callbackUrl:", finalCallbackUrl);
+    signIn("google", { callbackUrl: finalCallbackUrl });
   };
 
   return (

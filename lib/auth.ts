@@ -61,6 +61,16 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
+    // Callback para manejar redirects - asegura que se respete el callbackUrl
+    async redirect({ url, baseUrl }) {
+      // Si la URL comienza con el baseUrl, permitirla
+      if (url.startsWith(baseUrl)) return url;
+      // Si es una ruta relativa, agregarla al baseUrl
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Por defecto, ir a mis-inspecciones
+      return `${baseUrl}/mis-inspecciones`;
+    },
+
     async signIn({ user, account }) {
       // Verificar suspensión para CUALQUIER proveedor
       if (user?.email) {

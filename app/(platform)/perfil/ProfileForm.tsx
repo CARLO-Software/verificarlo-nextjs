@@ -57,7 +57,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-100">
+      <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
         {/* Nombre */}
         <div className="p-4">
           <label className="flex items-center gap-3">
@@ -68,7 +68,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none placeholder-gray-400"
                 placeholder="Tu nombre completo"
               />
             </div>
@@ -96,7 +96,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none placeholder-gray-400"
                 placeholder="Tu número de teléfono"
               />
             </div>
@@ -113,7 +113,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
                 type="text"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none placeholder-gray-400"
                 placeholder="Tu dirección"
               />
             </div>
@@ -130,7 +130,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
                 type="text"
                 value={formData.district}
                 onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none"
+                className="w-full text-sm text-gray-900 bg-transparent border-0 p-0 focus:ring-0 focus:outline-none placeholder-gray-400"
                 placeholder="Tu distrito"
               />
             </div>
@@ -140,7 +140,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
 
       {/* Error */}
       {error && (
-        <p className="text-sm text-red-600 text-center">{error}</p>
+        <p className="text-sm text-red-500 text-center">{error}</p>
       )}
 
       {/* Botón guardar */}
@@ -148,7 +148,7 @@ export function ProfileForm({ initialData, email }: ProfileFormProps) {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-3 bg-[#FBBF24] text-[#0F0F12] text-sm font-medium rounded-xl hover:bg-[#F59E0B] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isLoading ? (
             <>

@@ -138,13 +138,18 @@ export default function AgendarForm({
   // EFECTO: Restaurar borrador guardado (si el usuario volvió del login)
   // =========================================================================
   useEffect(() => {
+    // Evitar ejecutar en SSR
+    if (typeof window === "undefined") return;
+
+    const raw = localStorage.getItem(DRAFT_KEY);
+
+    // Si no hay draft, no hacer nada
+    if (!raw) return;
+
     try {
-      const raw = sessionStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-
       const draft = JSON.parse(raw);
-      sessionStorage.removeItem(DRAFT_KEY);
 
+      // Restaurar todos los datos del formulario
       if (draft.selectedInspectionId) {
         const plan = initialInspections.find(
           (i) => i.id === draft.selectedInspectionId
@@ -156,15 +161,72 @@ export default function AgendarForm({
       if (draft.selectedDate) setSelectedDate(draft.selectedDate);
       if (draft.selectedSlot) setSelectedSlot(draft.selectedSlot);
       if (draft.contactData) setContactData(draft.contactData);
+      if (draft.currentStep) {
+        console.log("[AgendarForm] Restaurando currentStep:", draft.currentStep);
+        setCurrentStep(draft.currentStep);
+      }
 
-      // Volver al paso donde el usuario se quedó
-      if (draft.currentStep) setCurrentStep(draft.currentStep);
-    } catch {
-      sessionStorage.removeItem(DRAFT_KEY);
+      // NO eliminamos el draft aquí - el auto-guardado lo mantiene actualizado
+      // y se elimina automáticamente cuando se crea el booking (paso 4)
+
+      console.log("[AgendarForm] Draft restaurado exitosamente. Estados actualizados.");
+    } catch (e) {
+      console.error("[AgendarForm] Error restaurando draft:", e);
+      // Solo eliminar si hay error de parsing
+      localStorage.removeItem(DRAFT_KEY);
     }
-  // Solo al montar — initialInspections no cambia
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Debug: Log cuando cambia el paso
+  useEffect(() => {
+    console.log("[AgendarForm] currentStep cambió a:", currentStep);
+  }, [currentStep]);
+
+  // =========================================================================
+  // EFECTO: Auto-guardar borrador mientras el usuario llena el formulario
+  // =========================================================================
+  // Esto asegura que si el usuario navega al login desde cualquier lugar
+  // (navbar, etc.), no pierda su progreso.
+  useEffect(() => {
+    // Solo guardar si hay datos significativos
+    const hasData = selectedInspection || vehicleData.brandId || locationData.districtId;
+
+    if (!hasData) return;
+
+    const draftData = {
+      currentStep,
+      selectedInspectionId: selectedInspection?.id || null,
+      vehicleData,
+      locationData,
+      selectedDate,
+      selectedSlot,
+      contactData,
+    };
+
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+    console.log("[AgendarForm] Auto-guardado draft");
+  }, [
+    currentStep,
+    selectedInspection,
+    vehicleData,
+    locationData,
+    selectedDate,
+    selectedSlot,
+    contactData,
+  ]);
+
+  // =========================================================================
+  // EFECTO: Limpiar draft cuando el usuario completa el pago o sale logueado
+  // =========================================================================
+  useEffect(() => {
+    // Si está en paso 4 con booking creado, limpiar el draft
+    // (ya no necesitamos restaurar, el booking está en el backend)
+    if (currentStep === 4 && bookingData) {
+      localStorage.removeItem(DRAFT_KEY);
+      console.log("[AgendarForm] Draft eliminado - booking creado");
+    }
+  }, [currentStep, bookingData]);
 
   // =========================================================================
   // VALIDACIONES POR PASO
@@ -221,19 +283,19 @@ export default function AgendarForm({
 
     // Si el usuario aún no está autenticado, guardar el borrador y llevarlo al login.
     // Al volver, el useEffect de arriba restaurará todo automáticamente.
+    // Usamos localStorage para que persista después de Google OAuth.
     if (status === "unauthenticated") {
-      sessionStorage.setItem(
-        DRAFT_KEY,
-        JSON.stringify({
-          currentStep: 3,
-          selectedInspectionId: selectedInspection.id,
-          vehicleData,
-          locationData,
-          selectedDate,
-          selectedSlot,
-          contactData,
-        })
-      );
+      const draftData = {
+        currentStep: 3,
+        selectedInspectionId: selectedInspection.id,
+        vehicleData,
+        locationData,
+        selectedDate,
+        selectedSlot,
+        contactData,
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+      console.log("[AgendarForm] Draft guardado:", draftData);
       router.push("/login?callbackUrl=/agendar");
       return;
     }

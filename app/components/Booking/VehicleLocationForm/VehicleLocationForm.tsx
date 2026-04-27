@@ -17,7 +17,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import styles from "./VehicleLocationForm.module.css";
 import { District, searchDistrictsGrouped } from "@/prisma/data/districts";
 import AddressAutocomplete, { PlaceDetails } from "@/app/components/Booking/AddressAutocomplete";
@@ -100,6 +100,36 @@ export default function VehicleLocationForm({
 
   // Lista de distritos agrupados por zona
   const districtGroups = searchDistrictsGrouped(districtQuery);
+
+  // =============================================================================
+  // EFECTO: Sincronizar estados locales cuando las props cambian (draft restore)
+  // =============================================================================
+  const prevBrandName = useRef(vehicleData.brandName);
+  const prevModelName = useRef(vehicleData.modelName);
+  const prevDistrictName = useRef(locationData.districtName);
+  const prevAddress = useRef(locationData.address);
+
+  useEffect(() => {
+    // Solo sincronizar si el valor cambió de vacío a algo (draft restore)
+    if (!prevBrandName.current && vehicleData.brandName) {
+      setBrandQuery(vehicleData.brandName);
+    }
+    if (!prevModelName.current && vehicleData.modelName) {
+      setModelQuery(vehicleData.modelName);
+    }
+    if (!prevDistrictName.current && locationData.districtName) {
+      setDistrictQuery(locationData.districtName);
+    }
+    if (!prevAddress.current && locationData.address) {
+      setAddressInput(locationData.address);
+    }
+
+    // Actualizar refs
+    prevBrandName.current = vehicleData.brandName;
+    prevModelName.current = vehicleData.modelName;
+    prevDistrictName.current = locationData.districtName;
+    prevAddress.current = locationData.address;
+  }, [vehicleData.brandName, vehicleData.modelName, locationData.districtName, locationData.address]);
 
   // =============================================================================
   // EFECTO: Cargar modelos cuando cambia la marca
@@ -234,6 +264,8 @@ export default function VehicleLocationForm({
 
   // Handler para cuando el usuario selecciona una dirección de Google Places
   const handlePlaceSelect = (place: PlaceDetails) => {
+    // Actualizar tanto el estado local como el padre
+    setAddressInput(place.formatted_address);
     onLocationChange({
       ...locationData,
       address: place.formatted_address,

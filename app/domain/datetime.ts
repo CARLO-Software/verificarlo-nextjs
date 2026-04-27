@@ -12,12 +12,14 @@ export function crearFechaHoraSinConversion(fecha: string, hora: string): Date {
 }
 
 /**
- * Crea un Date solo con la fecha (hora 00:00:00 UTC)
+ * Crea un Date solo con la fecha (hora 12:00:00 UTC para evitar problemas de timezone)
+ * Usar mediodía evita que la fecha cambie al convertir entre zonas horarias
  */
 export function crearFechaSinConversion(fecha: string): Date {
   const [y, m, d] = fecha.split("-").map(Number);
 
-  return new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
+  // Usamos 12:00 UTC para evitar que la fecha cambie al convertir a Lima (UTC-5)
+  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
 }
 
 /**

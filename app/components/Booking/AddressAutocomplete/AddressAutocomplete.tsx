@@ -82,15 +82,21 @@ export default function AddressAutocomplete({
   // Seleccionar una predicción
   const handleSelectPrediction = async (prediction: PlacePrediction) => {
     setShowDropdown(false);
+    clearPredictions();
+
+    // Mostrar inmediatamente lo que el usuario seleccionó
     onChange(prediction.description);
 
     // Obtener detalles completos (coordenadas, etc.)
     const details = await getPlaceDetails(prediction.place_id);
     if (details) {
-      onPlaceSelect(details);
+      // Usar la descripción que el usuario seleccionó, no el formatted_address de Google
+      // (pueden diferir y confundir al usuario)
+      onPlaceSelect({
+        ...details,
+        formatted_address: prediction.description,
+      });
     }
-
-    clearPredictions();
   };
 
   // Navegación con teclado
