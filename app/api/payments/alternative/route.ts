@@ -7,15 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { AlternativePaymentRequestSchema, parseWithDetails } from "@/lib/validations/culqi";
 
 // Tiempo de expiración extendido para pagos alternativos (4 horas)
 const ALTERNATIVE_PAYMENT_EXPIRATION_HOURS = 4;
-
-interface AlternativePaymentRequest {
-  bookingId: number;
-  paymentMethod: "TRANSFER" | "YAPE_PLIN" | "WHATSAPP";
-  operationNumber?: string;
-}
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -27,24 +22,26 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body: AlternativePaymentRequest = await req.json();
-  const { bookingId, paymentMethod, operationNumber } = body;
-
-  // Validaciones
-  if (!bookingId || !paymentMethod) {
+  // Parse and validate request body
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
     return NextResponse.json(
-      { error: "Se requiere bookingId y paymentMethod" },
+      { error: "Body JSON inválido" },
       { status: 400 }
     );
   }
 
-  const validMethods = ["TRANSFER", "YAPE_PLIN", "WHATSAPP"];
-  if (!validMethods.includes(paymentMethod)) {
+  const validation = parseWithDetails(AlternativePaymentRequestSchema, body);
+  if (!validation.success) {
     return NextResponse.json(
-      { error: "Método de pago inválido" },
+      { error: "Datos inválidos", details: validation.errors },
       { status: 400 }
     );
   }
+
+  const { bookingId, paymentMethod, operationNumber } = validation.data;
 
   try {
     // Obtener la reserva con su pago

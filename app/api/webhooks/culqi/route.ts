@@ -1,6 +1,13 @@
 // ============================================================================
 // POST /api/webhooks/culqi
-// Recibe y procesa eventos de Culqi (charge.succeeded / charge.failed).
+// Recibe y procesa eventos de Culqi.
+//
+// EVENTOS SOPORTADOS:
+//   - charge.creation.succeeded
+//   - charge.succeeded / charge.update.succeeded
+//   - charge.failed / charge.update.failed
+//   - order.creation.succeeded
+//   - order.status.changed
 //
 // SEGURIDAD:
 //   Prioridad 1 — RSA-SHA256: Culqi firma el payload con su clave privada.
@@ -13,8 +20,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import {
+  handleChargeCreationSucceeded,
   handleChargeSucceeded,
   handleChargeFailed,
+  handleOrderCreationSucceeded,
+  handleOrderStatusChanged,
+  logWebhookEvent,
   CulqiWebhookEvent,
 } from "@/services/payment/paymentService";
 
@@ -55,13 +66,17 @@ function verifyBearerToken(authHeader: string | null): boolean {
     ? authHeader.slice(7)
     : authHeader;
   // Constant-time comparison to prevent timing attacks
-  return (
-    token.length === CULQI_SECRET_KEY.length &&
-    crypto.timingSafeEqual(
-      Buffer.from(token, "utf8"),
-      Buffer.from(CULQI_SECRET_KEY, "utf8")
-    )
-  );
+  try {
+    return (
+      token.length === CULQI_SECRET_KEY.length &&
+      crypto.timingSafeEqual(
+        Buffer.from(token, "utf8"),
+        Buffer.from(CULQI_SECRET_KEY, "utf8")
+      )
+    );
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -107,6 +122,10 @@ export async function POST(req: NextRequest) {
   // Read raw body BEFORE any JSON parsing (needed for signature verification)
   const rawBody = await req.text();
 
+  // Get request metadata for logging
+  const ipAddress = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? undefined;
+  const userAgent = req.headers.get("user-agent") ?? undefined;
+
   // ── Authentication ──────────────────────────────────────────────────────────
   if (!isRequestAuthentic(rawBody, req)) {
     return NextResponse.json(
@@ -133,11 +152,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Guard: bookingId must exist in metadata
-  if (!event.data.metadata?.bookingId) {
+  // Guard: bookingId must exist in metadata for most events
+  const requiresBookingId = [
+    "charge.succeeded",
+    "charge.failed",
+    "charge.update.succeeded",
+    "charge.update.failed",
+    "order.creation.succeeded",
+    "order.status.changed",
+  ];
+
+  if (requiresBookingId.includes(event.type) && !event.data.metadata?.bookingId) {
     console.warn(
-      `[Webhook] Event ${event.id} has no bookingId in metadata — ignoring`
+      `[Webhook] Event ${event.id} (${event.type}) has no bookingId in metadata — ignoring`
     );
+    await logWebhookEvent(event, "SKIPPED", {
+      errorMessage: "No bookingId in metadata",
+      ipAddress,
+      userAgent,
+    });
     return NextResponse.json({ received: true, skipped: true });
   }
 
@@ -146,24 +179,55 @@ export async function POST(req: NextRequest) {
   // ── Route to handler ─────────────────────────────────────────────────────────
   try {
     switch (event.type) {
+      // ── Charge events ─────────────────────────────────────────────────────────
+      case "charge.creation.succeeded":
+        await handleChargeCreationSucceeded(event);
+        break;
+
       case "charge.succeeded":
+      case "charge.update.succeeded":
         await handleChargeSucceeded(event);
         break;
 
       case "charge.failed":
+      case "charge.update.failed":
         await handleChargeFailed(event);
         break;
 
+      // ── Order events ──────────────────────────────────────────────────────────
+      case "order.creation.succeeded":
+        await handleOrderCreationSucceeded(event);
+        break;
+
+      case "order.status.changed":
+        await handleOrderStatusChanged(event);
+        break;
+
+      // ── Unknown events ────────────────────────────────────────────────────────
       default:
         // Acknowledge unknown events without processing
         // This prevents Culqi from retrying indefinitely
         console.log(`[Webhook] Unhandled event type: ${event.type}`);
+        await logWebhookEvent(event, "SKIPPED", {
+          errorMessage: `Unhandled event type: ${event.type}`,
+          ipAddress,
+          userAgent,
+        });
     }
 
     return NextResponse.json({ received: true, type: event.type });
   } catch (error) {
-    // Return 500 so Culqi retries the event
+    // Log error for debugging
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error(`[Webhook] Error processing ${event.type} (${event.id}):`, error);
+
+    await logWebhookEvent(event, "FAILED", {
+      errorMessage,
+      ipAddress,
+      userAgent,
+    });
+
+    // Return 500 so Culqi retries the event
     return NextResponse.json(
       { error: "Internal processing error" },
       { status: 500 }

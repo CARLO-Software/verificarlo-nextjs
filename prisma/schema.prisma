@@ -307,7 +307,8 @@ model Payment {
 
   // Datos Culqi (solo para method = CULQI)
   culqiChargeId String? @unique
-  culqiEventId  String? @unique // Webhook event ID – idempotency key
+  culqiOrderId  String? @unique  // Order ID para flujo de órdenes Culqi
+  culqiEventId  String? @unique  // Webhook event ID – idempotency key
   culqiToken    String?
 
   // Datos para pagos alternativos (Yape/Transfer)
@@ -343,9 +344,59 @@ model Payment {
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 
   @@index([culqiChargeId])
+  @@index([culqiOrderId])
   @@index([culqiEventId])
   @@index([status])
   @@index([method])
+}
+
+// ============================================
+// EVENTOS DE WEBHOOK (Auditoría Culqi)
+// ============================================
+
+enum WebhookEventStatus {
+  RECEIVED    // Evento recibido, pendiente de procesar
+  PROCESSING  // En proceso
+  PROCESSED   // Procesado exitosamente
+  FAILED      // Falló el procesamiento
+  SKIPPED     // Saltado (duplicado o no relevante)
+}
+
+model WebhookEvent {
+  id        String   @id @default(cuid())
+
+  // Identificadores de Culqi
+  eventId   String   @unique  // ID único del evento de Culqi (evt_xxx)
+  eventType String             // charge.succeeded, order.status.changed, etc.
+
+  // IDs relacionados (para búsqueda rápida)
+  chargeId  String?            // chr_xxx si aplica
+  orderId   String?            // ord_xxx si aplica
+  bookingId Int?               // ID del booking relacionado
+
+  // Payload completo
+  rawPayload Json              // Payload JSON completo del webhook
+
+  // Procesamiento
+  status       WebhookEventStatus @default(RECEIVED)
+  processedAt  DateTime?
+  errorMessage String?         @db.Text
+  retryCount   Int              @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Metadata adicional
+  ipAddress   String?          // IP del request (para auditoría)
+  userAgent   String?          // User-Agent del request
+
+  @@index([eventType])
+  @@index([chargeId])
+  @@index([orderId])
+  @@index([bookingId])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================

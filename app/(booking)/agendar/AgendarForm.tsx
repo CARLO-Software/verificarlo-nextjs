@@ -28,7 +28,6 @@ import PlanSelector from "@/app/components/Booking/PlanSelector/PlanSelector";
 import VehicleLocationForm from "@/app/components/Booking/VehicleLocationForm/VehicleLocationForm";
 import InspectionSchedule from "@/app/components/Booking/InspectionSchedule/InspectionSchedule";
 import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
-import PaymentForm from "@/app/components/Booking/PaymentForm/PaymentForm";
 
 // =============================================================================
 // TIPOS
@@ -122,7 +121,6 @@ export default function AgendarForm({
   const [paymentMethod, setPaymentMethod] = useState<
     "culqi" | "transfer" | "yape" | "whatsapp" | null
   >(null);
-  const [showCulqiForm, setShowCulqiForm] = useState(false);
 
   // =========================================================================
   // DATOS DE RESERVA (después de crearla en el backend)
@@ -366,15 +364,11 @@ export default function AgendarForm({
   // HANDLERS DE PAGO
   // =========================================================================
 
-  const handleCulqiPayment = () => {
-    setShowCulqiForm(true);
-  };
-
-  // Pago con tarjeta confirmado (o incierto por error de red).
-  // En ambos casos vamos a /payment/pending — el webhook es la fuente de verdad.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handlePaymentSuccess = (_data: any) => {
-    router.push(`/payment/pending?bookingId=${bookingData!.id}`);
+  // Pago exitoso (tarjeta o Yape) — redirige a success/pending
+  const handlePaymentSuccess = () => {
+    // El componente PaymentMethods ya redirige internamente
+    // Este handler es para cualquier limpieza adicional
+    localStorage.removeItem(DRAFT_KEY);
   };
 
   const handlePaymentExpired = () => {
@@ -385,42 +379,11 @@ export default function AgendarForm({
     goToStep(3);
   };
 
-  // Yape / Transferencia / WhatsApp registrado.
-  // El webhook (o admin) confirmará el pago; mientras tanto el usuario espera.
+  // Transferencia / WhatsApp registrado (verificación manual)
   const handleAlternativePaymentSuccess = () => {
+    localStorage.removeItem(DRAFT_KEY);
     router.push(`/payment/pending?bookingId=${bookingData!.id}`);
   };
-
-  // =========================================================================
-  // FORMULARIO DE CULQI (cuando selecciona pago con tarjeta)
-  // =========================================================================
-
-  if (showCulqiForm && bookingData && selectedInspection) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <PaymentForm
-            bookingId={bookingData.id}
-            bookingDetails={{
-              inspectionTitle: selectedInspection.title,
-              inspectionType: selectedInspection.type,
-              vehicleBrand: vehicleData.brandName,
-              vehicleModel: vehicleData.modelName,
-              vehicleYear: vehicleData.year!,
-              vehiclePlate: vehicleData.plate,
-              date: selectedDate!,
-              timeSlot: selectedSlot!,
-              amount: bookingData.amount,
-            }}
-            expiresAt={bookingData.expiresAt}
-            onSuccess={handlePaymentSuccess}
-            onBack={() => setShowCulqiForm(false)}
-            onExpired={handlePaymentExpired}
-          />
-        </div>
-      </div>
-    );
-  }
 
   // =========================================================================
   // RENDER PRINCIPAL: Layout de Dos Columnas
@@ -623,10 +586,12 @@ export default function AgendarForm({
                   bookingCode: bookingData.code,
                   userName: contactData.fullName,
                   planTitle: selectedInspection.title,
-                  totalAmount: selectedInspection.price,
+                  totalAmount: bookingData.amount,
                 }}
                 bookingId={bookingData.id}
-                onCulqiPayment={handleCulqiPayment}
+                expiresAt={bookingData.expiresAt}
+                onPaymentSuccess={handlePaymentSuccess}
+                onPaymentExpired={handlePaymentExpired}
                 onAlternativePaymentSuccess={handleAlternativePaymentSuccess}
               />
 

@@ -1,6 +1,6 @@
 // ============================================
 // POST /api/payments/culqi
-// Procesar pago con Culqi
+// Procesar pago con Culqi (tarjetas)
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
@@ -9,9 +9,14 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
+import { CulqiChargeRequestSchema, parseWithDetails } from "@/lib/validations/culqi";
 
-const CULQI_SECRET_KEY = process.env.CULQI_SECRET_KEY!;
+const CULQI_SECRET_KEY = process.env.CULQI_SECRET_KEY;
 const CULQI_API_URL = "https://api.culqi.com/v2/charges";
+
+if (!CULQI_SECRET_KEY) {
+  console.warn("[Culqi] CULQI_SECRET_KEY not configured");
+}
 
 interface CulqiChargeRequest {
   amount: number;
@@ -61,15 +66,35 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json();
-  const { bookingId, token } = body;
-
-  if (!bookingId || !token) {
+  // Validate CULQI_SECRET_KEY is configured
+  if (!CULQI_SECRET_KEY) {
+    console.error("[Culqi] CULQI_SECRET_KEY not configured");
     return NextResponse.json(
-      { error: "Se requiere bookingId y token" },
+      { error: "Servicio de pagos no configurado" },
+      { status: 503 }
+    );
+  }
+
+  // Parse and validate request body
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json(
+      { error: "Body JSON inválido" },
       { status: 400 }
     );
   }
+
+  const validation = parseWithDetails(CulqiChargeRequestSchema, body);
+  if (!validation.success) {
+    return NextResponse.json(
+      { error: "Datos inválidos", details: validation.errors },
+      { status: 400 }
+    );
+  }
+
+  const { bookingId, token } = validation.data;
 
   try {
     // Obtener booking con todos los datos necesarios

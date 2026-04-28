@@ -85,22 +85,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar que el usuario no tenga otra reserva pendiente de pago
+    // Verificar reservas pendientes del usuario
     const existingPending = await db.booking.findFirst({
       where: {
         clientId: session.user.id,
         status: "PENDING_PAYMENT",
       },
+      include: { payment: true },
     });
 
     if (existingPending) {
-      return NextResponse.json(
-        {
-          error: "Ya tienes una reserva pendiente de pago. Complétala o espera a que expire.",
-          bookingId: existingPending.id,
-        },
-        { status: 409 }
-      );
+      // Si la reserva ya expiró, marcarla como EXPIRED automáticamente
+      if (existingPending.expiresAt && new Date() > existingPending.expiresAt) {
+        await db.$transaction(async (tx) => {
+          await tx.booking.update({
+            where: { id: existingPending.id },
+            data: { status: "EXPIRED" },
+          });
+          if (existingPending.payment) {
+            await tx.payment.update({
+              where: { id: existingPending.payment.id },
+              data: {
+                status: "FAILED",
+                errorMessage: "Tiempo de pago expirado",
+              },
+            });
+          }
+        });
+        console.log(`[Bookings] Auto-expired stale booking #${existingPending.id}`);
+      } else {
+        // Aún no expiró, no permitir crear otra
+        return NextResponse.json(
+          {
+            error: "Ya tienes una reserva pendiente de pago. Complétala o espera a que expire.",
+            bookingId: existingPending.id,
+            expiresAt: existingPending.expiresAt,
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // Calcular tiempos
@@ -109,8 +132,7 @@ export async function POST(req: NextRequest) {
     const expiresAt = addMinutes(new Date(), BOOKING_EXPIRATION_MINUTES);
 
     // Crear reserva y pago en transacción
-    // TODO: Cuando Culqi esté configurado, cambiar status inicial a PENDING_PAYMENT
-    // y crear payment con status PENDING, luego actualizar después del pago real.
+    // Booking se crea con PENDING_PAYMENT - se actualiza a PAID después del pago real
     const booking = await db.$transaction(async (tx) => {
       const newBooking = await tx.booking.create({
         data: {
@@ -121,8 +143,8 @@ export async function POST(req: NextRequest) {
           timeSlot,
           startTime,
           endTime,
-          status: "PAID", // Simulamos pago completado mientras no haya Culqi
-          expiresAt: null,
+          status: "PENDING_PAYMENT",
+          expiresAt, // 30 minutos para completar el pago
         },
       });
 
@@ -130,39 +152,17 @@ export async function POST(req: NextRequest) {
         data: {
           bookingId: newBooking.id,
           amount: inspectionPlan.price * 100, // Convertir a céntimos para Culqi
-          status: "COMPLETED", // Simulamos pago completado
-          paidAt: new Date(),
+          currency: "PEN",
+          status: "PENDING",
+          method: "CULQI", // Método por defecto, se actualiza si elige alternativo
         },
       });
 
       return newBooking;
     });
 
-    const assignment = await assignInspector(booking.id);
-    if (!assignment.success) {
-      console.warn(
-        `[Bookings] Inspector auto-assignment failed for booking ${booking.id}: ${assignment.error}`
-      );
-    }
-
-    // Crear VehicleInspection con flujo dual (mecánico + legal)
-    const vehicleDescription = `${vehicle.model.brand.name} ${vehicle.model.name} ${vehicle.year}`;
-    const vehicleInspectionResult = await createVehicleInspection({
-      bookingId: booking.id,
-      vehicleId: vehicle.id,
-      clientId: session.user.id,
-      plate: vehicle.plate,
-      vehicleDescription,
-      clientName: session.user.name || "Cliente",
-      scheduledDate: date,
-      scheduledTime: timeSlot,
-    });
-
-    if (!vehicleInspectionResult.success) {
-      console.warn(
-        `[Bookings] VehicleInspection creation failed for booking ${booking.id}: ${vehicleInspectionResult.error}`
-      );
-    }
+    // NOTA: Inspector y VehicleInspection se crean DESPUÉS del pago exitoso
+    // Ver: app/api/payments/culqi/route.ts (líneas 232-256)
 
     return NextResponse.json({
       success: true,
