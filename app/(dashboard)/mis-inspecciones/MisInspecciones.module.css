@@ -638,6 +638,10 @@
   --card-accent: var(--status-success);
 }
 
+.inspectionCard.statusPaid {
+  --card-accent: #2563eb; /* Azul - Confirmado/En proceso seguro */
+}
+
 .inspectionCard.statusProgress {
   --card-accent: var(--status-warning);
 }
@@ -648,6 +652,10 @@
 
 .inspectionCard.statusCancelled {
   --card-accent: var(--status-danger);
+}
+
+.inspectionCard.statusExpired {
+  --card-accent: #9ca3af; /* Gris - Expirado */
 }
 
 /* Card Header */
@@ -871,6 +879,50 @@
   height: 18px;
 }
 
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteBtn:hover {
+  background: #fee2e2;
+  border-color: #f87171;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.deleteBtn .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fecaca;
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* =============================================================================
    EMPTY STATE (fondo blanco)
    ============================================================================= */
@@ -956,4 +1008,106 @@
 
 .animateFadeIn {
   animation: fadeInUp 0.4s ease forwards;
+}
+
+/* =============================================================================
+   BANNER DE VERIFICACIÓN PENDIENTE
+   ============================================================================= */
+
+.verificationBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+.verificationIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: #3b82f6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verificationIcon svg {
+  width: 22px;
+  height: 22px;
+  color: white;
+}
+
+.verificationContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.verificationTitle {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 4px;
+}
+
+.verificationText {
+  font-size: 13px;
+  color: #3b82f6;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.verificationClose {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.verificationClose:hover {
+  background: rgba(59, 130, 246, 0.15);
+  color: #1e40af;
+}
+
+.verificationClose svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 480px) {
+  .verificationBanner {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .verificationIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .verificationIcon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .verificationTitle {
+    font-size: 14px;
+  }
+
+  .verificationText {
+    font-size: 12px;
+  }
 }

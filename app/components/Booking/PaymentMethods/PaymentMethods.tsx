@@ -13,6 +13,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import styles from "./PaymentMethods.module.css";
 import TransferModal from "./TransferModal";
 import WhatsAppModal from "./WhatsAppModal";
@@ -102,6 +103,7 @@ export default function PaymentMethods({
   onAlternativePaymentSuccess,
 }: PaymentMethodsProps) {
   const router = useRouter();
+  const { data: session } = useSession();
 
   // Estados
   const [showTransferModal, setShowTransferModal] = useState(false);
@@ -194,7 +196,13 @@ export default function PaymentMethods({
 
           if (data.success) {
             onPaymentSuccess();
-            router.push(`/payment/success?bookingId=${bookingId}`);
+            // Redirigir según el rol del usuario
+            const userRole = session?.user?.role;
+            if (userRole === 'ADMIN') {
+              router.push('/admin/inspecciones');
+            } else {
+              router.push(`/mis-inspecciones/${bookingId}`);
+            }
           } else {
             setCulqiError(data.error || "Error procesando el pago");
           }

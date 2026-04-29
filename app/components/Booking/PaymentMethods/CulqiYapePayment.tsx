@@ -1,13 +1,14 @@
 // =============================================================================
 // COMPONENTE: CulqiYapePayment
-// Pago con Yape a través de Culqi Orders API
-// El QR se genera automáticamente y el pago se valida via webhook
+// Pago con Yape usando número de celular + código de aprobación (OTP)
+// Flujo: Usuario ingresa número → obtiene código en app Yape → ingresa código
 // =============================================================================
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import styles from "./PaymentMethods.module.css";
 
 interface CulqiYapePaymentProps {
@@ -18,180 +19,91 @@ interface CulqiYapePaymentProps {
   onError: (message: string) => void;
 }
 
-type PaymentState = "loading" | "ready" | "polling" | "success" | "error";
-
-interface OrderData {
-  id: string;
-  qr?: {
-    image: string;
-    url: string;
-  };
-  expirationDate: string;
-}
+type PaymentState = "input" | "processing" | "success" | "error";
 
 export default function CulqiYapePayment({
   bookingId,
   amount,
   onBack,
   onSuccess,
-  onError,
 }: CulqiYapePaymentProps) {
   const router = useRouter();
-  const [state, setState] = useState<PaymentState>("loading");
-  const [order, setOrder] = useState<OrderData | null>(null);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const { data: session } = useSession();
+  const [state, setState] = useState<PaymentState>("input");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [otpCode, setOtpCode] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Crear orden de Culqi al montar
-  useEffect(() => {
-    createCulqiOrder();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Validaciones
+  const isPhoneValid = /^9\d{8}$/.test(phoneNumber); // 9 dígitos, empieza con 9
+  const isOtpValid = /^\d{6}$/.test(otpCode); // 6 dígitos
+  const canSubmit = isPhoneValid && isOtpValid && state === "input";
 
-  // Crear orden en Culqi
-  const createCulqiOrder = async () => {
-    setState("loading");
+  // Formatear número de teléfono mientras escribe
+  const handlePhoneChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 9);
+    setPhoneNumber(digits);
+    setErrorMessage(null);
+  };
+
+  // Formatear OTP mientras escribe
+  const handleOtpChange = (value: string) => {
+    const digits = value.replace(/\D/g, "").slice(0, 6);
+    setOtpCode(digits);
+    setErrorMessage(null);
+  };
+
+  // Procesar pago
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+
+    setState("processing");
     setErrorMessage(null);
 
     try {
-      const res = await fetch("/api/culqi/order", {
+      const res = await fetch("/api/culqi/yape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           bookingId,
-          expirationMinutes: 15, // 15 minutos para pagar con Yape
+          phoneNumber: phoneNumber,
+          otpCode: otpCode,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Error creando orden de pago");
+        throw new Error(data.error || "Error procesando el pago");
       }
 
-      setOrder({
-        id: data.order.id,
-        qr: data.order.qr,
-        expirationDate: data.order.expirationDate,
-      });
-
-      // Calcular tiempo restante
-      const expiration = new Date(data.order.expirationDate).getTime();
-      const now = Date.now();
-      setTimeLeft(Math.max(0, Math.floor((expiration - now) / 1000)));
-
-      setState("ready");
-
-      // Iniciar polling para verificar pago
-      startPolling();
+      if (data.success) {
+        setState("success");
+        setTimeout(() => {
+          onSuccess();
+          // Redirigir según el rol del usuario
+          const userRole = session?.user?.role;
+          if (userRole === 'ADMIN') {
+            router.push('/admin/inspecciones');
+          } else {
+            router.push(`/mis-inspecciones/${bookingId}`);
+          }
+        }, 1500);
+      } else {
+        throw new Error(data.error || "Pago no completado");
+      }
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : "Error desconocido");
       setState("error");
     }
   };
 
-  // Polling para verificar estado del pago
-  const checkPaymentStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/culqi/order?bookingId=${bookingId}`);
-      const data = await res.json();
-
-      if (data.order?.state === "paid" || data.payment?.status === "COMPLETED") {
-        setState("success");
-        setTimeout(() => {
-          onSuccess();
-          router.push(`/payment/success?bookingId=${bookingId}`);
-        }, 1500);
-        return true; // Pago confirmado
-      }
-
-      if (data.order?.state === "expired") {
-        setErrorMessage("El tiempo para pagar ha expirado");
-        setState("error");
-        return true; // Dejar de hacer polling
-      }
-
-      return false; // Continuar polling
-    } catch {
-      return false; // Continuar polling en caso de error de red
-    }
-  }, [bookingId, onSuccess, router]);
-
-  // Iniciar polling
-  const startPolling = useCallback(() => {
-    setState("polling");
-
-    const pollInterval = setInterval(async () => {
-      const shouldStop = await checkPaymentStatus();
-      if (shouldStop) {
-        clearInterval(pollInterval);
-      }
-    }, 3000); // Cada 3 segundos
-
-    // Limpiar al desmontar
-    return () => clearInterval(pollInterval);
-  }, [checkPaymentStatus]);
-
-  // Countdown timer
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setErrorMessage("El tiempo para pagar ha expirado");
-          setState("error");
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft]);
-
-  // Formatear tiempo
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  // Reintentar después de error
+  const handleRetry = () => {
+    setOtpCode("");
+    setErrorMessage(null);
+    setState("input");
   };
-
-  // Estado: Cargando
-  if (state === "loading") {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loaderWrapper}>
-          <div className={styles.loader} style={{ borderTopColor: "#6B21A8" }} />
-          <p className={styles.loaderText}>Generando código QR de Yape...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Estado: Error
-  if (state === "error") {
-    return (
-      <div className={styles.container}>
-        <div className={styles.errorMessage}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4M12 16h.01" />
-          </svg>
-          {errorMessage || "Error procesando el pago"}
-        </div>
-        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1rem" }}>
-          <button onClick={onBack} className={styles.modalButtonSecondary}>
-            Volver
-          </button>
-          <button onClick={createCulqiOrder} className={`${styles.modalButton} ${styles.modalButtonPrimary}`}>
-            Reintentar
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Estado: Exitoso
   if (state === "success") {
@@ -204,139 +116,224 @@ export default function CulqiYapePayment({
             </svg>
           </div>
           <h3 className={styles.modalTitle}>Pago confirmado</h3>
-          <p className={styles.modalSubtitle}>Redirigiendo...</p>
+          <p className={styles.modalSubtitle}>Redirigiendo a tu inspección...</p>
         </div>
       </div>
     );
   }
 
-  // Estado: Listo para pagar / Polling
   return (
     <div className={styles.container}>
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <div className={styles.modalIcon} style={{ background: "#f3e8ff", color: "#6B21A8" }}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <rect x="7" y="7" width="3" height="3" />
-            <rect x="14" y="7" width="3" height="3" />
-            <rect x="7" y="14" width="3" height="3" />
-            <rect x="14" y="14" width="3" height="3" />
+            <rect x="5" y="2" width="14" height="20" rx="2" />
+            <path d="M12 18h.01" />
           </svg>
         </div>
         <h3 className={styles.modalTitle}>Paga con Yape</h3>
         <p className={styles.modalSubtitle}>
-          Escanea el código QR con tu app de Yape para completar el pago
+          Ingresa tu número de Yape y el código de aprobación
         </p>
       </div>
 
-      {/* Timer */}
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "0.5rem",
-        padding: "0.75rem",
-        background: timeLeft < 120 ? "#fef2f2" : "#f3f4f6",
-        borderRadius: "8px",
-        marginBottom: "1rem",
-        color: timeLeft < 120 ? "#dc2626" : "#4b5563",
-        fontWeight: 600,
-      }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 6v6l4 2" />
-        </svg>
-        <span>Tiempo restante: {formatTime(timeLeft)}</span>
-      </div>
-
-      {/* QR Code */}
-      {order?.qr ? (
-        <div className={styles.qrWrapper}>
-          <img
-            src={`data:image/png;base64,${order.qr.image}`}
-            alt="Código QR de Yape"
-            className={styles.qrImage}
-            style={{ width: "200px", height: "200px" }}
-          />
-        </div>
-      ) : (
-        <div className={styles.qrWrapper}>
-          <div style={{ textAlign: "center", padding: "2rem", color: "#9ca3af" }}>
-            <p>QR no disponible</p>
-            <a
-              href={order?.qr?.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: "#6B21A8", textDecoration: "underline" }}
-            >
-              Pagar en página de Culqi
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* Monto */}
-      <div className={styles.infoCard}>
+      <div className={styles.infoCard} style={{ marginBottom: "1.5rem" }}>
         <div className={styles.infoRow}>
-          <span className={styles.infoLabel}>Monto a pagar:</span>
+          <span className={styles.infoLabel}>Total a pagar:</span>
           <span className={styles.infoValueLarge}>S/ {amount.toFixed(2)}</span>
         </div>
       </div>
 
-      {/* Estado de verificación */}
-      {state === "polling" && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.5rem",
-          padding: "0.75rem",
-          background: "#eff6ff",
-          borderRadius: "8px",
-          marginBottom: "1rem",
-          color: "#2563eb",
-          fontSize: "0.9rem",
-        }}>
-          <div className={styles.spinner} style={{
-            width: "16px",
-            height: "16px",
-            borderColor: "rgba(37, 99, 235, 0.2)",
-            borderTopColor: "#2563eb",
-          }} />
-          <span>Esperando confirmación de pago...</span>
+      {/* Error */}
+      {errorMessage && (
+        <div className={styles.errorMessage} style={{ marginBottom: "1rem" }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg>
+          {errorMessage}
         </div>
       )}
 
-      {/* Instrucciones */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <p style={{ fontSize: "0.85rem", color: "#6b7280", marginBottom: "0.75rem", fontWeight: 600 }}>
-          Pasos para pagar:
-        </p>
-        <div className={styles.stepsList}>
-          <div className={styles.stepItem}>
-            <span className={styles.stepNumber} style={{ background: "#6B21A8" }}>1</span>
-            <span className={styles.stepText}>Abre tu app de Yape</span>
+      {/* Formulario */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.5rem" }}>
+        {/* Número de celular */}
+        <div>
+          <label style={{
+            display: "block",
+            fontSize: "0.875rem",
+            fontWeight: 500,
+            color: "#374151",
+            marginBottom: "0.5rem"
+          }}>
+            Número de celular Yape
+          </label>
+          <div style={{ position: "relative" }}>
+            <span style={{
+              position: "absolute",
+              left: "12px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              color: "#6b7280",
+              fontSize: "0.95rem",
+            }}>
+              +51
+            </span>
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              placeholder="987 654 321"
+              disabled={state === "processing"}
+              style={{
+                width: "100%",
+                padding: "0.75rem 0.75rem 0.75rem 3rem",
+                border: `2px solid ${phoneNumber && !isPhoneValid ? "#ef4444" : "#e5e7eb"}`,
+                borderRadius: "8px",
+                fontSize: "1rem",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => e.target.style.borderColor = "#6B21A8"}
+              onBlur={(e) => e.target.style.borderColor = phoneNumber && !isPhoneValid ? "#ef4444" : "#e5e7eb"}
+            />
           </div>
-          <div className={styles.stepItem}>
-            <span className={styles.stepNumber} style={{ background: "#6B21A8" }}>2</span>
-            <span className={styles.stepText}>Escanea el código QR</span>
-          </div>
-          <div className={styles.stepItem}>
-            <span className={styles.stepNumber} style={{ background: "#6B21A8" }}>3</span>
-            <span className={styles.stepText}>Confirma el pago en tu app</span>
-          </div>
-          <div className={styles.stepItem}>
-            <span className={styles.stepNumber} style={{ background: "#6B21A8" }}>4</span>
-            <span className={styles.stepText}>Espera la confirmación automática</span>
-          </div>
+          {phoneNumber && !isPhoneValid && (
+            <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>
+              Ingresa un número válido de 9 dígitos
+            </p>
+          )}
+        </div>
+
+        {/* Código de aprobación */}
+        <div>
+          <label style={{
+            display: "block",
+            fontSize: "0.875rem",
+            fontWeight: 500,
+            color: "#374151",
+            marginBottom: "0.5rem"
+          }}>
+            Código de aprobación
+          </label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={otpCode}
+            onChange={(e) => handleOtpChange(e.target.value)}
+            placeholder="123456"
+            disabled={state === "processing"}
+            style={{
+              width: "100%",
+              padding: "0.75rem",
+              border: `2px solid ${otpCode && !isOtpValid ? "#ef4444" : "#e5e7eb"}`,
+              borderRadius: "8px",
+              fontSize: "1.25rem",
+              fontFamily: "monospace",
+              letterSpacing: "0.5em",
+              textAlign: "center",
+              outline: "none",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) => e.target.style.borderColor = "#6B21A8"}
+            onBlur={(e) => e.target.style.borderColor = otpCode && !isOtpValid ? "#ef4444" : "#e5e7eb"}
+          />
+          {otpCode && !isOtpValid && (
+            <p style={{ color: "#ef4444", fontSize: "0.75rem", marginTop: "0.25rem" }}>
+              El código debe tener 6 dígitos
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Botón volver */}
-      <button onClick={onBack} className={styles.modalButtonSecondary} style={{ width: "100%" }}>
-        Elegir otro método de pago
-      </button>
+      {/* Instrucciones */}
+      <div style={{
+        background: "#faf5ff",
+        borderRadius: "8px",
+        padding: "1rem",
+        marginBottom: "1.5rem"
+      }}>
+        <p style={{ fontSize: "0.8rem", color: "#6B21A8", marginBottom: "0.5rem", fontWeight: 600 }}>
+          ¿Dónde encuentro el código?
+        </p>
+        <ol style={{
+          fontSize: "0.8rem",
+          color: "#7c3aed",
+          paddingLeft: "1.25rem",
+          margin: 0,
+          lineHeight: 1.6
+        }}>
+          <li>Abre tu app de <strong>Yape</strong></li>
+          <li>Ve a <strong>&quot;Aprobar compras&quot;</strong> en la pantalla principal</li>
+          <li>Copia el código de 6 dígitos</li>
+        </ol>
+      </div>
+
+      {/* Botones */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        {state === "error" ? (
+          <>
+            <button
+              onClick={handleRetry}
+              className={styles.continueButton}
+              style={{ background: "#6B21A8" }}
+            >
+              Reintentar
+            </button>
+            <button onClick={onBack} className={styles.modalButtonSecondary}>
+              Elegir otro método de pago
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={handleSubmit}
+              disabled={!canSubmit || state === "processing"}
+              className={styles.continueButton}
+              style={{
+                background: canSubmit ? "#6B21A8" : "#d1d5db",
+                cursor: canSubmit ? "pointer" : "not-allowed",
+              }}
+            >
+              {state === "processing" ? (
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                  <span className={styles.spinner} style={{ width: "18px", height: "18px" }} />
+                  Procesando pago...
+                </span>
+              ) : (
+                `Pagar S/ ${amount.toFixed(2)}`
+              )}
+            </button>
+            <button
+              onClick={onBack}
+              className={styles.modalButtonSecondary}
+              disabled={state === "processing"}
+            >
+              Elegir otro método de pago
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Nota de seguridad */}
+      <p style={{
+        marginTop: "1rem",
+        fontSize: "0.75rem",
+        color: "#9ca3af",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "0.5rem",
+      }}>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" />
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        </svg>
+        Pago seguro procesado por Culqi
+      </p>
     </div>
   );
 }

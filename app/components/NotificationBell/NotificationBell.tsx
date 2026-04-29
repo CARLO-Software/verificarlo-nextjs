@@ -9,7 +9,7 @@ import styles from './NotificationBell.module.css';
 
 interface Notification {
   id: number;
-  type: 'NUEVA_INSPECCION' | 'LEGAL_DESBLOQUEADO' | 'MECANICO_ASIGNADO' | 'INSPECCION_COMPLETADA';
+  type: 'NUEVA_INSPECCION' | 'LEGAL_DESBLOQUEADO' | 'MECANICO_ASIGNADO' | 'INSPECCION_COMPLETADA' | 'PAGO_PENDIENTE';
   title: string;
   message: string;
   inspectionId: number | null;  // VehicleInspection.id (para admins)
@@ -32,6 +32,8 @@ interface GroupedNotifications {
 
 // Tipos que requieren atencion de inspeccion legal
 const LEGAL_NOTIFICATION_TYPES = ['NUEVA_INSPECCION', 'LEGAL_DESBLOQUEADO'];
+// Tipos de pago pendiente de verificacion
+const PAYMENT_NOTIFICATION_TYPES = ['PAGO_PENDIENTE'];
 
 export function NotificationBell() {
   const { data: session } = useSession();
@@ -168,7 +170,10 @@ export function NotificationBell() {
     let targetUrl: string;
 
     if (userRole === 'ADMIN') {
-      if (notification.inspectionId) {
+      if (isPaymentNotification(notification.type)) {
+        // Las notificaciones de pago llevan a inspecciones (donde se pueden ver las pendientes)
+        targetUrl = '/admin/inspecciones';
+      } else if (notification.inspectionId) {
         targetUrl = `/admin/vehicle-inspections/${notification.inspectionId}/legal`;
       } else {
         targetUrl = '/admin/inspecciones';
@@ -189,6 +194,7 @@ export function NotificationBell() {
   };
 
   const isLegalNotification = (type: string) => LEGAL_NOTIFICATION_TYPES.includes(type);
+  const isPaymentNotification = (type: string) => PAYMENT_NOTIFICATION_TYPES.includes(type);
 
   const grouped = groupNotifications(notifications);
   const hasNotifications = notifications.length > 0;
@@ -222,6 +228,9 @@ export function NotificationBell() {
             <div className={styles.itemContent}>
               {isLegalNotification(notification.type) && (
                 <span className={styles.legalBadge}>Inspeccion Legal</span>
+              )}
+              {isPaymentNotification(notification.type) && (
+                <span className={styles.paymentBadge}>Verificar Pago</span>
               )}
               <span className={styles.itemTitle}>{notification.title}</span>
               <span className={styles.itemMessage}>{notification.message}</span>

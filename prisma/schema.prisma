@@ -789,6 +789,7 @@ enum NotificationType {
   LEGAL_DESBLOQUEADO     // Mecánico registró placa → todos los admins
   MECANICO_ASIGNADO      // Mecánico asignado al crear → mecánico
   INSPECCION_COMPLETADA  // Ambos procesos finalizados → cliente
+  PAGO_PENDIENTE         // Pago alternativo registrado → todos los admins
 }
 
 model Notification {

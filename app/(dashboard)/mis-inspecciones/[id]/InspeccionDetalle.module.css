@@ -965,3 +965,187 @@
     height: 20px;
   }
 }
+
+/* ============================================
+   Payment Method Tabs & Yape Form
+   ============================================ */
+
+.paymentTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.paymentTab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paymentTab:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
+}
+
+.paymentTabActive {
+  background: #FEF9E7;
+  border-color: #FDBF12;
+  color: #1F2937;
+}
+
+.paymentTab svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Yape Form */
+.yapeForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.yapeHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #F3E8FF;
+  border-radius: 12px;
+}
+
+.yapeTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #6B21A8;
+  margin: 0;
+}
+
+.yapeSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #7C3AED;
+  margin: 0;
+}
+
+.yapeFields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.yapeField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.yapeField label {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.yapeInputWrapper {
+  display: flex;
+  align-items: center;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.yapeInputWrapper:focus-within {
+  border-color: #6B21A8;
+}
+
+.yapePrefix {
+  padding: 12px;
+  background: #F9FAFB;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #6B7280;
+  border-right: 1px solid #E5E7EB;
+}
+
+.yapeInputWrapper input {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+}
+
+.yapeField > input {
+  padding: 12px;
+  border: 2px solid #E5E7EB;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.yapeField > input:focus {
+  border-color: #6B21A8;
+}
+
+.yapeOtpInput {
+  font-family: 'SF Mono', 'Consolas', monospace !important;
+  font-size: 20px !important;
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+.yapeError {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: #EF4444;
+}
+
+.yapeInstructions {
+  padding: 16px;
+  background: #FAF5FF;
+  border-radius: 10px;
+}
+
+.yapeInstructions p {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #6B21A8;
+  margin: 0 0 8px 0;
+}
+
+.yapeInstructions ol {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #7C3AED;
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .paymentTabs {
+    flex-direction: column;
+  }
+
+  .paymentTab {
+    justify-content: flex-start;
+  }
+}

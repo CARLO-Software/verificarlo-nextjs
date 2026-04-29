@@ -33,7 +33,7 @@ export type InspectionPlanItem = {
 
 export type InspectionPlan = {
     id: number;
-    type: "legal" | "basica" | "completa";
+    type: "legal express" | "basica" | "premium";
     title: string;
     description: string;
     price: number;

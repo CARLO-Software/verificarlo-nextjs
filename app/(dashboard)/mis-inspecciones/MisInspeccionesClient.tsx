@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession, signOut } from 'next-auth/react';
@@ -11,7 +11,7 @@ import { ApprovalBadge, getApprovalStatus } from '@/app/components/ui/ApprovalBa
 import { GradeStars } from '@/app/components/ui/GradeStars/GradeStars';
 import styles from './MisInspecciones.module.css';
 
-type FilterStatus = 'all' | 'progress' | 'completed' | 'cancelled';
+type FilterStatus = 'all' | 'pending_payment' | 'paid' | 'completed' | 'expired' | 'cancelled';
 
 interface FormattedInspection {
   id: number;
@@ -49,27 +49,50 @@ interface MisInspeccionesClientProps {
 
 const filterOptions: { value: FilterStatus; label: string }[] = [
   { value: 'all', label: 'Todos' },
-  { value: 'progress', label: 'En proceso' },
+  { value: 'pending_payment', label: 'Pendiente de pago' },
+  { value: 'paid', label: 'Pagadas' },
   { value: 'completed', label: 'Completadas' },
+  { value: 'expired', label: 'Expiradas' },
   { value: 'cancelled', label: 'Canceladas' },
 ];
 
 // Mapeo de tipos de inspección a labels
 const inspectionTypeLabels: Record<string, string> = {
+  'legal': 'Legal Express',
+  'basica': 'Básica',
+  'completa': 'Premium',
+  // Fallbacks en mayúsculas por si acaso
   'LEGAL': 'Legal Express',
   'BASIC': 'Básica',
   'PREMIUM': 'Premium',
 };
 
-export function MisInspeccionesClient({ inspections: initialInspections }: MisInspeccionesClientProps) {
+function MisInspeccionesContent({ inspections: initialInspections }: MisInspeccionesClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const [inspections, setInspections] = useState<FormattedInspection[]>(initialInspections);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [_cancelingId, setCancelingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Estado para el mensaje de verificación pendiente
+  const [showVerificationMessage, setShowVerificationMessage] = useState(false);
+  const pendingVerificationId = searchParams.get('pendingVerification');
+
+  // Mostrar mensaje cuando viene de una transferencia
+  useEffect(() => {
+    if (pendingVerificationId) {
+      setShowVerificationMessage(true);
+      // Limpiar el parámetro de la URL sin recargar
+      const url = new URL(window.location.href);
+      url.searchParams.delete('pendingVerification');
+      window.history.replaceState({}, '', url.pathname);
+    }
+  }, [pendingVerificationId]);
 
   // Click outside handler para cerrar el menú de usuario
   useEffect(() => {
@@ -122,14 +145,22 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
     return inspections.filter((inspection) => {
       // Filtro por estado
       if (statusFilter !== 'all') {
-        if (statusFilter === 'progress') {
-          if (!['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID'].includes(inspection.status)) {
-            return false;
-          }
-        } else if (statusFilter === 'completed') {
-          if (inspection.status !== 'COMPLETED') return false;
-        } else if (statusFilter === 'cancelled') {
-          if (!['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(inspection.status)) return false;
+        switch (statusFilter) {
+          case 'pending_payment':
+            if (!['PENDING_PAYMENT', 'PENDING_VERIFICATION'].includes(inspection.status)) return false;
+            break;
+          case 'paid':
+            if (inspection.status !== 'PAID') return false;
+            break;
+          case 'completed':
+            if (inspection.status !== 'COMPLETED') return false;
+            break;
+          case 'expired':
+            if (inspection.status !== 'EXPIRED') return false;
+            break;
+          case 'cancelled':
+            if (!['CANCELLED', 'NO_SHOW'].includes(inspection.status)) return false;
+            break;
         }
       }
 
@@ -191,19 +222,60 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
     }
   }, []);
 
+  const handleDelete = useCallback(async (id: number) => {
+    const confirmDelete = window.confirm(
+      '¿Estás seguro de que deseas eliminar esta inspección de tu historial? Esta acción no se puede deshacer.'
+    );
+
+    if (!confirmDelete) return;
+
+    setDeletingId(id);
+
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || 'Error al eliminar la inspección');
+        return;
+      }
+
+      // Remover del estado local
+      setInspections((prev) => prev.filter((inspection) => inspection.id !== id));
+
+      alert('Inspección eliminada exitosamente');
+    } catch (error) {
+      console.error('Error al eliminar:', error);
+      alert('Error de conexión. Intenta nuevamente.');
+    } finally {
+      setDeletingId(null);
+    }
+  }, []);
+
+  // Helper para determinar si se puede eliminar una inspección
+  const canDelete = (status: BookingStatus) => {
+    return ['CANCELLED', 'NO_SHOW', 'EXPIRED', 'COMPLETED'].includes(status);
+  };
+
   // Determinar clase de estado para la card
   const getStatusClass = (status: BookingStatus) => {
     if (status === 'COMPLETED') return styles.statusCompleted;
-    if (['PENDING_PAYMENT', 'PENDING_VERIFICATION', 'PAID'].includes(status)) return styles.statusProgress;
-    if (['CANCELLED', 'NO_SHOW', 'EXPIRED'].includes(status)) return styles.statusCancelled;
+    if (status === 'PAID') return styles.statusPaid; // Azul - Confirmado
+    if (['PENDING_PAYMENT', 'PENDING_VERIFICATION'].includes(status)) return styles.statusProgress; // Amarillo
+    if (status === 'EXPIRED') return styles.statusExpired; // Gris
+    if (['CANCELLED', 'NO_SHOW'].includes(status)) return styles.statusCancelled; // Rojo
     return styles.statusPending;
   };
 
   // Determinar tipo de badge de inspección
   const getTypeBadgeClass = (type: string) => {
-    if (type === 'LEGAL') return styles.legal;
-    if (type === 'BASIC') return styles.basic;
-    if (type === 'PREMIUM') return styles.premium;
+    const t = type.toLowerCase();
+    if (t === 'legal') return styles.legal;
+    if (t === 'basica' || t === 'basic') return styles.basic;
+    if (t === 'completa' || t === 'premium') return styles.premium;
     return '';
   };
 
@@ -392,6 +464,32 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
           ================================================================ */}
       <section className={styles.lightSection}>
         <div className={styles.lightContainer}>
+          {/* Mensaje de verificación pendiente */}
+          {showVerificationMessage && (
+            <div className={styles.verificationBanner}>
+              <div className={styles.verificationIcon}>
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className={styles.verificationContent}>
+                <p className={styles.verificationTitle}>Tu transferencia está siendo verificada</p>
+                <p className={styles.verificationText}>
+                  Estamos procesando tu pago. Te notificaremos cuando sea confirmado (máximo 4 horas).
+                </p>
+              </div>
+              <button
+                className={styles.verificationClose}
+                onClick={() => setShowVerificationMessage(false)}
+                aria-label="Cerrar mensaje"
+              >
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           {/* Filters & Search */}
           <div className={styles.filtersSection}>
             <div className={styles.filterPills}>
@@ -565,6 +663,26 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
                         </svg>
                       </button>
                     )}
+
+                    {canDelete(inspection.status) && (
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(inspection.id);
+                        }}
+                        disabled={deletingId === inspection.id}
+                        title="Eliminar inspección"
+                      >
+                        {deletingId === inspection.id ? (
+                          <span className={styles.spinner} />
+                        ) : (
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                          </svg>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -574,5 +692,14 @@ export function MisInspeccionesClient({ inspections: initialInspections }: MisIn
         </div>
       </section>
     </div>
+  );
+}
+
+// Wrapper con Suspense para useSearchParams
+export function MisInspeccionesClient(props: MisInspeccionesClientProps) {
+  return (
+    <Suspense fallback={<div className={styles.dashboard}><div style={{ padding: '24px', textAlign: 'center', color: '#6B7280' }}>Cargando...</div></div>}>
+      <MisInspeccionesContent {...props} />
+    </Suspense>
   );
 }

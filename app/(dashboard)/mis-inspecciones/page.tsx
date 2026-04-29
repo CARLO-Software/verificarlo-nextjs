@@ -1,6 +1,16 @@
 import { getClientInspections } from "@/services/inspections/inspections.server";
 import { MisInspeccionesClient } from "./MisInspeccionesClient";
 
+// Extrae solo la fecha (YYYY-MM-DD) de un Date UTC y crea un nuevo Date al mediodía UTC
+// Esto evita problemas de timezone al serializar para el cliente
+function preservarFechaParaCliente(fecha: Date): Date {
+  const year = fecha.getUTCFullYear();
+  const month = fecha.getUTCMonth();
+  const day = fecha.getUTCDate();
+  // Mediodía UTC para que al convertir a Lima (UTC-5) siga siendo el mismo día
+  return new Date(Date.UTC(year, month, day, 12, 0, 0));
+}
+
 export default async function MisInspeccionesPage() {
   const inspections = await getClientInspections();
 
@@ -14,7 +24,7 @@ export default async function MisInspeccionesPage() {
       id: inspection.id,
       code: inspection.code,
       status: inspection.status,
-      date: inspection.date,
+      date: preservarFechaParaCliente(inspection.date),
       expiresAt: inspection.expiresAt,
       vehicle: {
         brand: inspection.vehicle.model.brand.name,

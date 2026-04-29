@@ -176,6 +176,49 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const [culqiReady, setCulqiReady] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
+  // Yape payment states
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "yape">("card");
+  const [yapePhone, setYapePhone] = useState("");
+  const [yapeOtp, setYapeOtp] = useState("");
+
+  // Validaciones Yape
+  const isYapePhoneValid = /^9\d{8}$/.test(yapePhone);
+  const isYapeOtpValid = /^\d{6}$/.test(yapeOtp);
+  const canPayWithYape = isYapePhoneValid && isYapeOtpValid && !loading;
+
+  // Procesar pago con Yape
+  const handleYapePayment = async () => {
+    if (!canPayWithYape) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/culqi/yape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: inspection.id,
+          phoneNumber: yapePhone,
+          otpCode: yapeOtp,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        router.refresh();
+      } else {
+        setError(data.error || "Error procesando el pago");
+        setYapeOtp(""); // Limpiar OTP para reintentar
+      }
+    } catch {
+      setError("Error de conexión. Por favor intenta de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCancel = async () => {
     setCancelLoading(true);
     try {
@@ -380,55 +423,156 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           {/* Booking Summary */}
           <BookingSummary inspection={inspection} />
 
-          {/* Payment Methods */}
-          <div className={styles.paymentMethods}>
-            <p className={styles.paymentMethodsLabel}>Aceptamos</p>
-            <div className={styles.cards}>
-              <img src="/assets/icons/visa.svg" alt="Visa" />
-              <img src="/assets/icons/mastercard.svg" alt="Mastercard" />
-              <img src="/assets/icons/amex.svg" alt="American Express" />
-              <img src="/assets/icons/diners.svg" alt="Diners Club" />
-            </div>
+          {/* Payment Method Tabs */}
+          <div className={styles.paymentTabs}>
+            <button
+              className={`${styles.paymentTab} ${paymentMethod === "card" ? styles.paymentTabActive : ""}`}
+              onClick={() => setPaymentMethod("card")}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M2 9h16" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+              Tarjeta
+            </button>
+            <button
+              className={`${styles.paymentTab} ${paymentMethod === "yape" ? styles.paymentTabActive : ""}`}
+              onClick={() => setPaymentMethod("yape")}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="10" cy="14" r="1" fill="currentColor" />
+              </svg>
+              Yape
+            </button>
           </div>
 
-          {/* Actions */}
-          <div className={styles.actions}>
-            <button
-              onClick={() => setShowCancelConfirm(true)}
-              disabled={cancelLoading}
-              className={styles.secondaryButton}
-            >
-              Cancelar reserva
-            </button>
-            <button
-              onClick={handleOpenCulqi}
-              disabled={loading || isExpired || !culqiReady}
-              className={styles.primaryButton}
-            >
-              {loading ? (
-                <>
-                  <span className={styles.buttonSpinner} />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <rect
-                      x="2"
-                      y="5"
-                      width="16"
-                      height="10"
-                      rx="2"
-                      stroke="currentColor"
-                      strokeWidth="2"
+          {/* Card Payment */}
+          {paymentMethod === "card" && (
+            <>
+              <div className={styles.paymentMethods}>
+                <p className={styles.paymentMethodsLabel}>Aceptamos</p>
+                <div className={styles.cards}>
+                  <img src="/assets/icons/visa.svg" alt="Visa" />
+                  <img src="/assets/icons/mastercard.svg" alt="Mastercard" />
+                  <img src="/assets/icons/amex.svg" alt="American Express" />
+                  <img src="/assets/icons/diners.svg" alt="Diners Club" />
+                </div>
+              </div>
+
+              <div className={styles.actions}>
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  Cancelar reserva
+                </button>
+                <button
+                  onClick={handleOpenCulqi}
+                  disabled={loading || isExpired || !culqiReady}
+                  className={styles.primaryButton}
+                >
+                  {loading ? (
+                    <>
+                      <span className={styles.buttonSpinner} />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                        <path d="M2 9h16" stroke="currentColor" strokeWidth="2" />
+                      </svg>
+                      Pagar S/ {inspection.inspectionPlan.price.toFixed(2)}
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* Yape Payment */}
+          {paymentMethod === "yape" && (
+            <div className={styles.yapeForm}>
+              <div className={styles.yapeHeader}>
+                <img src="/assets/icons/yape.svg" alt="Yape" style={{ width: 40, height: 40 }} />
+                <div>
+                  <p className={styles.yapeTitle}>Paga con Yape</p>
+                  <p className={styles.yapeSubtitle}>Ingresa tu número y código de aprobación</p>
+                </div>
+              </div>
+
+              <div className={styles.yapeFields}>
+                <div className={styles.yapeField}>
+                  <label>Número de celular Yape</label>
+                  <div className={styles.yapeInputWrapper}>
+                    <span className={styles.yapePrefix}>+51</span>
+                    <input
+                      type="tel"
+                      value={yapePhone}
+                      onChange={(e) => setYapePhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                      placeholder="987 654 321"
+                      disabled={loading}
                     />
-                    <path d="M2 9h16" stroke="currentColor" strokeWidth="2" />
-                  </svg>
-                  Pagar S/ {inspection.inspectionPlan.price.toFixed(2)}
-                </>
-              )}
-            </button>
-          </div>
+                  </div>
+                  {yapePhone && !isYapePhoneValid && (
+                    <span className={styles.yapeError}>Ingresa un número válido de 9 dígitos</span>
+                  )}
+                </div>
+
+                <div className={styles.yapeField}>
+                  <label>Código de aprobación</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={yapeOtp}
+                    onChange={(e) => setYapeOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="123456"
+                    disabled={loading}
+                    className={styles.yapeOtpInput}
+                  />
+                  {yapeOtp && !isYapeOtpValid && (
+                    <span className={styles.yapeError}>El código debe tener 6 dígitos</span>
+                  )}
+                </div>
+              </div>
+
+              <div className={styles.yapeInstructions}>
+                <p><strong>¿Dónde encuentro el código?</strong></p>
+                <ol>
+                  <li>Abre tu app de <strong>Yape</strong></li>
+                  <li>Ve a <strong>"Aprobar compras"</strong></li>
+                  <li>Copia el código de 6 dígitos</li>
+                </ol>
+              </div>
+
+              <div className={styles.actions}>
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  Cancelar reserva
+                </button>
+                <button
+                  onClick={handleYapePayment}
+                  disabled={!canPayWithYape || isExpired}
+                  className={styles.primaryButton}
+                  style={{ background: canPayWithYape && !isExpired ? "#6B21A8" : undefined }}
+                >
+                  {loading ? (
+                    <>
+                      <span className={styles.buttonSpinner} />
+                      Procesando...
+                    </>
+                  ) : (
+                    `Pagar S/ ${inspection.inspectionPlan.price.toFixed(2)}`
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Cancel Confirmation Modal */}
           {showCancelConfirm && (

@@ -157,15 +157,78 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if order already exists
+    // Check if order already exists - fetch its current state
     if (booking.payment.culqiOrderId) {
-      return NextResponse.json(
-        {
-          error: "Ya existe una orden para esta reserva",
-          orderId: booking.payment.culqiOrderId,
-        },
-        { status: 409 }
-      );
+      try {
+        const existingOrderRes = await fetch(
+          `${CULQI_API_URL}/${booking.payment.culqiOrderId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${CULQI_SECRET_KEY}`,
+            },
+          }
+        );
+
+        if (existingOrderRes.ok) {
+          const existingOrder = (await existingOrderRes.json()) as CulqiOrderResponse;
+
+          // If order is still pending, return its QR
+          if (existingOrder.state === "pending") {
+            return NextResponse.json({
+              success: true,
+              message: "Orden existente recuperada",
+              order: {
+                id: existingOrder.id,
+                amount: existingOrder.amount / 100,
+                currency: existingOrder.currency_code,
+                state: existingOrder.state,
+                expirationDate: new Date(existingOrder.expiration_date * 1000).toISOString(),
+                qr: existingOrder.qr
+                  ? {
+                      image: existingOrder.qr.image,
+                      url: existingOrder.qr.url,
+                    }
+                  : null,
+              },
+              booking: {
+                id: booking.id,
+                code: `#v-${booking.id.toString().padStart(5, "0")}`,
+              },
+            });
+          }
+
+          // If order is expired or deleted, clear it and create a new one
+          if (existingOrder.state === "expired" || existingOrder.state === "deleted") {
+            await db.payment.update({
+              where: { id: booking.payment.id },
+              data: { culqiOrderId: null },
+            });
+            // Continue to create new order below
+          }
+
+          // If order is paid, the booking should already be confirmed
+          if (existingOrder.state === "paid") {
+            return NextResponse.json(
+              { error: "Esta orden ya fue pagada" },
+              { status: 400 }
+            );
+          }
+        } else {
+          // Order not found in Culqi, clear it
+          await db.payment.update({
+            where: { id: booking.payment.id },
+            data: { culqiOrderId: null },
+          });
+        }
+      } catch (err) {
+        console.error("[Culqi] Error checking existing order:", err);
+        // Clear the order and try to create a new one
+        await db.payment.update({
+          where: { id: booking.payment.id },
+          data: { culqiOrderId: null },
+        });
+      }
     }
 
     // Check expiration
@@ -206,17 +269,25 @@ export async function POST(req: NextRequest) {
       (Date.now() + expirationMinutes * 60 * 1000) / 1000
     );
 
-    // Create order in Culqi
+    // Format phone number (ensure it has country code)
+    let phoneNumber = booking.client.phone || "900000000";
+    phoneNumber = phoneNumber.replace(/\D/g, ""); // Remove non-digits
+    if (!phoneNumber.startsWith("51")) {
+      phoneNumber = "51" + phoneNumber;
+    }
+
+    // Create order in Culqi (order_number must be unique, add timestamp)
+    const orderTimestamp = Date.now().toString(36);
     const culqiRequest: CulqiOrderRequest = {
       amount: booking.payment.amount,
       currency_code: "PEN",
       description,
-      order_number: `VCAR-${booking.id.toString().padStart(6, "0")}`,
+      order_number: `VCAR-${booking.id.toString().padStart(6, "0")}-${orderTimestamp}`,
       client_details: {
         first_name: firstName,
         last_name: lastName,
         email: booking.client.email,
-        phone_number: booking.client.phone || "+51900000000",
+        phone_number: phoneNumber,
       },
       expiration_date: expirationDate,
       confirm: false, // Don't auto-confirm, wait for payment
@@ -240,13 +311,20 @@ export async function POST(req: NextRequest) {
 
     if (!culqiResponse.ok) {
       const errorData = culqiData as CulqiErrorResponse;
-      console.error("[Culqi] Order creation failed:", errorData);
+      console.error("[Culqi] Order creation failed:", {
+        error: errorData,
+        request: {
+          ...culqiRequest,
+          client_details: { ...culqiRequest.client_details, email: "***" },
+        },
+      });
 
       return NextResponse.json(
         {
           success: false,
-          error: errorData.user_message || "Error creando orden de pago",
+          error: errorData.user_message || errorData.merchant_message || "Error creando orden de pago",
           code: errorData.code,
+          details: process.env.NODE_ENV === "development" ? errorData.merchant_message : undefined,
         },
         { status: 400 }
       );

@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { AlternativePaymentRequestSchema, parseWithDetails } from "@/lib/validations/culqi";
+import { notifyPendingPaymentVerification } from "@/lib/vehicle-inspection/notifications";
 
 // Tiempo de expiración extendido para pagos alternativos (4 horas)
 const ALTERNATIVE_PAYMENT_EXPIRATION_HOURS = 4;
@@ -129,6 +130,24 @@ export async function POST(req: NextRequest) {
           expiresAt: newExpiresAt,
         },
       });
+    });
+
+    // Notificar a los admins sobre el pago pendiente de verificación
+    const vehicleDescription = booking.vehicle
+      ? `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`
+      : "Vehículo";
+
+    notifyPendingPaymentVerification({
+      bookingId: booking.id,
+      paymentMethod: paymentMethod as "TRANSFER" | "YAPE_PLIN" | "WHATSAPP",
+      operationNumber,
+      clientName: booking.client.name || "Cliente",
+      clientEmail: booking.client.email,
+      vehicleDescription,
+      planName: booking.inspectionPlan?.title || "Plan de inspección",
+      amount: booking.payment!.amount,
+    }).catch((err) => {
+      console.error("[alternative-payment] Error notificando a admins:", err);
     });
 
     // Preparar mensaje según método

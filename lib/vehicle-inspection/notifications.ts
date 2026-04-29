@@ -265,3 +265,73 @@ export async function notifyInspectionCompleted(params: {
     );
   }
 }
+
+// ============================================
+// EVENTO: Pago alternativo pendiente de verificación
+// → notifica a TODOS los admins
+// ============================================
+
+export async function notifyPendingPaymentVerification(params: {
+  bookingId: number;
+  paymentMethod: "TRANSFER" | "YAPE_PLIN" | "WHATSAPP";
+  operationNumber?: string | null;
+  clientName: string;
+  clientEmail: string;
+  vehicleDescription: string;
+  planName: string;
+  amount: number;
+}) {
+  const {
+    bookingId,
+    paymentMethod,
+    operationNumber,
+    clientName,
+    clientEmail,
+    vehicleDescription,
+    planName,
+    amount,
+  } = params;
+
+  const adminIds = await getActiveAdminIds();
+  const adminEmails = await getActiveAdminEmails();
+
+  const methodLabels: Record<string, string> = {
+    TRANSFER: "Transferencia bancaria",
+    YAPE_PLIN: "Yape/Plin",
+    WHATSAPP: "WhatsApp",
+  };
+
+  const methodLabel = methodLabels[paymentMethod] || paymentMethod;
+  const opNumberInfo = operationNumber ? ` — Nº operación: ${operationNumber}` : "";
+  const amountFormatted = `S/ ${amount.toFixed(2)}`;
+
+  // In-app (sin inspectionId, usamos 0 como placeholder ya que es requerido)
+  // Nota: Las notificaciones de pago no están ligadas a una VehicleInspection
+  await db.notification.createMany({
+    data: adminIds.map((userId) => ({
+      userId,
+      type: "PAGO_PENDIENTE" as const,
+      title: "Pago pendiente de verificación",
+      message: `${clientName} registró un pago por ${methodLabel}${opNumberInfo}. Monto: ${amountFormatted} — Plan: ${planName} — Vehículo: ${vehicleDescription}`,
+      inspectionId: null,
+    })),
+  });
+
+  // Email a admins
+  sendEmail({
+    to: adminEmails,
+    subject: `[VERIFICAR] Pago ${methodLabel} pendiente - ${clientName}`,
+    react: null,
+    text: `Nuevo pago pendiente de verificación.\n\n` +
+      `Cliente: ${clientName} (${clientEmail})\n` +
+      `Método: ${methodLabel}\n` +
+      `Monto: ${amountFormatted}\n` +
+      `Plan: ${planName}\n` +
+      `Vehículo: ${vehicleDescription}\n` +
+      (operationNumber ? `Nº de operación: ${operationNumber}\n` : "") +
+      `\nReserva #v-${bookingId.toString().padStart(5, "0")}\n\n` +
+      `Ingresa al panel de administración para verificar y aprobar el pago.`,
+  }).catch((err) =>
+    console.error("[notify] Error enviando email PAGO_PENDIENTE:", err)
+  );
+}

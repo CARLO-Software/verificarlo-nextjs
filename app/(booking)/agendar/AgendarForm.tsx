@@ -65,7 +65,7 @@ export default function AgendarForm({
   initialInspections,
   initialBrands,
 }: AgendarFormProps) {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   // =========================================================================
@@ -382,7 +382,13 @@ export default function AgendarForm({
   // Transferencia / WhatsApp registrado (verificación manual)
   const handleAlternativePaymentSuccess = () => {
     localStorage.removeItem(DRAFT_KEY);
-    router.push(`/payment/pending?bookingId=${bookingData!.id}`);
+    // Redirigir según el rol del usuario
+    const userRole = session?.user?.role;
+    if (userRole === 'ADMIN') {
+      router.push('/admin/inspecciones');
+    } else {
+      router.push(`/mis-inspecciones?pendingVerification=${bookingData!.id}`);
+    }
   };
 
   // =========================================================================
