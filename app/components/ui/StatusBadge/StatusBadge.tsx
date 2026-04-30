@@ -71,12 +71,14 @@ const legalStatusConfig: Record<LegalStatus, {
   bg: string;
   text: string;
   icon?: string;
+  tooltip?: string;
 }> = {
   BLOQUEADO: {
     label: 'Bloqueado',
     bg: 'bg-red-50',
     text: 'text-red-600',
     icon: '🔒',
+    tooltip: 'El mecánico debe registrar la placa del vehículo para desbloquear la revisión legal',
   },
   PENDIENTE: {
     label: 'Pendiente',
@@ -146,7 +148,9 @@ export function LegalStatusBadge({ status, size = 'md' }: LegalStatusBadgeProps)
         inline-flex items-center gap-1 rounded-full font-semibold
         ${config.bg} ${config.text} ${sizeClasses[size]}
         transition-all duration-200
+        ${config.tooltip ? 'cursor-help' : ''}
       `}
+      title={config.tooltip}
     >
       {config.icon && <span>{config.icon}</span>}
       {config.label}

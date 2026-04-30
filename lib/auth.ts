@@ -67,8 +67,8 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith(baseUrl)) return url;
       // Si es una ruta relativa, agregarla al baseUrl
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Por defecto, ir a mis-inspecciones
-      return `${baseUrl}/mis-inspecciones`;
+      // Por defecto, ir a /redirect para que determine según el rol
+      return `${baseUrl}/redirect`;
     },
 
     async signIn({ user, account }) {

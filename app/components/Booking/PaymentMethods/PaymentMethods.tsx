@@ -149,31 +149,60 @@ export default function PaymentMethods({
   };
 
   // Configurar Culqi cuando el script carga
-  const handleCulqiLoad = useCallback(() => {
-    if (typeof window !== "undefined" && window.Culqi) {
-      window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
+  const configureCulqi = useCallback(() => {
+    if (typeof window !== "undefined" && window.Culqi && !culqiReady) {
+      try {
+        window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
 
-      window.Culqi.settings({
-        title: "VerifiCARLO",
-        currency: "PEN",
-        description: `${bookingDetails.planTitle}`,
-        amount: bookingDetails.totalAmount * 100, // En céntimos
-      });
+        window.Culqi.settings({
+          title: "VerifiCARLO",
+          currency: "PEN",
+          description: `${bookingDetails.planTitle}`,
+          amount: bookingDetails.totalAmount * 100, // En céntimos
+        });
 
-      window.Culqi.options({
-        lang: "es",
-        style: {
-          logo: "/logo.png",
-          bannerColor: "#FDBF12",
-          buttonBackground: "#FDBF12",
-          buttonText: "#1A1A1A",
-          buttonTextHover: "#1A1A1A",
-        },
-      });
+        window.Culqi.options({
+          lang: "es",
+          style: {
+            logo: "/logo.png",
+            bannerColor: "#FDBF12",
+            buttonBackground: "#FDBF12",
+            buttonText: "#1A1A1A",
+            buttonTextHover: "#1A1A1A",
+          },
+        });
 
-      setCulqiReady(true);
+        setCulqiReady(true);
+      } catch (err) {
+        console.error("Error configurando Culqi:", err);
+      }
     }
-  }, [bookingDetails]);
+  }, [bookingDetails, culqiReady]);
+
+  const handleCulqiLoad = useCallback(() => {
+    configureCulqi();
+  }, [configureCulqi]);
+
+  // Reintento de configuración de Culqi si no se cargó
+  useEffect(() => {
+    if (culqiReady) return;
+
+    // Intentar configurar cada 500ms por 10 segundos
+    const interval = setInterval(() => {
+      if (window.Culqi) {
+        configureCulqi();
+      }
+    }, 500);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [culqiReady, configureCulqi]);
 
   // Handler global de Culqi
   useEffect(() => {
@@ -195,6 +224,10 @@ export default function PaymentMethods({
           const data = await res.json();
 
           if (data.success) {
+            // Cerrar el modal de Culqi
+            if (window.Culqi?.close) {
+              window.Culqi.close();
+            }
             onPaymentSuccess();
             // Redirigir según el rol del usuario
             const userRole = session?.user?.role;
@@ -204,6 +237,10 @@ export default function PaymentMethods({
               router.push(`/mis-inspecciones/${bookingId}`);
             }
           } else {
+            // Cerrar modal en caso de error también
+            if (window.Culqi?.close) {
+              window.Culqi.close();
+            }
             setCulqiError(data.error || "Error procesando el pago");
           }
         } catch {

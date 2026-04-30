@@ -14,8 +14,8 @@ export function GoogleButton({
 }: GoogleButtonProps) {
 
   const handleGoogleSignIn = () => {
-    const finalCallbackUrl = callbackUrl || "/mis-inspecciones";
-    console.log("[GoogleButton] Iniciando login con Google, callbackUrl:", finalCallbackUrl);
+    // Usar /redirect para que determine la ruta según el rol del usuario
+    const finalCallbackUrl = callbackUrl || "/redirect";
     signIn("google", { callbackUrl: finalCallbackUrl });
   };
 

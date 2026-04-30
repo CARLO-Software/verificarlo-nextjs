@@ -1149,3 +1149,77 @@
     justify-content: flex-start;
   }
 }
+
+/* Transfer Section */
+.transferSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.transferHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #EFF6FF;
+  border-radius: 12px;
+}
+
+.transferTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2563EB;
+  margin: 0;
+}
+
+.transferSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #3B82F6;
+  margin: 0;
+}
+
+.transferInfo {
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}
+
+/* WhatsApp Section */
+.whatsappSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.whatsappHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #ECFDF5;
+  border-radius: 12px;
+}
+
+.whatsappTitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #059669;
+  margin: 0;
+}
+
+.whatsappSubtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #10B981;
+  margin: 0;
+}
+
+.whatsappInfo {
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+}

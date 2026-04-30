@@ -10,6 +10,8 @@ import { BookingStatus } from "@prisma/client";
 import styles from "./InspeccionDetalle.module.css";
 import { getVerdict, getScoreCategoryInfo } from "@/lib/inspection-verdict";
 import { InspectionTimeline } from "./InspectionTimeline";
+import TransferModal from "@/app/components/Booking/PaymentMethods/TransferModal";
+import WhatsAppModal from "@/app/components/Booking/PaymentMethods/WhatsAppModal";
 
 declare global {
   interface Window {
@@ -176,10 +178,81 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const [culqiReady, setCulqiReady] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
-  // Yape payment states
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "yape">("card");
+  // Payment method states
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "yape" | "transfer" | "whatsapp">("card");
   const [yapePhone, setYapePhone] = useState("");
   const [yapeOtp, setYapeOtp] = useState("");
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+
+  // Constantes para pago alternativo
+  const RESERVE_AMOUNT = 50;
+  const BANK_ACCOUNTS = [
+    {
+      id: "bcp-soles",
+      bank: "BCP",
+      currency: "Soles",
+      accountNumber: "193-8758156-0-20",
+      cci: "00219300875815602015",
+      holder: "MOVE TECHNOLOGIES S.A.C.",
+      logo: "/assets/icons/bcp.svg",
+    },
+    {
+      id: "bbva-soles",
+      bank: "BBVA",
+      currency: "Soles",
+      accountNumber: "0011-0157-0200610827",
+      cci: "011-157-000200610827-54",
+      holder: "MOVE TECHNOLOGIES S.A.C.",
+      logo: "/assets/icons/bbva.svg",
+    },
+    {
+      id: "interbank-soles",
+      bank: "Interbank",
+      currency: "Soles",
+      accountNumber: "200-3004204040",
+      cci: "003-200-003004204040-39",
+      holder: "MOVE TECHNOLOGIES S.A.C.",
+      logo: "/assets/icons/interbank.svg",
+    },
+  ];
+
+  // Generar URL de WhatsApp
+  const getWhatsAppUrl = () => {
+    const message = encodeURIComponent(
+      `¡Hola! Quiero confirmar mi reserva ${inspection.code} ` +
+      `para el plan ${inspection.inspectionPlan.title} y coordinar el pago de S/${RESERVE_AMOUNT} para asegurar mi inspección.`
+    );
+    return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
+  };
+
+  // Handler para confirmar pago con transferencia
+  const handleTransferComplete = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/payments/alternative", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId: inspection.id,
+          paymentMethod: "TRANSFER",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al registrar el pago");
+      }
+
+      setShowTransferModal(false);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al registrar el pago");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Validaciones Yape
   const isYapePhoneValid = /^9\d{8}$/.test(yapePhone);
@@ -283,31 +356,60 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   };
 
   // Configurar Culqi
-  const handleCulqiLoad = useCallback(() => {
-    if (typeof window !== "undefined" && window.Culqi) {
-      window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
+  const configureCulqi = useCallback(() => {
+    if (typeof window !== "undefined" && window.Culqi && !culqiReady) {
+      try {
+        window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
 
-      window.Culqi.settings({
-        title: "VerifiCARLO",
-        currency: "PEN",
-        description: `Inspección ${inspection.inspectionPlan.type}`,
-        amount: inspection.inspectionPlan.price * 100,
-      });
+        window.Culqi.settings({
+          title: "VerifiCARLO",
+          currency: "PEN",
+          description: `Inspección ${inspection.inspectionPlan.type}`,
+          amount: inspection.inspectionPlan.price * 100,
+        });
 
-      window.Culqi.options({
-        lang: "es",
-        style: {
-          logo: "/logo.png",
-          bannerColor: "#FDBF12",
-          buttonBackground: "#FDBF12",
-          buttonText: "#1A1A1A",
-          buttonTextHover: "#1A1A1A",
-        },
-      });
+        window.Culqi.options({
+          lang: "es",
+          style: {
+            logo: "/logo.png",
+            bannerColor: "#FDBF12",
+            buttonBackground: "#FDBF12",
+            buttonText: "#1A1A1A",
+            buttonTextHover: "#1A1A1A",
+          },
+        });
 
-      setCulqiReady(true);
+        setCulqiReady(true);
+      } catch (err) {
+        console.error("Error configurando Culqi:", err);
+      }
     }
-  }, [inspection.inspectionPlan]);
+  }, [inspection.inspectionPlan, culqiReady]);
+
+  const handleCulqiLoad = useCallback(() => {
+    configureCulqi();
+  }, [configureCulqi]);
+
+  // Reintento de configuración de Culqi si no se cargó
+  useEffect(() => {
+    if (culqiReady) return;
+
+    // Intentar configurar cada 500ms por 10 segundos
+    const interval = setInterval(() => {
+      if (window.Culqi) {
+        configureCulqi();
+      }
+    }, 500);
+
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [culqiReady, configureCulqi]);
 
   // Handler global de Culqi
   useEffect(() => {
@@ -329,8 +431,16 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           const data = await res.json();
 
           if (data.success) {
+            // Cerrar el modal de Culqi
+            if (window.Culqi?.close) {
+              window.Culqi.close();
+            }
             router.refresh();
           } else {
+            // Cerrar modal en caso de error también
+            if (window.Culqi?.close) {
+              window.Culqi.close();
+            }
             setError(data.error || "Error procesando el pago");
           }
         } catch {
@@ -424,7 +534,7 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           <BookingSummary inspection={inspection} />
 
           {/* Payment Method Tabs */}
-          <div className={styles.paymentTabs}>
+          <div className={styles.paymentTabs} style={{ flexWrap: "wrap" }}>
             <button
               className={`${styles.paymentTab} ${paymentMethod === "card" ? styles.paymentTabActive : ""}`}
               onClick={() => setPaymentMethod("card")}
@@ -444,6 +554,25 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
                 <circle cx="10" cy="14" r="1" fill="currentColor" />
               </svg>
               Yape
+            </button>
+            <button
+              className={`${styles.paymentTab} ${paymentMethod === "transfer" ? styles.paymentTabActive : ""}`}
+              onClick={() => setPaymentMethod("transfer")}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M6 10h8M6 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Transferencia
+            </button>
+            <button
+              className={`${styles.paymentTab} ${paymentMethod === "whatsapp" ? styles.paymentTabActive : ""}`}
+              onClick={() => setPaymentMethod("whatsapp")}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 18c4.4183 0 8-3.5817 8-8s-3.5817-8-8-8-8 3.5817-8 8c0 1.4571.3894 2.8233 1.0691 4L2 18l4-1.0691C7.1767 17.6106 8.5429 18 10 18z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              WhatsApp
             </button>
           </div>
 
@@ -574,6 +703,89 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
             </div>
           )}
 
+          {/* Transfer Payment */}
+          {paymentMethod === "transfer" && (
+            <div className={styles.transferSection}>
+              <div className={styles.transferHeader}>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <rect x="4" y="8" width="32" height="24" rx="4" stroke="#2563eb" strokeWidth="2" />
+                  <path d="M12 20h16M12 26h8" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+                <div>
+                  <p className={styles.transferTitle}>Transferencia Bancaria</p>
+                  <p className={styles.transferSubtitle}>
+                    Reserva tu cita con S/{RESERVE_AMOUNT}. El resto se paga el día de la inspección.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.transferInfo}>
+                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
+                  Haz clic en el botón para ver los datos de la cuenta y enviar tu comprobante.
+                </p>
+              </div>
+
+              <div className={styles.actions}>
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  Cancelar reserva
+                </button>
+                <button
+                  onClick={() => setShowTransferModal(true)}
+                  disabled={isExpired}
+                  className={styles.primaryButton}
+                  style={{ background: "#2563eb" }}
+                >
+                  Ver datos de cuenta
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* WhatsApp Payment */}
+          {paymentMethod === "whatsapp" && (
+            <div className={styles.whatsappSection}>
+              <div className={styles.whatsappHeader}>
+                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                  <path d="M20 36c8.8366 0 16-7.1634 16-16S28.8366 4 20 4 4 11.1634 4 20c0 2.9142.7788 5.6466 2.1382 8L4 36l8-2.1382C14.3534 35.2212 17.0858 36 20 36z" stroke="#25d366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <div>
+                  <p className={styles.whatsappTitle}>Coordinar por WhatsApp</p>
+                  <p className={styles.whatsappSubtitle}>
+                    Habla con un asesor para coordinar tu pago y resolver cualquier duda.
+                  </p>
+                </div>
+              </div>
+
+              <div className={styles.whatsappInfo}>
+                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
+                  Te atenderemos de inmediato para confirmar tu reserva.
+                </p>
+              </div>
+
+              <div className={styles.actions}>
+                <button
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  Cancelar reserva
+                </button>
+                <button
+                  onClick={() => setShowWhatsAppModal(true)}
+                  disabled={isExpired}
+                  className={styles.primaryButton}
+                  style={{ background: "#25d366" }}
+                >
+                  Abrir WhatsApp
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Cancel Confirmation Modal */}
           {showCancelConfirm && (
             <div className={styles.modalOverlay}>
@@ -624,6 +836,23 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
             Pago seguro procesado por Culqi
           </p>
         </div>
+
+        {/* Transfer Modal */}
+        <TransferModal
+          isOpen={showTransferModal}
+          onClose={() => setShowTransferModal(false)}
+          bankAccounts={BANK_ACCOUNTS}
+          amount={RESERVE_AMOUNT}
+          onSendVoucher={handleTransferComplete}
+        />
+
+        {/* WhatsApp Modal */}
+        <WhatsAppModal
+          isOpen={showWhatsAppModal}
+          onClose={() => setShowWhatsAppModal(false)}
+          bookingCode={inspection.code}
+          whatsappUrl={getWhatsAppUrl()}
+        />
       </div>
     </>
   );

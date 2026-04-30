@@ -50,7 +50,8 @@
       "Bash(grep -r \"overflow.*hidden\\\\|position.*fixed\\\\|position.*absolute\" app/\\\\\\(dashboard\\\\\\)/admin/*.css app/\\\\\\(dashboard\\\\\\)/admin/**/*.css)",
       "Bash(npx next:*)",
       "Bash(npm install *)",
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(grep -l \"CULQI\" .env*)"
     ]
   }
 }

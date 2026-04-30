@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { StatusBadge, LegalStatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
+import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { formatearFechaHoraCorta } from '@/app/domain/datetime';
 import { BookingStatus, InspectionType } from '@prisma/client';
 import {
@@ -243,7 +243,7 @@ function InspectionDetailPanel({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/30 z-40"
+        className="fixed inset-0 bg-black/30 z-[60]"
         onClick={onClose}
       />
 
@@ -251,7 +251,7 @@ function InspectionDetailPanel({
       <div
         className="
           fixed right-0 top-0 h-full w-full sm:max-w-lg
-          bg-white shadow-xl z-50
+          bg-white shadow-xl z-[70]
           animate-slideInRight
           flex flex-col
         "
@@ -808,10 +808,10 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/30 z-[60]" onClick={onClose} />
 
       {/* Panel */}
-      <div className="fixed right-0 top-0 h-full w-full sm:max-w-lg bg-white shadow-xl z-50 animate-slideInRight flex flex-col">
+      <div className="fixed right-0 top-0 h-full w-full sm:max-w-lg bg-white shadow-xl z-[70] animate-slideInRight flex flex-col">
         {/* Header */}
         <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex items-start justify-between">
@@ -1199,6 +1199,10 @@ export function AdminInspeccionesClient({
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
 
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
   // Verificar pago alternativo y asignar inspector automáticamente
   const handleVerifyPayment = async (inspectionId: number) => {
     if (!confirm('¿Confirmar el pago y asignar inspector automáticamente?')) return;
@@ -1266,6 +1270,17 @@ export function AdminInspeccionesClient({
     }
     return true;
   });
+
+  // Calcular paginación
+  const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInspections = filteredInspections.slice(startIndex, endIndex);
+
+  // Resetear página cuando cambia filtro o búsqueda
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchQuery]);
 
   const handleSaveSuccess = () => {
     setSelectedInspection(null);
@@ -1357,7 +1372,7 @@ export function AdminInspeccionesClient({
               No se encontraron inspecciones
             </div>
           ) : (
-            filteredInspections.map((inspection) => (
+            paginatedInspections.map((inspection) => (
               <div
                 key={inspection.id}
                 className="bg-white border border-gray-200 rounded-xl p-4 cursor-pointer hover:border-[#FFE14C] transition-colors"
@@ -1371,7 +1386,7 @@ export function AdminInspeccionesClient({
                       <p className="text-xs text-gray-500 truncate">{inspection.client.email}</p>
                     </div>
                   </div>
-                  <LegalStatusBadge status={inspection.vehicleInspection?.legalStatus} size="sm" />
+                  <StatusBadge status={inspection.status} size="sm" />
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div>
@@ -1413,39 +1428,41 @@ export function AdminInspeccionesClient({
                       )}
                     </button>
                   )}
-                  {inspection.vehicleInspection &&
-                    inspection.vehicleInspection.legalStatus !== 'BLOQUEADO' &&
-                    inspection.vehicleInspection.legalStatus !== 'COMPLETADO' && (
+                  {inspection.vehicleInspection && (
+                    inspection.vehicleInspection.legalStatus === 'BLOQUEADO' ? (
+                      <span
+                        className="p-2 rounded-lg text-red-400 cursor-not-allowed opacity-60"
+                        title="Bloqueado: esperando placa del mecánico"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        </svg>
+                      </span>
+                    ) : (
                       <a
                         href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
                         onClick={(e) => e.stopPropagation()}
                         className={`p-2 rounded-lg transition-colors ${
-                          inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                          inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                            ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
+                            : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
                             ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
                             : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
                         }`}
-                        title="Revisión legal"
+                        title={
+                          inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                            ? 'Revisión legal completada'
+                            : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                            ? 'Continuar revisión legal'
+                            : 'Iniciar revisión legal'
+                        }
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                         </svg>
                       </a>
-                    )}
-                  {inspection.status === 'COMPLETED' && inspection.reportId && (
-                    <a
-                      href={`/admin/inspecciones/${inspection.reportId}/legal`}
-                      onClick={(e) => e.stopPropagation()}
-                      className={`p-2 rounded-lg transition-colors ${
-                        inspection.legalReportStatus === 'COMPLETED'
-                          ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
-                          : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
-                      }`}
-                      title="Informe legal"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </a>
+                    )
                   )}
                   <button
                     onClick={(e) => {
@@ -1465,9 +1482,45 @@ export function AdminInspeccionesClient({
             ))
           )}
           {/* Mobile pagination */}
-          <div className="text-center py-3">
-            <p className="text-sm text-gray-500">
-              {filteredInspections.length} de {stats.total} inspecciones
+          <div className="py-4 space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <label className="text-sm text-gray-500">Por página:</label>
+              <select
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+                className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Anterior
+                </button>
+                <span className="text-sm text-gray-600 px-2">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
+            <p className="text-center text-sm text-gray-500">
+              Mostrando {startIndex + 1}-{Math.min(endIndex, filteredInspections.length)} de {filteredInspections.length}
             </p>
           </div>
         </div>
@@ -1506,7 +1559,7 @@ export function AdminInspeccionesClient({
                     </td>
                   </tr>
                 ) : (
-                  filteredInspections.map((inspection, index) => (
+                  paginatedInspections.map((inspection, index) => (
                     <tr
                       key={inspection.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
@@ -1544,7 +1597,7 @@ export function AdminInspeccionesClient({
                         )}
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <LegalStatusBadge status={inspection.vehicleInspection?.legalStatus} size="sm" />
+                        <StatusBadge status={inspection.status} size="sm" />
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
                         <div className="flex justify-end gap-1 lg:gap-2">
@@ -1571,20 +1624,33 @@ export function AdminInspeccionesClient({
                               )}
                             </button>
                           )}
-                          {/* Botón editar estado legal - cuando tiene placa y no está bloqueado ni completado */}
-                          {inspection.vehicleInspection &&
-                            inspection.vehicleInspection.legalStatus !== 'BLOQUEADO' &&
-                            inspection.vehicleInspection.legalStatus !== 'COMPLETADO' && (
+                          {/* Botón revisión legal */}
+                          {inspection.vehicleInspection && (
+                            inspection.vehicleInspection.legalStatus === 'BLOQUEADO' ? (
+                              <span
+                                className="p-2 rounded-lg text-red-400 cursor-not-allowed opacity-60"
+                                title="Bloqueado: esperando placa del mecánico"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                </svg>
+                              </span>
+                            ) : (
                               <a
                                 href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
                                 onClick={(e) => e.stopPropagation()}
                                 className={`p-2 rounded-lg transition-colors ${
-                                  inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                  inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                                    ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
+                                    : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
                                     ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
                                     : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
                                 }`}
                                 title={
-                                  inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                  inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                                    ? 'Revisión legal completada'
+                                    : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
                                     ? 'Continuar revisión legal'
                                     : 'Iniciar revisión legal'
                                 }
@@ -1593,23 +1659,7 @@ export function AdminInspeccionesClient({
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
                                 </svg>
                               </a>
-                            )}
-                          {/* Botón revisar legal - solo para COMPLETED con reportId */}
-                          {inspection.status === 'COMPLETED' && inspection.reportId && (
-                            <a
-                              href={`/admin/inspecciones/${inspection.reportId}/legal`}
-                              onClick={(e) => e.stopPropagation()}
-                              className={`p-2 rounded-lg transition-colors ${
-                                inspection.legalReportStatus === 'COMPLETED'
-                                  ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
-                                  : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
-                              }`}
-                              title={inspection.legalReportStatus === 'COMPLETED' ? 'Ver informe legal' : 'Revisar informe legal'}
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                            </a>
+                            )
                           )}
                           <button
                             onClick={(e) => {
@@ -1634,10 +1684,77 @@ export function AdminInspeccionesClient({
           </div>
 
           {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
-            <p className="text-sm text-gray-500">
-              Mostrando {filteredInspections.length} de {stats.total} inspecciones
-            </p>
+          <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-gray-500">
+                Mostrando {startIndex + 1}-{Math.min(endIndex, filteredInspections.length)} de {filteredInspections.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <label htmlFor="itemsPerPage" className="text-sm text-gray-500">
+                  Por página:
+                </label>
+                <select
+                  id="itemsPerPage"
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-400 hover:text-[#2D2D2D] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Primera página"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 text-gray-400 hover:text-[#2D2D2D] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Anterior"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="text-sm text-gray-600 px-2">
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-gray-400 hover:text-[#2D2D2D] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Siguiente"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="p-2 text-gray-400 hover:text-[#2D2D2D] hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  title="Última página"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
