@@ -290,7 +290,7 @@ export default function CulqiYapePayment({
           <>
             <button
               onClick={handleSubmit}
-              disabled={!canSubmit || state === "processing"}
+              disabled={!canSubmit}
               className={styles.continueButton}
               style={{
                 background: canSubmit ? "#6B21A8" : "#d1d5db",

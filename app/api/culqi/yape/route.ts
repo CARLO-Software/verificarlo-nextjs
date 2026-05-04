@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
         payment: true,
         inspectionPlan: true,
         client: {
-          select: { id: true, email: true, name: true, phone: true },
+          select: { id: true, email: true, name: true, phone: true, address: true, district: true },
         },
         vehicle: {
           include: {
@@ -229,8 +229,8 @@ export async function POST(req: NextRequest) {
           first_name: (booking.client.name || "Cliente").split(" ")[0],
           last_name: (booking.client.name || "Cliente").split(" ").slice(1).join(" ") || "VerifiCARLO",
           phone_number: phoneNumber,
-          address: booking.address || "Av. Lima 123, Lima",
-          address_city: booking.district || "Lima",
+          address: booking.client.address || "Av. Lima 123, Lima",
+          address_city: booking.client.district || "Lima",
           country_code: "PE",
         },
         metadata: {
