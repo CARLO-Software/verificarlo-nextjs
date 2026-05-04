@@ -592,6 +592,7 @@ export default function AgendarForm({
                   bookingCode: bookingData.code,
                   userName: contactData.fullName,
                   planTitle: selectedInspection.title,
+                  planType: selectedInspection.type,
                   totalAmount: bookingData.amount,
                 }}
                 bookingId={bookingData.id}

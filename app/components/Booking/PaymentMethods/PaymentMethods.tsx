@@ -2,10 +2,10 @@
 // COMPONENTE: PaymentMethods (Métodos de Pago - Paso 4)
 // =============================================================================
 // Opciones de pago:
-// 1. Culqi (tarjeta) - Muestra PaymentForm directamente
-// 2. Yape - Usa Culqi Orders API con QR y validación automática
-// 3. Transferencia Bancaria - Abre modal con datos del banco (verificación manual)
-// 4. WhatsApp - Abre modal de coordinación (verificación manual)
+// 1. Culqi (tarjeta) - Pago completo del plan
+// 2. Yape - Pago completo con QR
+// 3. Transferencia Bancaria - Pago completo (verificación manual)
+// 4. WhatsApp - Coordinar pago (verificación manual)
 // =============================================================================
 
 "use client";
@@ -35,6 +35,7 @@ interface BookingDetails {
   bookingCode: string;
   userName: string;
   planTitle: string;
+  planType: string;
   totalAmount: number;
 }
 
@@ -48,9 +49,6 @@ interface PaymentMethodsProps {
   onPaymentExpired: () => void;
   onAlternativePaymentSuccess: () => void;
 }
-
-// Datos para los modales de pago
-const RESERVE_AMOUNT = 50; // Monto de reserva para transferencia/WhatsApp
 
 // Cuentas bancarias disponibles
 const BANK_ACCOUNTS = [
@@ -82,11 +80,29 @@ const BANK_ACCOUNTS = [
     logo: "/assets/icons/bbva.svg",
   },
   {
+    id: "bbva-dolares",
+    bank: "BBVA",
+    currency: "Dólares",
+    accountNumber: "0011-0157-0200610843",
+    cci: "011-157-000200610843-51",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/bbva.svg",
+  },
+  {
     id: "interbank-soles",
     bank: "Interbank",
     currency: "Soles",
     accountNumber: "200-3004204040",
     cci: "003-200-003004204040-39",
+    holder: "MOVE TECHNOLOGIES S.A.C.",
+    logo: "/assets/icons/interbank.svg",
+  },
+  {
+    id: "interbank-dolares",
+    bank: "Interbank",
+    currency: "Dólares",
+    accountNumber: "200-3004204058",
+    cci: "003-200-003004204058-31",
     holder: "MOVE TECHNOLOGIES S.A.C.",
     logo: "/assets/icons/interbank.svg",
   },
@@ -157,7 +173,7 @@ export default function PaymentMethods({
         window.Culqi.settings({
           title: "VerifiCARLO",
           currency: "PEN",
-          description: `${bookingDetails.planTitle}`,
+          description: bookingDetails.planTitle,
           amount: bookingDetails.totalAmount * 100, // En céntimos
         });
 
@@ -167,8 +183,9 @@ export default function PaymentMethods({
             logo: "/logo.png",
             bannerColor: "#FDBF12",
             buttonBackground: "#FDBF12",
-            buttonText: "#1A1A1A",
-            buttonTextHover: "#1A1A1A",
+            menuColor: "#1A1A1A",
+            linksColor: "#1A1A1A",
+            priceColor: "#1A1A1A",
           },
         });
 
@@ -187,7 +204,6 @@ export default function PaymentMethods({
   useEffect(() => {
     if (culqiReady) return;
 
-    // Intentar configurar cada 500ms por 10 segundos
     const interval = setInterval(() => {
       if (window.Culqi) {
         configureCulqi();
@@ -224,12 +240,10 @@ export default function PaymentMethods({
           const data = await res.json();
 
           if (data.success) {
-            // Cerrar el modal de Culqi
             if (window.Culqi?.close) {
               window.Culqi.close();
             }
             onPaymentSuccess();
-            // Redirigir según el rol del usuario
             const userRole = session?.user?.role;
             if (userRole === 'ADMIN') {
               router.push('/admin/inspecciones');
@@ -237,14 +251,12 @@ export default function PaymentMethods({
               router.push(`/mis-inspecciones/${bookingId}`);
             }
           } else {
-            // Cerrar modal en caso de error también
             if (window.Culqi?.close) {
               window.Culqi.close();
             }
             setCulqiError(data.error || "Error procesando el pago");
           }
         } catch {
-          // Network error - redirect to pending
           router.push(`/payment/pending?bookingId=${bookingId}`);
           return;
         } finally {
@@ -254,11 +266,18 @@ export default function PaymentMethods({
         setCulqiError(window.Culqi.error.user_message || "Error en el pago");
       }
     };
-  }, [bookingId, onPaymentSuccess, router]);
+  }, [bookingId, onPaymentSuccess, router, session?.user?.role]);
 
   // Abrir checkout de Culqi
   const handleOpenCulqi = () => {
     if (window.Culqi && culqiReady) {
+      window.Culqi.settings({
+        title: "VerifiCARLO",
+        currency: "PEN",
+        description: bookingDetails.planTitle,
+        amount: bookingDetails.totalAmount * 100,
+      });
+
       window.Culqi.open();
     }
   };
@@ -288,7 +307,7 @@ export default function PaymentMethods({
   const getWhatsAppUrl = () => {
     const message = encodeURIComponent(
       `¡Hola! Soy ${bookingDetails.userName}. Quiero confirmar mi reserva ${bookingDetails.bookingCode} ` +
-        `para el plan ${bookingDetails.planTitle} y coordinar el pago de S/${RESERVE_AMOUNT} para asegurar mi inspección.`
+        `para el plan ${bookingDetails.planTitle} (S/${bookingDetails.totalAmount}) y coordinar el pago.`
     );
     return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
   };
@@ -330,7 +349,7 @@ export default function PaymentMethods({
     {
       id: "transfer" as const,
       label: "Transferencia Bancaria",
-      description: `Realiza una transferencia de S/${RESERVE_AMOUNT} para reservar tu cita. Verificación en 4 horas máximo.`,
+      description: `Realiza una transferencia de S/${bookingDetails.totalAmount.toFixed(2)}. Verificación en 4 horas máximo.`,
       icons: [{ src: "/assets/icons/bank.svg", alt: "Banco" }],
     },
     {
@@ -347,6 +366,17 @@ export default function PaymentMethods({
   return (
     <>
       <Script src="https://checkout.culqi.com/js/v4" onLoad={handleCulqiLoad} />
+
+      {/* Overlay de pago en curso */}
+      {culqiLoading && (
+        <div className={styles.paymentOverlay}>
+          <div className={styles.paymentOverlayContent}>
+            <div className={styles.paymentOverlaySpinner} />
+            <p className={styles.paymentOverlayText}>Espere por favor</p>
+            <p className={styles.paymentOverlaySubtext}>El pago está en curso...</p>
+          </div>
+        </div>
+      )}
 
       <div className={styles.container}>
         <h2 className={styles.title}>Elige tu método de pago</h2>
@@ -574,7 +604,7 @@ export default function PaymentMethods({
           isOpen={showTransferModal}
           onClose={() => setShowTransferModal(false)}
           bankAccounts={BANK_ACCOUNTS}
-          amount={RESERVE_AMOUNT}
+          amount={bookingDetails.totalAmount}
           onSendVoucher={handleTransferComplete}
         />
 

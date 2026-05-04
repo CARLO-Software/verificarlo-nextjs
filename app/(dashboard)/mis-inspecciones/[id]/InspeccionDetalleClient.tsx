@@ -1,25 +1,13 @@
 "use client";
-/**
- * Culqi va a funcionar cuando se tenga la API_PUBLIC de ahí se obtiene la configuracion y
- */
-import { useState, useEffect, useCallback, useMemo } from "react";
+
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import Link from "next/link";
 import { BookingStatus } from "@prisma/client";
 import styles from "./InspeccionDetalle.module.css";
-import { getVerdict, getScoreCategoryInfo } from "@/lib/inspection-verdict";
+import { getVerdict } from "@/lib/inspection-verdict";
 import { InspectionTimeline } from "./InspectionTimeline";
-import TransferModal from "@/app/components/Booking/PaymentMethods/TransferModal";
-import WhatsAppModal from "@/app/components/Booking/PaymentMethods/WhatsAppModal";
-
-declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Culqi: any;
-    culqi: () => void;
-  }
-}
+import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
 
 interface InspectionData {
   id: number;
@@ -165,132 +153,15 @@ function Header({ code }: { code: string }) {
     </header>
   );
 }
-//! Clic en la foto > mis inspecciones > pasar hasta el pago
 // ============================================
-// Pending Payment View
+// Pending Payment View - Reutiliza PaymentMethods
 // ============================================
 function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"culqi" | "transfer" | "yape" | "whatsapp" | null>("culqi");
   const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [culqiReady, setCulqiReady] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
-  // Payment method states
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "yape" | "transfer" | "whatsapp">("card");
-  const [yapePhone, setYapePhone] = useState("");
-  const [yapeOtp, setYapeOtp] = useState("");
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
-
-  // Constantes para pago alternativo
-  const RESERVE_AMOUNT = 50;
-  const BANK_ACCOUNTS = [
-    {
-      id: "bcp-soles",
-      bank: "BCP",
-      currency: "Soles",
-      accountNumber: "193-8758156-0-20",
-      cci: "00219300875815602015",
-      holder: "MOVE TECHNOLOGIES S.A.C.",
-      logo: "/assets/icons/bcp.svg",
-    },
-    {
-      id: "bbva-soles",
-      bank: "BBVA",
-      currency: "Soles",
-      accountNumber: "0011-0157-0200610827",
-      cci: "011-157-000200610827-54",
-      holder: "MOVE TECHNOLOGIES S.A.C.",
-      logo: "/assets/icons/bbva.svg",
-    },
-    {
-      id: "interbank-soles",
-      bank: "Interbank",
-      currency: "Soles",
-      accountNumber: "200-3004204040",
-      cci: "003-200-003004204040-39",
-      holder: "MOVE TECHNOLOGIES S.A.C.",
-      logo: "/assets/icons/interbank.svg",
-    },
-  ];
-
-  // Generar URL de WhatsApp
-  const getWhatsAppUrl = () => {
-    const message = encodeURIComponent(
-      `¡Hola! Quiero confirmar mi reserva ${inspection.code} ` +
-      `para el plan ${inspection.inspectionPlan.title} y coordinar el pago de S/${RESERVE_AMOUNT} para asegurar mi inspección.`
-    );
-    return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
-  };
-
-  // Handler para confirmar pago con transferencia
-  const handleTransferComplete = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/payments/alternative", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bookingId: inspection.id,
-          paymentMethod: "TRANSFER",
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Error al registrar el pago");
-      }
-
-      setShowTransferModal(false);
-      router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al registrar el pago");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Validaciones Yape
-  const isYapePhoneValid = /^9\d{8}$/.test(yapePhone);
-  const isYapeOtpValid = /^\d{6}$/.test(yapeOtp);
-  const canPayWithYape = isYapePhoneValid && isYapeOtpValid && !loading;
-
-  // Procesar pago con Yape
-  const handleYapePayment = async () => {
-    if (!canPayWithYape) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/culqi/yape", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          bookingId: inspection.id,
-          phoneNumber: yapePhone,
-          otpCode: yapeOtp,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        router.refresh();
-      } else {
-        setError(data.error || "Error procesando el pago");
-        setYapeOtp(""); // Limpiar OTP para reintentar
-      }
-    } catch {
-      setError("Error de conexión. Por favor intenta de nuevo.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCancel = async () => {
     setCancelLoading(true);
@@ -315,546 +186,97 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
     }
   };
 
-  // useMemo memoriza el resultado y solo lo recalcula si inspection.expiresAt cambia.
-  // Sin useMemo, cada re-render crea un nuevo objeto Date (nueva referencia en memoria),
-  // lo que hace que el useEffect se re-ejecute innecesariamente y duplique el intervalo.
-  const expiresAt = useMemo(
-    () => (inspection.expiresAt ? new Date(inspection.expiresAt) : null),
-    [inspection.expiresAt] // Solo recalcula si el string de expiración cambia
-  );
-
-  // Calcular tiempo restante
-  useEffect(() => {
-    if (!expiresAt) return;
-
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const expiry = expiresAt.getTime();
-      return Math.max(0, Math.floor((expiry - now) / 1000));
-    };
-
-    setTimeLeft(calculateTimeLeft());
-
-    const timer = setInterval(() => {
-      const remaining = calculateTimeLeft();
-      setTimeLeft(remaining);
-
-      if (remaining <= 0) {
-        clearInterval(timer);
-        router.refresh();
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [expiresAt, router]);
-
-  // Formatear tiempo
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  const handlePaymentSuccess = () => {
+    router.refresh();
   };
 
-  // Configurar Culqi
-  const configureCulqi = useCallback(() => {
-    if (typeof window !== "undefined" && window.Culqi && !culqiReady) {
-      try {
-        window.Culqi.publicKey = process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY!;
-
-        window.Culqi.settings({
-          title: "VerifiCARLO",
-          currency: "PEN",
-          description: `Inspección ${inspection.inspectionPlan.type}`,
-          amount: inspection.inspectionPlan.price * 100,
-        });
-
-        window.Culqi.options({
-          lang: "es",
-          style: {
-            logo: "/logo.png",
-            bannerColor: "#FDBF12",
-            buttonBackground: "#FDBF12",
-            buttonText: "#1A1A1A",
-            buttonTextHover: "#1A1A1A",
-          },
-        });
-
-        setCulqiReady(true);
-      } catch (err) {
-        console.error("Error configurando Culqi:", err);
-      }
-    }
-  }, [inspection.inspectionPlan, culqiReady]);
-
-  const handleCulqiLoad = useCallback(() => {
-    configureCulqi();
-  }, [configureCulqi]);
-
-  // Reintento de configuración de Culqi si no se cargó
-  useEffect(() => {
-    if (culqiReady) return;
-
-    // Intentar configurar cada 500ms por 10 segundos
-    const interval = setInterval(() => {
-      if (window.Culqi) {
-        configureCulqi();
-      }
-    }, 500);
-
-    const timeout = setTimeout(() => {
-      clearInterval(interval);
-    }, 10000);
-
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [culqiReady, configureCulqi]);
-
-  // Handler global de Culqi
-  useEffect(() => {
-    window.culqi = async () => {
-      if (window.Culqi.token) {
-        setLoading(true);
-        setError(null);
-
-        try {
-          const res = await fetch("/api/payments/culqi", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              bookingId: inspection.id,
-              token: window.Culqi.token.id,
-            }),
-          });
-
-          const data = await res.json();
-
-          if (data.success) {
-            // Cerrar el modal de Culqi
-            if (window.Culqi?.close) {
-              window.Culqi.close();
-            }
-            router.refresh();
-          } else {
-            // Cerrar modal en caso de error también
-            if (window.Culqi?.close) {
-              window.Culqi.close();
-            }
-            setError(data.error || "Error procesando el pago");
-          }
-        } catch {
-          setError("Error de conexión. Por favor intenta de nuevo.");
-        } finally {
-          setLoading(false);
-        }
-      } else if (window.Culqi.error) {
-        setError(window.Culqi.error.user_message || "Error en el pago");
-      }
-    };
-  }, [inspection.id, router]);
-
-  const handleOpenCulqi = () => {
-    if (window.Culqi && culqiReady) {
-      //Si no tiene la configuracion llamando a la API_PUBLIC entonces no va a funcionar
-      //Entonces no se va a habilitar
-      //Si no funciona entonces no se puede generar el token para enviar al servidor de CULQI
-      //! ES RECONTRA IMPORTANTE
-      window.Culqi.open();
-    }
+  const handlePaymentExpired = () => {
+    router.refresh();
   };
 
-  const isExpired = timeLeft <= 0;
-  const isUrgent = timeLeft > 0 && timeLeft < 300;
+  const handleAlternativePaymentSuccess = () => {
+    router.refresh();
+  };
 
   return (
-    <>
-      {/*IMPORTANTE - AQUI COMIENZA*/}
-      <Script src="https://checkout.culqi.com/js/v4" onLoad={handleCulqiLoad} />
-
-      <div className={styles.content}>
-        <div className={styles.mainCard}>
-          {/* Status Badge */}
-          <div className={styles.statusBadge} data-status="pending">
-            <span className={styles.statusDot} />
-            Pendiente de pago
-          </div>
-
-          {/* Timer */}
-          {expiresAt && (
-            <div
-              className={`${styles.timer} ${isUrgent ? styles.timerUrgent : ""}`}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle
-                  cx="10"
-                  cy="10"
-                  r="8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M10 6v4l3 3"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span>
-                {isExpired
-                  ? "Tiempo expirado"
-                  : `Tiempo restante: ${formatTime(timeLeft)}`}
-              </span>
-            </div>
-          )}
-
-          {/* Error */}
-          {error && (
-            <div className={styles.error}>
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <circle
-                  cx="10"
-                  cy="10"
-                  r="8"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                />
-                <path
-                  d="M10 6v5M10 13.5v.5"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span>{error}</span>
-            </div>
-          )}
-
-          {/* Booking Summary */}
-          <BookingSummary inspection={inspection} />
-
-          {/* Payment Method Tabs */}
-          <div className={styles.paymentTabs} style={{ flexWrap: "wrap" }}>
-            <button
-              className={`${styles.paymentTab} ${paymentMethod === "card" ? styles.paymentTabActive : ""}`}
-              onClick={() => setPaymentMethod("card")}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M2 9h16" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
-              Tarjeta
-            </button>
-            <button
-              className={`${styles.paymentTab} ${paymentMethod === "yape" ? styles.paymentTabActive : ""}`}
-              onClick={() => setPaymentMethod("yape")}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="4" y="2" width="12" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                <circle cx="10" cy="14" r="1" fill="currentColor" />
-              </svg>
-              Yape
-            </button>
-            <button
-              className={`${styles.paymentTab} ${paymentMethod === "transfer" ? styles.paymentTabActive : ""}`}
-              onClick={() => setPaymentMethod("transfer")}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <rect x="2" y="4" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M6 10h8M6 13h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              Transferencia
-            </button>
-            <button
-              className={`${styles.paymentTab} ${paymentMethod === "whatsapp" ? styles.paymentTabActive : ""}`}
-              onClick={() => setPaymentMethod("whatsapp")}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 18c4.4183 0 8-3.5817 8-8s-3.5817-8-8-8-8 3.5817-8 8c0 1.4571.3894 2.8233 1.0691 4L2 18l4-1.0691C7.1767 17.6106 8.5429 18 10 18z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              WhatsApp
-            </button>
-          </div>
-
-          {/* Card Payment */}
-          {paymentMethod === "card" && (
-            <>
-              <div className={styles.paymentMethods}>
-                <p className={styles.paymentMethodsLabel}>Aceptamos</p>
-                <div className={styles.cards}>
-                  <img src="/assets/icons/visa.svg" alt="Visa" />
-                  <img src="/assets/icons/mastercard.svg" alt="Mastercard" />
-                  <img src="/assets/icons/amex.svg" alt="American Express" />
-                  <img src="/assets/icons/diners.svg" alt="Diners Club" />
-                </div>
-              </div>
-
-              <div className={styles.actions}>
-                <button
-                  onClick={() => setShowCancelConfirm(true)}
-                  disabled={cancelLoading}
-                  className={styles.secondaryButton}
-                >
-                  Cancelar reserva
-                </button>
-                <button
-                  onClick={handleOpenCulqi}
-                  disabled={loading || isExpired || !culqiReady}
-                  className={styles.primaryButton}
-                >
-                  {loading ? (
-                    <>
-                      <span className={styles.buttonSpinner} />
-                      Procesando...
-                    </>
-                  ) : (
-                    <>
-                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <rect x="2" y="5" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
-                        <path d="M2 9h16" stroke="currentColor" strokeWidth="2" />
-                      </svg>
-                      Pagar S/ {inspection.inspectionPlan.price.toFixed(2)}
-                    </>
-                  )}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Yape Payment */}
-          {paymentMethod === "yape" && (
-            <div className={styles.yapeForm}>
-              <div className={styles.yapeHeader}>
-                <img src="/assets/icons/yape.svg" alt="Yape" style={{ width: 40, height: 40 }} />
-                <div>
-                  <p className={styles.yapeTitle}>Paga con Yape</p>
-                  <p className={styles.yapeSubtitle}>Ingresa tu número y código de aprobación</p>
-                </div>
-              </div>
-
-              <div className={styles.yapeFields}>
-                <div className={styles.yapeField}>
-                  <label>Número de celular Yape</label>
-                  <div className={styles.yapeInputWrapper}>
-                    <span className={styles.yapePrefix}>+51</span>
-                    <input
-                      type="tel"
-                      value={yapePhone}
-                      onChange={(e) => setYapePhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
-                      placeholder="987 654 321"
-                      disabled={loading}
-                    />
-                  </div>
-                  {yapePhone && !isYapePhoneValid && (
-                    <span className={styles.yapeError}>Ingresa un número válido de 9 dígitos</span>
-                  )}
-                </div>
-
-                <div className={styles.yapeField}>
-                  <label>Código de aprobación</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={yapeOtp}
-                    onChange={(e) => setYapeOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    placeholder="123456"
-                    disabled={loading}
-                    className={styles.yapeOtpInput}
-                  />
-                  {yapeOtp && !isYapeOtpValid && (
-                    <span className={styles.yapeError}>El código debe tener 6 dígitos</span>
-                  )}
-                </div>
-              </div>
-
-              <div className={styles.yapeInstructions}>
-                <p><strong>¿Dónde encuentro el código?</strong></p>
-                <ol>
-                  <li>Abre tu app de <strong>Yape</strong></li>
-                  <li>Ve a <strong>"Aprobar compras"</strong></li>
-                  <li>Copia el código de 6 dígitos</li>
-                </ol>
-              </div>
-
-              <div className={styles.actions}>
-                <button
-                  onClick={() => setShowCancelConfirm(true)}
-                  disabled={cancelLoading}
-                  className={styles.secondaryButton}
-                >
-                  Cancelar reserva
-                </button>
-                <button
-                  onClick={handleYapePayment}
-                  disabled={!canPayWithYape || isExpired}
-                  className={styles.primaryButton}
-                  style={{ background: canPayWithYape && !isExpired ? "#6B21A8" : undefined }}
-                >
-                  {loading ? (
-                    <>
-                      <span className={styles.buttonSpinner} />
-                      Procesando...
-                    </>
-                  ) : (
-                    `Pagar S/ ${inspection.inspectionPlan.price.toFixed(2)}`
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Transfer Payment */}
-          {paymentMethod === "transfer" && (
-            <div className={styles.transferSection}>
-              <div className={styles.transferHeader}>
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <rect x="4" y="8" width="32" height="24" rx="4" stroke="#2563eb" strokeWidth="2" />
-                  <path d="M12 20h16M12 26h8" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-                <div>
-                  <p className={styles.transferTitle}>Transferencia Bancaria</p>
-                  <p className={styles.transferSubtitle}>
-                    Reserva tu cita con S/{RESERVE_AMOUNT}. El resto se paga el día de la inspección.
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.transferInfo}>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
-                  Haz clic en el botón para ver los datos de la cuenta y enviar tu comprobante.
-                </p>
-              </div>
-
-              <div className={styles.actions}>
-                <button
-                  onClick={() => setShowCancelConfirm(true)}
-                  disabled={cancelLoading}
-                  className={styles.secondaryButton}
-                >
-                  Cancelar reserva
-                </button>
-                <button
-                  onClick={() => setShowTransferModal(true)}
-                  disabled={isExpired}
-                  className={styles.primaryButton}
-                  style={{ background: "#2563eb" }}
-                >
-                  Ver datos de cuenta
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* WhatsApp Payment */}
-          {paymentMethod === "whatsapp" && (
-            <div className={styles.whatsappSection}>
-              <div className={styles.whatsappHeader}>
-                <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
-                  <path d="M20 36c8.8366 0 16-7.1634 16-16S28.8366 4 20 4 4 11.1634 4 20c0 2.9142.7788 5.6466 2.1382 8L4 36l8-2.1382C14.3534 35.2212 17.0858 36 20 36z" stroke="#25d366" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <div>
-                  <p className={styles.whatsappTitle}>Coordinar por WhatsApp</p>
-                  <p className={styles.whatsappSubtitle}>
-                    Habla con un asesor para coordinar tu pago y resolver cualquier duda.
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.whatsappInfo}>
-                <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.5rem" }}>
-                  Te atenderemos de inmediato para confirmar tu reserva.
-                </p>
-              </div>
-
-              <div className={styles.actions}>
-                <button
-                  onClick={() => setShowCancelConfirm(true)}
-                  disabled={cancelLoading}
-                  className={styles.secondaryButton}
-                >
-                  Cancelar reserva
-                </button>
-                <button
-                  onClick={() => setShowWhatsAppModal(true)}
-                  disabled={isExpired}
-                  className={styles.primaryButton}
-                  style={{ background: "#25d366" }}
-                >
-                  Abrir WhatsApp
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Cancel Confirmation Modal */}
-          {showCancelConfirm && (
-            <div className={styles.modalOverlay}>
-              <div className={styles.modal}>
-                <h3 className={styles.modalTitle}>¿Cancelar reserva?</h3>
-                <p className={styles.modalMessage}>
-                  Esta acción no se puede deshacer. ¿Estás seguro de que deseas cancelar esta inspección?
-                </p>
-                <div className={styles.modalActions}>
-                  <button
-                    onClick={() => setShowCancelConfirm(false)}
-                    disabled={cancelLoading}
-                    className={styles.secondaryButton}
-                  >
-                    No, mantener
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    disabled={cancelLoading}
-                    className={styles.dangerButton}
-                  >
-                    {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Security Note */}
-          <p className={styles.securityNote}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <rect
-                x="3"
-                y="7"
-                width="10"
-                height="7"
-                rx="2"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M5 7V5a3 3 0 016 0v2"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-            Pago seguro procesado por Culqi
-          </p>
+    <div className={styles.content}>
+      <div className={styles.mainCard}>
+        {/* Status Badge */}
+        <div className={styles.statusBadge} data-status="pending">
+          <span className={styles.statusDot} />
+          Pendiente de pago
         </div>
 
-        {/* Transfer Modal */}
-        <TransferModal
-          isOpen={showTransferModal}
-          onClose={() => setShowTransferModal(false)}
-          bankAccounts={BANK_ACCOUNTS}
-          amount={RESERVE_AMOUNT}
-          onSendVoucher={handleTransferComplete}
+        {/* Error */}
+        {error && (
+          <div className={styles.error}>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+              <path d="M10 6v5M10 13.5v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Reutilizar componente PaymentMethods */}
+        <PaymentMethods
+          selectedMethod={paymentMethod}
+          onSelectMethod={setPaymentMethod}
+          bookingDetails={{
+            bookingCode: inspection.code,
+            userName: "",
+            planTitle: inspection.inspectionPlan.title,
+            planType: inspection.inspectionPlan.type,
+            totalAmount: inspection.inspectionPlan.price,
+          }}
+          bookingId={inspection.id}
+          expiresAt={inspection.expiresAt ? new Date(inspection.expiresAt) : new Date(Date.now() + 30 * 60 * 1000)}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentExpired={handlePaymentExpired}
+          onAlternativePaymentSuccess={handleAlternativePaymentSuccess}
         />
 
-        {/* WhatsApp Modal */}
-        <WhatsAppModal
-          isOpen={showWhatsAppModal}
-          onClose={() => setShowWhatsAppModal(false)}
-          bookingCode={inspection.code}
-          whatsappUrl={getWhatsAppUrl()}
-        />
+        {/* Botón cancelar */}
+        <div style={{ marginTop: "1rem" }}>
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            disabled={cancelLoading}
+            className={styles.secondaryButton}
+            style={{ width: "100%" }}
+          >
+            Cancelar reserva
+          </button>
+        </div>
+
+        {/* Cancel Confirmation Modal */}
+        {showCancelConfirm && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h3 className={styles.modalTitle}>¿Cancelar reserva?</h3>
+              <p className={styles.modalMessage}>
+                Esta acción no se puede deshacer. ¿Estás seguro de que deseas cancelar esta inspección?
+              </p>
+              <div className={styles.modalActions}>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  No, mantener
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelLoading}
+                  className={styles.dangerButton}
+                >
+                  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </>
+    </div>
   );
 }
 
