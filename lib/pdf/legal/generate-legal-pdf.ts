@@ -6,6 +6,7 @@ import React from 'react';
 import { renderToBuffer } from '@react-pdf/renderer';
 import { db } from '@/lib/db';
 import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 import { es } from 'date-fns/locale';
 import LegalReportPDF, { LegalReportData } from './LegalReportPDF';
 import { LEGAL_SOURCES } from '@/lib/constants/legal-sources';
@@ -45,6 +46,11 @@ export async function getLegalReportDataForPDF(
         },
       },
       client: {
+        select: {
+          name: true,
+        },
+      },
+      assignedAdmin: {
         select: {
           name: true,
         },
@@ -148,15 +154,20 @@ export async function getLegalReportDataForPDF(
   // Descripción del vehículo
   const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;
 
+  // Total de páginas: portada + resumen + capturas + cierre
+  const totalPages = 2 + screenshots.length + 1;
+
   return {
     inspectionId: inspection.id,
     plate: inspection.plate || 'SIN PLACA',
     vehicleDescription,
     clientName: inspection.client.name,
-    date: format(inspection.updatedAt, "dd 'de' MMMM 'de' yyyy 'a las' HH:mm 'hrs'", { locale: es }),
+    date: format(toZonedTime(inspection.updatedAt, 'America/Lima'), "dd 'de' MMMM 'de' yyyy 'a las' HH:mm 'hrs'", { locale: es }),
     fields,
     otherObservations: legalReportData.otherObservations || '',
     screenshots,
+    inspectorName: inspection.assignedAdmin?.name || 'Inspector Legal',
+    totalPages,
   };
 }
 

@@ -907,6 +907,74 @@
   justify-content: center;
 }
 
+/* Acciones separadas para multi-upload */
+.multiUploadActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Área para pegar con Ctrl+V */
+.multiPasteBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: #EEF2FF;
+  border: 2px dashed #6366F1;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6366F1;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.multiPasteBox:hover {
+  background: #E0E7FF;
+  border-style: solid;
+}
+
+.multiPasteBox:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.multiPasteBoxActive {
+  background: #C7D2FE;
+  border-style: solid;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+/* Botón para subir archivo */
+.multiUploadBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6B7280;
+  transition: all 0.2s ease;
+}
+
+.multiUploadBtn:hover:not(:disabled) {
+  background: #F9FAFB;
+  border-color: #6366F1;
+  color: #6366F1;
+}
+
+.multiUploadBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {

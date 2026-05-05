@@ -381,6 +381,95 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: colors.gray,
   },
+
+  // === PÁGINA DE CIERRE ===
+  closingPage: {
+    flex: 1,
+    padding: 50,
+    justifyContent: 'space-between',
+  },
+  closingHeader: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  closingLogoText: {
+    fontSize: 32,
+    fontWeight: 700,
+    color: colors.black,
+    letterSpacing: 2,
+  },
+  closingContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closingTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 30,
+    textAlign: 'center',
+  },
+  closingBox: {
+    backgroundColor: colors.lightGray,
+    padding: 30,
+    borderRadius: 8,
+    width: '80%',
+    alignItems: 'center',
+  },
+  closingLabel: {
+    fontSize: 10,
+    color: colors.gray,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  closingValue: {
+    fontSize: 14,
+    fontWeight: 700,
+    color: colors.black,
+    marginBottom: 20,
+  },
+  closingDivider: {
+    width: '60%',
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginVertical: 20,
+  },
+  closingCompany: {
+    fontSize: 12,
+    color: colors.black,
+    marginTop: 10,
+  },
+  closingCompanyName: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: colors.black,
+    marginTop: 6,
+  },
+  closingFooter: {
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    paddingTop: 20,
+    alignItems: 'center',
+  },
+  closingFooterText: {
+    fontSize: 9,
+    color: colors.gray,
+    marginBottom: 4,
+  },
+  closingFooterBold: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: colors.black,
+  },
+  closingPageNumber: {
+    position: 'absolute',
+    bottom: 30,
+    right: 50,
+    fontSize: 8,
+    color: colors.gray,
+  },
 });
 
 // Tipos
@@ -402,6 +491,8 @@ export interface LegalReportData {
     sourceName: string;
     imageUrl: string;
   }[];
+  inspectorName: string;
+  totalPages: number;
 }
 
 // Base URL para iconos
@@ -636,7 +727,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
       {/* PÁGINAS DE CAPTURAS */}
       {data.screenshots.map((screenshot, index) => (
-        <Page key={screenshot.sourceId} size="A4" style={styles.page}>
+        <Page key={`${screenshot.sourceId}-${index}`} size="A4" style={styles.page}>
           <View style={styles.screenshotPage}>
             <View style={styles.screenshotHeader}>
               <View>
@@ -661,6 +752,54 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
           </View>
         </Page>
       ))}
+
+      {/* PÁGINA DE CIERRE */}
+      <Page size="A4" style={styles.page}>
+        <View style={styles.closingPage}>
+          <View style={styles.closingHeader}>
+            <Text style={styles.closingLogoText}>VerifiCARLO</Text>
+          </View>
+
+          <View style={styles.closingContent}>
+            <Text style={styles.closingTitle}>FIN DEL INFORME LEGAL</Text>
+
+            <View style={styles.closingBox}>
+              <Text style={styles.closingLabel}>Elaborado por</Text>
+              <Text style={styles.closingValue}>{data.inspectorName}</Text>
+
+              <View style={styles.closingDivider} />
+
+              <Text style={styles.closingLabel}>Empresa</Text>
+              <Text style={styles.closingCompanyName}>CARLO S.A.C.</Text>
+              <Text style={styles.closingCompany}>Servicios de Verificación Vehicular</Text>
+
+              <View style={styles.closingDivider} />
+
+              <Text style={styles.closingLabel}>Fecha de emisión</Text>
+              <Text style={styles.closingValue}>{data.date}</Text>
+
+              <Text style={styles.closingLabel}>Vehículo inspeccionado</Text>
+              <Text style={styles.closingValue}>{data.plate}</Text>
+            </View>
+          </View>
+
+          <View style={styles.closingFooter}>
+            <Text style={styles.closingFooterText}>
+              Este informe ha sido elaborado con información verificada en fuentes oficiales.
+            </Text>
+            <Text style={styles.closingFooterText}>
+              Para consultas: contacto@verificarlo.com | www.verificarlo.com
+            </Text>
+            <Text style={styles.closingFooterBold}>
+              Gracias por confiar en VerifiCARLO
+            </Text>
+          </View>
+
+          <Text style={styles.closingPageNumber}>
+            Pagina {data.totalPages}
+          </Text>
+        </View>
+      </Page>
     </Document>
   );
 }

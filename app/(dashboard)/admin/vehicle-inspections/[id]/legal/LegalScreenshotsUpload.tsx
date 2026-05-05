@@ -485,15 +485,7 @@ export function LegalScreenshotsUpload({
                                 </div>
                               ))}
                               {canUpload && (
-                                <div
-                                  className={`${styles.multiUploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
-                                  onClick={() => {
-                                    setActiveSourceForPaste(source.id as LegalSourceId);
-                                    fileInputRefs.current[source.id]?.click();
-                                  }}
-                                  onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                                  tabIndex={0}
-                                >
+                                <div className={styles.multiUploadActions}>
                                   <input
                                     type="file"
                                     accept="image/*"
@@ -502,15 +494,32 @@ export function LegalScreenshotsUpload({
                                     ref={(el) => { fileInputRefs.current[source.id] = el; }}
                                     className={styles.fileInput}
                                   />
-                                  {isUploading ? (
-                                    <Loader2 size={16} className={styles.spinner} />
-                                  ) : isActiveForPaste ? (
-                                    <div className={styles.pasteHintSmall}>
-                                      <Clipboard size={12} />
-                                    </div>
-                                  ) : (
-                                    <Upload size={16} />
-                                  )}
+                                  {/* Área para pegar con Ctrl+V */}
+                                  <div
+                                    className={`${styles.multiPasteBox} ${isActiveForPaste ? styles.multiPasteBoxActive : ''}`}
+                                    onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                    onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                    tabIndex={0}
+                                  >
+                                    {isUploading ? (
+                                      <Loader2 size={14} className={styles.spinner} />
+                                    ) : (
+                                      <>
+                                        <Clipboard size={14} />
+                                        <span>Ctrl+V</span>
+                                      </>
+                                    )}
+                                  </div>
+                                  {/* Botón para subir archivo */}
+                                  <button
+                                    type="button"
+                                    className={styles.multiUploadBtn}
+                                    onClick={() => fileInputRefs.current[source.id]?.click()}
+                                    disabled={isUploading}
+                                    title="Subir archivo"
+                                  >
+                                    <Upload size={14} />
+                                  </button>
                                 </div>
                               )}
                             </div>
@@ -732,15 +741,7 @@ export function LegalScreenshotsUpload({
                                 </div>
                               ))}
                               {canUpload && (
-                                <div
-                                  className={`${styles.multiUploadBox} ${isActiveForPaste ? styles.uploadBoxActive : ''}`}
-                                  onClick={() => {
-                                    setActiveSourceForPaste(source.id as LegalSourceId);
-                                    fileInputRefs.current[source.id]?.click();
-                                  }}
-                                  onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
-                                  tabIndex={0}
-                                >
+                                <div className={styles.multiUploadActions}>
                                   <input
                                     type="file"
                                     accept="image/*"
@@ -749,15 +750,32 @@ export function LegalScreenshotsUpload({
                                     ref={(el) => { fileInputRefs.current[source.id] = el; }}
                                     className={styles.fileInput}
                                   />
-                                  {isUploading ? (
-                                    <Loader2 size={16} className={styles.spinner} />
-                                  ) : isActiveForPaste ? (
-                                    <div className={styles.pasteHintSmall}>
-                                      <Clipboard size={12} />
-                                    </div>
-                                  ) : (
-                                    <Upload size={16} />
-                                  )}
+                                  {/* Área para pegar con Ctrl+V */}
+                                  <div
+                                    className={`${styles.multiPasteBox} ${isActiveForPaste ? styles.multiPasteBoxActive : ''}`}
+                                    onClick={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                    onFocus={() => setActiveSourceForPaste(source.id as LegalSourceId)}
+                                    tabIndex={0}
+                                  >
+                                    {isUploading ? (
+                                      <Loader2 size={14} className={styles.spinner} />
+                                    ) : (
+                                      <>
+                                        <Clipboard size={14} />
+                                        <span>Ctrl+V</span>
+                                      </>
+                                    )}
+                                  </div>
+                                  {/* Botón para subir archivo */}
+                                  <button
+                                    type="button"
+                                    className={styles.multiUploadBtn}
+                                    onClick={() => fileInputRefs.current[source.id]?.click()}
+                                    disabled={isUploading}
+                                    title="Subir archivo"
+                                  >
+                                    <Upload size={14} />
+                                  </button>
                                 </div>
                               )}
                             </div>
