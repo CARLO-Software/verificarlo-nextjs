@@ -170,7 +170,13 @@ export default function Footer() {
                   <div className={styles.contactIcon}>
                     <img src="/assets/images/image65.svg" alt="" />
                   </div>
-                  <a href="tel:+51934140010">+51 934 140 010</a>
+                  <a
+                    href="https://api.whatsapp.com/send?phone=51934140010&text=%C2%A1Hola!%20Quiero%20agendar%20una%20inspecci%C3%B3n%20vehicular%20%F0%9F%9A%98"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    +51 934 140 010
+                  </a>
                 </div>
                 <div className={styles.contactItem}>
                   <div className={styles.contactIcon}>

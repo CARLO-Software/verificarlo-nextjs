@@ -116,9 +116,7 @@ export default function ServicesSection() {
                                 </div>
                                 <div className={styles['mobile-buttons']}>
                                     <a
-                                        href={getWhatsAppLink(inspectionIndex)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
+                                        href={`/agendar?plan=${inspection.type}`}
                                         className={styles['btn-add-cart']}
                                     >
                                         Elegir plan
@@ -201,9 +199,7 @@ export default function ServicesSection() {
                                     {/* Botones */}
                                     <div className={styles['carousel-buttons']}>
                                         <a
-                                            href={getWhatsAppLink(originalIndex)}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                            href={`/agendar?plan=${inspection.type}`}
                                             className={styles['carousel-cta']}
                                         >
                                             Elegir plan
@@ -305,8 +301,7 @@ export default function ServicesSection() {
                             </ul>
 
                             <a
-                                href={modalData.whatsappLink}
-                                target="_blank"
+                                href={`/agendar?plan=${inspectionPlans[modalData.planIndex]?.type}`}
                                 className={styles['modal-cta']}
                                 onClick={closeModal}
                             >

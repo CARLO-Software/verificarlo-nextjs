@@ -17,7 +17,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const DRAFT_KEY = "agendar_draft";
 import styles from "./Agendar.module.css";
@@ -67,6 +67,7 @@ export default function AgendarForm({
 }: AgendarFormProps) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // =========================================================================
   // ESTADOS DEL FLUJO
@@ -180,6 +181,27 @@ export default function AgendarForm({
   useEffect(() => {
     console.log("[AgendarForm] currentStep cambió a:", currentStep);
   }, [currentStep]);
+
+  // =========================================================================
+  // EFECTO: Pre-seleccionar plan desde parámetro de URL
+  // =========================================================================
+  // Si el usuario viene desde la landing con ?plan=tipo, pre-seleccionamos
+  // El parámetro de URL tiene prioridad sobre el draft porque el usuario
+  // explícitamente eligió un plan desde la landing
+  useEffect(() => {
+    const planType = searchParams.get("plan");
+    if (!planType) return;
+
+    const matchingPlan = initialInspections.find((p) => p.type === planType);
+    if (matchingPlan) {
+      setSelectedInspection(matchingPlan);
+      // Limpiar draft para empezar fresco con el plan elegido desde landing
+      localStorage.removeItem(DRAFT_KEY);
+      // Reset al paso 1 si venía de un draft en otro paso
+      setCurrentStep(1);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // =========================================================================
   // EFECTO: Auto-guardar borrador mientras el usuario llena el formulario
