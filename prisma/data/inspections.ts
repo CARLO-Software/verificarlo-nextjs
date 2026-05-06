@@ -9,27 +9,26 @@ export const inspectionPlans = [
 
 export const inspectionPlanItems = [
     { inspectionPlanId: 1, label: [
-        "Consulta SUNARP: gravámenes, embargos y cargas",
-        "Consulta SUTRAN: papeletas y sanciones pendientes",
-        "Consulta SAT: robo, siniestros y accidentes reportados",
-        "Historial de propietarios y transferencias",
-        "Boleta informativa con resultados"
+        "Consulta SUNARP (gravámenes y embargos)",
+        "Consulta SUTRAN (papeletas)",
+        "Consulta SAT (robos y siniestros)",
+        "Historial de propietarios",
+        "Boleta informativa"
     ] },
     { inspectionPlanId: 2, label: [
-        "Verificación legal completa (SUNARP, SUTRAN y SAT)",
-        "Motor: compresión, fugas de aceite, ruidos anormales",
-        "Escáner OBD2: códigos de falla en motor, transmisión, airbags, ABS",
-        "Frenos: pastillas, discos, líquido y ABS",
-        "Suspensión: amortiguadores, rótulas y terminales",
-        "Escaneo de pintura: detección de repintado y choques",
-        "Diagnóstico verbal con recomendaciones"
+        "Verificación legal completa",
+        "Motor: compresión, fugas y ruidos",
+        "Escáner OBD2 (motor, caja, airbags, ABS)",
+        "Frenos y suspensión",
+        "Escaneo de pintura (choques ocultos)",
+        "Diagnóstico con recomendaciones"
     ] },
     { inspectionPlanId: 3, label: [
-        "Todo lo de la inspección básica",
-        "Videoscopía interna del motor (cilindros y válvulas)",
-        "Inspección de zonas críticas ocultas",
+        "Todo lo de la básica",
+        "Videoscopía del motor",
+        "Inspección de zonas ocultas",
         "Estimación de costos de reparación",
-        "Informe técnico-legal documentado con fotos",
-        "Asesoría personalizada pre-compra"
+        "Informe técnico-legal con fotos",
+        "Asesoría pre-compra"
     ] }
 ]
