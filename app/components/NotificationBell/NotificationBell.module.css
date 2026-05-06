@@ -13,7 +13,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 99;
+    z-index: 9998;
     animation: fadeIn 0.2s ease-out;
   }
 
@@ -70,7 +70,7 @@
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   border: 1px solid #E5E7EB;
   overflow: hidden;
-  z-index: 100;
+  z-index: 9999;
   animation: slideDown 0.15s ease-out;
 }
 

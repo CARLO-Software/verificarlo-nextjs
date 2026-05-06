@@ -546,6 +546,8 @@ export interface CompleteReportInput {
   mechanicalVerdict?: 'APROBADO' | 'OBSERVADO' | 'NO_APROBADO';
   hasSiniestro?: boolean;
   hasKilometrajeAdulterado?: boolean;
+  executiveSummary?: string;
+  estimatedRepairCost?: number;
 }
 
 export async function completeReport(reportId: number, input?: CompleteReportInput) {
@@ -646,6 +648,9 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
         mechanicalVerdict: mechanicalVerdict as 'APROBADO' | 'OBSERVADO' | 'NO_APROBADO',
         hasSiniestro,
         hasKilometrajeAdulterado,
+        // Resumen ejecutivo (si se proporciona)
+        ...(input?.executiveSummary !== undefined && { executiveSummary: input.executiveSummary || null }),
+        ...(input?.estimatedRepairCost !== undefined && { estimatedRepairCost: input.estimatedRepairCost || null }),
         completedAt: new Date(),
         inspectorSignature: `Firmado digitalmente por ${inspector?.name || 'Inspector'} - ${new Date().toISOString()}`,
       },

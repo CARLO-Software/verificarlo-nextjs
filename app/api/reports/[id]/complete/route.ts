@@ -9,6 +9,8 @@ interface CompleteReportBody {
   mechanicalVerdict?: "APROBADO" | "OBSERVADO" | "NO_APROBADO";
   hasSiniestro?: boolean;
   hasKilometrajeAdulterado?: boolean;
+  executiveSummary?: string;
+  estimatedRepairCost?: number;
 }
 
 export async function POST(
@@ -37,6 +39,8 @@ export async function POST(
       mechanicalVerdict: body.mechanicalVerdict,
       hasSiniestro: body.hasSiniestro,
       hasKilometrajeAdulterado: body.hasKilometrajeAdulterado,
+      executiveSummary: body.executiveSummary,
+      estimatedRepairCost: body.estimatedRepairCost,
     });
 
     return NextResponse.json({

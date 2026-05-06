@@ -146,6 +146,7 @@ export function InspectionChecklist({
   const handleCategoryChange = (categoryId: string) => {
     setActiveCategory(categoryId);
     onCategoryChange?.(categoryId);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // Marcar todos los ítems de una sección como OK
@@ -432,6 +433,57 @@ export function InspectionChecklist({
             </div>
           );
         })}
+
+        {/* Botones de navegación entre categorías (cuando la categoría está completa) */}
+        {(() => {
+          const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategory);
+          const categoryProgress = progress.byCategory[activeCategory];
+          const isComplete = categoryProgress?.percentage === 100;
+          const hasPrevious = currentIndex > 0;
+          const hasNext = currentIndex < INSPECTION_CATEGORIES.length - 1;
+          const previousCategory = hasPrevious ? INSPECTION_CATEGORIES[currentIndex - 1] : null;
+          const nextCategory = hasNext ? INSPECTION_CATEGORIES[currentIndex + 1] : null;
+
+          if (!isComplete) return null;
+
+          return (
+            <div className={styles.categoryNavigation}>
+              <div className={styles.categoryNavigationComplete}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <circle cx="10" cy="10" r="8" fill="#22C55E" fillOpacity="0.15"/>
+                  <path d="M6 10l3 3 5-6" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <span>¡Categoría completada!</span>
+              </div>
+              <div className={styles.categoryNavigationButtons}>
+                {hasPrevious && (
+                  <button
+                    type="button"
+                    className={styles.categoryNavButton}
+                    onClick={() => handleCategoryChange(previousCategory!.id)}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <span>{previousCategory!.title}</span>
+                  </button>
+                )}
+                {hasNext && (
+                  <button
+                    type="button"
+                    className={`${styles.categoryNavButton} ${styles.categoryNavButtonPrimary}`}
+                    onClick={() => handleCategoryChange(nextCategory!.id)}
+                  >
+                    <span>{nextCategory!.title}</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                      <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Último guardado (solo informativo) */}
         {lastSaved && !disabled && (

@@ -725,14 +725,13 @@ function useSpeechRecognition() {
   const startListening = (onResult: (text: string) => void) => {
     if (!recognitionRef.current || isListening) return;
 
-    let finalTranscript = "";
-
     recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
-          onResult(finalTranscript.trim());
+          const transcript = event.results[i][0].transcript.trim();
+          if (transcript) {
+            onResult(transcript);
+          }
         }
       }
     };
@@ -944,6 +943,8 @@ function SummarySection({
           mechanicalVerdict: effectiveVerdict,
           hasSiniestro,
           hasKilometrajeAdulterado,
+          executiveSummary: summary || null,
+          estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
         }),
       });
 

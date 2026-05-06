@@ -27,9 +27,10 @@ function formatDate(date: Date): string {
   return format(date, "dd 'de' MMMM 'de' yyyy", { locale: es });
 }
 
-// Formatear fecha y hora para firma
+// Formatear fecha y hora para firma (ajustado a hora de Lima, UTC-5)
 function formatDateTime(date: Date): string {
-  return format(date, "dd/MM/yyyy 'a las' HH:mm", { locale: es });
+  const limaDate = new Date(date.getTime() - 5 * 60 * 60 * 1000);
+  return format(limaDate, "dd/MM/yyyy 'a las' HH:mm", { locale: es });
 }
 
 // Obtener datos completos del reporte para el PDF

@@ -264,6 +264,7 @@ export default function NavBar() {
                 href="/login"
                 className={styles["sidebar-user-icon"]}
                 aria-label="Iniciar sesión"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <img src="/assets/icons/user.svg" alt="usuario" className={styles["sidebar-user-icon-img"]} />
               </Link>
