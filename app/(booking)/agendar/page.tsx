@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getInspectionPlansServer, getBrandsServer } from "@/services/vehicle/vehicle.server";
 import AgendarForm from "./AgendarForm";
 
@@ -32,5 +33,30 @@ export default async function AgendarPage() {
     getBrandsServer(),
   ]);
 
-  return <AgendarForm initialInspections={inspections} initialBrands={brands} />;
+  return (
+    <Suspense fallback={<AgendarLoadingSkeleton />}>
+      <AgendarForm initialInspections={inspections} initialBrands={brands} />
+    </Suspense>
+  );
+}
+
+function AgendarLoadingSkeleton() {
+  return (
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{
+            width: 40,
+            height: 40,
+            border: "3px solid #e5e7eb",
+            borderTopColor: "#3b82f6",
+            borderRadius: "50%",
+            animation: "spin 1s linear infinite",
+            margin: "0 auto 16px"
+          }} />
+          <p style={{ color: "#6b7280" }}>Cargando...</p>
+        </div>
+      </div>
+    </div>
+  );
 }
