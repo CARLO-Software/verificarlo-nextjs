@@ -16,9 +16,21 @@ export default async function MisInspeccionesPage() {
 
   // Transformar datos para el componente cliente
   const formattedInspections = inspections.map((inspection) => {
-    // Determinar si tiene observaciones críticas basándose en el reporte
-    const hasCriticalObservations = inspection.report?.overallStatus === 'CRITICAL';
-    const hasObservations = inspection.report?.overallStatus === 'WARNING';
+    // Determinar el estado basándose en el veredicto del mecánico (decisión final)
+    const mechanicalVerdict = inspection.report?.mechanicalVerdict;
+
+    // Si hay veredicto del mecánico, usarlo; si no, usar overallStatus como fallback
+    let hasCriticalObservations = false;
+    let hasObservations = false;
+
+    if (mechanicalVerdict) {
+      hasCriticalObservations = mechanicalVerdict === 'NO_APROBADO';
+      hasObservations = mechanicalVerdict === 'OBSERVADO';
+    } else {
+      // Fallback al estado general si no hay veredicto del mecánico
+      hasCriticalObservations = inspection.report?.overallStatus === 'CRITICAL';
+      hasObservations = inspection.report?.overallStatus === 'WARNING';
+    }
 
     return {
       id: inspection.id,

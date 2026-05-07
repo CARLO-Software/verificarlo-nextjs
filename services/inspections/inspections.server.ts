@@ -13,6 +13,7 @@ interface ReportSummary {
   overallStatus: InspectionResultStatus;
   overallScore: number | null;
   pdfUrl: string | null;
+  mechanicalVerdict: string | null;
 }
 
 // Tipo completo del reporte para vistas detalladas
@@ -220,6 +221,7 @@ export async function getClientInspections(): Promise<ClientBookingWithDetails[]
           overallStatus: true,
           overallScore: true,
           pdfUrl: true,
+          mechanicalVerdict: true,
         },
       },
     },
