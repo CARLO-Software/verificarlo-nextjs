@@ -127,21 +127,22 @@ export function InspectorDashboardClient({
     return `En ${hours}h ${diffMins % 60}min`;
   };
 
-  // Obtener fecha en zona horaria de Lima (formato YYYY-MM-DD)
-  const getDateInLima = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString("en-CA", { timeZone: "America/Lima" }); // YYYY-MM-DD
+  // Extraer fecha YYYY-MM-DD directamente del ISO string (sin conversión de timezone)
+  // Esto es necesario porque el campo 'date' viene de Prisma @db.Date como medianoche UTC
+  const extractDateFromISO = (dateStr: string) => {
+    // Si es ISO string, extraer solo la parte de fecha
+    return dateStr.split("T")[0]; // "2026-05-11T00:00:00.000Z" → "2026-05-11"
   };
 
   const getTodayInLima = () => {
     return new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
   };
 
-  // Formatear fecha con ISO string completo o fecha YYYY-MM-DD
+  // Formatear fecha para mostrar (usa mediodía UTC para evitar problemas de timezone)
   const formatDate = (dateStr: string) => {
-    // Si es formato YYYY-MM-DD, agregamos mediodía UTC para evitar problemas de timezone
-    const dateToFormat = dateStr.includes("T") ? dateStr : dateStr + "T12:00:00Z";
-    const date = new Date(dateToFormat);
+    // Extraer solo la fecha y agregar mediodía UTC
+    const datePart = dateStr.split("T")[0];
+    const date = new Date(datePart + "T12:00:00Z");
     return date.toLocaleDateString("es-PE", {
       timeZone: "America/Lima",
       weekday: "long",
@@ -151,30 +152,31 @@ export function InspectorDashboardClient({
   };
 
   const isToday = (dateStr: string) => {
-    return getDateInLima(dateStr) === getTodayInLima();
+    return extractDateFromISO(dateStr) === getTodayInLima();
   };
 
   const isTomorrow = (dateStr: string) => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
-    return getDateInLima(dateStr) === tomorrowStr;
+    return extractDateFromISO(dateStr) === tomorrowStr;
   };
 
   const getDaysUntil = (dateStr: string) => {
-    const dateInLima = getDateInLima(dateStr);
+    const dateFromISO = extractDateFromISO(dateStr);
     const todayInLima = getTodayInLima();
-    // Usar "Z" para interpretar como UTC, no como hora local
-    const date = new Date(dateInLima + "T12:00:00Z");
+    // Usar mediodía UTC para cálculos de días
+    const date = new Date(dateFromISO + "T12:00:00Z");
     const today = new Date(todayInLima + "T12:00:00Z");
     const diffTime = date.getTime() - today.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
 
-  // Agrupar inspecciones pendientes por fecha (usando zona horaria de Lima)
+  // Agrupar inspecciones pendientes por fecha
   const groupedPending = pendingInspections.reduce((acc, inspection) => {
-    const dateKey = new Date(inspection.date).toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    // Extraer fecha directamente del ISO string (sin conversión de timezone)
+    const dateKey = extractDateFromISO(inspection.date);
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }

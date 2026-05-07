@@ -1074,7 +1074,9 @@ function BookingSummary({
   showPrice?: boolean;
 }) {
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Extraer fecha del ISO string y usar mediodía UTC para evitar cambio de día
+    const datePart = dateStr.split("T")[0];
+    const date = new Date(datePart + "T12:00:00Z");
     return date.toLocaleDateString("es-PE", {
       timeZone: "America/Lima",
       weekday: "long",
