@@ -2,7 +2,7 @@ import { AgendarVehiculo, Brand, InspectionPlan } from '@/app/vehiculo/types';
 import { db } from '@/lib/db';
 import { authOptions } from '@/lib/auth'
 import { getServerSession } from 'next-auth';
-import { crearFechaHoraSinConversion, crearFechaSinConversion, sumarMinutos } from '@/app/domain/datetime';
+import { crearFechaHoraLima, crearFechaSinConversion, sumarMinutos } from '@/app/domain/datetime';
 import { unstable_cache } from 'next/cache';
 
 // ============================================
@@ -95,9 +95,9 @@ export async function agendarVehiculo(payload: AgendarVehiculo) {
         });
     }
 
-    // Construir fechas para el booking (sin conversión de zona horaria)
+    // Construir fechas para el booking (hora de Lima convertida a UTC)
     const dateOnly = crearFechaSinConversion(payload.fechaEstimada);
-    const startTime = crearFechaHoraSinConversion(payload.fechaEstimada, payload.horaEstimada);
+    const startTime = crearFechaHoraLima(payload.fechaEstimada, payload.horaEstimada);
     const endTime = sumarMinutos(startTime, 60);
 
     const booking = await db.booking.create({

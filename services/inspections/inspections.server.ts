@@ -2,6 +2,7 @@ import { db } from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { BookingStatus, InspectionResultStatus, LegalStatus, MechanicalStatus } from '@prisma/client';
+import { crearFechaHoraLima, crearFechaSinConversion, sumarMinutos } from '@/app/domain/datetime';
 
 // ============================================
 // Tipos
@@ -768,13 +769,9 @@ export async function createManualBooking(input: ManualBookingInput) {
     throw new Error('Plan de inspección no válido');
   }
 
-  // 5. Calcular fecha y hora
-  const [hours, minutes] = input.timeSlot.split(':').map(Number);
-  const startTime = new Date(input.date);
-  startTime.setHours(hours, minutes, 0, 0);
-
-  const endTime = new Date(startTime);
-  endTime.setMinutes(endTime.getMinutes() + 60);
+  // 5. Calcular fecha y hora (hora de Lima convertida a UTC)
+  const startTime = crearFechaHoraLima(input.date, input.timeSlot);
+  const endTime = sumarMinutos(startTime, 60);
 
   // 6. Determinar el estado inicial y asignar inspector si es necesario
   let status: BookingStatus = 'PENDING_PAYMENT';
@@ -817,7 +814,7 @@ export async function createManualBooking(input: ManualBookingInput) {
       vehicleId: vehicle.id,
       inspectionPlanId: input.inspectionPlanId,
       inspectorId: assignedInspectorId,
-      date: new Date(input.date),
+      date: crearFechaSinConversion(input.date),
       timeSlot: input.timeSlot,
       startTime,
       endTime,
@@ -893,18 +890,14 @@ export async function updateInspectionDateTime(
     throw new Error('Inspección no encontrada');
   }
 
-  // Calcular nueva fecha y hora
-  const [hours, minutes] = timeSlot.split(':').map(Number);
-  const startTime = new Date(date);
-  startTime.setHours(hours, minutes, 0, 0);
-
-  const endTime = new Date(startTime);
-  endTime.setMinutes(endTime.getMinutes() + 60);
+  // Calcular nueva fecha y hora (hora de Lima convertida a UTC)
+  const startTime = crearFechaHoraLima(date, timeSlot);
+  const endTime = sumarMinutos(startTime, 60);
 
   return db.booking.update({
     where: { id },
     data: {
-      date: new Date(date),
+      date: crearFechaSinConversion(date),
       timeSlot,
       startTime,
       endTime,

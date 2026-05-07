@@ -7,14 +7,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { addMinutes, parse, differenceInHours } from "date-fns";
+import { differenceInHours } from "date-fns";
 import { isSlotAvailable } from "@/lib/scheduling/availability";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 import {
   INSPECTION_DURATION_MINUTES,
   MIN_HOURS_BEFORE_CANCEL,
 } from "@/lib/scheduling/constants";
-import { crearFechaSinConversion } from "@/app/domain/datetime";
+import { crearFechaSinConversion, crearFechaHoraLima, sumarMinutos } from "@/app/domain/datetime";
 
 export async function POST(
   req: NextRequest,
@@ -106,13 +106,9 @@ export async function POST(
       );
     }
 
-    // Calcular nuevos tiempos
-    const newStartTime = parse(
-      `${newDate} ${newTimeSlot}`,
-      "yyyy-MM-dd HH:mm",
-      new Date()
-    );
-    const newEndTime = addMinutes(newStartTime, INSPECTION_DURATION_MINUTES);
+    // Calcular nuevos tiempos (hora de Lima convertida a UTC)
+    const newStartTime = crearFechaHoraLima(newDate, newTimeSlot);
+    const newEndTime = sumarMinutos(newStartTime, INSPECTION_DURATION_MINUTES);
 
     // Actualizar booking
     await db.booking.update({

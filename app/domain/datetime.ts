@@ -1,8 +1,22 @@
 const TIMEZONE_LIMA = 'America/Lima';
+const LIMA_UTC_OFFSET_HOURS = 5; // Lima es UTC-5 (sin horario de verano)
 
 /**
- * Crea un Date sin conversión de zona horaria.
- * Si el usuario selecciona 12:00, se guarda 12:00 en la BD.
+ * Crea un Date interpretando la hora como hora de Lima y guardándola en UTC.
+ * Si el usuario selecciona 10:00 AM Lima, se guarda 15:00 UTC.
+ * Esto asegura que al mostrar en Lima, se vea la hora correcta.
+ */
+export function crearFechaHoraLima(fecha: string, hora: string): Date {
+  const [y, m, d] = fecha.split("-").map(Number);
+  const [h, min] = hora.split(":").map(Number);
+
+  // Sumar 5 horas para convertir de Lima (UTC-5) a UTC
+  return new Date(Date.UTC(y, m - 1, d, h + LIMA_UTC_OFFSET_HOURS, min));
+}
+
+/**
+ * @deprecated Usar crearFechaHoraLima en su lugar
+ * Crea un Date sin conversión de zona horaria (INCORRECTO para horas de Lima).
  */
 export function crearFechaHoraSinConversion(fecha: string, hora: string): Date {
   const [y, m, d] = fecha.split("-").map(Number);

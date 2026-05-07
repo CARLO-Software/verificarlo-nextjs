@@ -84,12 +84,13 @@ export function InspectorDashboardClient({
     });
   };
 
-  // Obtener inspecciones de hoy
+  // Obtener inspecciones de hoy (usando zona horaria de Lima)
   const getTodayInspections = () => {
-    const today = new Date().toDateString();
-    return pendingInspections.filter(
-      (i) => new Date(i.date).toDateString() === today
-    );
+    const todayLima = new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    return pendingInspections.filter((i) => {
+      const inspectionDateLima = new Date(i.date).toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+      return inspectionDateLima === todayLima;
+    });
   };
 
   // Obtener próxima inspección
@@ -126,9 +127,20 @@ export function InspectorDashboardClient({
     return `En ${hours}h ${diffMins % 60}min`;
   };
 
+  // Obtener fecha en zona horaria de Lima (formato YYYY-MM-DD)
+  const getDateInLima = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-CA", { timeZone: "America/Lima" }); // YYYY-MM-DD
+  };
+
+  const getTodayInLima = () => {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("es-PE", {
+      timeZone: "America/Lima",
       weekday: "long",
       day: "numeric",
       month: "long",
@@ -136,31 +148,29 @@ export function InspectorDashboardClient({
   };
 
   const isToday = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
+    return getDateInLima(dateStr) === getTodayInLima();
   };
 
   const isTomorrow = (dateStr: string) => {
-    const date = new Date(dateStr);
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    return date.toDateString() === tomorrow.toDateString();
+    const tomorrowStr = tomorrow.toLocaleDateString("en-CA", { timeZone: "America/Lima" });
+    return getDateInLima(dateStr) === tomorrowStr;
   };
 
   const getDaysUntil = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    date.setHours(0, 0, 0, 0);
+    const dateInLima = getDateInLima(dateStr);
+    const todayInLima = getTodayInLima();
+    const date = new Date(dateInLima + "T12:00:00");
+    const today = new Date(todayInLima + "T12:00:00");
     const diffTime = date.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
   };
 
-  // Agrupar inspecciones pendientes por fecha
+  // Agrupar inspecciones pendientes por fecha (usando zona horaria de Lima)
   const groupedPending = pendingInspections.reduce((acc, inspection) => {
-    const dateKey = new Date(inspection.date).toDateString();
+    const dateKey = new Date(inspection.date).toLocaleDateString("en-CA", { timeZone: "America/Lima" });
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }

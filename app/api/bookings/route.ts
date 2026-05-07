@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { addMinutes, parse } from "date-fns";
+import { addMinutes } from "date-fns";
 import { isSlotAvailable } from "@/lib/scheduling/availability";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
@@ -15,7 +15,7 @@ import {
   INSPECTION_DURATION_MINUTES,
   BOOKING_EXPIRATION_MINUTES,
 } from "@/lib/scheduling/constants";
-import { crearFechaSinConversion } from "@/app/domain/datetime";
+import { crearFechaSinConversion, crearFechaHoraLima, sumarMinutos } from "@/app/domain/datetime";
 
 // ============================================
 // POST - Crear reserva
@@ -126,9 +126,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Calcular tiempos
-    const startTime = parse(`${date} ${timeSlot}`, "yyyy-MM-dd HH:mm", new Date());
-    const endTime = addMinutes(startTime, INSPECTION_DURATION_MINUTES);
+    // Calcular tiempos (hora de Lima convertida a UTC)
+    const startTime = crearFechaHoraLima(date, timeSlot);
+    const endTime = sumarMinutos(startTime, INSPECTION_DURATION_MINUTES);
     const expiresAt = addMinutes(new Date(), BOOKING_EXPIRATION_MINUTES);
 
     // Crear reserva y pago en transacción
