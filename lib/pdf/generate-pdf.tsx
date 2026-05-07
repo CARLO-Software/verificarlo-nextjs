@@ -134,6 +134,19 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
     ? format(report.technicalReviewExpiryDate, 'dd/MM/yyyy')
     : null;
 
+  // Derivar estado de SOAT y revisión técnica desde el checklist
+  const checklistResults = (report.checklistResults as Record<string, { status: string; comment?: string }>) || {};
+  const soatFromChecklist = checklistResults['legal-soat'];
+  const revTecnicaFromChecklist = checklistResults['legal-revision-tecnica'];
+
+  // Si hay resultado en el checklist, usarlo; sino usar el campo del reporte
+  const soatValid = soatFromChecklist
+    ? soatFromChecklist.status === 'OK'
+    : report.soatValid;
+  const technicalReviewValid = revTecnicaFromChecklist
+    ? revTecnicaFromChecklist.status === 'OK'
+    : report.technicalReviewValid;
+
   // Agrupar fotos por checklistItemId
   const photosByItem: Record<string, string[]> = {};
   report.photos.forEach((photo) => {
@@ -170,11 +183,11 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
     overallStatus: report.overallStatus,
     categories,
 
-    checklistResults: (report.checklistResults as Record<string, { status: string; comment?: string }>) || {},
+    checklistResults,
 
-    soatValid: report.soatValid,
+    soatValid,
     soatExpiryDate,
-    technicalReviewValid: report.technicalReviewValid,
+    technicalReviewValid,
     technicalReviewExpiryDate,
 
     executiveSummary: report.executiveSummary,
