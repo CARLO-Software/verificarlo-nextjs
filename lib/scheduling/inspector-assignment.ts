@@ -3,7 +3,8 @@
 // ============================================
 
 import { db } from "@/lib/db";
-import { startOfDay } from "date-fns";
+import { format } from "date-fns";
+import { crearFechaSinConversion } from "@/app/domain/datetime";
 
 // ============================================
 // TIPOS
@@ -139,11 +140,15 @@ export async function reassignInspectorBookings(
   date: Date,
   _reason: string
 ): Promise<ReassignmentResult> {
+  // Convertir la fecha a formato consistente con almacenamiento (12:00 UTC)
+  const dateStr = format(date, "yyyy-MM-dd");
+  const dateForQuery = crearFechaSinConversion(dateStr);
+
   // Obtener todas las citas pagadas del inspector para esa fecha
   const bookings = await db.booking.findMany({
     where: {
       inspectorId,
-      date: startOfDay(date),
+      date: dateForQuery,
       status: "PAID",
     },
     include: {
@@ -173,7 +178,7 @@ export async function reassignInspectorBookings(
         id: { not: inspectorId },
         inspectorBookings: {
           none: {
-            date: startOfDay(date),
+            date: dateForQuery,
             timeSlot: booking.timeSlot,
             status: "PAID",
           },
@@ -223,6 +228,10 @@ export async function reassignInspectorBookings(
 // ============================================
 
 export async function getInspectorsWorkload(date: Date) {
+  // Convertir la fecha a formato consistente con almacenamiento (12:00 UTC)
+  const dateStr = format(date, "yyyy-MM-dd");
+  const dateForQuery = crearFechaSinConversion(dateStr);
+
   const inspectors = await db.user.findMany({
     where: {
       role: "INSPECTOR",
@@ -236,7 +245,7 @@ export async function getInspectorsWorkload(date: Date) {
       const bookings = await db.booking.findMany({
         where: {
           inspectorId: inspector.id,
-          date: startOfDay(date),
+          date: dateForQuery,
           status: { in: ["PAID", "COMPLETED"] },
         },
         select: { timeSlot: true, status: true },

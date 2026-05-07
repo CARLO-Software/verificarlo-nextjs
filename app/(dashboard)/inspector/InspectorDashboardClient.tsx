@@ -137,8 +137,11 @@ export function InspectorDashboardClient({
     return new Date().toLocaleDateString("en-CA", { timeZone: "America/Lima" });
   };
 
+  // Formatear fecha con ISO string completo o fecha YYYY-MM-DD
   const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+    // Si es formato YYYY-MM-DD, agregamos mediodía UTC para evitar problemas de timezone
+    const dateToFormat = dateStr.includes("T") ? dateStr : dateStr + "T12:00:00Z";
+    const date = new Date(dateToFormat);
     return date.toLocaleDateString("es-PE", {
       timeZone: "America/Lima",
       weekday: "long",
@@ -161,8 +164,9 @@ export function InspectorDashboardClient({
   const getDaysUntil = (dateStr: string) => {
     const dateInLima = getDateInLima(dateStr);
     const todayInLima = getTodayInLima();
-    const date = new Date(dateInLima + "T12:00:00");
-    const today = new Date(todayInLima + "T12:00:00");
+    // Usar "Z" para interpretar como UTC, no como hora local
+    const date = new Date(dateInLima + "T12:00:00Z");
+    const today = new Date(todayInLima + "T12:00:00Z");
     const diffTime = date.getTime() - today.getTime();
     const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;

@@ -7,7 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { startOfDay, parse, format } from "date-fns";
+import { format } from "date-fns";
+import { crearFechaSinConversion } from "@/app/domain/datetime";
 
 // Middleware para verificar rol de admin
 async function verifyAdmin(session: any) {
@@ -114,11 +115,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const parsedDate = parse(date, "yyyy-MM-dd", new Date());
+    // Usar crearFechaSinConversion para consistencia (12:00 UTC)
+    const dateForStorage = crearFechaSinConversion(date);
 
     // Verificar si ya existe
     const existing = await db.blockedDate.findUnique({
-      where: { date: startOfDay(parsedDate) },
+      where: { date: dateForStorage },
     });
 
     if (existing) {
@@ -131,14 +133,14 @@ export async function POST(req: NextRequest) {
     // Verificar si hay citas para esa fecha
     const bookingsOnDate = await db.booking.count({
       where: {
-        date: startOfDay(parsedDate),
+        date: dateForStorage,
         status: "PAID",
       },
     });
 
     const blockedDate = await db.blockedDate.create({
       data: {
-        date: startOfDay(parsedDate),
+        date: dateForStorage,
         reason: reason || null,
         createdBy: (session!.user!.id),
       },
@@ -190,10 +192,10 @@ export async function DELETE(req: NextRequest) {
         where: { id },
       });
     } else if (date) {
-      // Eliminar por fecha
-      const parsedDate = parse(date, "yyyy-MM-dd", new Date());
+      // Eliminar por fecha - usar crearFechaSinConversion para consistencia
+      const dateForQuery = crearFechaSinConversion(date);
       await db.blockedDate.delete({
-        where: { date: startOfDay(parsedDate) },
+        where: { date: dateForQuery },
       });
     } else {
       return NextResponse.json(

@@ -257,11 +257,11 @@ export async function getAvailabilityForDateAction(date: string) {
 export async function getAvailableInspectorsForSlotAction(date: string, timeSlot: string) {
   try {
     const { db } = await import('@/lib/db');
-    const { startOfDay } = await import('date-fns');
-    const { parse } = await import('date-fns');
+    const { crearFechaSinConversion } = await import('@/app/domain/datetime');
     const { BLOCKING_STATUSES } = await import('@/lib/scheduling/constants');
 
-    const dateObj = parse(date, 'yyyy-MM-dd', new Date());
+    // Usar crearFechaSinConversion para crear la fecha consistente con el almacenamiento (12:00 UTC)
+    const dateObj = crearFechaSinConversion(date);
 
     // Obtener todos los inspectores activos
     const allInspectors = await db.user.findMany({
@@ -280,7 +280,7 @@ export async function getAvailableInspectorsForSlotAction(date: string, timeSlot
     // Obtener reservas para este slot específico
     const bookingsInSlot = await db.booking.findMany({
       where: {
-        date: startOfDay(dateObj),
+        date: dateObj,
         timeSlot,
         status: {
           in: [...BLOCKING_STATUSES],

@@ -24,6 +24,7 @@ import {
   BLOCKING_STATUSES,
   MIN_HOURS_BEFORE_BOOKING,
 } from "./constants";
+import { crearFechaSinConversion, crearFechaHoraLima } from "@/app/domain/datetime";
 
 // ============================================
 // TIPOS
@@ -75,8 +76,11 @@ export async function isWorkingDay(date: Date): Promise<WorkingDayCheck> {
   }
 
   // 3. Verificar fechas bloqueadas en BD
+  // Convertir la fecha a formato consistente con almacenamiento (12:00 UTC)
+  const dateStr = format(date, "yyyy-MM-dd");
+  const dateForQuery = crearFechaSinConversion(dateStr);
   const blockedDate = await db.blockedDate.findUnique({
-    where: { date: startOfDay(date) },
+    where: { date: dateForQuery },
   });
 
   if (blockedDate) {
@@ -139,9 +143,11 @@ export async function getAvailabilityForDate(
   const baseSlots = getSlotsForDay(date);
 
   // Obtener reservas existentes para esa fecha (que bloquean slots)
+  // Usar crearFechaSinConversion para consistencia con almacenamiento (12:00 UTC)
+  const dateForQuery = crearFechaSinConversion(dateStr);
   const existingBookings = await db.booking.findMany({
     where: {
-      date: startOfDay(date),
+      date: dateForQuery,
       status: {
         in: [...BLOCKING_STATUSES],
       },
@@ -170,14 +176,11 @@ export async function getAvailabilityForDate(
     const remainingCapacity = Math.max(0, maxCapacity - bookedCount);
 
     // Verificar si el slot ya pasó (para el día actual)
-    const slotDateTime = parse(
-      `${dateStr} ${time}`,
-      "yyyy-MM-dd HH:mm",
-      new Date()
-    );
+    // Usar crearFechaHoraLima para crear la fecha en hora de Lima convertida a UTC
+    const slotDateTime = crearFechaHoraLima(dateStr, time);
 
     // Debe haber al menos MIN_HOURS_BEFORE_BOOKING horas de anticipación
-    const minBookingTime = addHours(nowInLima, MIN_HOURS_BEFORE_BOOKING);
+    const minBookingTime = addHours(new Date(), MIN_HOURS_BEFORE_BOOKING);
     const isInPast = !isAfter(slotDateTime, minBookingTime);
 
     return {
@@ -319,7 +322,6 @@ export async function isSlotAvailable(
   timeSlot: string
 ): Promise<{ available: boolean; reason?: string }> {
   const date = parse(dateStr, "yyyy-MM-dd", new Date());
-  const nowInLima = toZonedTime(new Date(), TIMEZONE);
 
   // Verificar día laborable
   const { isWorking, reason } = await isWorkingDay(date);
@@ -334,12 +336,9 @@ export async function isSlotAvailable(
   }
 
   // Verificar que no haya pasado
-  const slotDateTime = parse(
-    `${dateStr} ${timeSlot}`,
-    "yyyy-MM-dd HH:mm",
-    new Date()
-  );
-  const minBookingTime = addHours(nowInLima, MIN_HOURS_BEFORE_BOOKING);
+  // Usar crearFechaHoraLima para crear la fecha en hora de Lima convertida a UTC
+  const slotDateTime = crearFechaHoraLima(dateStr, timeSlot);
+  const minBookingTime = addHours(new Date(), MIN_HOURS_BEFORE_BOOKING);
 
   if (!isAfter(slotDateTime, minBookingTime)) {
     return {
@@ -349,10 +348,12 @@ export async function isSlotAvailable(
   }
 
   // Verificar capacidad
+  // Usar crearFechaSinConversion para consistencia con almacenamiento (12:00 UTC)
+  const dateForQuery = crearFechaSinConversion(dateStr);
   //Numero de reservas ya hechas para ese horario especifico (ej: 09:00)
   const existingCount = await db.booking.count({
     where: {
-      date: startOfDay(date),
+      date: dateForQuery,
       timeSlot,
       status: {
         in: [...BLOCKING_STATUSES],
