@@ -361,7 +361,6 @@ export default function PDFKeyFindings({
                     {finding.item}
                     {finding.comment ? `: ${finding.comment}` : ''}
                   </Text>
-                  <Text style={styles.criticalCategory}>{finding.category}</Text>
                 </View>
               </View>
             ))}
