@@ -81,6 +81,10 @@ export default async function InspeccionDetallePage({ params }: PageProps) {
             completedAt: booking.report.completedAt?.toISOString() || null,
             // Usar la API de Next.js para servir el PDF (no Cloudinary)
             pdfUrl: null,
+            // Veredicto del mecánico (decisión final)
+            mechanicalVerdict: booking.report.mechanicalVerdict || null,
+            hasSiniestro: booking.report.hasSiniestro ?? false,
+            hasKilometrajeAdulterado: booking.report.hasKilometrajeAdulterado ?? false,
           }
         : null,
       // Flujo de inspección dual (mecánico + legal)

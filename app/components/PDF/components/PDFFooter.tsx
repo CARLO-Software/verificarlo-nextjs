@@ -196,11 +196,6 @@ export default function PDFFooter({
               <Text style={styles.signatureLabel}>Fecha y Hora</Text>
               <Text style={styles.signatureValue}>{completedAt}</Text>
             </View>
-
-            <View style={styles.verificationBox}>
-              <Text style={styles.verificationLabel}>Verificar este informe en</Text>
-              <Text style={styles.verificationUrl}>verificarlo.com/validar</Text>
-            </View>
           </View>
         </View>
       )}

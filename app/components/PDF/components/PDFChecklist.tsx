@@ -285,7 +285,6 @@ const ITEM_NAMES: Record<string, string> = {
   'mec-direccion': 'Dirección',
   // Mecánica - Frenos
   'mec-funcionamiento-frenos': 'Funcionamiento de frenos',
-  // Prueba de Ruta (se mueven de Mecánica a su propia categoría)
   'mec-vibracion-ruido-freno': 'Vibración al frenar',
   'mec-funcionamiento-caja': 'Transmisión',
   'mec-comportamiento-conduccion': 'Conducción general',
@@ -538,14 +537,8 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
   );
 }
 
-// Items que pertenecen a la categoría "Prueba de Ruta"
-// 📚 CONCEPTO JAVASCRIPT - Set para búsquedas rápidas:
-// Usamos Set en lugar de Array porque .has() es O(1) vs .includes() que es O(n)
-const PRUEBA_RUTA_ITEMS = new Set([
-  'mec-vibracion-ruido-freno',
-  'mec-funcionamiento-caja',
-  'mec-comportamiento-conduccion',
-]);
+// NOTA: Ya no existe "Prueba de Ruta" como subcategoría separada.
+// Todos los items mec-* van bajo "Mecánica".
 
 // Helper para transformar checklistResults al formato esperado
 export function transformChecklistResults(
@@ -558,19 +551,15 @@ export function transformChecklistResults(
     Mecánica: [],
     Carrocería: [],
     Interior: [],
-    'Prueba de Ruta': [], // Nueva categoría
   };
 
   for (const [itemId, result] of Object.entries(checklistResults)) {
     if (!result || !result.status) continue;
 
-    // Determinar la categoría del item
+    // Determinar la categoría del item por prefijo
     let categoryName = 'Legal';
 
-    // Primero verificamos si es un item de Prueba de Ruta
-    if (PRUEBA_RUTA_ITEMS.has(itemId)) {
-      categoryName = 'Prueba de Ruta';
-    } else if (itemId.startsWith('mec-')) {
+    if (itemId.startsWith('mec-')) {
       categoryName = 'Mecánica';
     } else if (itemId.startsWith('car-')) {
       categoryName = 'Carrocería';
@@ -612,11 +601,9 @@ export function extractCriticalFindings(
     if (!result || !result.status) continue;
     if (result.status !== 'DEFECTO' && result.status !== 'OBSERVACION') continue;
 
-    // Determinar categoría (misma lógica que transformChecklistResults)
+    // Determinar categoría por prefijo
     let categoryName = 'Legal';
-    if (PRUEBA_RUTA_ITEMS.has(itemId)) {
-      categoryName = 'Prueba de Ruta';
-    } else if (itemId.startsWith('mec-')) {
+    if (itemId.startsWith('mec-')) {
       categoryName = 'Mecánica';
     } else if (itemId.startsWith('car-')) {
       categoryName = 'Carrocería';

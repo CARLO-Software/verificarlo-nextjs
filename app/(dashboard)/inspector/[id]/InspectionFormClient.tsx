@@ -696,10 +696,11 @@ function ChecklistSection({
 // ============================================
 import { calculateScoreByCategory, calculateOverallScore, INSPECTION_CATEGORIES } from "./inspectionData";
 
-// Hook para reconocimiento de voz
+// Hook para reconocimiento de voz con texto interim en tiempo real
 function useSpeechRecognition() {
   const [isListening, setIsListening] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
+  const [interimText, setInterimText] = useState("");
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
@@ -712,6 +713,7 @@ function useSpeechRecognition() {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "es-PE";
+      recognition.maxAlternatives = 3; // Más alternativas para mejor precisión
       recognitionRef.current = recognition;
     }
 
@@ -725,41 +727,77 @@ function useSpeechRecognition() {
   const startListening = (onResult: (text: string) => void) => {
     if (!recognitionRef.current || isListening) return;
 
+    setInterimText("");
+
     recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+      let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          const transcript = event.results[i][0].transcript.trim();
-          if (transcript) {
-            onResult(transcript);
+          // Resultado final - agregar al texto
+          if (transcript.trim()) {
+            onResult(transcript.trim());
           }
+          setInterimText("");
+        } else {
+          // Resultado interim - mostrar mientras habla
+          interim += transcript;
         }
+      }
+      if (interim) {
+        setInterimText(interim);
       }
     };
 
     recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error("Error de reconocimiento de voz:", event.error);
-      setIsListening(false);
+      // Si es error de "no-speech", reintentar automáticamente
+      if (event.error === "no-speech" && isListening) {
+        try {
+          recognitionRef.current?.start();
+        } catch {
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
+      }
+      setInterimText("");
     };
 
     recognitionRef.current.onend = () => {
-      setIsListening(false);
+      // Si aún está en modo escucha, reiniciar (Chrome cierra después de ~5s de silencio)
+      if (isListening && recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch {
+          setIsListening(false);
+        }
+      } else {
+        setIsListening(false);
+      }
+      setInterimText("");
     };
 
-    recognitionRef.current.start();
-    setIsListening(true);
+    try {
+      recognitionRef.current.start();
+      setIsListening(true);
+    } catch (err) {
+      console.error("Error iniciando reconocimiento:", err);
+    }
   };
 
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
+      setInterimText("");
     }
   };
 
-  return { isListening, isSupported, startListening, stopListening };
+  return { isListening, isSupported, interimText, startListening, stopListening };
 }
 
-// Componente de textarea con micrófono
+// Componente de textarea con micrófono y texto interim en tiempo real
 function VoiceTextarea({
   value,
   onChange,
@@ -773,7 +811,7 @@ function VoiceTextarea({
   disabled: boolean;
   label: string;
 }) {
-  const { isListening, isSupported, startListening, stopListening } = useSpeechRecognition();
+  const { isListening, isSupported, interimText, startListening, stopListening } = useSpeechRecognition();
 
   const handleVoiceClick = () => {
     if (isListening) {
@@ -823,7 +861,11 @@ function VoiceTextarea({
           <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
             <circle cx="4" cy="4" r="4" fill="currentColor" />
           </svg>
-          Escuchando... Habla ahora
+          {interimText ? (
+            <span>Detectando: <em style={{ fontStyle: 'italic', opacity: 0.8 }}>{interimText}</em></span>
+          ) : (
+            "Escuchando... Habla ahora"
+          )}
         </div>
       )}
       {!isSupported && !disabled && (

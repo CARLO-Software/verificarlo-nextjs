@@ -10,25 +10,23 @@ export const inspectionPlans = [
 export const inspectionPlanItems = [
     { inspectionPlanId: 1, label: [
         "Consulta SUNARP (gravámenes y embargos)",
-        "Consulta SUTRAN (papeletas)",
-        "Consulta SAT (robos y siniestros)",
-        "Historial de propietarios",
-        "Boleta informativa"
+        "Consulta SAT y SUTRAN (papeletas)",
+        "Consulta SBS (robos y siniestros)",
+        "Historial de propietarios"
     ] },
     { inspectionPlanId: 2, label: [
-        "Verificación legal completa",
+        "Revisión mecánica de 100 puntos + inspección legal",
         "Motor: compresión, fugas y ruidos",
         "Escáner OBD2 (motor, caja, airbags, ABS)",
         "Frenos y suspensión",
         "Escaneo de pintura (choques ocultos)",
-        "Diagnóstico con recomendaciones"
+        "Diagnóstico visualizable en el APP de Verificarlo al instante"
     ] },
     { inspectionPlanId: 3, label: [
         "Todo lo de la básica",
         "Videoscopía del motor",
         "Inspección de zonas ocultas",
         "Estimación de costos de reparación",
-        "Informe técnico-legal con fotos",
-        "Asesoría pre-compra"
+        "Visualización al instante por el app de Verificarlo"
     ] }
 ]

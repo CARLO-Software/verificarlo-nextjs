@@ -25,6 +25,10 @@ interface ReportFull extends ReportSummary {
   bodyScore: number | null;
   executiveSummary: string | null;
   completedAt: Date | null;
+  // Veredicto del mecánico (decisión final)
+  mechanicalVerdict: string | null;
+  hasSiniestro: boolean;
+  hasKilometrajeAdulterado: boolean;
   legalReport?: {
     id: number;
     status: string;
@@ -470,6 +474,10 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           executiveSummary: true,
           completedAt: true,
           pdfUrl: true,
+          // Veredicto del mecánico (decisión final)
+          mechanicalVerdict: true,
+          hasSiniestro: true,
+          hasKilometrajeAdulterado: true,
           legalReport: {
             select: {
               id: true,

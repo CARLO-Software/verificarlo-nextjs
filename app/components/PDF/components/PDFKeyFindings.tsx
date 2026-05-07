@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   criticalItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   criticalBullet: {
     width: 4,
@@ -120,6 +120,8 @@ const styles = StyleSheet.create({
   criticalCategory: {
     fontSize: 7,
     color: colors.slate,
+    marginTop: 2,
+    lineHeight: 1.3,
   },
   // Estado de documentos
   docsRow: {

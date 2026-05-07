@@ -27,10 +27,21 @@ function formatDate(date: Date): string {
   return format(date, "dd 'de' MMMM 'de' yyyy", { locale: es });
 }
 
-// Formatear fecha y hora para firma (ajustado a hora de Lima, UTC-5)
+// Formatear fecha y hora para firma (usando timezone explícito de Lima)
 function formatDateTime(date: Date): string {
-  const limaDate = new Date(date.getTime() - 5 * 60 * 60 * 1000);
-  return format(limaDate, "dd/MM/yyyy 'a las' HH:mm", { locale: es });
+  // Usar toLocaleString con timezone explícito para evitar problemas de conversión
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'America/Lima',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  };
+  const formatted = date.toLocaleString('es-PE', options);
+  // Formato: "07/05/2026, 10:30" -> "07/05/2026 a las 10:30"
+  return formatted.replace(',', ' a las');
 }
 
 // Obtener datos completos del reporte para el PDF

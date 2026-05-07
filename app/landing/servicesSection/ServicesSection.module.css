@@ -1076,7 +1076,8 @@
   flex: 1;
   min-width: 320px;
   max-width: 500px;
-  height: 580px;
+  min-height: 580px;
+  height: auto;
   border-radius: 20px;
   overflow: visible;
   position: relative;
@@ -1093,7 +1094,8 @@
 /* Plan destacado (Premium) - Diseño premium con elevación y glow */
 .desktop-plan-featured {
   max-width: 520px;
-  height: 620px;
+  min-height: 620px;
+  height: auto;
   transform: scale(1.03);
   border: 3px solid #FFD700;
   box-shadow:
@@ -1298,6 +1300,7 @@
   left: 0;
   width: 100%;
   height: 100%;
+  min-height: 100%;
   object-fit: cover;
   object-position: center;
   user-select: none;
@@ -1317,6 +1320,7 @@
   left: 0;
   right: 0;
   bottom: 0;
+  min-height: 100%;
   background: linear-gradient(to top,
       rgba(0, 0, 0, 0.95) 0%,
       rgba(0, 0, 0, 0.85) 30%,
@@ -1338,12 +1342,12 @@
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 100%;
-  padding: 36px;
+  min-height: 100%;
+  padding: 32px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 18px;
+  gap: 14px;
   z-index: 1;
 }
 
@@ -1354,30 +1358,30 @@
 
 .carousel-title {
   font-family: 'Inter', sans-serif;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
   color: #FFFFFF;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   line-height: 1.1;
   font-style: italic;
 }
 
 .carousel-description {
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.85);
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* Precio grande del carrusel */
 .carousel-price-large {
   font-family: 'Inter', sans-serif;
-  font-size: 38px;
+  font-size: 34px;
   font-weight: 900;
   color: #FFFFFF;
-  margin: 10px 0 0 0;
+  margin: 6px 0 0 0;
   line-height: 1.1;
 }
 
@@ -1388,18 +1392,19 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
+  overflow: hidden;
 }
 
 .carousel-item {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 10px;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   color: rgba(255, 255, 255, 0.92);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 /* Botón CTA del carrusel */
@@ -1409,11 +1414,11 @@
   justify-content: center;
   gap: 10px;
   flex: 1;
-  padding: 16px 24px;
+  padding: 14px 22px;
   background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
   color: #1a1a1a;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   text-decoration: none;
   border-radius: 100px;
@@ -1441,9 +1446,9 @@
 .carousel-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 /* En pantallas más anchas, botones en fila */
@@ -1461,11 +1466,11 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 24px;
+  padding: 14px 22px;
   background: #FFFFFF;
   color: #1a1a1a;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   border-radius: 100px;
@@ -1477,4 +1482,93 @@
 .carousel-btn-secondary:hover {
   background: #f0f0f0;
   transform: translateY(-2px);
+}
+
+/* ============================================
+   Responsive para desktop pequeño (992px - 1200px)
+   ============================================ */
+@media screen and (min-width: 992px) and (max-width: 1200px) {
+  .desktop-plans {
+    padding: 40px 30px 20px;
+    gap: 16px;
+  }
+
+  .desktop-plan-card {
+    min-width: 280px;
+    min-height: 560px;
+  }
+
+  .desktop-plan-featured {
+    min-height: 600px;
+  }
+
+  .carousel-content {
+    padding: 28px;
+    gap: 12px;
+  }
+
+  .carousel-title {
+    font-size: 22px;
+  }
+
+  .carousel-description {
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .carousel-price-large {
+    font-size: 30px;
+  }
+
+  .carousel-items-list {
+    gap: 8px;
+  }
+
+  .carousel-item {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .carousel-item svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+
+  .carousel-buttons {
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .carousel-cta,
+  .carousel-btn-secondary {
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   Responsive para desktop mediano (1200px - 1400px)
+   ============================================ */
+@media screen and (min-width: 1200px) and (max-width: 1400px) {
+  .desktop-plans {
+    padding: 40px 40px 20px;
+    gap: 20px;
+  }
+
+  .desktop-plan-card {
+    min-width: 300px;
+  }
+
+  .carousel-content {
+    padding: 30px;
+  }
+
+  .carousel-title {
+    font-size: 24px;
+  }
+
+  .carousel-item {
+    font-size: 13.5px;
+  }
 }
