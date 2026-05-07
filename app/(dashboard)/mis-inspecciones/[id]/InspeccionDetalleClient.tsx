@@ -494,6 +494,7 @@ function PaymentSuccessView({ inspection }: { inspection: InspectionData }) {
                   {new Date(inspection.payment.paidAt).toLocaleDateString(
                     "es-PE",
                     {
+                      timeZone: "America/Lima",
                       day: "numeric",
                       month: "long",
                       year: "numeric",
@@ -1073,9 +1074,9 @@ function BookingSummary({
   showPrice?: boolean;
 }) {
   const formatDate = (dateStr: string) => {
-    const [year, month, day] = dateStr.split("T")[0].split("-").map(Number);
-    const date = new Date(year, month - 1, day);
+    const date = new Date(dateStr);
     return date.toLocaleDateString("es-PE", {
+      timeZone: "America/Lima",
       weekday: "long",
       day: "numeric",
       month: "long",
