@@ -713,7 +713,6 @@ function useSpeechRecognition() {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "es-PE";
-      recognition.maxAlternatives = 3; // Más alternativas para mejor precisión
       recognitionRef.current = recognition;
     }
 
