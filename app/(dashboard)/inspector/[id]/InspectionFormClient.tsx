@@ -591,25 +591,6 @@ function InfoSection({
         </div>
       </div>
 
-      {/* Monto a cobrar - destacado (con descuento de S/ 50 para planes > S/ 49) */}
-      <div className={styles.priceCard}>
-        <div className={styles.priceCardIcon}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-            <path d="M12 6v12M9 9c0-1.1.9-2 2-2h2a2 2 0 110 4h-2a2 2 0 100 4h2a2 2 0 002-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </div>
-        <div className={styles.priceCardContent}>
-          <span className={styles.priceCardLabel}>Monto a cobrar al cliente</span>
-          <span className={styles.priceCardValue}>
-            S/ {(inspection.inspectionPlan.price > 49
-              ? inspection.inspectionPlan.price - 50
-              : inspection.inspectionPlan.price
-            ).toFixed(2)}
-          </span>
-        </div>
-      </div>
-
       {/* Datos de la cita */}
       <div className={styles.infoGrid} style={{ marginTop: "16px" }}>
         <div className={styles.infoCard}>
