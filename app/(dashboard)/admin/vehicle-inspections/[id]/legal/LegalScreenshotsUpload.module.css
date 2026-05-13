@@ -519,6 +519,89 @@
   font-style: italic;
 }
 
+/* Campos adicionales (fechas de vencimiento, monto transferencia) */
+.extraFieldBox {
+  margin: 12px 0 8px 0;
+  padding: 12px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.extraFieldLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.extraFieldLabelSmall {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6B7280;
+  margin-bottom: 4px;
+}
+
+.extraFieldInput {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #111827;
+  background: white;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.extraFieldInput:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.extraFieldInput:disabled {
+  background: #F3F4F6;
+  color: #6B7280;
+  cursor: not-allowed;
+}
+
+.extraFieldInput::placeholder {
+  color: #9CA3AF;
+}
+
+.extraFieldTextarea {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #111827;
+  background: white;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  resize: vertical;
+  min-height: 50px;
+}
+
+.extraFieldTextarea:focus {
+  outline: none;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.extraFieldTextarea:disabled {
+  background: #F3F4F6;
+  color: #6B7280;
+  cursor: not-allowed;
+}
+
+.extraFieldTextarea::placeholder {
+  color: #9CA3AF;
+}
+
 /* Screenshot Preview */
 .screenshotPreview {
   position: relative;

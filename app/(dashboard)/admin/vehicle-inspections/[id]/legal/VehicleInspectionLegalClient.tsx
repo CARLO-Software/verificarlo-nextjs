@@ -184,6 +184,7 @@ export function VehicleInspectionLegalClient({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   // Estado para capturas de pantalla y PDF (soporta múltiples imágenes por fuente)
   const [screenshots, setScreenshots] = useState<LegalScreenshot[]>(() => {
@@ -251,17 +252,7 @@ export function VehicleInspectionLegalClient({
 
   // Completar revisión (EN_PROCESO -> COMPLETADO)
   const handleComplete = async () => {
-    // Ya no validamos campos individuales, el sistema ahora usa categorías
-    // Las categorías se guardan automáticamente en sourceStatuses/sourceObservations
-    // Solo verificamos que se hayan subido las capturas requeridas
-
-    // Esta validación la puedes eliminar completamente o mantenerla simple
-    // Por ahora la eliminamos para permitir completar sin restricciones
-
-    if (!confirm('¿Confirmas que has completado la revisión legal de este vehículo?')) {
-      return;
-    }
-
+    setShowCompleteModal(false);
     setError(null);
     setSuccess(null);
 
@@ -478,6 +469,10 @@ export function VehicleInspectionLegalClient({
               generalObservations={reportData.otherObservations}
               onGeneralObservationsChange={(value) => updateField('otherObservations', value)}
               canEdit={canEdit && isAssignedToMe}
+              initialSoatExpiryDate={(initialReportData as any)?.soatExpiryDate || ''}
+              initialTechReviewExpiryDate={(initialReportData as any)?.techReviewExpiryDate || ''}
+              initialTechReviewNotes={(initialReportData as any)?.techReviewNotes || ''}
+              initialLastTransferPrice={(initialReportData as any)?.lastTransferPrice || ''}
             />
           </>
         )}
@@ -501,7 +496,7 @@ export function VehicleInspectionLegalClient({
         {canEdit && isAssignedToMe && (
           <div className={styles.actions}>
             <button
-              onClick={handleComplete}
+              onClick={() => setShowCompleteModal(true)}
               disabled={isPending}
               className={styles.completeButton}
             >
@@ -581,6 +576,54 @@ export function VehicleInspectionLegalClient({
           </div>
         )}
       </div>
+
+      {/* Modal de confirmación */}
+      {showCompleteModal && (
+        <>
+          <div
+            className={styles.modalBackdrop}
+            onClick={() => setShowCompleteModal(false)}
+          />
+          <div className={styles.modal}>
+            <div className={styles.modalIcon}>
+              <CheckCircle size={48} className={styles.modalIconGreen} />
+            </div>
+            <h3 className={styles.modalTitle}>Completar Revisión Legal</h3>
+            <p className={styles.modalText}>
+              ¿Confirmas que has completado la revisión legal de este vehículo?
+            </p>
+            <p className={styles.modalSubtext}>
+              Una vez completada, no podrás editar la información.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                onClick={() => setShowCompleteModal(false)}
+                className={styles.modalButtonCancel}
+                disabled={isPending}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleComplete}
+                className={styles.modalButtonConfirm}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 size={16} className={styles.spinner} />
+                    Completando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={16} />
+                    Sí, Completar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

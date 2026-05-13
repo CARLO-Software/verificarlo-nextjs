@@ -168,6 +168,11 @@ export async function getLegalReportDataForPDF(
     screenshots,
     inspectorName: inspection.assignedAdmin?.name || 'Inspector Legal',
     totalPages,
+    // Campos adicionales
+    soatExpiryDate: legalReportData.soatExpiryDate || null,
+    techReviewExpiryDate: legalReportData.techReviewExpiryDate || null,
+    techReviewNotes: legalReportData.techReviewNotes || null,
+    lastTransferPrice: legalReportData.lastTransferPrice || null,
   };
 }
 

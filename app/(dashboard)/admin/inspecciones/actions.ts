@@ -246,7 +246,8 @@ export async function searchClientsAction(query: string) {
 export async function getAvailabilityForDateAction(date: string) {
   try {
     const { getAvailabilityForDate } = await import('@/lib/scheduling/availability');
-    const availability = await getAvailabilityForDate(date);
+    // Admin puede agendar sin restricción de horas mínimas de anticipación
+    const availability = await getAvailabilityForDate(date, { isAdmin: true });
     return { success: true, availability };
   } catch (error) {
     console.error('Error obteniendo disponibilidad:', error);
