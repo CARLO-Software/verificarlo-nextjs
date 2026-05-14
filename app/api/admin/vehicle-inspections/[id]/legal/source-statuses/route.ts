@@ -28,7 +28,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const body = await request.json();
-    const { statuses, observations } = body;
+    const { statuses, observations, soatExpiryDate, techReviewExpiryDate, techReviewNotes, lastTransferPrice } = body;
 
     // Verificar que existe
     const inspection = await db.vehicleInspection.findUnique({
@@ -42,11 +42,16 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Obtener el legalReportData actual
     const currentReportData = (inspection.legalReportData as any) || {};
 
-    // Actualizar con los nuevos estados y observaciones
+    // Actualizar con los nuevos estados, observaciones y campos adicionales
     const updatedReportData = {
       ...currentReportData,
       sourceStatuses: statuses,
       sourceObservations: observations,
+      // Campos adicionales del informe legal
+      ...(soatExpiryDate !== undefined && { soatExpiryDate }),
+      ...(techReviewExpiryDate !== undefined && { techReviewExpiryDate }),
+      ...(techReviewNotes !== undefined && { techReviewNotes }),
+      ...(lastTransferPrice !== undefined && { lastTransferPrice }),
     };
 
     // Guardar en la base de datos

@@ -991,21 +991,47 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                 </select>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <select
-                    value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
-                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                  >
-                    {yearRange.map((year) => (
-                      <option key={year} value={year}>{year}</option>
-                    ))}
-                  </select>
+                  <div className="flex gap-2">
+                    <select
+                      value={yearRange.includes(formData.year) ? formData.year : 'other'}
+                      onChange={(e) => {
+                        if (e.target.value === 'other') {
+                          setFormData({ ...formData, year: 0 });
+                        } else {
+                          setFormData({ ...formData, year: Number(e.target.value) });
+                        }
+                      }}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    >
+                      {yearRange.map((year) => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                      <option value="other">Otro...</option>
+                    </select>
+                    {!yearRange.includes(formData.year) && (
+                      <input
+                        type="number"
+                        placeholder="Año"
+                        value={formData.year || ''}
+                        onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
+                        min={1950}
+                        max={new Date().getFullYear() + 1}
+                        className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                      />
+                    )}
+                  </div>
 
                   <input
                     type="text"
                     placeholder="Placa (opcional)"
                     value={formData.plate}
-                    onChange={(e) => setFormData({ ...formData, plate: e.target.value.toUpperCase() })}
+                    onChange={(e) => {
+                      let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                      if (value.length > 3) {
+                        value = value.slice(0, 3) + '-' + value.slice(3, 6);
+                      }
+                      setFormData({ ...formData, plate: value });
+                    }}
                     maxLength={7}
                     className="px-3 py-2 border border-gray-200 rounded-lg text-sm uppercase focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                   />

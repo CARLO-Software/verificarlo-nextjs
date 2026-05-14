@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   INSPECTION_CATEGORIES,
   type InspectionStatus,
@@ -16,6 +17,9 @@ import { InspectionItemCard } from "./InspectionItemCard";
 import { StatusLegend } from "./StatusLegend";
 import { type Photo } from "./ItemPhotoCapture";
 import styles from "./InspectionChecklist.module.css";
+
+// Key para sessionStorage
+const CHECKLIST_STORAGE_KEY = "inspection_checklist_backup";
 
 interface InspectionChecklistProps {
   initialResults?: InspectionResults;
@@ -40,10 +44,33 @@ export function InspectionChecklist({
   onPhotoAdded,
   onPhotoDeleted,
 }: InspectionChecklistProps) {
+  const router = useRouter();
+
+  // Intentar recuperar datos del sessionStorage al inicializar
+  const getInitialResults = (): InspectionResults => {
+    if (typeof window === "undefined" || !reportId) return initialResults;
+
+    try {
+      const stored = sessionStorage.getItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Si hay datos en sessionStorage, combinarlos con los del servidor
+        // Los datos del sessionStorage tienen prioridad (son más recientes)
+        if (Object.keys(parsed).length > 0) {
+          // Combinar: servidor como base, sessionStorage sobrescribe
+          return { ...initialResults, ...parsed };
+        }
+      }
+    } catch {
+      // Ignorar errores de parsing
+    }
+    return initialResults;
+  };
+
   const [activeCategory, setActiveCategory] = useState<string>(
     INSPECTION_CATEGORIES[0].id
   );
-  const [results, setResults] = useState<InspectionResults>(initialResults);
+  const [results, setResults] = useState<InspectionResults>(getInitialResults);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
@@ -56,6 +83,8 @@ export function InspectionChecklist({
   const savedIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   // Ref para almacenar el último estado de results (para guardado en navegación)
   const resultsRef = useRef<InspectionResults>(initialResults);
+  // Ref para evitar guardado duplicado
+  const isSavingRef = useRef(false);
 
   // Obtener categoría activa
   const currentCategory = useMemo(() => {
@@ -69,8 +98,9 @@ export function InspectionChecklist({
 
   // Función de autoguardado
   const autoSave = useCallback(async (newResults: InspectionResults) => {
-    if (!onSave || saving || disabled) return;
+    if (!onSave || saving || disabled || isSavingRef.current) return;
 
+    isSavingRef.current = true;
     setSaving(true);
     setSaveStatus("saving");
 
@@ -85,6 +115,15 @@ export function InspectionChecklist({
       hasUnsavedChanges.current = false;
       setSaveStatus("saved");
 
+      // Limpiar sessionStorage después de guardar exitosamente
+      if (reportId && typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        } catch {
+          // Ignorar
+        }
+      }
+
       // Ocultar indicador después de 2 segundos
       savedIndicatorTimeoutRef.current = setTimeout(() => {
         setSaveStatus("idle");
@@ -94,8 +133,29 @@ export function InspectionChecklist({
       setSaveStatus("idle");
     } finally {
       setSaving(false);
+      isSavingRef.current = false;
     }
-  }, [onSave, saving, disabled]);
+  }, [onSave, saving, disabled, reportId]);
+
+  // Guardar en sessionStorage como backup inmediato
+  const saveToSessionStorage = useCallback((data: InspectionResults) => {
+    if (typeof window === "undefined" || !reportId) return;
+    try {
+      sessionStorage.setItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`, JSON.stringify(data));
+    } catch {
+      // Ignorar errores de storage
+    }
+  }, [reportId]);
+
+  // Limpiar sessionStorage después de guardar exitosamente en el servidor
+  const clearSessionStorage = useCallback(() => {
+    if (typeof window === "undefined" || !reportId) return;
+    try {
+      sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+    } catch {
+      // Ignorar errores
+    }
+  }, [reportId]);
 
   // Manejar cambio de estado de un ítem (con autoguardado)
   const handleStatusChange = useCallback(
@@ -115,20 +175,23 @@ export function InspectionChecklist({
         // Marcar que hay cambios pendientes
         hasUnsavedChanges.current = true;
 
+        // Guardar inmediatamente en sessionStorage como backup
+        saveToSessionStorage(newResults);
+
         // Cancelar timeout anterior si existe
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
 
-        // Programar autoguardado después de 1 segundo de inactividad
+        // Programar autoguardado después de 500ms de inactividad (reducido de 1s)
         saveTimeoutRef.current = setTimeout(() => {
           autoSave(newResults);
-        }, 1000);
+        }, 500);
 
         return newResults;
       });
     },
-    [autoSave]
+    [autoSave, saveToSessionStorage]
   );
 
   // Mantener ref sincronizado con el estado
@@ -136,9 +199,50 @@ export function InspectionChecklist({
     resultsRef.current = results;
   }, [results]);
 
+  // Sincronizar datos del sessionStorage con el servidor al montar
+  useEffect(() => {
+    if (!reportId || !onSave || disabled) return;
+
+    const syncFromStorage = async () => {
+      try {
+        const stored = sessionStorage.getItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        if (stored) {
+          const parsedData = JSON.parse(stored);
+          // Si hay datos en storage, combinar con los actuales y sincronizar
+          if (Object.keys(parsedData).length > 0) {
+            // Combinar datos actuales con los del storage (storage tiene prioridad)
+            const mergedData = { ...resultsRef.current, ...parsedData };
+            // Actualizar estado local
+            setResults(mergedData);
+            resultsRef.current = mergedData;
+            // Guardar en el servidor
+            await onSave(mergedData);
+            // Limpiar storage después de sincronizar
+            sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+          }
+        }
+      } catch {
+        // Ignorar errores
+      }
+    };
+
+    syncFromStorage();
+  }, [reportId, onSave, disabled]);
+
   // Función para guardar con fetch keepalive (funciona incluso al cerrar/navegar)
   const saveWithKeepAlive = useCallback(() => {
-    if (!reportId || !hasUnsavedChanges.current) return;
+    if (!reportId || !hasUnsavedChanges.current || isSavingRef.current) return;
+
+    const dataToSave = resultsRef.current;
+
+    // Guardar también en sessionStorage por si la petición falla
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`, JSON.stringify(dataToSave));
+      } catch {
+        // Ignorar
+      }
+    }
 
     // fetch con keepalive garantiza que la petición se complete aunque se cierre la página
     fetch(`/api/reports/${reportId}/sections`, {
@@ -146,11 +250,20 @@ export function InspectionChecklist({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         section: "checklist",
-        data: { checklistResults: resultsRef.current },
+        data: { checklistResults: dataToSave },
       }),
       keepalive: true, // Permite que la petición continúe aunque la página se cierre
+    }).then(() => {
+      // Limpiar sessionStorage si la petición fue exitosa
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        } catch {
+          // Ignorar
+        }
+      }
     }).catch(() => {
-      // Ignorar errores - es un intento de último recurso
+      // Ignorar errores - los datos están en sessionStorage como backup
     });
     hasUnsavedChanges.current = false;
   }, [reportId]);

@@ -47,6 +47,11 @@ interface Props {
   generalObservations: string;
   onGeneralObservationsChange: (value: string) => void;
   canEdit: boolean;
+  // Campos adicionales del informe legal
+  initialSoatExpiryDate?: string;
+  initialTechReviewExpiryDate?: string;
+  initialTechReviewNotes?: string;
+  initialLastTransferPrice?: string;
 }
 
 export function LegalScreenshotsUpload({
@@ -59,6 +64,10 @@ export function LegalScreenshotsUpload({
   generalObservations,
   onGeneralObservationsChange,
   canEdit,
+  initialSoatExpiryDate,
+  initialTechReviewExpiryDate,
+  initialTechReviewNotes,
+  initialLastTransferPrice,
 }: Props) {
   const [uploading, setUploading] = useState<LegalSourceId | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +80,12 @@ export function LegalScreenshotsUpload({
     initialSourceObservations || {}
   );
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Estados para campos adicionales del informe legal
+  const [soatExpiryDate, setSoatExpiryDate] = useState(initialSoatExpiryDate || '');
+  const [techReviewExpiryDate, setTechReviewExpiryDate] = useState(initialTechReviewExpiryDate || '');
+  const [techReviewNotes, setTechReviewNotes] = useState(initialTechReviewNotes || '');
+  const [lastTransferPrice, setLastTransferPrice] = useState(initialLastTransferPrice || '');
 
   // Log inicial para debug
   useEffect(() => {
@@ -157,13 +172,19 @@ export function LegalScreenshotsUpload({
     setSourceObservations(prev => ({ ...prev, [categoryId]: observation }));
   };
 
-  // Guardar estados y observaciones (debounced)
+  // Guardar estados, observaciones y campos adicionales (debounced)
   useEffect(() => {
     const timeoutId = setTimeout(async () => {
       // Solo guardar si hay datos
-      if (Object.keys(sourceStatuses).length > 0 || Object.keys(sourceObservations).length > 0) {
+      const hasData = Object.keys(sourceStatuses).length > 0 ||
+                      Object.keys(sourceObservations).length > 0 ||
+                      soatExpiryDate || techReviewExpiryDate || lastTransferPrice;
+      if (hasData) {
         console.log('[GUARDANDO] sourceStatuses:', sourceStatuses);
         console.log('[GUARDANDO] sourceObservations:', sourceObservations);
+        console.log('[GUARDANDO] soatExpiryDate:', soatExpiryDate);
+        console.log('[GUARDANDO] techReviewExpiryDate:', techReviewExpiryDate);
+        console.log('[GUARDANDO] lastTransferPrice:', lastTransferPrice);
         try {
           const response = await fetch(
             `/api/admin/vehicle-inspections/${inspectionId}/legal/source-statuses`,
@@ -173,6 +194,10 @@ export function LegalScreenshotsUpload({
               body: JSON.stringify({
                 statuses: sourceStatuses,
                 observations: sourceObservations,
+                soatExpiryDate: soatExpiryDate || null,
+                techReviewExpiryDate: techReviewExpiryDate || null,
+                techReviewNotes: techReviewNotes || null,
+                lastTransferPrice: lastTransferPrice || null,
               }),
             }
           );
@@ -185,7 +210,7 @@ export function LegalScreenshotsUpload({
     }, 1000); // Guardar 1 segundo después del último cambio
 
     return () => clearTimeout(timeoutId);
-  }, [sourceStatuses, sourceObservations, inspectionId]);
+  }, [sourceStatuses, sourceObservations, inspectionId, soatExpiryDate, techReviewExpiryDate, techReviewNotes, lastTransferPrice]);
 
   // Contar capturas requeridas vs subidas
   const requiredSources = LEGAL_SOURCES.filter((s) => s.required);
@@ -407,6 +432,50 @@ export function LegalScreenshotsUpload({
                         placeholder={`Escriba las observaciones sobre ${category.name}...`}
                         rows={2}
                         className={styles.observationTextarea}
+                      />
+                    </div>
+                  )}
+
+                  {/* Campo de fecha de vencimiento para SOAT */}
+                  {category.id === 'soat' && (
+                    <div className={styles.extraFieldBox}>
+                      <label className={styles.extraFieldLabel}>Fecha de vencimiento SOAT</label>
+                      <input
+                        type="date"
+                        value={soatExpiryDate}
+                        onChange={(e) => setSoatExpiryDate(e.target.value)}
+                        className={styles.extraFieldInput}
+                        disabled={!canEdit}
+                      />
+                    </div>
+                  )}
+
+                  {/* Campo para Revisión Técnica */}
+                  {category.id === 'revision_tecnica' && (
+                    <div className={styles.extraFieldBox}>
+                      <label className={styles.extraFieldLabel}>Información de la Revisión Técnica</label>
+                      <textarea
+                        value={techReviewNotes}
+                        onChange={(e) => setTechReviewNotes(e.target.value)}
+                        placeholder="Ej: Vence: 15/06/2027, Certificadora: LIDERCON..."
+                        className={styles.extraFieldTextarea}
+                        disabled={!canEdit}
+                        rows={2}
+                      />
+                    </div>
+                  )}
+
+                  {/* Campo de precio para Historial de Propietarios (última transferencia) */}
+                  {category.id === 'historial_propietarios' && (
+                    <div className={styles.extraFieldBox}>
+                      <label className={styles.extraFieldLabel}>Última transferencia (monto)</label>
+                      <input
+                        type="text"
+                        value={lastTransferPrice}
+                        onChange={(e) => setLastTransferPrice(e.target.value)}
+                        placeholder="Ej: S/ 45,000 o USD 12,000"
+                        className={styles.extraFieldInput}
+                        disabled={!canEdit}
                       />
                     </div>
                   )}
