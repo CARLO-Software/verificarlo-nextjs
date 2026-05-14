@@ -270,34 +270,10 @@ export function InspectionChecklist({
     hasUnsavedChanges.current = false;
   }, [reportId]);
 
-  // Ref para trackear la categoría actual (para el popstate)
-  const activeCategoryRef = useRef(activeCategory);
-  useEffect(() => {
-    activeCategoryRef.current = activeCategory;
-  }, [activeCategory]);
-
-  // Ref para detectar doble tap (taps rápidos consecutivos)
-  const lastPopStateTimeRef = useRef<number>(0);
-  const popStateCountRef = useRef<number>(0);
-
-  // Agregar entrada al historial cuando cambia de categoría
-  useEffect(() => {
-    // Agregar estado al historial para cada categoría
-    const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategory);
-    window.history.pushState({ categoryIndex: currentIndex, categoryId: activeCategory, isChecklist: true }, "");
-  }, [activeCategory]);
-
   // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
   useEffect(() => {
-    // Agregar MUCHAS entradas al historial para crear un "buffer" de protección grande
-    const initialIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === INSPECTION_CATEGORIES[0].id);
-    const historyState = { categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true };
-
-    window.history.replaceState(historyState, "");
-    // Agregar 15 entradas de protección para absorber múltiples taps rápidos
-    for (let i = 0; i < 15; i++) {
-      window.history.pushState(historyState, "");
-    }
+    // Agregar una entrada al historial para poder interceptar el botón atrás
+    window.history.pushState({ isChecklist: true }, "");
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges.current) {
@@ -316,47 +292,9 @@ export function InspectionChecklist({
     };
 
     const handlePopState = (event: PopStateEvent) => {
-      const now = Date.now();
-      const timeSinceLastPop = now - lastPopStateTimeRef.current;
-      lastPopStateTimeRef.current = now;
-
-      // SIEMPRE agregar entradas al historial primero para prevenir navegación
-      const protectionState = { categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true };
-      for (let i = 0; i < 5; i++) {
-        window.history.pushState(protectionState, "");
-      }
-
-      // Detectar taps rápidos (menos de 500ms entre taps)
-      if (timeSinceLastPop < 500) {
-        popStateCountRef.current += 1;
-      } else {
-        popStateCountRef.current = 1;
-      }
-
-      // Si hay 2 o más taps rápidos, mostrar modal inmediatamente
-      if (popStateCountRef.current >= 2) {
-        setShowExitModal(true);
-        popStateCountRef.current = 0;
-        return;
-      }
-
-      // Cuando el usuario usa el botón atrás del navegador (tap simple)
-      const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategoryRef.current);
-
-      if (currentIndex > 0) {
-        // Si no está en la primera categoría, ir a la anterior
-        const previousCategory = INSPECTION_CATEGORIES[currentIndex - 1];
-        setActiveCategory(previousCategory.id);
-        onCategoryChange?.(previousCategory.id);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        // Guardar cambios pendientes
-        if (hasUnsavedChanges.current) {
-          saveWithKeepAlive();
-        }
-      } else {
-        // Si está en la primera categoría, mostrar modal de confirmación
-        setShowExitModal(true);
-      }
+      // Siempre prevenir la navegación y mostrar modal
+      window.history.pushState({ isChecklist: true }, "");
+      setShowExitModal(true);
     };
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -376,7 +314,7 @@ export function InspectionChecklist({
         onSave(resultsRef.current);
       }
     };
-  }, [onSave, saveWithKeepAlive, onCategoryChange]);
+  }, [onSave, saveWithKeepAlive]);
 
   // Manejar cambio de categoría
   const handleCategoryChange = (categoryId: string) => {
