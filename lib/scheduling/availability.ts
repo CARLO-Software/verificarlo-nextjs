@@ -122,10 +122,12 @@ export async function getActiveInspectorsCount(): Promise<number> {
 // ============================================
 
 export async function getAvailabilityForDate(
-  dateStr: string // formato "YYYY-MM-DD"
+  dateStr: string, // formato "YYYY-MM-DD"
+  options?: { isAdmin?: boolean }
 ): Promise<DateAvailability> {
   const date = parse(dateStr, "yyyy-MM-dd", new Date());
   const nowInLima = toZonedTime(new Date(), TIMEZONE);
+  const isAdmin = options?.isAdmin ?? false;
 
   // Verificar si es día laborable
   const { isWorking, reason } = await isWorkingDay(date);
@@ -180,8 +182,9 @@ export async function getAvailabilityForDate(
     const slotDateTime = crearFechaHoraLima(dateStr, time);
 
     // Debe haber al menos MIN_HOURS_BEFORE_BOOKING horas de anticipación
+    // Los admins pueden saltarse esta restricción
     const minBookingTime = addHours(new Date(), MIN_HOURS_BEFORE_BOOKING);
-    const isInPast = !isAfter(slotDateTime, minBookingTime);
+    const isInPast = isAdmin ? false : !isAfter(slotDateTime, minBookingTime);
 
     return {
       time,

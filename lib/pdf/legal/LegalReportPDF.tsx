@@ -287,6 +287,13 @@ const styles = StyleSheet.create({
     color: '#991B1B', // Rojo oscuro
     fontWeight: 700,
   },
+  // Información extra (fecha de vencimiento, monto, etc.)
+  itemExtraInfo: {
+    fontSize: 7,
+    color: '#6366F1', // Púrpura
+    marginTop: 2,
+    fontWeight: 600,
+  },
 
   // Sección de observaciones
   observationsSection: {
@@ -493,6 +500,11 @@ export interface LegalReportData {
   }[];
   inspectorName: string;
   totalPages: number;
+  // Campos adicionales
+  soatExpiryDate?: string | null;
+  techReviewExpiryDate?: string | null;
+  techReviewNotes?: string | null;
+  lastTransferPrice?: string | null;
 }
 
 // Base URL para iconos
@@ -596,10 +608,12 @@ function getDefaultText(status: string): string {
 // Componente para cada item del grid
 function GridItem({
   field,
-  isRight
+  isRight,
+  extraInfo
 }: {
   field: { key: string; label: string; status: string; text: string };
   isRight: boolean;
+  extraInfo?: string | null;
 }) {
   const iconUrl = FIELD_ICONS[field.key];
   const baseStyle = isRight ? [styles.gridItem, styles.gridItemRight] : [styles.gridItem];
@@ -623,6 +637,9 @@ function GridItem({
         <Text style={[styles.itemText, getItemTextStyle(field.status)]}>
           {displayText}
         </Text>
+        {extraInfo && (
+          <Text style={styles.itemExtraInfo}>{extraInfo}</Text>
+        )}
       </View>
     </View>
   );
@@ -688,13 +705,30 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
           {/* Grid de 2 columnas */}
           <View style={styles.gridContainer}>
-            {fieldPairs.map((pair, index) => (
-              <React.Fragment key={index}>
-                <GridItem field={pair[0]} isRight={false} />
-                {pair[1] && <GridItem field={pair[1]} isRight={true} />}
-                {!pair[1] && <View style={[styles.gridItem, styles.gridItemRight]} />}
-              </React.Fragment>
-            ))}
+            {fieldPairs.map((pair, index) => {
+              // Función para obtener info extra según el campo
+              const getExtraInfo = (field: typeof pair[0]) => {
+                if (!field) return null;
+                if (field.key === 'soat' && data.soatExpiryDate) {
+                  return `Vence: ${data.soatExpiryDate}`;
+                }
+                if (field.key === 'techReview' && data.techReviewNotes) {
+                  return data.techReviewNotes;
+                }
+                if (field.key === 'lastTransfer' && data.lastTransferPrice) {
+                  return `Monto: ${data.lastTransferPrice}`;
+                }
+                return null;
+              };
+
+              return (
+                <React.Fragment key={index}>
+                  <GridItem field={pair[0]} isRight={false} extraInfo={getExtraInfo(pair[0])} />
+                  {pair[1] && <GridItem field={pair[1]} isRight={true} extraInfo={getExtraInfo(pair[1])} />}
+                  {!pair[1] && <View style={[styles.gridItem, styles.gridItemRight]} />}
+                </React.Fragment>
+              );
+            })}
           </View>
 
           {/* Observaciones */}
