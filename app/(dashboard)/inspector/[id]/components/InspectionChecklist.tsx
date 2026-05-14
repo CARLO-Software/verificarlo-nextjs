@@ -74,6 +74,8 @@ export function InspectionChecklist({
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  // Estado para el modal de confirmación de salida
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Ref para el timeout del autoguardado
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -268,11 +270,31 @@ export function InspectionChecklist({
     hasUnsavedChanges.current = false;
   }, [reportId]);
 
+  // Ref para trackear la categoría actual (para el popstate)
+  const activeCategoryRef = useRef(activeCategory);
+  useEffect(() => {
+    activeCategoryRef.current = activeCategory;
+  }, [activeCategory]);
+
+  // Agregar entrada al historial cuando cambia de categoría
+  useEffect(() => {
+    // Agregar estado al historial para cada categoría
+    const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategory);
+    window.history.pushState({ categoryIndex: currentIndex, categoryId: activeCategory }, "");
+  }, [activeCategory]);
+
   // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    // Agregar estado inicial al historial
+    const initialIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === INSPECTION_CATEGORIES[0].id);
+    window.history.replaceState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id }, "");
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges.current) {
         saveWithKeepAlive();
+        // Mostrar mensaje de confirmación del navegador
+        e.preventDefault();
+        e.returnValue = "";
       }
     };
 
@@ -283,10 +305,27 @@ export function InspectionChecklist({
       }
     };
 
-    const handlePopState = () => {
+    const handlePopState = (event: PopStateEvent) => {
       // Cuando el usuario usa el botón atrás del navegador
-      if (hasUnsavedChanges.current) {
-        saveWithKeepAlive();
+      const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategoryRef.current);
+
+      if (currentIndex > 0) {
+        // Si no está en la primera categoría, ir a la anterior
+        const previousCategory = INSPECTION_CATEGORIES[currentIndex - 1];
+        setActiveCategory(previousCategory.id);
+        onCategoryChange?.(previousCategory.id);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        // Guardar cambios pendientes
+        if (hasUnsavedChanges.current) {
+          saveWithKeepAlive();
+        }
+        // Prevenir la navegación real, mantener el estado
+        window.history.pushState({ categoryIndex: currentIndex - 1, categoryId: previousCategory.id }, "");
+      } else {
+        // Si está en la primera categoría, mostrar modal de confirmación
+        // Primero, prevenir la navegación agregando una entrada al historial
+        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id }, "");
+        setShowExitModal(true);
       }
     };
 
@@ -307,7 +346,7 @@ export function InspectionChecklist({
         onSave(resultsRef.current);
       }
     };
-  }, [onSave, saveWithKeepAlive]);
+  }, [onSave, saveWithKeepAlive, onCategoryChange]);
 
   // Manejar cambio de categoría
   const handleCategoryChange = (categoryId: string) => {
@@ -315,6 +354,22 @@ export function InspectionChecklist({
     onCategoryChange?.(categoryId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Confirmar salida de la inspección
+  const handleConfirmExit = useCallback(() => {
+    // Guardar cambios pendientes antes de salir
+    if (hasUnsavedChanges.current) {
+      saveWithKeepAlive();
+    }
+    setShowExitModal(false);
+    // Navegar al panel del inspector
+    router.push("/inspector");
+  }, [router, saveWithKeepAlive]);
+
+  // Cancelar salida
+  const handleCancelExit = useCallback(() => {
+    setShowExitModal(false);
+  }, []);
 
   // Marcar todos los ítems de una sección como OK
   const handleMarkAllOk = useCallback(
@@ -422,6 +477,40 @@ export function InspectionChecklist({
 
   return (
     <div className={`${styles.container} checklistContainer`}>
+      {/* Modal de confirmación de salida */}
+      {showExitModal && (
+        <div className={styles.exitModalOverlay}>
+          <div className={styles.exitModal}>
+            <div className={styles.exitModalIcon}>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2"/>
+                <path d="M16 10v8M16 22v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <h3 className={styles.exitModalTitle}>¿Salir de la inspección?</h3>
+            <p className={styles.exitModalText}>
+              Si sales ahora, los cambios que no se hayan guardado podrían perderse.
+            </p>
+            <div className={styles.exitModalButtons}>
+              <button
+                type="button"
+                onClick={handleCancelExit}
+                className={styles.exitModalButtonCancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmExit}
+                className={styles.exitModalButtonConfirm}
+              >
+                Sí, salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Indicador de autoguardado flotante */}
       {saveStatus !== "idle" && (
         <div className={`${styles.autoSaveIndicator} ${styles[`autoSaveIndicator--${saveStatus}`]}`}>
