@@ -100,6 +100,15 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   // Estado local para la placa (para re-render cuando se registra)
   const [vehiclePlate, setVehiclePlate] = useState<string | null>(inspection.vehicle.plate);
 
+  // Estado elevado para la sección de Resumen (para que persista entre cambios de sección)
+  const [summaryData, setSummaryData] = useState({
+    summary: inspection.report?.executiveSummary || "",
+    repairCost: inspection.report?.estimatedRepairCost?.toString() || "",
+    verdict: (inspection.report?.mechanicalVerdict || "PENDING") as MechanicalVerdict,
+    hasSiniestro: inspection.report?.hasSiniestro || false,
+    hasKilometrajeAdulterado: inspection.report?.hasKilometrajeAdulterado || false,
+  });
+
   // Estado para fotos agrupadas por checklistItemId
   const [photosByItem, setPhotosByItem] = useState<Record<string, Photo[]>>(() => {
     // Inicializar desde las fotos del reporte
@@ -325,6 +334,8 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
             }}
             disabled={isCompleted}
             vehiclePlate={vehiclePlate}
+            summaryData={summaryData}
+            onSummaryDataChange={setSummaryData}
           />
         )}
       </div>
@@ -861,30 +872,45 @@ function VoiceTextarea({
   );
 }
 
+interface SummaryDataState {
+  summary: string;
+  repairCost: string;
+  verdict: MechanicalVerdict;
+  hasSiniestro: boolean;
+  hasKilometrajeAdulterado: boolean;
+}
+
 function SummarySection({
   report,
   onUpdate,
   onComplete,
   disabled,
   vehiclePlate,
+  summaryData,
+  onSummaryDataChange,
 }: {
   report: Report;
   onUpdate: (data: Partial<Report>) => void;
   onComplete: () => void;
   disabled: boolean;
   vehiclePlate: string | null;
+  summaryData: SummaryDataState;
+  onSummaryDataChange: (data: SummaryDataState) => void;
 }) {
-  const [summary, setSummary] = useState(report.executiveSummary || "");
-  const [repairCost, setRepairCost] = useState(report.estimatedRepairCost?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPlateModal, setShowPlateModal] = useState(false);
 
-  // Estado para el veredicto del mecánico
-  const [verdict, setVerdict] = useState<MechanicalVerdict>(report.mechanicalVerdict || "PENDING");
-  const [hasSiniestro, setHasSiniestro] = useState(report.hasSiniestro || false);
-  const [hasKilometrajeAdulterado, setHasKilometrajeAdulterado] = useState(report.hasKilometrajeAdulterado || false);
+  // Usar valores del estado elevado
+  const { summary, repairCost, verdict, hasSiniestro, hasKilometrajeAdulterado } = summaryData;
+
+  // Funciones para actualizar el estado elevado
+  const setSummary = (value: string) => onSummaryDataChange({ ...summaryData, summary: value });
+  const setRepairCost = (value: string) => onSummaryDataChange({ ...summaryData, repairCost: value });
+  const setVerdict = (value: MechanicalVerdict) => onSummaryDataChange({ ...summaryData, verdict: value });
+  const setHasSiniestro = (value: boolean) => onSummaryDataChange({ ...summaryData, hasSiniestro: value });
+  const setHasKilometrajeAdulterado = (value: boolean) => onSummaryDataChange({ ...summaryData, hasKilometrajeAdulterado: value });
 
   // Si hay siniestro o kilometraje adulterado, el veredicto es automáticamente NO_APROBADO
   const autoReject = hasSiniestro || hasKilometrajeAdulterado;
