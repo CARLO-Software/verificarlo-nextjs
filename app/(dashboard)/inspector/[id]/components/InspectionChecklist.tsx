@@ -289,12 +289,15 @@ export function InspectionChecklist({
 
   // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
   useEffect(() => {
-    // Agregar múltiples entradas al historial para crear un "buffer" de protección
+    // Agregar MUCHAS entradas al historial para crear un "buffer" de protección grande
     const initialIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === INSPECTION_CATEGORIES[0].id);
-    window.history.replaceState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
-    // Agregar entradas extra de protección
-    window.history.pushState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
-    window.history.pushState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+    const historyState = { categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true };
+
+    window.history.replaceState(historyState, "");
+    // Agregar 15 entradas de protección para absorber múltiples taps rápidos
+    for (let i = 0; i < 15; i++) {
+      window.history.pushState(historyState, "");
+    }
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges.current) {
@@ -317,8 +320,14 @@ export function InspectionChecklist({
       const timeSinceLastPop = now - lastPopStateTimeRef.current;
       lastPopStateTimeRef.current = now;
 
-      // Detectar taps rápidos (menos de 400ms entre taps)
-      if (timeSinceLastPop < 400) {
+      // SIEMPRE agregar entradas al historial primero para prevenir navegación
+      const protectionState = { categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true };
+      for (let i = 0; i < 5; i++) {
+        window.history.pushState(protectionState, "");
+      }
+
+      // Detectar taps rápidos (menos de 500ms entre taps)
+      if (timeSinceLastPop < 500) {
         popStateCountRef.current += 1;
       } else {
         popStateCountRef.current = 1;
@@ -326,9 +335,6 @@ export function InspectionChecklist({
 
       // Si hay 2 o más taps rápidos, mostrar modal inmediatamente
       if (popStateCountRef.current >= 2) {
-        // Restaurar el historial y mostrar modal
-        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
-        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
         setShowExitModal(true);
         popStateCountRef.current = 0;
         return;
@@ -347,13 +353,8 @@ export function InspectionChecklist({
         if (hasUnsavedChanges.current) {
           saveWithKeepAlive();
         }
-        // Prevenir la navegación real, mantener el estado
-        window.history.pushState({ categoryIndex: currentIndex - 1, categoryId: previousCategory.id, isChecklist: true }, "");
       } else {
         // Si está en la primera categoría, mostrar modal de confirmación
-        // Primero, prevenir la navegación agregando entradas al historial
-        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
-        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
         setShowExitModal(true);
       }
     };
