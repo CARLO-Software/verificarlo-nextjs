@@ -58,8 +58,10 @@ export interface PDFReportData {
 
   // Documentos
   soatValid: boolean;
+  soatStatus?: 'valid' | 'invalid' | 'na';
   soatExpiryDate: string | null;
   technicalReviewValid: boolean;
+  technicalReviewStatus?: 'valid' | 'invalid' | 'na';
   technicalReviewExpiryDate: string | null;
 
   // Resumen
@@ -147,7 +149,9 @@ export default function InspectionReportPDF({ data }: InspectionReportPDFProps) 
               observationCount={totalObservations}
               okCount={totalOk}
               soatValid={data.soatValid}
+              soatStatus={data.soatStatus}
               technicalReviewValid={data.technicalReviewValid}
+              technicalReviewStatus={data.technicalReviewStatus}
               criticalFindings={criticalFindings}
               estimatedCost={data.estimatedRepairCost}
             />

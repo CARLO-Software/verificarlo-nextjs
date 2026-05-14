@@ -9,6 +9,7 @@ import { BookingStatus } from '@prisma/client';
 import { formatearFechaLima } from '@/app/domain/datetime';
 import { ApprovalBadge, getApprovalStatus } from '@/app/components/ui/ApprovalBadge/ApprovalBadge';
 import { GradeStars } from '@/app/components/ui/GradeStars/GradeStars';
+import { useToast } from '@/app/components/Toast';
 import styles from './MisInspecciones.module.css';
 
 type FilterStatus = 'all' | 'pending_payment' | 'paid' | 'completed' | 'expired' | 'cancelled';
@@ -71,11 +72,13 @@ function MisInspeccionesContent({ inspections: initialInspections }: MisInspecci
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const { showToast } = useToast();
   const [inspections, setInspections] = useState<FormattedInspection[]>(initialInspections);
   const [statusFilter, setStatusFilter] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [_cancelingId, setCancelingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -254,6 +257,41 @@ function MisInspeccionesContent({ inspections: initialInspections }: MisInspecci
       setDeletingId(null);
     }
   }, []);
+
+  // Descargar PDF del informe
+  const handleDownloadPDF = useCallback(async (id: number, code: string) => {
+    setDownloadingId(id);
+
+    try {
+      const res = await fetch(`/api/inspections/${id}/report/pdf`);
+
+      if (!res.ok) {
+        const data = await res.json();
+        showToast(data.error || 'Error al descargar el PDF', 'error');
+        return;
+      }
+
+      // Obtener el blob del PDF
+      const blob = await res.blob();
+
+      // Crear URL temporal y descargar
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `informe-${code}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      showToast('PDF descargado exitosamente', 'success');
+    } catch (error) {
+      console.error('Error al descargar PDF:', error);
+      showToast('Error de conexión. Intenta nuevamente.', 'error');
+    } finally {
+      setDownloadingId(null);
+    }
+  }, [showToast]);
 
   // Helper para determinar si se puede eliminar una inspección
   const canDelete = (status: BookingStatus) => {
@@ -654,13 +692,18 @@ function MisInspeccionesContent({ inspections: initialInspections }: MisInspecci
                         className={styles.downloadBtn}
                         onClick={(e) => {
                           e.stopPropagation();
-                          // TODO: Implementar descarga PDF
-                          console.log('Descargar PDF:', inspection.id);
+                          handleDownloadPDF(inspection.id, inspection.code);
                         }}
+                        disabled={downloadingId === inspection.id}
+                        title="Descargar PDF"
                       >
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                        </svg>
+                        {downloadingId === inspection.id ? (
+                          <span className={styles.spinner} />
+                        ) : (
+                          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                          </svg>
+                        )}
                       </button>
                     )}
 

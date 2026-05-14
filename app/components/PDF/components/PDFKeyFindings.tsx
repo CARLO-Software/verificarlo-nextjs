@@ -14,12 +14,16 @@ interface KeyFinding {
   comment?: string;
 }
 
+type DocStatus = 'valid' | 'invalid' | 'na';
+
 interface PDFKeyFindingsProps {
   defectCount: number;
   observationCount: number;
   okCount: number;
   soatValid?: boolean;
+  soatStatus?: DocStatus;
   technicalReviewValid?: boolean;
+  technicalReviewStatus?: DocStatus;
   criticalFindings?: KeyFinding[];
   estimatedCost?: number | null;
 }
@@ -158,12 +162,58 @@ export default function PDFKeyFindings({
   observationCount,
   okCount,
   soatValid,
+  soatStatus,
   technicalReviewValid,
+  technicalReviewStatus,
   criticalFindings = [],
   estimatedCost,
 }: PDFKeyFindingsProps) {
   const totalPoints = defectCount + observationCount + okCount;
-  const hasLegalInfo = soatValid !== undefined || technicalReviewValid !== undefined;
+  const hasLegalInfo = soatStatus !== undefined || technicalReviewStatus !== undefined ||
+    soatValid !== undefined || technicalReviewValid !== undefined;
+
+  // Determinar el estado efectivo del documento
+  const getEffectiveStatus = (status?: DocStatus, valid?: boolean): DocStatus => {
+    if (status) return status;
+    if (valid !== undefined) return valid ? 'valid' : 'invalid';
+    return 'invalid';
+  };
+
+  const effectiveSoatStatus = getEffectiveStatus(soatStatus, soatValid);
+  const effectiveTechStatus = getEffectiveStatus(technicalReviewStatus, technicalReviewValid);
+
+  // Configuración de colores y texto según estado
+  const getDocConfig = (status: DocStatus) => {
+    switch (status) {
+      case 'valid':
+        return {
+          bg: colors.successBg,
+          border: colors.successBorder,
+          dot: colors.success,
+          text: colors.successDark,
+          label: 'Vigente',
+        };
+      case 'na':
+        return {
+          bg: colors.lightGray,
+          border: colors.borderGray,
+          dot: colors.silver,
+          text: colors.slate,
+          label: 'No aplica',
+        };
+      default: // 'invalid'
+        return {
+          bg: colors.dangerBg,
+          border: colors.dangerBorder,
+          dot: colors.danger,
+          text: colors.dangerDark,
+          label: 'No vigente',
+        };
+    }
+  };
+
+  const soatConfig = getDocConfig(effectiveSoatStatus);
+  const techConfig = getDocConfig(effectiveTechStatus);
   const topCriticalFindings = criticalFindings
     .filter((f) => f.severity === 'DEFECTO')
     .slice(0, 3);
@@ -270,26 +320,26 @@ export default function PDFKeyFindings({
       {/* Estado de documentos */}
       {hasLegalInfo && (
         <View style={styles.docsRow}>
-          {soatValid !== undefined && (
+          {(soatStatus !== undefined || soatValid !== undefined) && (
             <View
               style={[
                 styles.docBadge,
                 {
-                  backgroundColor: soatValid ? colors.successBg : colors.dangerBg,
-                  borderColor: soatValid ? colors.successBorder : colors.dangerBorder,
+                  backgroundColor: soatConfig.bg,
+                  borderColor: soatConfig.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.docDot,
-                  { backgroundColor: soatValid ? colors.success : colors.danger },
+                  { backgroundColor: soatConfig.dot },
                 ]}
               />
               <Text
                 style={[
                   styles.docText,
-                  { color: soatValid ? colors.successDark : colors.dangerDark },
+                  { color: soatConfig.text },
                 ]}
               >
                 SOAT
@@ -297,33 +347,33 @@ export default function PDFKeyFindings({
               <Text
                 style={[
                   styles.docStatus,
-                  { color: soatValid ? colors.successDark : colors.dangerDark },
+                  { color: soatConfig.text },
                 ]}
               >
-                {soatValid ? 'Vigente' : 'No vigente'}
+                {soatConfig.label}
               </Text>
             </View>
           )}
-          {technicalReviewValid !== undefined && (
+          {(technicalReviewStatus !== undefined || technicalReviewValid !== undefined) && (
             <View
               style={[
                 styles.docBadge,
                 {
-                  backgroundColor: technicalReviewValid ? colors.successBg : colors.dangerBg,
-                  borderColor: technicalReviewValid ? colors.successBorder : colors.dangerBorder,
+                  backgroundColor: techConfig.bg,
+                  borderColor: techConfig.border,
                 },
               ]}
             >
               <View
                 style={[
                   styles.docDot,
-                  { backgroundColor: technicalReviewValid ? colors.success : colors.danger },
+                  { backgroundColor: techConfig.dot },
                 ]}
               />
               <Text
                 style={[
                   styles.docText,
-                  { color: technicalReviewValid ? colors.successDark : colors.dangerDark },
+                  { color: techConfig.text },
                 ]}
               >
                 Rev. Técnica
@@ -331,10 +381,10 @@ export default function PDFKeyFindings({
               <Text
                 style={[
                   styles.docStatus,
-                  { color: technicalReviewValid ? colors.successDark : colors.dangerDark },
+                  { color: techConfig.text },
                 ]}
               >
-                {technicalReviewValid ? 'Vigente' : 'No vigente'}
+                {techConfig.label}
               </Text>
             </View>
           )}
