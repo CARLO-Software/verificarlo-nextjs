@@ -54,6 +54,8 @@ export function InspectionChecklist({
   const hasUnsavedChanges = useRef(false);
   // Ref para ocultar el indicador de "guardado"
   const savedIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref para almacenar el último estado de results (para guardado en navegación)
+  const resultsRef = useRef<InspectionResults>(initialResults);
 
   // Obtener categoría activa
   const currentCategory = useMemo(() => {
@@ -129,18 +131,70 @@ export function InspectionChecklist({
     [autoSave]
   );
 
-  // Guardar al desmontar el componente si hay cambios pendientes
+  // Mantener ref sincronizado con el estado
   useEffect(() => {
+    resultsRef.current = results;
+  }, [results]);
+
+  // Función para guardar con fetch keepalive (funciona incluso al cerrar/navegar)
+  const saveWithKeepAlive = useCallback(() => {
+    if (!reportId || !hasUnsavedChanges.current) return;
+
+    // fetch con keepalive garantiza que la petición se complete aunque se cierre la página
+    fetch(`/api/reports/${reportId}/sections`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        section: "checklist",
+        data: { checklistResults: resultsRef.current },
+      }),
+      keepalive: true, // Permite que la petición continúe aunque la página se cierre
+    }).catch(() => {
+      // Ignorar errores - es un intento de último recurso
+    });
+    hasUnsavedChanges.current = false;
+  }, [reportId]);
+
+  // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (hasUnsavedChanges.current) {
+        saveWithKeepAlive();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      // Cuando la página se oculta (cambio de pestaña, minimizar, navegar)
+      if (document.visibilityState === "hidden" && hasUnsavedChanges.current) {
+        saveWithKeepAlive();
+      }
+    };
+
+    const handlePopState = () => {
+      // Cuando el usuario usa el botón atrás del navegador
+      if (hasUnsavedChanges.current) {
+        saveWithKeepAlive();
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("popstate", handlePopState);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("popstate", handlePopState);
+
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      // Guardar inmediatamente si hay cambios pendientes
+      // Guardar inmediatamente si hay cambios pendientes al desmontar
       if (hasUnsavedChanges.current && onSave) {
-        onSave(results);
+        onSave(resultsRef.current);
       }
     };
-  }, [results, onSave]);
+  }, [onSave, saveWithKeepAlive]);
 
   // Manejar cambio de categoría
   const handleCategoryChange = (categoryId: string) => {

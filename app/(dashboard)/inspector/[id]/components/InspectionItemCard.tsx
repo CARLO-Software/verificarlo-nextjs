@@ -81,9 +81,9 @@ export function InspectionItemCard({
   const [isCommentOpen, setIsCommentOpen] = useState(!!comment);
 
   // Filtrar opciones de estado según categoría
-  // Legal solo tiene OK y Observación (sin Defecto ni No aplica)
+  // Legal tiene OK, Observación y No aplica (sin Defecto)
   const availableOptions = categoryId === "legal"
-    ? STATUS_OPTIONS.filter((opt) => opt.value === "OK" || opt.value === "OBSERVACION")
+    ? STATUS_OPTIONS.filter((opt) => opt.value === "OK" || opt.value === "OBSERVACION" || opt.value === "NO_APLICA")
     : STATUS_OPTIONS;
 
   const handleStatusClick = (newStatus: InspectionStatus) => {
