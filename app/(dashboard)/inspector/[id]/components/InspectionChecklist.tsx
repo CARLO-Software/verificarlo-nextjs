@@ -276,18 +276,25 @@ export function InspectionChecklist({
     activeCategoryRef.current = activeCategory;
   }, [activeCategory]);
 
+  // Ref para detectar doble tap (taps rápidos consecutivos)
+  const lastPopStateTimeRef = useRef<number>(0);
+  const popStateCountRef = useRef<number>(0);
+
   // Agregar entrada al historial cuando cambia de categoría
   useEffect(() => {
     // Agregar estado al historial para cada categoría
     const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategory);
-    window.history.pushState({ categoryIndex: currentIndex, categoryId: activeCategory }, "");
+    window.history.pushState({ categoryIndex: currentIndex, categoryId: activeCategory, isChecklist: true }, "");
   }, [activeCategory]);
 
   // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
   useEffect(() => {
-    // Agregar estado inicial al historial
+    // Agregar múltiples entradas al historial para crear un "buffer" de protección
     const initialIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === INSPECTION_CATEGORIES[0].id);
-    window.history.replaceState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id }, "");
+    window.history.replaceState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+    // Agregar entradas extra de protección
+    window.history.pushState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+    window.history.pushState({ categoryIndex: initialIndex, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges.current) {
@@ -306,7 +313,28 @@ export function InspectionChecklist({
     };
 
     const handlePopState = (event: PopStateEvent) => {
-      // Cuando el usuario usa el botón atrás del navegador
+      const now = Date.now();
+      const timeSinceLastPop = now - lastPopStateTimeRef.current;
+      lastPopStateTimeRef.current = now;
+
+      // Detectar taps rápidos (menos de 400ms entre taps)
+      if (timeSinceLastPop < 400) {
+        popStateCountRef.current += 1;
+      } else {
+        popStateCountRef.current = 1;
+      }
+
+      // Si hay 2 o más taps rápidos, mostrar modal inmediatamente
+      if (popStateCountRef.current >= 2) {
+        // Restaurar el historial y mostrar modal
+        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+        setShowExitModal(true);
+        popStateCountRef.current = 0;
+        return;
+      }
+
+      // Cuando el usuario usa el botón atrás del navegador (tap simple)
       const currentIndex = INSPECTION_CATEGORIES.findIndex(c => c.id === activeCategoryRef.current);
 
       if (currentIndex > 0) {
@@ -320,11 +348,12 @@ export function InspectionChecklist({
           saveWithKeepAlive();
         }
         // Prevenir la navegación real, mantener el estado
-        window.history.pushState({ categoryIndex: currentIndex - 1, categoryId: previousCategory.id }, "");
+        window.history.pushState({ categoryIndex: currentIndex - 1, categoryId: previousCategory.id, isChecklist: true }, "");
       } else {
         // Si está en la primera categoría, mostrar modal de confirmación
-        // Primero, prevenir la navegación agregando una entrada al historial
-        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id }, "");
+        // Primero, prevenir la navegación agregando entradas al historial
+        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
+        window.history.pushState({ categoryIndex: 0, categoryId: INSPECTION_CATEGORIES[0].id, isChecklist: true }, "");
         setShowExitModal(true);
       }
     };
