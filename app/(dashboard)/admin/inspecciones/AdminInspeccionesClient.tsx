@@ -1335,8 +1335,8 @@ export function AdminInspeccionesClient({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span className="hidden xs:inline">Nueva</span>
-              <span className="xs:hidden">+</span>
-              <span className="hidden sm:inline">inspección</span>
+
+              <span className="hidden sm:inline">Inspección</span>
             </button>
           </div>
 
