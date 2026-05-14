@@ -324,6 +324,7 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
               router.refresh();
             }}
             disabled={isCompleted}
+            vehiclePlate={vehiclePlate}
           />
         )}
       </div>
@@ -865,17 +866,20 @@ function SummarySection({
   onUpdate,
   onComplete,
   disabled,
+  vehiclePlate,
 }: {
   report: Report;
   onUpdate: (data: Partial<Report>) => void;
   onComplete: () => void;
   disabled: boolean;
+  vehiclePlate: string | null;
 }) {
   const [summary, setSummary] = useState(report.executiveSummary || "");
   const [repairCost, setRepairCost] = useState(report.estimatedRepairCost?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPlateModal, setShowPlateModal] = useState(false);
 
   // Estado para el veredicto del mecánico
   const [verdict, setVerdict] = useState<MechanicalVerdict>(report.mechanicalVerdict || "PENDING");
@@ -945,6 +949,12 @@ function SummarySection({
   };
 
   const handleComplete = async () => {
+    // Validar que la placa esté registrada
+    if (!vehiclePlate) {
+      setShowPlateModal(true);
+      return;
+    }
+
     if (!canComplete) {
       if (incompleteCategories.length > 0) {
         const names = incompleteCategories.map(c => c.title).join(", ");
@@ -1218,6 +1228,34 @@ function SummarySection({
             <path d="M8 12l3 3 5-6" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span>Este informe ha sido completado y no puede modificarse</span>
+        </div>
+      )}
+
+      {/* Modal de placa faltante */}
+      {showPlateModal && (
+        <div className={styles.plateModalOverlay} onClick={() => setShowPlateModal(false)}>
+          <div className={styles.plateModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.plateModalIcon}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+                <circle cx="6" cy="12" r="1.5" fill="currentColor" />
+                <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+                <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h3 className={styles.plateModalTitle}>Placa no registrada</h3>
+            <p className={styles.plateModalText}>
+              Debes registrar la placa del vehículo antes de finalizar la inspección.
+              <br /><br />
+              Ve a la sección <strong>"Información"</strong> para registrar la placa.
+            </p>
+            <button
+              className={styles.plateModalButton}
+              onClick={() => setShowPlateModal(false)}
+            >
+              Entendido
+            </button>
+          </div>
         </div>
       )}
     </div>
