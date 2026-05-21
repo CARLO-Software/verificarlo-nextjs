@@ -104,6 +104,7 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   const [summaryData, setSummaryData] = useState({
     summary: inspection.report?.executiveSummary || "",
     repairCost: inspection.report?.estimatedRepairCost?.toString() || "",
+    mileage: inspection.report?.mileageAtInspection?.toString() || "",
     verdict: (inspection.report?.mechanicalVerdict || "PENDING") as MechanicalVerdict,
     hasSiniestro: inspection.report?.hasSiniestro || false,
     hasKilometrajeAdulterado: inspection.report?.hasKilometrajeAdulterado || false,
@@ -875,6 +876,7 @@ function VoiceTextarea({
 interface SummaryDataState {
   summary: string;
   repairCost: string;
+  mileage: string;
   verdict: MechanicalVerdict;
   hasSiniestro: boolean;
   hasKilometrajeAdulterado: boolean;
@@ -903,11 +905,12 @@ function SummarySection({
   const [showPlateModal, setShowPlateModal] = useState(false);
 
   // Usar valores del estado elevado
-  const { summary, repairCost, verdict, hasSiniestro, hasKilometrajeAdulterado } = summaryData;
+  const { summary, repairCost, mileage, verdict, hasSiniestro, hasKilometrajeAdulterado } = summaryData;
 
   // Funciones para actualizar el estado elevado
   const setSummary = (value: string) => onSummaryDataChange({ ...summaryData, summary: value });
   const setRepairCost = (value: string) => onSummaryDataChange({ ...summaryData, repairCost: value });
+  const setMileage = (value: string) => onSummaryDataChange({ ...summaryData, mileage: value });
   const setVerdict = (value: MechanicalVerdict) => onSummaryDataChange({ ...summaryData, verdict: value });
   const setHasSiniestro = (value: boolean) => onSummaryDataChange({ ...summaryData, hasSiniestro: value });
   const setHasKilometrajeAdulterado = (value: boolean) => onSummaryDataChange({ ...summaryData, hasKilometrajeAdulterado: value });
@@ -1006,6 +1009,7 @@ function SummarySection({
           hasKilometrajeAdulterado,
           executiveSummary: summary || null,
           estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
+          mileageAtInspection: mileage ? parseInt(mileage) : null,
         }),
       });
 
@@ -1093,6 +1097,20 @@ function SummarySection({
             </div>
           );
         })}
+      </div>
+
+      {/* Kilometraje real */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Kilometraje del vehículo (km)</label>
+        <input
+          type="number"
+          value={mileage}
+          onChange={(e) => setMileage(e.target.value)}
+          placeholder="Ingresa el kilometraje real del tablero"
+          className={styles.input}
+          disabled={disabled}
+        />
+        <span className={styles.fieldHint}>Kilometraje real observado en el tablero del vehículo</span>
       </div>
 
       {/* Resumen ejecutivo con micrófono */}
