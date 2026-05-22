@@ -87,7 +87,7 @@ export const metadata: Metadata = {
     siteName: "VerifiCARLO",
     title: "VerifiCARLO - Inspección de Autos Usados en Lima",
     description:
-      "Revisamos más de 200 puntos antes de tu compra. Mecánica, estética y documentos legales. Desde S/249 con servicio a domicilio.",
+      "Revisamos más de 200 puntos antes de tu compra. Mecánica, estética y documentos legales. Desde S/299 con servicio a domicilio.",
     url: baseUrl,
     images: [
       {
@@ -106,7 +106,7 @@ export const metadata: Metadata = {
     creator: "@verificarlo",
     title: "VerifiCARLO - Inspección de Autos Usados en Lima",
     description:
-      "Revisamos más de 200 puntos antes de tu compra. Evita fraudes y compra con confianza. Desde S/249.",
+      "Revisamos más de 200 puntos antes de tu compra. Evita fraudes y compra con confianza. Desde S/299.",
     images: [`${baseUrl}/assets/images/image0.png`],
   },
 

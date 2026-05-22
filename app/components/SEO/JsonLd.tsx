@@ -32,7 +32,7 @@ export function LocalBusinessSchema() {
       name: "Lima",
       "@id": "https://www.wikidata.org/wiki/Q2868",
     },
-    priceRange: "S/249 - S/499",
+    priceRange: "S/49 - S/349",
     currenciesAccepted: "PEN",
     paymentAccepted: "Efectivo, Tarjeta de crédito, Yape, Plin",
     openingHoursSpecification: [
@@ -125,20 +125,20 @@ export function ServiceSchema() {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: "Inspección Básica",
-            description: "Revisión de 150+ puntos esenciales",
+            name: "Inspección Legal Express",
+            description: "Verificación legal completa en SUNARP, SUTRAN y SAT",
           },
-          price: "249",
+          price: "49",
           priceCurrency: "PEN",
         },
         {
           "@type": "Offer",
           itemOffered: {
             "@type": "Service",
-            name: "Inspección Completa",
-            description: "Revisión de 200+ puntos con prueba de ruta",
+            name: "Inspección Básica",
+            description: "Revisión mecánica de 200+ puntos + verificación legal",
           },
-          price: "349",
+          price: "299",
           priceCurrency: "PEN",
         },
         {
@@ -146,9 +146,9 @@ export function ServiceSchema() {
           itemOffered: {
             "@type": "Service",
             name: "Inspección Premium",
-            description: "Inspección completa + verificación legal exhaustiva",
+            description: "Todo lo de la básica + videoscopía del motor + asesoría",
           },
-          price: "499",
+          price: "349",
           priceCurrency: "PEN",
         },
       ],

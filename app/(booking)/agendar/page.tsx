@@ -7,7 +7,7 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Agendar Inspección Vehicular Online",
   description:
-    "Agenda tu inspección de auto usado en Lima. Elige fecha, hora y ubicación. Pago seguro con tarjeta, Yape o Plin. Resultados en 24 horas. Desde S/249.",
+    "Agenda tu inspección de auto usado en Lima. Elige fecha, hora y ubicación. Pago seguro con tarjeta, Yape o Plin. Resultados en 24 horas. Desde S/299.",
   keywords: [
     "agendar inspección vehicular",
     "reservar inspección auto",
