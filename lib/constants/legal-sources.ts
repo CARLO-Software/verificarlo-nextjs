@@ -47,8 +47,8 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
     ],
   },
   {
-    id: 'gravamenes_sunat',
-    name: 'Gravámenes SUNAT',
+    id: 'gravamenes_sunarp',
+    name: 'Gravámenes SUNARP',
     section: 'legal',
     sources: [
       {
@@ -64,7 +64,7 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
   },
   {
     id: 'orden_captura_sunat',
-    name: 'Orden de Captura SUNAT',
+    name: 'Orden de Captura SAT',
     section: 'legal',
     sources: [
       {

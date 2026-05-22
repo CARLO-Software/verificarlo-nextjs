@@ -14,6 +14,7 @@ import { LEGAL_SOURCES } from '@/lib/constants/legal-sources';
 // Campos del informe legal (mapeo de keys a labels)
 const LEGAL_FIELD_LABELS: Record<string, string> = {
   ownerHistory: 'Historial de Propietarios',
+  lastTransfer: 'Última Transferencia',
   sunarpLiens: 'Gravámenes SUNARP',
   satCaptureOrder: 'Orden de Captura SAT',
   soat: 'SOAT',
@@ -22,10 +23,10 @@ const LEGAL_FIELD_LABELS: Record<string, string> = {
   gasConversion: 'Conversión a Gas',
   satTickets: 'Papeletas SAT',
   callaoTickets: 'Papeletas Callao',
+  atuTickets: 'Papeletas ATU',
   sutranTickets: 'Papeletas SUTRAN',
-  siniestroSoat: 'Siniestro SOAT',
   transportRegistry: 'Registro de Transportes',
-  lastTransfer: 'Última Transferencia',
+  siniestroSoat: 'Siniestro SOAT',
   accidentHistory: 'Historial de accidentes del seguro',
 };
 
@@ -78,7 +79,8 @@ export async function getLegalReportDataForPDF(
   // Mapeo de campos a IDs de categorías (nuevo sistema)
   const fieldToCategoryMap: Record<string, string> = {
     ownerHistory: 'historial_propietarios',
-    sunarpLiens: 'gravamenes_sunat',
+    lastTransfer: 'historial_propietarios',
+    sunarpLiens: 'gravamenes_sunarp',
     satCaptureOrder: 'orden_captura_sunat',
     soat: 'soat',
     techReview: 'revision_tecnica',
@@ -86,10 +88,10 @@ export async function getLegalReportDataForPDF(
     gasConversion: 'conversion_gas',
     satTickets: 'papeletas_sat',
     callaoTickets: 'papeletas_callao',
+    atuTickets: 'papeletas_atu',
     sutranTickets: 'papeletas_sutran',
-    siniestroSoat: 'siniestro_soat',
     transportRegistry: 'registro_transportes',
-    lastTransfer: 'historial_propietarios',
+    siniestroSoat: 'siniestro_soat',
     accidentHistory: 'historial_accidentes_seguro',
   };
 
@@ -126,9 +128,18 @@ export async function getLegalReportDataForPDF(
   // Construir lista de capturas (soporta múltiples imágenes por fuente)
   const screenshots: { sourceId: string; sourceName: string; imageUrl: string }[] = [];
 
+  // Debug: Ver todas las fuentes disponibles y las capturas guardadas
+  console.log('[PDF DEBUG] Inspección ID:', inspectionId);
+  console.log('[PDF DEBUG] Fuentes disponibles:', LEGAL_SOURCES.map(s => s.id));
+  console.log('[PDF DEBUG] Capturas guardadas (keys):', Object.keys(legalScreenshots));
+
   LEGAL_SOURCES.forEach((source) => {
     const sourceData = legalScreenshots[source.id];
-    if (!sourceData) return;
+    if (!sourceData) {
+      console.log(`[PDF DEBUG] Sin captura para: ${source.id}`);
+      return;
+    }
+    console.log(`[PDF DEBUG] Procesando captura: ${source.id}`);
 
     if (Array.isArray(sourceData)) {
       // Fuente con múltiples imágenes

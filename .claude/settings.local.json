@@ -51,7 +51,14 @@
       "Bash(npx next:*)",
       "Bash(npm install *)",
       "Bash(npm list:*)",
-      "Bash(grep -l \"CULQI\" .env*)"
+      "Bash(grep -l \"CULQI\" .env*)",
+      "Bash(node -e ':*)",
+      "Bash(npx ts-node -e ':*)",
+      "Bash(node -e \"const s = require\\('./lib/constants/legal-sources.ts'\\); console.log\\('Total sources:', s.LEGAL_SOURCES.length\\); s.LEGAL_SOURCES.forEach\\(\\(src, i\\) => console.log\\(i+1, src.id, '-', src.name\\)\\);\")",
+      "Bash(npx ts-node:*)",
+      "Bash(explorer C:\\\\verificarlo\\\\verificarlo-nextjs\\\\scripts:*)",
+      "Bash(npx tsx:*)",
+      "Bash(start:*)"
     ]
   }
 }

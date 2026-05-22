@@ -513,6 +513,7 @@ const ICONS_BASE_URL = 'https://verificarlo.com/assets/images/icons';
 // Mapeo de campos a iconos
 const FIELD_ICONS: Record<string, string> = {
   ownerHistory: `${ICONS_BASE_URL}/propietarios.png`,
+  lastTransfer: `${ICONS_BASE_URL}/transferencia.png`,
   sunarpLiens: `${ICONS_BASE_URL}/gravamenes.png`,
   satCaptureOrder: `${ICONS_BASE_URL}/captura.png`,
   soat: `${ICONS_BASE_URL}/soat.png`,
@@ -521,11 +522,11 @@ const FIELD_ICONS: Record<string, string> = {
   gasConversion: `${ICONS_BASE_URL}/gas.png`,
   satTickets: `${ICONS_BASE_URL}/papeleta.png`,
   callaoTickets: `${ICONS_BASE_URL}/papeleta.png`,
+  atuTickets: `${ICONS_BASE_URL}/papeleta.png`,
   sutranTickets: `${ICONS_BASE_URL}/sutran.png`,
-  siniestroSoat: `${ICONS_BASE_URL}/siniestro.png`,
   transportRegistry: `${ICONS_BASE_URL}/transporte.png`,
-  lastTransfer: `${ICONS_BASE_URL}/transferencia.png`,
-  accidentHistory: `${ICONS_BASE_URL}/accidente.png`,
+  siniestroSoat: `${ICONS_BASE_URL}/siniestro.png`,
+  accidentHistory: `${ICONS_BASE_URL}/seguro.png`,
 };
 
 // Componente para el badge de estado
