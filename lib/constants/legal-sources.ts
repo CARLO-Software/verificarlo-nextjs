@@ -219,21 +219,28 @@ export const LEGAL_CATEGORIES: LegalCategory[] = [
     ],
   },
   {
-    id: 'siniestralidad',
-    name: 'Siniestralidad',
+    id: 'siniestro_soat',
+    name: 'Siniestro SOAT',
     section: 'infractions',
     sources: [
       {
         id: 'siniestro_soat',
         name: 'Siniestro SOAT',
-        description: 'Verificar siniestros SOAT o siniestros vehiculares',
+        description: 'Verificar siniestros graves reportados al SOAT (accidentes con lesiones o daños mayores)',
         url: 'https://servicios.sbs.gob.pe/reportesoat/BusquedaPlaca',
         required: false,
       },
+    ],
+  },
+  {
+    id: 'historial_accidentes_seguro',
+    name: 'Historial de accidentes del seguro vehicular',
+    section: 'infractions',
+    sources: [
       {
         id: 'accidentes_seguro',
         name: 'Accidentes del seguro vehicular',
-        description: 'Consultar historial de accidentes reportados al seguro vehicular',
+        description: 'Consultar historial de accidentes menores reportados al seguro vehicular',
         url: 'https://servicios.sbs.gob.pe/reportesoat/BusquedaPlaca',
         required: false,
       },

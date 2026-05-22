@@ -23,10 +23,10 @@ const LEGAL_FIELD_LABELS: Record<string, string> = {
   satTickets: 'Papeletas SAT',
   callaoTickets: 'Papeletas Callao',
   sutranTickets: 'Papeletas SUTRAN',
-  theftHistory: 'Historial de Robos',
+  siniestroSoat: 'Siniestro SOAT',
   transportRegistry: 'Registro de Transportes',
   lastTransfer: 'Última Transferencia',
-  accidentHistory: 'Siniestralidad',
+  accidentHistory: 'Historial de accidentes del seguro',
 };
 
 // Obtener datos para el PDF legal
@@ -87,10 +87,10 @@ export async function getLegalReportDataForPDF(
     satTickets: 'papeletas_sat',
     callaoTickets: 'papeletas_callao',
     sutranTickets: 'papeletas_sutran',
-    theftHistory: 'siniestralidad',
+    siniestroSoat: 'siniestro_soat',
     transportRegistry: 'registro_transportes',
     lastTransfer: 'historial_propietarios',
-    accidentHistory: 'siniestralidad',
+    accidentHistory: 'historial_accidentes_seguro',
   };
 
   // Construir campos del informe

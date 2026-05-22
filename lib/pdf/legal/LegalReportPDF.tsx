@@ -522,10 +522,10 @@ const FIELD_ICONS: Record<string, string> = {
   satTickets: `${ICONS_BASE_URL}/papeleta.png`,
   callaoTickets: `${ICONS_BASE_URL}/papeleta.png`,
   sutranTickets: `${ICONS_BASE_URL}/sutran.png`,
-  theftHistory: `${ICONS_BASE_URL}/robo.png`,
+  siniestroSoat: `${ICONS_BASE_URL}/siniestro.png`,
   transportRegistry: `${ICONS_BASE_URL}/transporte.png`,
   lastTransfer: `${ICONS_BASE_URL}/transferencia.png`,
-  accidentHistory: `${ICONS_BASE_URL}/siniestro.png`,
+  accidentHistory: `${ICONS_BASE_URL}/accidente.png`,
 };
 
 // Componente para el badge de estado
