@@ -548,6 +548,7 @@ export interface CompleteReportInput {
   hasKilometrajeAdulterado?: boolean;
   executiveSummary?: string;
   estimatedRepairCost?: number;
+  mileageAtInspection?: number;
 }
 
 export async function completeReport(reportId: number, input?: CompleteReportInput) {
@@ -651,6 +652,7 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
         // Resumen ejecutivo (si se proporciona)
         ...(input?.executiveSummary !== undefined && { executiveSummary: input.executiveSummary || null }),
         ...(input?.estimatedRepairCost !== undefined && { estimatedRepairCost: input.estimatedRepairCost || null }),
+        ...(input?.mileageAtInspection !== undefined && { mileageAtInspection: input.mileageAtInspection || null }),
         completedAt: new Date(),
         inspectorSignature: `Firmado digitalmente por ${inspector?.name || 'Inspector'} - ${new Date().toISOString()}`,
       },

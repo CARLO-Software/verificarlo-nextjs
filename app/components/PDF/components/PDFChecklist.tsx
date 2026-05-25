@@ -270,6 +270,7 @@ const ITEM_NAMES: Record<string, string> = {
   'mec-sonidos-motor': 'Sonidos del motor',
   'mec-fugas-aceite': 'Fugas de aceite',
   'mec-fugas-refrigerante': 'Fugas de refrigerante',
+  'mec-prueba-gas': 'Prueba de gas',
   'mec-nivel-aceite-motor': 'Nivel de aceite motor',
   'mec-nivel-aceite-caja': 'Nivel de aceite de caja',
   'mec-nivel-refrigerante': 'Nivel de refrigerante',
@@ -301,6 +302,7 @@ const ITEM_NAMES: Record<string, string> = {
   // Carrocería - Luces
   'car-faros-delanteros': 'Faros delanteros',
   'car-faros-traseros': 'Faros traseros',
+  'car-focos-halogenados': 'Focos halógenos reglamentarios',
   // Carrocería - Neumáticos
   'car-estado-neumaticos': 'Neumáticos',
   'car-estado-aros': 'Aros',

@@ -100,6 +100,16 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
   // Estado local para la placa (para re-render cuando se registra)
   const [vehiclePlate, setVehiclePlate] = useState<string | null>(inspection.vehicle.plate);
 
+  // Estado elevado para la sección de Resumen (para que persista entre cambios de sección)
+  const [summaryData, setSummaryData] = useState({
+    summary: inspection.report?.executiveSummary || "",
+    repairCost: inspection.report?.estimatedRepairCost?.toString() || "",
+    mileage: inspection.report?.mileageAtInspection?.toString() || "",
+    verdict: (inspection.report?.mechanicalVerdict || "PENDING") as MechanicalVerdict,
+    hasSiniestro: inspection.report?.hasSiniestro || false,
+    hasKilometrajeAdulterado: inspection.report?.hasKilometrajeAdulterado || false,
+  });
+
   // Estado para fotos agrupadas por checklistItemId
   const [photosByItem, setPhotosByItem] = useState<Record<string, Photo[]>>(() => {
     // Inicializar desde las fotos del reporte
@@ -324,6 +334,9 @@ export function InspectionFormClient({ inspection }: InspectionFormClientProps) 
               router.refresh();
             }}
             disabled={isCompleted}
+            vehiclePlate={vehiclePlate}
+            summaryData={summaryData}
+            onSummaryDataChange={setSummaryData}
           />
         )}
       </div>
@@ -860,27 +873,47 @@ function VoiceTextarea({
   );
 }
 
+interface SummaryDataState {
+  summary: string;
+  repairCost: string;
+  mileage: string;
+  verdict: MechanicalVerdict;
+  hasSiniestro: boolean;
+  hasKilometrajeAdulterado: boolean;
+}
+
 function SummarySection({
   report,
   onUpdate,
   onComplete,
   disabled,
+  vehiclePlate,
+  summaryData,
+  onSummaryDataChange,
 }: {
   report: Report;
   onUpdate: (data: Partial<Report>) => void;
   onComplete: () => void;
   disabled: boolean;
+  vehiclePlate: string | null;
+  summaryData: SummaryDataState;
+  onSummaryDataChange: (data: SummaryDataState) => void;
 }) {
-  const [summary, setSummary] = useState(report.executiveSummary || "");
-  const [repairCost, setRepairCost] = useState(report.estimatedRepairCost?.toString() || "");
   const [saving, setSaving] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPlateModal, setShowPlateModal] = useState(false);
 
-  // Estado para el veredicto del mecánico
-  const [verdict, setVerdict] = useState<MechanicalVerdict>(report.mechanicalVerdict || "PENDING");
-  const [hasSiniestro, setHasSiniestro] = useState(report.hasSiniestro || false);
-  const [hasKilometrajeAdulterado, setHasKilometrajeAdulterado] = useState(report.hasKilometrajeAdulterado || false);
+  // Usar valores del estado elevado
+  const { summary, repairCost, mileage, verdict, hasSiniestro, hasKilometrajeAdulterado } = summaryData;
+
+  // Funciones para actualizar el estado elevado
+  const setSummary = (value: string) => onSummaryDataChange({ ...summaryData, summary: value });
+  const setRepairCost = (value: string) => onSummaryDataChange({ ...summaryData, repairCost: value });
+  const setMileage = (value: string) => onSummaryDataChange({ ...summaryData, mileage: value });
+  const setVerdict = (value: MechanicalVerdict) => onSummaryDataChange({ ...summaryData, verdict: value });
+  const setHasSiniestro = (value: boolean) => onSummaryDataChange({ ...summaryData, hasSiniestro: value });
+  const setHasKilometrajeAdulterado = (value: boolean) => onSummaryDataChange({ ...summaryData, hasKilometrajeAdulterado: value });
 
   // Si hay siniestro o kilometraje adulterado, el veredicto es automáticamente NO_APROBADO
   const autoReject = hasSiniestro || hasKilometrajeAdulterado;
@@ -945,6 +978,12 @@ function SummarySection({
   };
 
   const handleComplete = async () => {
+    // Validar que la placa esté registrada
+    if (!vehiclePlate) {
+      setShowPlateModal(true);
+      return;
+    }
+
     if (!canComplete) {
       if (incompleteCategories.length > 0) {
         const names = incompleteCategories.map(c => c.title).join(", ");
@@ -970,6 +1009,7 @@ function SummarySection({
           hasKilometrajeAdulterado,
           executiveSummary: summary || null,
           estimatedRepairCost: repairCost ? parseFloat(repairCost) : null,
+          mileageAtInspection: mileage ? parseInt(mileage) : null,
         }),
       });
 
@@ -1057,6 +1097,20 @@ function SummarySection({
             </div>
           );
         })}
+      </div>
+
+      {/* Kilometraje real */}
+      <div className={styles.formGroup}>
+        <label className={styles.label}>Kilometraje del vehículo (km)</label>
+        <input
+          type="number"
+          value={mileage}
+          onChange={(e) => setMileage(e.target.value)}
+          placeholder="Ingresa el kilometraje real del tablero"
+          className={styles.input}
+          disabled={disabled}
+        />
+        <span className={styles.fieldHint}>Kilometraje real observado en el tablero del vehículo</span>
       </div>
 
       {/* Resumen ejecutivo con micrófono */}
@@ -1218,6 +1272,34 @@ function SummarySection({
             <path d="M8 12l3 3 5-6" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <span>Este informe ha sido completado y no puede modificarse</span>
+        </div>
+      )}
+
+      {/* Modal de placa faltante */}
+      {showPlateModal && (
+        <div className={styles.plateModalOverlay} onClick={() => setShowPlateModal(false)}>
+          <div className={styles.plateModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.plateModalIcon}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                <rect x="2" y="6" width="20" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+                <circle cx="6" cy="12" r="1.5" fill="currentColor" />
+                <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+                <path d="M9 12h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h3 className={styles.plateModalTitle}>Placa no registrada</h3>
+            <p className={styles.plateModalText}>
+              Debes registrar la placa del vehículo antes de finalizar la inspección.
+              <br /><br />
+              Ve a la sección <strong>"Información"</strong> para registrar la placa.
+            </p>
+            <button
+              className={styles.plateModalButton}
+              onClick={() => setShowPlateModal(false)}
+            >
+              Entendido
+            </button>
+          </div>
         </div>
       )}
     </div>

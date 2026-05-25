@@ -139,13 +139,24 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
   const soatFromChecklist = checklistResults['legal-soat'];
   const revTecnicaFromChecklist = checklistResults['legal-revision-tecnica'];
 
-  // Si hay resultado en el checklist, usarlo; sino usar el campo del reporte
-  const soatValid = soatFromChecklist
-    ? soatFromChecklist.status === 'OK'
-    : report.soatValid;
-  const technicalReviewValid = revTecnicaFromChecklist
-    ? revTecnicaFromChecklist.status === 'OK'
-    : report.technicalReviewValid;
+  // Determinar estado: 'valid' (OK), 'invalid' (no vigente), 'na' (no aplica)
+  type DocStatus = 'valid' | 'invalid' | 'na' | undefined;
+
+  const getDocStatus = (checklistItem: { status: string } | undefined, reportValue: boolean): DocStatus => {
+    if (checklistItem) {
+      if (checklistItem.status === 'OK') return 'valid';
+      if (checklistItem.status === 'NO_APLICA') return 'na';
+      return 'invalid';
+    }
+    return reportValue ? 'valid' : 'invalid';
+  };
+
+  const soatStatus = getDocStatus(soatFromChecklist, report.soatValid);
+  const technicalReviewStatus = getDocStatus(revTecnicaFromChecklist, report.technicalReviewValid);
+
+  // Mantener compatibilidad con el campo boolean anterior
+  const soatValid = soatStatus === 'valid';
+  const technicalReviewValid = technicalReviewStatus === 'valid';
 
   // Agrupar fotos por checklistItemId
   const photosByItem: Record<string, string[]> = {};
@@ -186,8 +197,10 @@ export async function getReportDataForPDF(reportId: number): Promise<PDFReportDa
     checklistResults,
 
     soatValid,
+    soatStatus,
     soatExpiryDate,
     technicalReviewValid,
+    technicalReviewStatus,
     technicalReviewExpiryDate,
 
     executiveSummary: report.executiveSummary,

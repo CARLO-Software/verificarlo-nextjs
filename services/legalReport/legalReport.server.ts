@@ -40,8 +40,8 @@ export interface LegalReportUpdateData {
   callaoTicketsText?: string | null;
   sutranTicketsStatus?: LegalFieldStatus;
   sutranTicketsText?: string | null;
-  theftHistoryStatus?: LegalFieldStatus;
-  theftHistoryText?: string | null;
+  siniestroSoatStatus?: LegalFieldStatus;
+  siniestroSoatText?: string | null;
   transportRegistryStatus?: LegalFieldStatus;
   transportRegistryText?: string | null;
   lastTransferStatus?: LegalFieldStatus;

@@ -89,6 +89,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
           { id: "mec-sonidos-motor", label: "Sonidos del motor" },
           { id: "mec-fugas-aceite", label: "Fugas de aceite" },
           { id: "mec-fugas-refrigerante", label: "Fugas de refrigerante" },
+          { id: "mec-prueba-gas", label: "Prueba de gas" },
           { id: "mec-nivel-aceite-motor", label: "Nivel de aceite motor" },
           { id: "mec-nivel-aceite-caja", label: "Nivel de aceite de caja" },
           { id: "mec-nivel-refrigerante", label: "Nivel de refrigerante" },
@@ -169,6 +170,7 @@ export const INSPECTION_CATEGORIES: InspectionCategory[] = [
         items: [
           { id: "car-faros-delanteros", label: "Faros delanteros" },
           { id: "car-faros-traseros", label: "Faros traseros" },
+          { id: "car-focos-halogenados", label: "Focos halógenos reglamentarios" },
         ],
       },
       {

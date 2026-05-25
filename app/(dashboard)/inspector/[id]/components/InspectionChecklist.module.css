@@ -722,3 +722,159 @@
     font-size: 13px;
   }
 }
+
+/* ============================================
+   Modal de Confirmación de Salida
+   ============================================ */
+.exitModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.exitModal {
+  background: white;
+  border-radius: 20px;
+  padding: 28px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.exitModalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: #FEF3C7;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  color: #D97706;
+}
+
+.exitModalTitle {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 0 0 12px;
+}
+
+.exitModalText {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  color: #64748B;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+.exitModalButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.exitModalButtonCancel {
+  flex: 1;
+  padding: 14px 20px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  background: #F1F5F9;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exitModalButtonCancel:hover {
+  background: #E2E8F0;
+}
+
+.exitModalButtonConfirm {
+  flex: 1;
+  padding: 14px 20px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  background: #DC2626;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.exitModalButtonConfirm:hover {
+  background: #B91C1C;
+}
+
+@media (max-width: 480px) {
+  .exitModal {
+    padding: 24px;
+    border-radius: 16px;
+  }
+
+  .exitModalIcon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 16px;
+  }
+
+  .exitModalIcon svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .exitModalTitle {
+    font-size: 16px;
+  }
+
+  .exitModalText {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .exitModalButtons {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .exitModalButtonCancel,
+  .exitModalButtonConfirm {
+    padding: 12px 16px;
+  }
+}

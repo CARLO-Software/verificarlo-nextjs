@@ -11,6 +11,7 @@ interface CompleteReportBody {
   hasKilometrajeAdulterado?: boolean;
   executiveSummary?: string;
   estimatedRepairCost?: number;
+  mileageAtInspection?: number;
 }
 
 export async function POST(
@@ -41,6 +42,7 @@ export async function POST(
       hasKilometrajeAdulterado: body.hasKilometrajeAdulterado,
       executiveSummary: body.executiveSummary,
       estimatedRepairCost: body.estimatedRepairCost,
+      mileageAtInspection: body.mileageAtInspection,
     });
 
     return NextResponse.json({

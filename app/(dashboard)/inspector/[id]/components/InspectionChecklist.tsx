@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
   INSPECTION_CATEGORIES,
   type InspectionStatus,
@@ -16,6 +17,9 @@ import { InspectionItemCard } from "./InspectionItemCard";
 import { StatusLegend } from "./StatusLegend";
 import { type Photo } from "./ItemPhotoCapture";
 import styles from "./InspectionChecklist.module.css";
+
+// Key para sessionStorage
+const CHECKLIST_STORAGE_KEY = "inspection_checklist_backup";
 
 interface InspectionChecklistProps {
   initialResults?: InspectionResults;
@@ -40,13 +44,38 @@ export function InspectionChecklist({
   onPhotoAdded,
   onPhotoDeleted,
 }: InspectionChecklistProps) {
+  const router = useRouter();
+
+  // Intentar recuperar datos del sessionStorage al inicializar
+  const getInitialResults = (): InspectionResults => {
+    if (typeof window === "undefined" || !reportId) return initialResults;
+
+    try {
+      const stored = sessionStorage.getItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Si hay datos en sessionStorage, combinarlos con los del servidor
+        // Los datos del sessionStorage tienen prioridad (son más recientes)
+        if (Object.keys(parsed).length > 0) {
+          // Combinar: servidor como base, sessionStorage sobrescribe
+          return { ...initialResults, ...parsed };
+        }
+      }
+    } catch {
+      // Ignorar errores de parsing
+    }
+    return initialResults;
+  };
+
   const [activeCategory, setActiveCategory] = useState<string>(
     INSPECTION_CATEGORIES[0].id
   );
-  const [results, setResults] = useState<InspectionResults>(initialResults);
+  const [results, setResults] = useState<InspectionResults>(getInitialResults);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
+  // Estado para el modal de confirmación de salida
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Ref para el timeout del autoguardado
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,6 +83,10 @@ export function InspectionChecklist({
   const hasUnsavedChanges = useRef(false);
   // Ref para ocultar el indicador de "guardado"
   const savedIndicatorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Ref para almacenar el último estado de results (para guardado en navegación)
+  const resultsRef = useRef<InspectionResults>(initialResults);
+  // Ref para evitar guardado duplicado
+  const isSavingRef = useRef(false);
 
   // Obtener categoría activa
   const currentCategory = useMemo(() => {
@@ -67,8 +100,9 @@ export function InspectionChecklist({
 
   // Función de autoguardado
   const autoSave = useCallback(async (newResults: InspectionResults) => {
-    if (!onSave || saving || disabled) return;
+    if (!onSave || saving || disabled || isSavingRef.current) return;
 
+    isSavingRef.current = true;
     setSaving(true);
     setSaveStatus("saving");
 
@@ -83,6 +117,15 @@ export function InspectionChecklist({
       hasUnsavedChanges.current = false;
       setSaveStatus("saved");
 
+      // Limpiar sessionStorage después de guardar exitosamente
+      if (reportId && typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        } catch {
+          // Ignorar
+        }
+      }
+
       // Ocultar indicador después de 2 segundos
       savedIndicatorTimeoutRef.current = setTimeout(() => {
         setSaveStatus("idle");
@@ -92,8 +135,29 @@ export function InspectionChecklist({
       setSaveStatus("idle");
     } finally {
       setSaving(false);
+      isSavingRef.current = false;
     }
-  }, [onSave, saving, disabled]);
+  }, [onSave, saving, disabled, reportId]);
+
+  // Guardar en sessionStorage como backup inmediato
+  const saveToSessionStorage = useCallback((data: InspectionResults) => {
+    if (typeof window === "undefined" || !reportId) return;
+    try {
+      sessionStorage.setItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`, JSON.stringify(data));
+    } catch {
+      // Ignorar errores de storage
+    }
+  }, [reportId]);
+
+  // Limpiar sessionStorage después de guardar exitosamente en el servidor
+  const clearSessionStorage = useCallback(() => {
+    if (typeof window === "undefined" || !reportId) return;
+    try {
+      sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+    } catch {
+      // Ignorar errores
+    }
+  }, [reportId]);
 
   // Manejar cambio de estado de un ítem (con autoguardado)
   const handleStatusChange = useCallback(
@@ -113,34 +177,144 @@ export function InspectionChecklist({
         // Marcar que hay cambios pendientes
         hasUnsavedChanges.current = true;
 
+        // Guardar inmediatamente en sessionStorage como backup
+        saveToSessionStorage(newResults);
+
         // Cancelar timeout anterior si existe
         if (saveTimeoutRef.current) {
           clearTimeout(saveTimeoutRef.current);
         }
 
-        // Programar autoguardado después de 1 segundo de inactividad
+        // Programar autoguardado después de 500ms de inactividad (reducido de 1s)
         saveTimeoutRef.current = setTimeout(() => {
           autoSave(newResults);
-        }, 1000);
+        }, 500);
 
         return newResults;
       });
     },
-    [autoSave]
+    [autoSave, saveToSessionStorage]
   );
 
-  // Guardar al desmontar el componente si hay cambios pendientes
+  // Mantener ref sincronizado con el estado
   useEffect(() => {
+    resultsRef.current = results;
+  }, [results]);
+
+  // Sincronizar datos del sessionStorage con el servidor al montar
+  useEffect(() => {
+    if (!reportId || !onSave || disabled) return;
+
+    const syncFromStorage = async () => {
+      try {
+        const stored = sessionStorage.getItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        if (stored) {
+          const parsedData = JSON.parse(stored);
+          // Si hay datos en storage, combinar con los actuales y sincronizar
+          if (Object.keys(parsedData).length > 0) {
+            // Combinar datos actuales con los del storage (storage tiene prioridad)
+            const mergedData = { ...resultsRef.current, ...parsedData };
+            // Actualizar estado local
+            setResults(mergedData);
+            resultsRef.current = mergedData;
+            // Guardar en el servidor
+            await onSave(mergedData);
+            // Limpiar storage después de sincronizar
+            sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+          }
+        }
+      } catch {
+        // Ignorar errores
+      }
+    };
+
+    syncFromStorage();
+  }, [reportId, onSave, disabled]);
+
+  // Función para guardar con fetch keepalive (funciona incluso al cerrar/navegar)
+  const saveWithKeepAlive = useCallback(() => {
+    if (!reportId || !hasUnsavedChanges.current || isSavingRef.current) return;
+
+    const dataToSave = resultsRef.current;
+
+    // Guardar también en sessionStorage por si la petición falla
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`, JSON.stringify(dataToSave));
+      } catch {
+        // Ignorar
+      }
+    }
+
+    // fetch con keepalive garantiza que la petición se complete aunque se cierre la página
+    fetch(`/api/reports/${reportId}/sections`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        section: "checklist",
+        data: { checklistResults: dataToSave },
+      }),
+      keepalive: true, // Permite que la petición continúe aunque la página se cierre
+    }).then(() => {
+      // Limpiar sessionStorage si la petición fue exitosa
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem(`${CHECKLIST_STORAGE_KEY}_${reportId}`);
+        } catch {
+          // Ignorar
+        }
+      }
+    }).catch(() => {
+      // Ignorar errores - los datos están en sessionStorage como backup
+    });
+    hasUnsavedChanges.current = false;
+  }, [reportId]);
+
+  // Escuchar eventos de navegación (botón atrás, cerrar pestaña, etc.)
+  useEffect(() => {
+    // Agregar una entrada al historial para poder interceptar el botón atrás
+    window.history.pushState({ isChecklist: true }, "");
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges.current) {
+        saveWithKeepAlive();
+        // Mostrar mensaje de confirmación del navegador
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      // Cuando la página se oculta (cambio de pestaña, minimizar, navegar)
+      if (document.visibilityState === "hidden" && hasUnsavedChanges.current) {
+        saveWithKeepAlive();
+      }
+    };
+
+    const handlePopState = (event: PopStateEvent) => {
+      // Siempre prevenir la navegación y mostrar modal
+      window.history.pushState({ isChecklist: true }, "");
+      setShowExitModal(true);
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("popstate", handlePopState);
+
     return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("popstate", handlePopState);
+
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
-      // Guardar inmediatamente si hay cambios pendientes
+      // Guardar inmediatamente si hay cambios pendientes al desmontar
       if (hasUnsavedChanges.current && onSave) {
-        onSave(results);
+        onSave(resultsRef.current);
       }
     };
-  }, [results, onSave]);
+  }, [onSave, saveWithKeepAlive]);
 
   // Manejar cambio de categoría
   const handleCategoryChange = (categoryId: string) => {
@@ -148,6 +322,22 @@ export function InspectionChecklist({
     onCategoryChange?.(categoryId);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Confirmar salida de la inspección
+  const handleConfirmExit = useCallback(() => {
+    // Guardar cambios pendientes antes de salir
+    if (hasUnsavedChanges.current) {
+      saveWithKeepAlive();
+    }
+    setShowExitModal(false);
+    // Navegar al panel del inspector
+    router.push("/inspector");
+  }, [router, saveWithKeepAlive]);
+
+  // Cancelar salida
+  const handleCancelExit = useCallback(() => {
+    setShowExitModal(false);
+  }, []);
 
   // Marcar todos los ítems de una sección como OK
   const handleMarkAllOk = useCallback(
@@ -255,6 +445,40 @@ export function InspectionChecklist({
 
   return (
     <div className={`${styles.container} checklistContainer`}>
+      {/* Modal de confirmación de salida */}
+      {showExitModal && (
+        <div className={styles.exitModalOverlay}>
+          <div className={styles.exitModal}>
+            <div className={styles.exitModalIcon}>
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                <circle cx="16" cy="16" r="14" stroke="currentColor" strokeWidth="2"/>
+                <path d="M16 10v8M16 22v.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <h3 className={styles.exitModalTitle}>¿Salir de la inspección?</h3>
+            <p className={styles.exitModalText}>
+              Si sales ahora, los cambios que no se hayan guardado podrían perderse.
+            </p>
+            <div className={styles.exitModalButtons}>
+              <button
+                type="button"
+                onClick={handleCancelExit}
+                className={styles.exitModalButtonCancel}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmExit}
+                className={styles.exitModalButtonConfirm}
+              >
+                Sí, salir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Indicador de autoguardado flotante */}
       {saveStatus !== "idle" && (
         <div className={`${styles.autoSaveIndicator} ${styles[`autoSaveIndicator--${saveStatus}`]}`}>

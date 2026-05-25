@@ -55,7 +55,7 @@ type LegalFieldKey =
   | 'satTickets'
   | 'callaoTickets'
   | 'sutranTickets'
-  | 'theftHistory'
+  | 'siniestroSoat'
   | 'transportRegistry'
   | 'lastTransfer'
   | 'accidentHistory';
@@ -73,7 +73,7 @@ interface LegalReportData {
   satTickets: LegalField;
   callaoTickets: LegalField;
   sutranTickets: LegalField;
-  theftHistory: LegalField;
+  siniestroSoat: LegalField;
   transportRegistry: LegalField;
   lastTransfer: LegalField;
   accidentHistory: LegalField;
@@ -123,10 +123,10 @@ const LEGAL_FIELDS = {
     { key: 'satTickets', label: 'Papeletas SAT', icon: AlertCircle },
     { key: 'callaoTickets', label: 'Papeletas Callao', icon: AlertCircle },
     { key: 'sutranTickets', label: 'Papeletas SUTRAN', icon: AlertCircle },
-    { key: 'theftHistory', label: 'Historial de Robos', icon: AlertTriangle },
+    { key: 'siniestroSoat', label: 'Siniestro SOAT', icon: AlertTriangle },
     { key: 'transportRegistry', label: 'Registro de Transportes', icon: FileText },
     { key: 'lastTransfer', label: 'Última Transferencia', icon: User },
-    { key: 'accidentHistory', label: 'Siniestralidad', icon: Car },
+    { key: 'accidentHistory', label: 'Historial de accidentes del seguro', icon: Car },
   ],
 } as const;
 
@@ -150,7 +150,7 @@ const getDefaultReportData = (): LegalReportData => ({
   satTickets: { ...defaultField },
   callaoTickets: { ...defaultField },
   sutranTickets: { ...defaultField },
-  theftHistory: { ...defaultField },
+  siniestroSoat: { ...defaultField },
   transportRegistry: { ...defaultField },
   lastTransfer: { ...defaultField },
   accidentHistory: { ...defaultField },

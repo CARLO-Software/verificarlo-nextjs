@@ -122,14 +122,23 @@ export async function saveInspectionChangesAction(
       results.inspector = true;
     }
     // Si el estado cambió a PAID y NO se asignó inspector manualmente,
-    // intentar asignación automática
+    // verificar si ya tiene inspector asignado antes de asignar automáticamente
     else if (changes.status === 'PAID') {
-      const autoResult = await autoAssignInspector(id);
-      if (autoResult.success && autoResult.inspectorId && autoResult.inspectorName) {
-        results.autoAssigned = {
-          inspectorId: autoResult.inspectorId,
-          inspectorName: autoResult.inspectorName,
-        };
+      // Verificar si la inspección ya tiene un inspector asignado
+      const currentBooking = await db.booking.findUnique({
+        where: { id },
+        select: { inspectorId: true },
+      });
+
+      // Solo asignar automáticamente si NO tiene inspector
+      if (!currentBooking?.inspectorId) {
+        const autoResult = await autoAssignInspector(id);
+        if (autoResult.success && autoResult.inspectorId && autoResult.inspectorName) {
+          results.autoAssigned = {
+            inspectorId: autoResult.inspectorId,
+            inspectorName: autoResult.inspectorName,
+          };
+        }
       }
     }
 

@@ -135,6 +135,10 @@ export async function POST(
     const existingScreenshots = (inspection.legalScreenshots as Record<string, any>) || {};
     const maxImages = getMaxImagesForSource(sourceId);
 
+    console.log('[UPLOAD DEBUG] sourceId recibido:', sourceId);
+    console.log('[UPLOAD DEBUG] maxImages para esta fuente:', maxImages);
+    console.log('[UPLOAD DEBUG] Keys existentes:', Object.keys(existingScreenshots));
+
     // Nueva imagen
     const newImage: ScreenshotImage = {
       imageUrl: uploadResult.secure_url,
@@ -172,10 +176,14 @@ export async function POST(
       };
     }
 
+    console.log('[UPLOAD DEBUG] Guardando con keys:', Object.keys(updatedScreenshots));
+
     await db.vehicleInspection.update({
       where: { id: inspectionId },
       data: { legalScreenshots: updatedScreenshots },
     });
+
+    console.log('[UPLOAD DEBUG] Guardado exitoso para:', sourceId);
 
     return NextResponse.json({
       success: true,
