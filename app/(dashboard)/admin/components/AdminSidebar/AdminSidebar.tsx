@@ -13,6 +13,7 @@ import {
   LogOut,
   FileText,
   PlayCircle,
+  Mail,
 } from 'lucide-react';
 import styles from './AdminSidebar.module.css';
 
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/admin/inspecciones', label: 'Inspecciones', icon: CalendarCheck, badgeKey: 'legalReviews' },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/blog', label: 'Blog', icon: FileText },
+  { href: '/admin/newsletter', label: 'Newsletter', icon: Mail },
   { href: '/admin/reels', label: 'Reels', icon: PlayCircle },
   { href: '/admin/reportes', label: 'Reportes', icon: FileBarChart },
   { href: '/admin/configuracion', label: 'Configuración', icon: Settings },

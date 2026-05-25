@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getResendClient, EMAIL_FROM } from "@/lib/email/resend";
+import { getWelcomeNewsletterHtml } from "@/lib/email/templates/WelcomeNewsletter";
 
 // POST /api/blog/newsletter - Subscribe to newsletter
 export async function POST(request: NextRequest) {
@@ -23,9 +25,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = email.toLowerCase();
+
     // Check if already subscribed
     const existingSubscriber = await db.newsletterSubscriber.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
     });
 
     if (existingSubscriber) {
@@ -37,12 +41,21 @@ export async function POST(request: NextRequest) {
 
     await db.newsletterSubscriber.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
       },
     });
 
+    // Send welcome email
+    const resend = getResendClient();
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: normalizedEmail,
+      subject: "¡Bienvenido al newsletter de Verificarlo!",
+      html: getWelcomeNewsletterHtml(normalizedEmail),
+    });
+
     return NextResponse.json(
-      { message: "Te has suscrito exitosamente" },
+      { message: "Te has suscrito exitosamente. Revisa tu correo." },
       { status: 201 }
     );
   } catch (error) {
