@@ -147,8 +147,6 @@ body {
   min-height: 100dvh; /* Viewport dinámico para iOS Safari */
   font-size: 14px;
   line-height: 20px;
-  /* iOS Safari - previene rebote al hacer scroll */
-  overscroll-behavior-y: none;
 }
 
 article,

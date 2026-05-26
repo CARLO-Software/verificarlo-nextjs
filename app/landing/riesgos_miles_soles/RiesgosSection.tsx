@@ -69,6 +69,8 @@ export default function RiesgosSection() {
           snap: true,
           flickMaxPages: 1,
           flickPower: 300,
+          // Evita que el slider capture gestos verticales (scroll)
+          dragMinThreshold: { mouse: 10, touch: 30 },
         });
         splideInstance.mount();
       }

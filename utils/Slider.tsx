@@ -45,6 +45,8 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 lazyLoad: "nearby",
                 mediaQuery: "min",
                 width: "100%",
+                // Evita que el slider capture gestos verticales (scroll)
+                dragMinThreshold: { mouse: 10, touch: 30 },
                 breakpoints: {
                     600: {
                         perPage: 2.01,
@@ -76,6 +78,8 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 clampDrag: true,
                 padding: { right: "16px", left: "16px" },
                 mediaQuery: "min",
+                // Evita que el slider capture gestos verticales (scroll)
+                dragMinThreshold: { mouse: 10, touch: 30 },
                 breakpoints: {
                     480: {
                         perPage: 1.4,
