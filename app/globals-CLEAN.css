@@ -128,9 +128,10 @@ html {
   -ms-text-size-adjust: 100%;
   font-family: sans-serif;
   scrollbar-gutter: stable;
-  scroll-behavior: smooth;
-  /* iOS Safari - previene el efecto elástico al hacer scroll */
-  overscroll-behavior-y: none;
+  /* NOTA: scroll-behavior: smooth removido del html porque causa
+     problemas en móvil (el scroll se "corrige" al deslizar).
+     El smooth scroll para anclas (#planes, #proceso) se maneja
+     via CSS :target o JavaScript cuando sea necesario. */
 }
 
 * {
@@ -1370,6 +1371,17 @@ textarea.w-select {
   .secondary-cta {
     order: 1;
     height: 38px;
+  }
+}
+
+/* ==========================================================================
+   SMOOTH SCROLL PARA NAVEGACIÓN POR ANCLAS
+   Solo se aplica en desktop y cuando el usuario hace clic en un enlace de ancla.
+   No afecta el scroll normal con el dedo en móvil.
+   ========================================================================== */
+@media screen and (min-width: 768px) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 
