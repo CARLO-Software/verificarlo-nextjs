@@ -16,7 +16,10 @@
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   box-shadow: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  /* OPTIMIZADO: Solo transicionar propiedades visuales, no position/layout */
+  transition: background 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+  /* Mejora rendimiento en móvil */
+  will-change: background, box-shadow;
 }
 
 /* Estado cuando el usuario hace scroll */

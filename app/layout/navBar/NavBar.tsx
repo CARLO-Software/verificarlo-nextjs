@@ -78,47 +78,76 @@ export default function NavBar() {
   const [isInServicesSection, setIsInServicesSection] = useState(false);
 
   // Detectar scroll para cambiar el estilo del navbar
+  // OPTIMIZADO: Solo actualiza estado cuando realmente cambia para evitar re-renders
   useEffect(() => {
+    let ticking = false;
+    let lastScrolled = false;
+
     function handleScroll() {
-      setIsScrolled(window.scrollY > 50);
+      if (ticking) return;
+
+      ticking = true;
+      requestAnimationFrame(() => {
+        const currentScrolled = window.scrollY > 50;
+        // Solo actualizar si el valor cambió
+        if (currentScrolled !== lastScrolled) {
+          lastScrolled = currentScrolled;
+          setIsScrolled(currentScrolled);
+        }
+        ticking = false;
+      });
     }
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Detectar cuando llegamos a la sección de servicios (solo en PC)
+  // OPTIMIZADO: Usa requestAnimationFrame y solo actualiza cuando cambia
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    let ticking = false;
+    let lastInServices = false;
+
     const checkServicesSection = () => {
-      // Solo en PC (>= 992px)
+      // Solo en PC (>= 992px) - en móvil, salir inmediatamente
       if (window.innerWidth < 992) {
-        setIsInServicesSection(false);
+        if (lastInServices) {
+          lastInServices = false;
+          setIsInServicesSection(false);
+        }
         return;
       }
 
-      const servicesSection = document.getElementById("planes");
-      if (!servicesSection) return;
+      if (ticking) return;
 
-      // Obtener la posición de la sección relativa al viewport
-      const rect = servicesSection.getBoundingClientRect();
+      ticking = true;
+      requestAnimationFrame(() => {
+        const servicesSection = document.getElementById("planes");
+        if (!servicesSection) {
+          ticking = false;
+          return;
+        }
 
-      // Si el top de la sección está por encima de 100px del viewport
-      // significa que hemos llegado o pasado la sección
-      if (rect.top <= 100) {
-        setIsInServicesSection(true);
-      } else {
-        setIsInServicesSection(false);
-      }
+        const rect = servicesSection.getBoundingClientRect();
+        const currentInServices = rect.top <= 100;
+
+        // Solo actualizar si el valor cambió
+        if (currentInServices !== lastInServices) {
+          lastInServices = currentInServices;
+          setIsInServicesSection(currentInServices);
+        }
+        ticking = false;
+      });
     };
 
     // Verificar al cargar
     checkServicesSection();
 
-    // Verificar en cada scroll
-    window.addEventListener("scroll", checkServicesSection);
-    window.addEventListener("resize", checkServicesSection);
+    // Verificar en cada scroll con passive: true para mejor rendimiento
+    window.addEventListener("scroll", checkServicesSection, { passive: true });
+    window.addEventListener("resize", checkServicesSection, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", checkServicesSection);
