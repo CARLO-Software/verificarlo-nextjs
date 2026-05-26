@@ -15,12 +15,19 @@
    ============================================ */
 .heroSection {
   position: relative;
-  min-height: 110vh;
-  min-height: 110dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   /* Banner y Navbar son position: absolute, no ocupan espacio */
-  /* Extra height para que el video se vea detrás de la sección de servicios */
+}
+
+/* En desktop, extender el Hero para que el video se vea detrás de servicios */
+@media screen and (min-width: 768px) {
+  .heroSection {
+    min-height: 110vh;
+    min-height: 110dvh;
+  }
 }
 
 /* Background Image + Overlay */
