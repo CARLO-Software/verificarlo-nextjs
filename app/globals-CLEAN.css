@@ -123,15 +123,10 @@
    CSS RESET / NORMALIZE
    ========================================================================== */
 html {
-  height: 100%;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   font-family: sans-serif;
   scrollbar-gutter: stable;
-  /* NOTA: scroll-behavior: smooth removido del html porque causa
-     problemas en móvil (el scroll se "corrige" al deslizar).
-     El smooth scroll para anclas (#planes, #proceso) se maneja
-     via CSS :target o JavaScript cuando sea necesario. */
 }
 
 * {
@@ -147,6 +142,10 @@ body {
   min-height: 100dvh; /* Viewport dinámico para iOS Safari */
   font-size: 14px;
   line-height: 20px;
+  /* Previene scroll horizontal accidental en móvil */
+  overflow-x: hidden;
+  /* Asegura que el scroll vertical funcione correctamente en móvil */
+  touch-action: pan-y;
 }
 
 article,

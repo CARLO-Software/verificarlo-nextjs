@@ -183,9 +183,14 @@
     font-size: 13px;
   }
 
-  /* Más lento en móvil para mejor legibilidad */
+  /* En móvil: detener animación y permitir scroll manual */
+  .carouselWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .track {
-    animation-duration: 25s;
+    animation: none; /* Detener animación en móvil - causa problemas de scroll */
   }
 }
 
