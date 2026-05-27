@@ -118,8 +118,8 @@
   display: flex;
   gap: 20px;
   overflow-x: auto;
-  /* Cambiado de mandatory a proximity para evitar rebote en scroll vertical */
-  scroll-snap-type: x proximity;
+  /* DESHABILITADO: scroll-snap puede causar conflictos con scroll vertical */
+  /* scroll-snap-type: x proximity; */
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 8px 4px 16px;
@@ -133,7 +133,8 @@
 }
 
 .reelsGrid > * {
-  scroll-snap-align: start;
+  /* DESHABILITADO: scroll-snap puede causar conflictos con scroll vertical */
+  /* scroll-snap-align: start; */
 }
 
 /* Loading State */

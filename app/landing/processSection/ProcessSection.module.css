@@ -275,8 +275,8 @@
 @media screen and (max-width: 479px) {
   .process-div {
     cursor: pointer;
-    /* Cambiado de mandatory a proximity para evitar rebote en scroll vertical */
-    scroll-snap-type: x proximity;
+    /* DESHABILITADO: scroll-snap puede causar conflictos con scroll vertical */
+    /* scroll-snap-type: x proximity; */
     scrollbar-width: none;
     justify-content: flex-start;
     align-items: center;

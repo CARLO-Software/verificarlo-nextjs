@@ -10,6 +10,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
 import NavBar from './navBar/NavBar';
 import Footer from './footer/Footer';
 import WhatsappFlotante from './whatsappFlotante/WhatsappFlotante';
@@ -32,6 +33,13 @@ const LEGAL_ROUTES = [
 export function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
+
+  // Deshabilitar scroll restoration del navegador para evitar conflictos
+  useEffect(() => {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }, []);
 
   // Rutas de admin/inspector usan su propio layout
   const isAdminInspectorRoute = ADMIN_INSPECTOR_ROUTES.some(
