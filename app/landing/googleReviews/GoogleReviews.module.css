@@ -186,7 +186,6 @@
   /* En móvil: detener animación y permitir scroll manual */
   .carouselWrapper {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     /* Indica al navegador que solo responda a gestos horizontales */
     touch-action: pan-x;
   }

@@ -71,6 +71,8 @@ export default function RiesgosSection() {
           flickPower: 300,
           // Evita que el slider capture gestos verticales (scroll)
           dragMinThreshold: { mouse: 10, touch: 30 },
+          // Libera el wheel/touch cuando se llega al borde del slider
+          releaseWheel: true,
         });
         splideInstance.mount();
       }

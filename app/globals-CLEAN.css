@@ -139,8 +139,8 @@ html {
   html, body {
     /* Previene el rebote al llegar a los límites del scroll */
     overscroll-behavior-y: none;
-    /* Asegura que el scroll sea fluido pero sin efecto elástico */
-    -webkit-overflow-scrolling: touch;
+    /* NOTA: Removido -webkit-overflow-scrolling: touch porque puede causar
+       conflictos con overscroll-behavior-y: none en algunos dispositivos iOS */
   }
 }
 

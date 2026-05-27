@@ -47,6 +47,8 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 width: "100%",
                 // Evita que el slider capture gestos verticales (scroll)
                 dragMinThreshold: { mouse: 10, touch: 30 },
+                // Libera el wheel/touch cuando se llega al borde del slider
+                releaseWheel: true,
                 breakpoints: {
                     600: {
                         perPage: 2.01,
@@ -80,6 +82,8 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 mediaQuery: "min",
                 // Evita que el slider capture gestos verticales (scroll)
                 dragMinThreshold: { mouse: 10, touch: 30 },
+                // Libera el wheel/touch cuando se llega al borde del slider
+                releaseWheel: true,
                 breakpoints: {
                     480: {
                         perPage: 1.4,
