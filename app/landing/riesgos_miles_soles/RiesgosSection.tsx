@@ -53,6 +53,9 @@ export default function RiesgosSection() {
 
     const initSplide = () => {
       if (mediaQuery.matches && splideRef.current) {
+        // Detectar si es dispositivo táctil
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
         splideInstance = new Splide(splideRef.current, {
           type: "slide",
           perPage: 1.15,
@@ -61,18 +64,22 @@ export default function RiesgosSection() {
           focus: "center",
           arrows: false,
           pagination: true,
-          drag: true,
+          // PRUEBA: Deshabilitar drag en dispositivos táctiles para ver si es la causa del problema
+          drag: isTouchDevice ? false : true,
           padding: { left: "20px", right: "20px" },
           rewind: false,
           speed: 400,
           easing: "ease",
-          snap: true,
+          // Deshabilitado snap para evitar rebote
+          snap: false,
           flickMaxPages: 1,
           flickPower: 300,
-          // Evita que el slider capture gestos verticales (scroll)
-          dragMinThreshold: { mouse: 10, touch: 30 },
+          // Umbral muy alto para touch - solo captura gestos claramente horizontales
+          dragMinThreshold: { mouse: 10, touch: 50 },
           // Libera el wheel/touch cuando se llega al borde del slider
           releaseWheel: true,
+          // Deshabilita wheel para evitar conflictos con scroll de página
+          wheel: false,
         });
         splideInstance.mount();
       }

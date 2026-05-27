@@ -1377,6 +1377,34 @@ textarea.w-select {
 }
 
 /* ==========================================================================
+   SPLIDE MOBILE SCROLL FIX
+   Fuerza a los sliders a solo responder a gestos horizontales puros,
+   permitiendo que el scroll vertical de la página funcione normalmente.
+   IMPORTANTE: !important necesario porque Splide aplica estilos inline.
+   ========================================================================== */
+@media screen and (max-width: 991px) {
+  .splide__track {
+    /* Solo permite pan horizontal y pinch-zoom, el scroll vertical pasa al body */
+    touch-action: pan-x pinch-zoom !important;
+  }
+
+  .splide__list {
+    /* Hereda el touch-action del track */
+    touch-action: pan-x pinch-zoom !important;
+  }
+
+  .splide__slide {
+    /* Los slides individuales no deben capturar gestos */
+    touch-action: pan-x pinch-zoom !important;
+  }
+
+  /* Asegura que el contenedor principal del splide tampoco capture scroll vertical */
+  .splide {
+    touch-action: pan-x pinch-zoom !important;
+  }
+}
+
+/* ==========================================================================
    RESPONSIVE SHARED BUTTON STYLES
    ========================================================================== */
 @media screen and (max-width: 479px) {

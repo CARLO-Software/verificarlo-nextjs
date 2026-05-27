@@ -28,6 +28,9 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
 
         let options = {}
 
+        // Detectar si es dispositivo táctil
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
         if (metodoSlider === "proceso-inspeccion") {
             // Creamos la instancia de Splide
             options = {
@@ -37,7 +40,8 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 focus: "center",
                 arrows: false,
                 pagination: false,
-                drag: true,
+                // PRUEBA: Deshabilitar drag en dispositivos táctiles para ver si es la causa del problema
+                drag: isTouchDevice ? false : true,
                 padding: { left: "38px", right: "38px" },
                 rewind: false,
                 clampDrag: true,
@@ -45,10 +49,12 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 lazyLoad: "nearby",
                 mediaQuery: "min",
                 width: "100%",
-                // Evita que el slider capture gestos verticales (scroll)
-                dragMinThreshold: { mouse: 10, touch: 30 },
+                // Umbral muy alto para touch - solo captura gestos claramente horizontales
+                dragMinThreshold: { mouse: 10, touch: 50 },
                 // Libera el wheel/touch cuando se llega al borde del slider
                 releaseWheel: true,
+                // Deshabilita wheel para evitar conflictos con scroll de página
+                wheel: false,
                 breakpoints: {
                     600: {
                         perPage: 2.01,
@@ -80,10 +86,14 @@ export const Slider = ({ metodoSlider, children, onControlsReady }: SliderProps)
                 clampDrag: true,
                 padding: { right: "16px", left: "16px" },
                 mediaQuery: "min",
-                // Evita que el slider capture gestos verticales (scroll)
-                dragMinThreshold: { mouse: 10, touch: 30 },
+                // PRUEBA: Deshabilitar drag en dispositivos táctiles para ver si es la causa del problema
+                drag: isTouchDevice ? false : true,
+                // Umbral muy alto para touch - solo captura gestos claramente horizontales
+                dragMinThreshold: { mouse: 10, touch: 50 },
                 // Libera el wheel/touch cuando se llega al borde del slider
                 releaseWheel: true,
+                // Deshabilita wheel para evitar conflictos con scroll de página
+                wheel: false,
                 breakpoints: {
                     480: {
                         perPage: 1.4,
