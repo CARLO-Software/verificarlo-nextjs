@@ -187,6 +187,8 @@
   .carouselWrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    /* Indica al navegador que solo responda a gestos horizontales */
+    touch-action: pan-x;
   }
 
   .track {

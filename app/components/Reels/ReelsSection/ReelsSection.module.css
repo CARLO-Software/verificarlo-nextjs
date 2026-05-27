@@ -118,11 +118,14 @@
   display: flex;
   gap: 20px;
   overflow-x: auto;
-  scroll-snap-type: x mandatory;
+  /* Cambiado de mandatory a proximity para evitar rebote en scroll vertical */
+  scroll-snap-type: x proximity;
   scrollbar-width: none;
   -ms-overflow-style: none;
   padding: 8px 4px 16px;
   margin: 0 -4px;
+  /* Indica al navegador que solo responda a gestos horizontales */
+  touch-action: pan-x;
 }
 
 .reelsGrid::-webkit-scrollbar {

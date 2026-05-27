@@ -264,10 +264,19 @@
   }
 }
 
+/* Tablets y móviles - touch-action para evitar conflictos con scroll vertical */
+@media screen and (max-width: 991px) {
+  .process-div {
+    /* Indica al navegador que solo responda a gestos horizontales */
+    touch-action: pan-x;
+  }
+}
+
 @media screen and (max-width: 479px) {
   .process-div {
     cursor: pointer;
-    scroll-snap-type: x mandatory;
+    /* Cambiado de mandatory a proximity para evitar rebote en scroll vertical */
+    scroll-snap-type: x proximity;
     scrollbar-width: none;
     justify-content: flex-start;
     align-items: center;
