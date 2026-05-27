@@ -129,6 +129,21 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* ==========================================================================
+   MOBILE SCROLL FIX
+   Previene el efecto de "rubber banding" (rebote) en iOS/móvil cuando
+   el usuario llega al inicio o final del scroll y suelta el dedo.
+   Solo se aplica en móvil para no afectar el comportamiento en desktop.
+   ========================================================================== */
+@media screen and (max-width: 767px) {
+  html, body {
+    /* Previene el rebote al llegar a los límites del scroll */
+    overscroll-behavior-y: none;
+    /* Asegura que el scroll sea fluido pero sin efecto elástico */
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
