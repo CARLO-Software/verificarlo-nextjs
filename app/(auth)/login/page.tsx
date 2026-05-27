@@ -84,7 +84,7 @@ function LoginContent() {
             */}
         <aside className={styles.illustrationSection}>
           <Image
-            src="/assets/images/login-side.png"
+            src="/assets/images/login-side.webp"
             alt=""
             fill
             className={styles.illustrationImage}

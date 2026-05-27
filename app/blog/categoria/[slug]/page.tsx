@@ -4,7 +4,19 @@ import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import BlogList from "../../BlogList";
 
-export const dynamic = "force-dynamic";
+// ISR: Regenerar cada 5 minutos
+export const revalidate = 300;
+
+// Pre-generar páginas de categorías en build time
+export async function generateStaticParams() {
+  const categories = await db.blogCategory.findMany({
+    select: { slug: true },
+  });
+
+  return categories.map((category) => ({
+    slug: category.slug,
+  }));
+}
 
 interface Props {
   params: Promise<{ slug: string }>;

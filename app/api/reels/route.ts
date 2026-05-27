@@ -33,7 +33,12 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(reels);
+    // Cache por 10 minutos - los reels no cambian frecuentemente
+    return NextResponse.json(reels, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200',
+      },
+    });
   } catch (error) {
     console.error("Error obteniendo reels:", error);
     return NextResponse.json(

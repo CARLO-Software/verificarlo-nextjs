@@ -15,7 +15,12 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(categories);
+    // Cache por 1 hora - las categorías rara vez cambian
+    return NextResponse.json(categories, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=7200',
+      },
+    });
   } catch (error) {
     console.error("Error fetching blog categories:", error);
     return NextResponse.json(

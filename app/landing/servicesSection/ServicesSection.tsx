@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import styles from './ServicesSection.module.css';
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
 // Iconos: X (cerrar), Play (video)
@@ -26,9 +27,9 @@ const PLAN_VIDEO_IDS: Record<number, string | null> = {
 // Imágenes de fondo para el carrusel de desktop (una por cada plan)
 // El índice corresponde al plan: 0 = Básico, 1 = Estándar, 2 = Premium
 const PLAN_IMAGES = [
-    "/assets/images/modal-bg.png",    // Plan Básico
-    "/assets/images/modal-bg-3.png",  // Plan Estándar
-    "/assets/images/modal-bg-2.png",  // Plan Premium
+    "/assets/images/modal-bg-png.webp",    // Plan Básico
+    "/assets/images/modal-bg-3.webp",  // Plan Estándar
+    "/assets/images/modal-bg-2.webp",  // Plan Premium
 ];
 
 // Mensajes de WhatsApp personalizados para cada plan
@@ -252,10 +253,13 @@ export default function ServicesSection() {
                                 ) : (
                                     // Imagen de fondo por defecto
                                     <>
-                                        <img
+                                        <Image
                                             src={PLAN_IMAGES[modalData.planIndex]}
                                             alt={`Imagen de ${modalData.title}`}
                                             className={styles['modal-bg-image']}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 600px"
+                                            quality={75}
                                         />
                                         <div className={styles['modal-bg-overlay']} />
                                     </>

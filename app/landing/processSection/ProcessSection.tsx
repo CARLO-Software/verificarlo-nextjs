@@ -12,28 +12,28 @@ export default function ProcessSection() {
     const listaProcesos = [
         {
             id: 1,
-            src: "/assets/images/primera-foto-process.png",
+            src: "/assets/images/primera-foto-process.webp",
             alt: "Inspección de +200 puntos",
             titulo: "Inspección de +200 puntos",
             descripcion: "Revisión mecánica, estética y legal completa para asegurar que eI auto esté en perfectas condiciones."
         },
         {
             id: 2,
-            src: "/assets/images/segunda-foto-process.jpeg",
+            src: "/assets/images/segunda-foto-process.webp",
             alt: "Te entregamos un informe detallado",
             titulo: "Te entregamos un informe detallado",
             descripcion: "Recibe un reporte técnico de motor, caja, chasis y suspensión. Transparencia total sobre el estado real."
         },
         {
             id: 3,
-            src: "/assets/images/tercera-foto-process.jpeg",
+            src: "/assets/images/tercera-foto-process.webp",
             alt: "Presupuesto de reparaciones",
             titulo: "Presupuesto de reparaciones",
             descripcion: "Si hallamos fallas, te damos soluciones y costos estimados para que decidas con la información clara."
         },
         {
             id: 4,
-            src: "/assets/images/cuarta-foto-process.jpeg",
+            src: "/assets/images/cuarta-foto-process.webp",
             alt: "Gestión notarial a docimicilio",
             titulo: "Gestión notarial a docimicilio",
             descripcion: "Firmamos en 1 hora. Un procurador va a donde estés para formalizar la compra sin que pierdas tiempo."
@@ -60,6 +60,8 @@ export default function ProcessSection() {
                                             width={800}
                                             height={450}
                                             className={styles['process-image']}
+                                            sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 285px"
+                                            quality={75}
                                         />
                                         <div className={styles['process-box']}>
                                             <div className={styles['process-box-container']}>

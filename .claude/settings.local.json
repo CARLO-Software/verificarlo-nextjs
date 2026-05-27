@@ -58,7 +58,8 @@
       "Bash(npx ts-node:*)",
       "Bash(explorer C:\\\\verificarlo\\\\verificarlo-nextjs\\\\scripts:*)",
       "Bash(npx tsx:*)",
-      "Bash(start:*)"
+      "Bash(start:*)",
+      "Bash(sort -k5 -h -r)"
     ]
   }
 }

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "./footer.module.css";
 import ComplaintBookButton from "@/app/components/ComplaintBook/ComplaintBookButton";
 
@@ -45,10 +46,13 @@ export default function Footer() {
       <div className={styles.container}>
         {/* Logo - visible en móvil arriba, en desktop dentro de brandColumn */}
         <div className={styles.logoMobile}>
-          <img
+          <Image
             src="/assets/images/verificarlo-logo.png"
             alt="VerifiCARLO"
             className={styles.logoImage}
+            width={150}
+            height={40}
+            quality={80}
           />
         </div>
 
@@ -57,10 +61,13 @@ export default function Footer() {
           {/* Columna 1: Logo (desktop) + Redes + CTA */}
           <div className={styles.brandColumn}>
             <div className={styles.logoDesktop}>
-              <img
+              <Image
                 src="/assets/images/verificarlo-logo.png"
                 alt="VerifiCARLO"
                 className={styles.logoImage}
+                width={150}
+                height={40}
+                quality={80}
               />
             </div>
             <div className={styles.socialIcons}>

@@ -51,7 +51,7 @@ export default function Hero() {
           loop
           playsInline
           className={styles.videoBackground}
-          poster="/assets/images/frame-hero.jpg"
+          poster="/assets/images/frame-hero.webp"
         >
           <source src="/assets/videos/hero-video-2.mp4" type="video/mp4" />
         </video>

@@ -8,6 +8,22 @@ import { BlogPostSchema, BreadcrumbSchema } from "@/app/components/SEO/JsonLd";
 import BlogContent from "./BlogContent";
 import styles from "./BlogPost.module.css";
 
+// ISR: Regenerar cada 10 minutos - el contenido del blog no cambia frecuentemente
+export const revalidate = 600;
+
+// Pre-generar las páginas de posts publicados en build time
+// Esto reduce Function Invocations significativamente
+export async function generateStaticParams() {
+  const posts = await db.blogPost.findMany({
+    where: { published: true },
+    select: { slug: true },
+  });
+
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
 interface Props {
   params: Promise<{ slug: string }>;
 }

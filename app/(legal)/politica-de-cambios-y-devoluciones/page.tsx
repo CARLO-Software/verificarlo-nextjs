@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import LegalPageLayout from "@/app/components/Legal/LegalPageLayout";
 
+// Página 100% estática - no necesita regenerarse
+export const dynamic = 'force-static';
+export const revalidate = false;
+
 export const metadata: Metadata = {
   title: "Política de Cambios y Devoluciones | VerifiCARLO",
   description:

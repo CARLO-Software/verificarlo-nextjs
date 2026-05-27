@@ -18,6 +18,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const DRAFT_KEY = "agendar_draft";
 import styles from "./Agendar.module.css";
@@ -423,10 +424,14 @@ export default function AgendarForm({
           COLUMNA IZQUIERDA: Imagen (solo visible en desktop)
           =================================================================== */}
       <aside className={styles.sidebarImage}>
-        <img
-          src="/assets/images/booking-sidebar.png"
+        <Image
+          src="/assets/images/booking-sidebar.webp"
           alt="Verificarlo - Inspección vehicular"
           className={styles.sidebarImageBg}
+          fill
+          sizes="(max-width: 1024px) 0vw, 50vw"
+          quality={75}
+          priority={false}
         />
         <div className={styles.sidebarOverlay}>
           <h2 className={styles.sidebarTitle}>
