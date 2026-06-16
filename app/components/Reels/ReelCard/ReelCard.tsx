@@ -11,9 +11,10 @@ export interface ReelData {
   id: number;
   title: string;
   description: string | null;
-  embedUrl: string;
+  embedUrl: string | null; // Opcional si hay videoUrl
   embedType: "INSTAGRAM" | "TIKTOK" | "YOUTUBE_SHORTS";
   thumbnailUrl: string;
+  videoUrl?: string; // Video nativo - si existe, se usa en lugar del embed
   category: "TIPS" | "FRAUDES" | "PROCESO" | "TESTIMONIOS";
   views: number;
 }

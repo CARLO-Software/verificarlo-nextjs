@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
         embedUrl: true,
         embedType: true,
         thumbnailUrl: true,
+        videoUrl: true,
         category: true,
         views: true,
       },

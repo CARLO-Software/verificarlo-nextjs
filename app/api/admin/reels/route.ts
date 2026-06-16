@@ -77,12 +77,20 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, description, embedUrl, embedType, thumbnailUrl, category } = body;
+    const { title, description, embedUrl, embedType, thumbnailUrl, category, videoUrl } = body;
 
     // Validaciones
-    if (!title || !embedUrl || !thumbnailUrl) {
+    if (!title || !thumbnailUrl) {
       return NextResponse.json(
-        { error: "Título, URL del video y thumbnail son obligatorios" },
+        { error: "Título y thumbnail son obligatorios" },
+        { status: 400 }
+      );
+    }
+
+    // Debe tener al menos un video (nativo o embed)
+    if (!videoUrl && !embedUrl) {
+      return NextResponse.json(
+        { error: "Debes proporcionar un video nativo o una URL de embed" },
         { status: 400 }
       );
     }
@@ -128,8 +136,9 @@ export async function POST(req: NextRequest) {
       data: {
         title,
         description: description || null,
-        embedUrl,
+        embedUrl: embedUrl || null,
         embedType: embedType || "INSTAGRAM",
+        videoUrl: videoUrl || null,
         thumbnailUrl,
         category: category || "TIPS",
         sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,

@@ -13,6 +13,7 @@ import {
   X,
   Loader2,
   ImageIcon,
+  Video,
 } from "lucide-react";
 import styles from "./ReelForm.module.css";
 
@@ -29,6 +30,7 @@ interface FormData {
   embedUrl: string;
   embedType: EmbedType;
   thumbnailUrl: string;
+  videoUrl: string; // Video nativo (opcional - si existe, se usa en lugar del embed)
   category: ReelCategory;
 }
 
@@ -56,11 +58,14 @@ const platforms: { value: EmbedType; label: string; icon: JSX.Element }[] = [
 export default function NuevoReelPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [dragActiveVideo, setDragActiveVideo] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -68,6 +73,7 @@ export default function NuevoReelPage() {
     embedUrl: "",
     embedType: "INSTAGRAM",
     thumbnailUrl: "",
+    videoUrl: "",
     category: "TIPS",
   });
 
@@ -156,6 +162,83 @@ export default function NuevoReelPage() {
   };
 
   // ============================================
+  // UPLOAD DE VIDEO NATIVO
+  // ============================================
+
+  const handleVideoSelect = async (file: File) => {
+    // Validar tipo
+    const validVideoTypes = ["video/mp4", "video/webm", "video/quicktime"];
+    if (!validVideoTypes.includes(file.type)) {
+      setError("El archivo debe ser un video (MP4, WebM o MOV)");
+      return;
+    }
+
+    // Validar tamaño (50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      setError("El video no debe superar 50MB");
+      return;
+    }
+
+    setUploadingVideo(true);
+    setError(null);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const response = await fetch("/api/admin/reels/upload-video", {
+        method: "POST",
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al subir el video");
+      }
+
+      setFormData((prev) => ({ ...prev, videoUrl: data.url }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al subir video");
+    } finally {
+      setUploadingVideo(false);
+    }
+  };
+
+  const handleDragVideo = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActiveVideo(true);
+    } else if (e.type === "dragleave") {
+      setDragActiveVideo(false);
+    }
+  };
+
+  const handleDropVideo = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActiveVideo(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleVideoSelect(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleVideoInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      handleVideoSelect(e.target.files[0]);
+    }
+  };
+
+  const removeVideo = () => {
+    setFormData((prev) => ({ ...prev, videoUrl: "" }));
+    if (videoInputRef.current) {
+      videoInputRef.current.value = "";
+    }
+  };
+
+  // ============================================
   // SUBMIT
   // ============================================
 
@@ -168,8 +251,9 @@ export default function NuevoReelPage() {
       setError("El título es obligatorio");
       return;
     }
-    if (!formData.embedUrl.trim()) {
-      setError("La URL del video es obligatoria");
+    // Validar que tenga al menos un video (nativo o embed)
+    if (!formData.videoUrl?.trim() && !formData.embedUrl.trim()) {
+      setError("Debes subir un video o proporcionar una URL de embed");
       return;
     }
     if (!formData.thumbnailUrl.trim()) {
@@ -320,7 +404,7 @@ export default function NuevoReelPage() {
             {/* URL del video */}
             <div className={styles.formGroup}>
               <label className={styles.label}>
-                URL del video <span className={styles.required}>*</span>
+                URL de embed <span className={styles.optional}>(opcional si hay video nativo)</span>
               </label>
               <input
                 type="url"
@@ -410,6 +494,74 @@ export default function NuevoReelPage() {
               </span>
             </div>
 
+            {/* Video Nativo Upload (opcional) */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                Video Nativo <span className={styles.optional}>(opcional)</span>
+              </label>
+
+              {formData.videoUrl ? (
+                // Preview de video subido
+                <div className={styles.uploadedPreview}>
+                  <video
+                    src={formData.videoUrl}
+                    controls
+                    style={{ width: "100%", maxHeight: "200px", objectFit: "contain" }}
+                  />
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className={styles.removeButton}
+                    title="Eliminar video"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                // Zona de upload de video
+                <div
+                  className={`${styles.uploadZone} ${dragActiveVideo ? styles.uploadZoneActive : ""} ${uploadingVideo ? styles.uploadZoneUploading : ""}`}
+                  onDragEnter={handleDragVideo}
+                  onDragLeave={handleDragVideo}
+                  onDragOver={handleDragVideo}
+                  onDrop={handleDropVideo}
+                  onClick={() => !uploadingVideo && videoInputRef.current?.click()}
+                >
+                  <input
+                    ref={videoInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={handleVideoInput}
+                    className={styles.fileInput}
+                    disabled={uploadingVideo}
+                  />
+
+                  {uploadingVideo ? (
+                    <>
+                      <Loader2 size={32} className={styles.spinner} />
+                      <span>Subiendo video...</span>
+                    </>
+                  ) : (
+                    <>
+                      <div className={styles.uploadIcon}>
+                        <Video size={28} />
+                        <Upload size={16} className={styles.uploadArrow} />
+                      </div>
+                      <span className={styles.uploadText}>
+                        Arrastra un video aquí o haz clic para seleccionar
+                      </span>
+                      <span className={styles.uploadHint}>
+                        MP4, WebM o MOV (máx. 50MB)
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+              <span className={styles.hint}>
+                Si subes un video nativo, se usará en lugar del embed de redes sociales
+              </span>
+            </div>
+
             {/* Categoría */}
             <div className={styles.formGroup}>
               <label className={styles.label}>
@@ -436,7 +588,7 @@ export default function NuevoReelPage() {
               </Link>
               <button
                 type="submit"
-                disabled={saving || uploading}
+                disabled={saving || uploading || uploadingVideo}
                 className={styles.submitButton}
               >
                 {saving ? (

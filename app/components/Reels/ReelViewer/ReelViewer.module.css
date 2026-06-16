@@ -116,6 +116,56 @@
   border-radius: 0;
 }
 
+/* Native Video */
+.video {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 180px);
+  object-fit: cover;
+  background: #000;
+  cursor: pointer;
+}
+
+/* Play overlay (shown when video is paused) */
+.playOverlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+  z-index: 5;
+}
+
+.playOverlay:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Progress bar */
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+  z-index: 15;
+}
+
+.progressFill {
+  height: 100%;
+  background: #ffc107;
+  transition: width 0.1s linear;
+}
+
 /* Reel Info */
 .reelInfo {
   position: absolute;

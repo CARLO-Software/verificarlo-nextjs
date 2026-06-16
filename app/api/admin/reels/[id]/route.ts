@@ -121,7 +121,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { title, description, embedUrl, embedType, thumbnailUrl, category, isActive } = body;
+    const { title, description, embedUrl, embedType, thumbnailUrl, category, isActive, videoUrl } = body;
 
     // Validaciones
     if (title && title.length > 100) {
@@ -163,6 +163,7 @@ export async function PUT(
         ...(description !== undefined && { description }),
         ...(embedUrl !== undefined && { embedUrl }),
         ...(embedType !== undefined && { embedType }),
+        ...(videoUrl !== undefined && { videoUrl }),
         ...(thumbnailUrl !== undefined && { thumbnailUrl }),
         ...(category !== undefined && { category }),
         ...(isActive !== undefined && { isActive }),

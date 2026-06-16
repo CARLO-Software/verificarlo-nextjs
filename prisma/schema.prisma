@@ -910,9 +910,12 @@ model Reel {
   title        String       @db.VarChar(100)
   description  String?      @db.VarChar(300)
 
-  // Embed (IG, TikTok, YouTube Shorts)
-  embedUrl     String       @db.VarChar(500)
+  // Embed (IG, TikTok, YouTube Shorts) - opcional si hay videoUrl
+  embedUrl     String?      @db.VarChar(500)
   embedType    EmbedType    @default(INSTAGRAM)
+
+  // Video nativo - si existe, se usa en lugar del embed
+  videoUrl     String?      @db.VarChar(500)
 
   // Visual
   thumbnailUrl String       @db.VarChar(500)

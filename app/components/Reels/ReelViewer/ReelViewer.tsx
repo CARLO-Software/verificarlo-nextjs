@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { X, ChevronUp, ChevronDown, Volume2, VolumeX } from "lucide-react";
+import { X, ChevronUp, ChevronDown, Volume2, VolumeX, Play } from "lucide-react";
 import { ReelData } from "../ReelCard/ReelCard";
 import { useReelsAnalytics } from "@/app/hooks/useReelsAnalytics";
 import styles from "./ReelViewer.module.css";
@@ -20,8 +20,9 @@ interface ReelViewerProps {
 // HELPERS: Generar URL de embed
 // ============================================
 
-function getEmbedUrl(reel: ReelData): string {
+function getEmbedUrl(reel: ReelData): string | null {
   const url = reel.embedUrl;
+  if (!url) return null;
 
   if (reel.embedType === "INSTAGRAM") {
     const cleanUrl = url.split("?")[0];
@@ -56,9 +57,12 @@ export default function ReelViewer({
 }: ReelViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [progress, setProgress] = useState(0);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const viewedReelsRef = useRef<Set<number>>(new Set([initialIndex]));
 
   const { trackReelView, trackReelSwipe, trackViewerClose } = useReelsAnalytics();
@@ -78,7 +82,39 @@ export default function ReelViewer({
     }
 
     viewedReelsRef.current.add(currentIndex);
+
+    // Reset progress when changing reels
+    setProgress(0);
+    setIsPlaying(true);
   }, [currentReel, currentIndex, initialIndex, trackReelView]);
+
+  // Sync muted state with video element
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
+
+  // Handle video time update for progress bar
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current) {
+      const percentage = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      setProgress(isNaN(percentage) ? 0 : percentage);
+    }
+  }, []);
+
+  // Toggle play/pause for native video
+  const togglePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
+    }
+  }, []);
 
   // Handler de cierre con tracking
   const handleClose = useCallback(() => {
@@ -183,16 +219,55 @@ export default function ReelViewer({
           </div>
         </header>
 
-        {/* Video embed */}
+        {/* Video container */}
         <div className={styles.videoContainer}>
-          <iframe
-            key={currentReel.id}
-            src={getEmbedUrl(currentReel)}
-            className={styles.iframe}
-            frameBorder="0"
-            allowFullScreen
-            allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
-          />
+          {currentReel.videoUrl ? (
+            <>
+              <video
+                key={currentReel.id}
+                ref={videoRef}
+                src={currentReel.videoUrl}
+                className={styles.video}
+                autoPlay
+                loop
+                playsInline
+                muted={isMuted}
+                poster={currentReel.thumbnailUrl}
+                onClick={togglePlayPause}
+                onTimeUpdate={handleTimeUpdate}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+              />
+              {/* Play/Pause overlay indicator */}
+              {!isPlaying && (
+                <div className={styles.playOverlay} onClick={togglePlayPause}>
+                  <Play size={48} fill="white" />
+                </div>
+              )}
+              {/* Progress bar */}
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </>
+          ) : getEmbedUrl(currentReel) ? (
+            <iframe
+              key={currentReel.id}
+              src={getEmbedUrl(currentReel)!}
+              className={styles.iframe}
+              frameBorder="0"
+              allowFullScreen
+              allow="autoplay; encrypted-media; gyroscope; picture-in-picture"
+            />
+          ) : (
+            <img
+              src={currentReel.thumbnailUrl}
+              alt={currentReel.title}
+              className={styles.video}
+            />
+          )}
         </div>
 
         {/* Info del reel */}

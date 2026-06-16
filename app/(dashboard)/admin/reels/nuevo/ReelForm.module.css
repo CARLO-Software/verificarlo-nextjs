@@ -74,6 +74,11 @@
   color: #ef4444;
 }
 
+.optional {
+  color: #6b7280;
+  font-weight: 400;
+}
+
 .input,
 .textarea,
 .select {
