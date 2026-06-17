@@ -8,6 +8,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 
+// Configuración para subida de videos grandes
+export const maxDuration = 60; // 60 segundos máximo (requiere plan Pro en Vercel)
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     // Verificar autenticación
