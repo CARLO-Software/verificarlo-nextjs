@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -56,13 +56,11 @@ const platforms: { value: EmbedType; label: string; icon: JSX.Element }[] = [
 // COMPONENTE PRINCIPAL
 // ============================================
 
-export default function EditarReelPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+export default function EditarReelPage() {
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
@@ -87,6 +85,8 @@ export default function EditarReelPage({
 
   // Cargar datos del reel
   useEffect(() => {
+    if (!id) return;
+
     async function fetchReel() {
       try {
         const response = await fetch(`/api/admin/reels/${id}`);
