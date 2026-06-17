@@ -550,11 +550,10 @@ export default function NuevoReelPage() {
 
               {formData.videoUrl ? (
                 // Preview de video subido
-                <div className={styles.uploadedPreview}>
+                <div className={styles.videoPreview}>
                   <video
                     src={formData.videoUrl}
                     controls
-                    style={{ width: "100%", maxHeight: "200px", objectFit: "contain" }}
                   />
                   <button
                     type="button"
@@ -562,7 +561,7 @@ export default function NuevoReelPage() {
                     className={styles.removeButton}
                     title="Eliminar video"
                   >
-                    <X size={16} />
+                    <X size={18} />
                   </button>
                 </div>
               ) : (
