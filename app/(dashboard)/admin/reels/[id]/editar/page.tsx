@@ -514,24 +514,22 @@ export default function EditarReelPage() {
 
               {formData.thumbnailUrl ? (
                 <div className={styles.thumbnailWrapper}>
-                  <div className={styles.uploadedPreview}>
+                  <div
+                    className={styles.uploadedPreview}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ cursor: 'pointer' }}
+                    title="Clic para cambiar imagen"
+                  >
                     <img src={formData.thumbnailUrl} alt="Thumbnail" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={removeThumbnail}
-                    className={styles.removeButton}
-                    title="Eliminar imagen"
-                  >
-                    <X size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={removeThumbnail}
-                    className={styles.changeThumbnailButton}
-                  >
-                    Eliminar para cambiar
-                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className={styles.fileInput}
+                    disabled={uploading}
+                  />
                 </div>
               ) : (
                 <div
