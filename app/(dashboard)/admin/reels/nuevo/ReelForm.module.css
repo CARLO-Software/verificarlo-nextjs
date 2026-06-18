@@ -218,25 +218,50 @@
   object-fit: cover;
 }
 
+/* Video Preview - más grande para mejor visualización */
+.videoPreview {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  border-radius: 12px;
+  overflow: visible;
+  background: #000;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+}
+
+.videoPreview video {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+.videoPreview .removeButton {
+  top: -10px;
+  right: -10px;
+}
+
 .removeButton {
   position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 24px;
-  height: 24px;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.6);
-  border: none;
+  background: #dc2626;
+  border: 2px solid white;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
 }
 
 .removeButton:hover {
-  background: #dc2626;
+  background: #b91c1c;
+  transform: scale(1.1);
 }
 
 /* Platform Selector */

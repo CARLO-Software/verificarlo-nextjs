@@ -106,21 +106,45 @@ export default function NuevoReelPage() {
     setError(null);
 
     try {
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-
-      const response = await fetch("/api/admin/reels/upload", {
+      // 1. Obtener firma para subida directa a Cloudinary
+      const signatureRes = await fetch("/api/admin/reels/upload-signature", {
         method: "POST",
-        body: formDataUpload,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resourceType: "image" }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al subir la imagen");
+      if (!signatureRes.ok) {
+        const signatureData = await signatureRes.json();
+        throw new Error(signatureData.error || "Error al obtener firma");
       }
 
-      setFormData((prev) => ({ ...prev, thumbnailUrl: data.url }));
+      const { signature, timestamp, cloudName, apiKey, folder } =
+        await signatureRes.json();
+
+      // 2. Subir directamente a Cloudinary
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append("file", file);
+      cloudinaryFormData.append("signature", signature);
+      cloudinaryFormData.append("timestamp", timestamp.toString());
+      cloudinaryFormData.append("api_key", apiKey);
+      cloudinaryFormData.append("folder", folder);
+
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: cloudinaryFormData,
+        }
+      );
+
+      const cloudinaryData = await cloudinaryRes.json();
+
+      if (!cloudinaryRes.ok) {
+        console.error("Cloudinary error:", cloudinaryData);
+        throw new Error(cloudinaryData.error?.message || "Error al subir la imagen a Cloudinary");
+      }
+
+      setFormData((prev) => ({ ...prev, thumbnailUrl: cloudinaryData.secure_url }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir imagen");
     } finally {
@@ -183,21 +207,45 @@ export default function NuevoReelPage() {
     setError(null);
 
     try {
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
-
-      const response = await fetch("/api/admin/reels/upload-video", {
+      // 1. Obtener firma para subida directa a Cloudinary
+      const signatureRes = await fetch("/api/admin/reels/upload-signature", {
         method: "POST",
-        body: formDataUpload,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resourceType: "video" }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Error al subir el video");
+      if (!signatureRes.ok) {
+        const signatureData = await signatureRes.json();
+        throw new Error(signatureData.error || "Error al obtener firma");
       }
 
-      setFormData((prev) => ({ ...prev, videoUrl: data.url }));
+      const { signature, timestamp, cloudName, apiKey, folder } =
+        await signatureRes.json();
+
+      // 2. Subir directamente a Cloudinary (evita timeout del servidor)
+      const cloudinaryFormData = new FormData();
+      cloudinaryFormData.append("file", file);
+      cloudinaryFormData.append("signature", signature);
+      cloudinaryFormData.append("timestamp", timestamp.toString());
+      cloudinaryFormData.append("api_key", apiKey);
+      cloudinaryFormData.append("folder", folder);
+
+      const cloudinaryRes = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+        {
+          method: "POST",
+          body: cloudinaryFormData,
+        }
+      );
+
+      const cloudinaryData = await cloudinaryRes.json();
+
+      if (!cloudinaryRes.ok) {
+        console.error("Cloudinary error:", cloudinaryData);
+        throw new Error(cloudinaryData.error?.message || "Error al subir el video a Cloudinary");
+      }
+
+      setFormData((prev) => ({ ...prev, videoUrl: cloudinaryData.secure_url }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir video");
     } finally {
@@ -502,11 +550,10 @@ export default function NuevoReelPage() {
 
               {formData.videoUrl ? (
                 // Preview de video subido
-                <div className={styles.uploadedPreview}>
+                <div className={styles.videoPreview}>
                   <video
                     src={formData.videoUrl}
                     controls
-                    style={{ width: "100%", maxHeight: "200px", objectFit: "contain" }}
                   />
                   <button
                     type="button"
@@ -514,7 +561,7 @@ export default function NuevoReelPage() {
                     className={styles.removeButton}
                     title="Eliminar video"
                   >
-                    <X size={16} />
+                    <X size={18} />
                   </button>
                 </div>
               ) : (

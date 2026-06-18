@@ -148,8 +148,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(newReel, { status: 201 });
   } catch (error) {
     console.error("Error creando reel:", error);
+    const errorMessage = error instanceof Error ? error.message : "Error desconocido";
     return NextResponse.json(
-      { error: "Error al crear el reel" },
+      { error: "Error al crear el reel", details: errorMessage },
       { status: 500 }
     );
   }
