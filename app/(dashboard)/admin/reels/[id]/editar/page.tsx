@@ -513,15 +513,24 @@ export default function EditarReelPage() {
               </label>
 
               {formData.thumbnailUrl ? (
-                <div className={styles.uploadedPreview}>
-                  <img src={formData.thumbnailUrl} alt="Thumbnail" />
+                <div className={styles.thumbnailWrapper}>
+                  <div className={styles.uploadedPreview}>
+                    <img src={formData.thumbnailUrl} alt="Thumbnail" />
+                  </div>
                   <button
                     type="button"
                     onClick={removeThumbnail}
                     className={styles.removeButton}
-                    title="Cambiar imagen"
+                    title="Eliminar imagen"
                   >
-                    <X size={16} />
+                    <X size={18} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={removeThumbnail}
+                    className={styles.changeThumbnailButton}
+                  >
+                    Eliminar para cambiar
                   </button>
                 </div>
               ) : (
