@@ -141,45 +141,21 @@ export default function EditarReelPage() {
     setError(null);
 
     try {
-      // 1. Obtener firma para subida directa a Cloudinary
-      const signatureRes = await fetch("/api/admin/reels/upload-signature", {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch(`/api/admin/reels/${id}/thumbnail`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resourceType: "image" }),
+        body: formDataUpload,
       });
 
-      if (!signatureRes.ok) {
-        const signatureData = await signatureRes.json();
-        throw new Error(signatureData.error || "Error al obtener firma");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al subir la imagen");
       }
 
-      const { signature, timestamp, cloudName, apiKey, folder } =
-        await signatureRes.json();
-
-      // 2. Subir directamente a Cloudinary
-      const cloudinaryFormData = new FormData();
-      cloudinaryFormData.append("file", file);
-      cloudinaryFormData.append("signature", signature);
-      cloudinaryFormData.append("timestamp", timestamp.toString());
-      cloudinaryFormData.append("api_key", apiKey);
-      cloudinaryFormData.append("folder", folder);
-
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: cloudinaryFormData,
-        }
-      );
-
-      const cloudinaryData = await cloudinaryRes.json();
-
-      if (!cloudinaryRes.ok) {
-        console.error("Cloudinary error:", cloudinaryData);
-        throw new Error(cloudinaryData.error?.message || "Error al subir la imagen a Cloudinary");
-      }
-
-      setFormData((prev) => ({ ...prev, thumbnailUrl: cloudinaryData.secure_url }));
+      setFormData((prev) => ({ ...prev, thumbnailUrl: data.thumbnailUrl }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir imagen");
     } finally {
