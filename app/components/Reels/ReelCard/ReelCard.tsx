@@ -67,12 +67,10 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
         </span>
 
         {/* Likes - estilo TikTok */}
-        {reel.likes > 0 && (
-          <span className={styles.likesOverlay}>
-            <Heart size={14} fill="white" />
-            {reel.likes.toLocaleString("es-PE")}
-          </span>
-        )}
+        <span className={styles.likesOverlay}>
+          <Heart size={14} fill="white" />
+          {reel.likes.toLocaleString("es-PE")}
+        </span>
       </div>
 
       {/* Info */}
