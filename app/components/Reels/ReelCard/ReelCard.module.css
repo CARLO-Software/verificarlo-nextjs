@@ -128,6 +128,16 @@
   font-size: 0.65rem;
   font-weight: 600;
   border-radius: 4px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.likesOverlay:hover {
+  transform: scale(1.1);
+}
+
+.likesOverlay.liked {
+  background: rgba(255, 45, 85, 0.8);
 }
 
 /* Info */

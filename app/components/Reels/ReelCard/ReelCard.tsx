@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Heart, Play } from "lucide-react";
 import styles from "./ReelCard.module.css";
 
@@ -31,11 +32,21 @@ interface ReelCardProps {
 // ============================================
 
 export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
+  const [likeCount, setLikeCount] = useState(reel.likes);
+  const [liked, setLiked] = useState(false);
+
   const categoryLabels: Record<string, string> = {
     TIPS: "Tip",
     FRAUDES: "Alerta",
     PROCESO: "Proceso",
     TESTIMONIOS: "Testimonio",
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLikeCount((prev) => prev + 1);
+    setLiked(true);
+    fetch(`/api/reels/${reel.id}/like`, { method: "POST" });
   };
 
   return (
@@ -67,9 +78,14 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
         </span>
 
         {/* Likes - estilo TikTok */}
-        <span className={styles.likesOverlay}>
-          <Heart size={14} fill="white" />
-          {reel.likes.toLocaleString("es-PE")}
+        <span
+          className={`${styles.likesOverlay} ${liked ? styles.liked : ""}`}
+          onClick={handleLike}
+          role="button"
+          aria-label="Dar like"
+        >
+          <Heart size={14} fill={liked ? "#ff2d55" : "white"} />
+          {likeCount.toLocaleString("es-PE")}
         </span>
       </div>
 
