@@ -32,6 +32,7 @@ interface FormData {
   thumbnailUrl: string;
   videoUrl: string; // Video nativo (opcional - si existe, se usa en lugar del embed)
   category: ReelCategory;
+  likes: number;
 }
 
 // ============================================
@@ -75,6 +76,7 @@ export default function NuevoReelPage() {
     thumbnailUrl: "",
     videoUrl: "",
     category: "TIPS",
+    likes: 0,
   });
 
   const handleChange = (
@@ -626,6 +628,28 @@ export default function NuevoReelPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Likes */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Likes</label>
+              <input
+                type="number"
+                name="likes"
+                value={formData.likes}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    likes: parseInt(e.target.value) || 0,
+                  }))
+                }
+                placeholder="0"
+                className={styles.input}
+                min={0}
+              />
+              <span className={styles.hint}>
+                Cantidad de likes del video en la red social
+              </span>
             </div>
 
             {/* Botones */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { Heart, Play } from "lucide-react";
 import styles from "./ReelCard.module.css";
 
 // ============================================
@@ -17,6 +17,7 @@ export interface ReelData {
   videoUrl?: string; // Video nativo - si existe, se usa en lugar del embed
   category: "TIPS" | "FRAUDES" | "PROCESO" | "TESTIMONIOS";
   views: number;
+  likes: number;
 }
 
 interface ReelCardProps {
@@ -64,6 +65,14 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
         <span className={styles.categoryBadge}>
           {categoryLabels[reel.category]}
         </span>
+
+        {/* Likes - estilo TikTok */}
+        {reel.likes > 0 && (
+          <span className={styles.likesOverlay}>
+            <Heart size={14} fill="white" />
+            {reel.likes.toLocaleString("es-PE")}
+          </span>
+        )}
       </div>
 
       {/* Info */}

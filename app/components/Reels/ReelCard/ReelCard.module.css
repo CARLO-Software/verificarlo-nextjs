@@ -113,6 +113,23 @@
   border-radius: 4px;
 }
 
+/* Likes - estilo TikTok */
+.likesOverlay {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 4px;
+}
+
 /* Info */
 .info {
   padding: 12px;

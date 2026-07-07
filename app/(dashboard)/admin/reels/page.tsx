@@ -33,6 +33,7 @@ interface Reel {
   category: ReelCategory;
   sortOrder: number;
   views: number;
+  likes: number;
   isActive: boolean;
   createdAt: string;
 }
@@ -242,6 +243,7 @@ export default function AdminReelsPage() {
                   <th>Reel</th>
                   <th>Categoría</th>
                   <th>Plataforma</th>
+                  <th>Likes</th>
                   <th>Vistas</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -296,6 +298,9 @@ export default function AdminReelsPage() {
                           : reel.embedType.charAt(0) +
                             reel.embedType.slice(1).toLowerCase()}
                       </span>
+                    </td>
+                    <td className={styles.viewsCell}>
+                      {formatNumber(reel.likes)}
                     </td>
                     <td className={styles.viewsCell}>
                       {formatNumber(reel.views)}

@@ -32,6 +32,7 @@ interface FormData {
   thumbnailUrl: string;
   videoUrl: string;
   category: ReelCategory;
+  likes: number;
   isActive: boolean;
 }
 
@@ -80,6 +81,7 @@ export default function EditarReelPage() {
     thumbnailUrl: "",
     videoUrl: "",
     category: "TIPS",
+    likes: 0,
     isActive: true,
   });
 
@@ -102,6 +104,7 @@ export default function EditarReelPage() {
           thumbnailUrl: data.thumbnailUrl || "",
           videoUrl: data.videoUrl || "",
           category: data.category || "TIPS",
+          likes: data.likes ?? 0,
           isActive: data.isActive ?? true,
         });
       } catch (err) {
@@ -657,6 +660,28 @@ export default function EditarReelPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Likes */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Likes</label>
+              <input
+                type="number"
+                name="likes"
+                value={formData.likes}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    likes: parseInt(e.target.value) || 0,
+                  }))
+                }
+                placeholder="0"
+                className={styles.input}
+                min={0}
+              />
+              <span className={styles.hint}>
+                Cantidad de likes del video en la red social
+              </span>
             </div>
 
             {/* Botones */}

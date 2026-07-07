@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
         videoUrl: true,
         category: true,
         views: true,
+        likes: true,
       },
     });
 

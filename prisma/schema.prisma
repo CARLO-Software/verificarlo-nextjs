@@ -926,6 +926,7 @@ model Reel {
 
   // Métricas
   views        Int          @default(0)
+  likes        Int          @default(0)
 
   // Estado
   isActive     Boolean      @default(true)
