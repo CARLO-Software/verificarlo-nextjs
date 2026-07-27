@@ -7,15 +7,14 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -25,7 +24,7 @@ export async function GET(request: Request) {
 
     const notifications = await db.notification.findMany({
       where: {
-        userId: session.user.id,
+        userId: user.id,
         ...(onlyUnread ? { read: false } : {}),
       },
       orderBy: { createdAt: "desc" },
@@ -96,7 +95,7 @@ export async function GET(request: Request) {
     });
 
     const unreadCount = await db.notification.count({
-      where: { userId: session.user.id, read: false },
+      where: { userId: user.id, read: false },
     });
 
     return NextResponse.json({

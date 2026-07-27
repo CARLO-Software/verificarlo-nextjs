@@ -1,6 +1,5 @@
 import { db } from '@/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAuthUser } from '@/lib/auth-jwt';
 import { InspectionResultStatus, PhotoCategory } from '@prisma/client';
 import { generateInspectionPDF, uploadPDFToCloudinary } from '@/lib/pdf';
 import { cloudinary, isCloudinaryConfigured } from '@/lib/cloudinary';
@@ -79,15 +78,15 @@ export interface AddPhotoInput {
 // Verificar acceso de inspector
 // ============================================
 
-async function verifyInspectorAccess(bookingId: number) {
-  const session = await getServerSession(authOptions);
+async function verifyInspectorAccess(bookingId: number, request?: Request) {
+  const user = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!user?.id) {
     throw new Error('Usuario no autenticado');
   }
 
-  const userId = session.user.id;
-  const userRole = session.user.role;
+  const userId = user.id;
+  const userRole = user.role;
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
@@ -122,8 +121,8 @@ async function verifyInspectorAccess(bookingId: number) {
 // CREATE - Crear informe de inspección
 // ============================================
 
-export async function createReport(input: CreateReportInput) {
-  const { booking } = await verifyInspectorAccess(input.bookingId);
+export async function createReport(input: CreateReportInput, request?: Request) {
+  const { booking } = await verifyInspectorAccess(input.bookingId, request);
 
   // Usar upsert para evitar race conditions
   const report = await db.inspectionReport.upsert({
@@ -145,15 +144,15 @@ export async function createReport(input: CreateReportInput) {
 // GET - Obtener informe por booking ID
 // ============================================
 
-export async function getReportByBookingId(bookingId: number) {
-  const session = await getServerSession(authOptions);
+export async function getReportByBookingId(bookingId: number, request?: Request) {
+  const user = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!user?.id) {
     throw new Error('Usuario no autenticado');
   }
 
-  const userId = session.user.id;
-  const userRole = session.user.role;
+  const userId = user.id;
+  const userRole = user.role;
 
   const booking = await db.booking.findUnique({
     where: { id: bookingId },
@@ -192,7 +191,7 @@ export async function getReportByBookingId(bookingId: number) {
 // UPDATE - Actualizar informe
 // ============================================
 
-export async function updateReport(reportId: number, input: UpdateReportInput) {
+export async function updateReport(reportId: number, input: UpdateReportInput, request?: Request) {
   // Obtener el informe para verificar acceso
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -204,12 +203,12 @@ export async function updateReport(reportId: number, input: UpdateReportInput) {
   }
 
   // Si el informe ya está completado, no se puede modificar (excepto admin)
-  const session = await getServerSession(authOptions);
-  if (report.completedAt && session?.user?.role !== 'ADMIN') {
+  const user = await getAuthUser(request);
+  if (report.completedAt && user?.role !== 'ADMIN') {
     throw new Error('El informe ya está finalizado y no puede modificarse');
   }
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   const updateData: any = {};
 
@@ -260,7 +259,8 @@ export async function updateLegalSection(
     status: InspectionResultStatus;
     score: number;
     observations: LegalObservation[];
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -270,7 +270,7 @@ export async function updateLegalSection(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -292,7 +292,8 @@ export async function updateMechanicalSection(
     status: InspectionResultStatus;
     score: number;
     observations: MechanicalObservation[];
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -302,7 +303,7 @@ export async function updateMechanicalSection(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -324,7 +325,8 @@ export async function updateBodySection(
     status: InspectionResultStatus;
     score: number;
     observations: BodyObservation[];
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -334,7 +336,7 @@ export async function updateBodySection(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -354,7 +356,8 @@ export async function updateVehicleData(
   reportId: number,
   data: {
     mileageAtInspection?: number;
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -364,7 +367,7 @@ export async function updateVehicleData(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -387,7 +390,8 @@ export async function updateChecklistResults(
   reportId: number,
   data: {
     checklistResults: ChecklistResults;
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -397,7 +401,7 @@ export async function updateChecklistResults(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -419,7 +423,8 @@ export async function updateDocumentsVerification(
     soatExpiryDate?: Date;
     technicalReviewValid?: boolean;
     technicalReviewExpiryDate?: Date;
-  }
+  },
+  request?: Request
 ) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
@@ -429,7 +434,7 @@ export async function updateDocumentsVerification(
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   return db.inspectionReport.update({
     where: { id: reportId },
@@ -551,7 +556,7 @@ export interface CompleteReportInput {
   mileageAtInspection?: number;
 }
 
-export async function completeReport(reportId: number, input?: CompleteReportInput) {
+export async function completeReport(reportId: number, input?: CompleteReportInput, request?: Request) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: {
@@ -564,7 +569,7 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  const { userId } = await verifyInspectorAccess(report.bookingId);
+  const { userId } = await verifyInspectorAccess(report.bookingId, request);
 
   // Procesar veredicto del mecánico
   const hasSiniestro = input?.hasSiniestro ?? false;
@@ -779,7 +784,7 @@ async function createLegalReportAndNotify(reportId: number): Promise<void> {
 // PHOTOS - Agregar foto
 // ============================================
 
-export async function addPhoto(input: AddPhotoInput) {
+export async function addPhoto(input: AddPhotoInput, request?: Request) {
   const report = await db.inspectionReport.findUnique({
     where: { id: input.reportId },
     select: { bookingId: true, completedAt: true },
@@ -788,7 +793,7 @@ export async function addPhoto(input: AddPhotoInput) {
   if (!report) throw new Error('Informe no encontrado');
   if (report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(report.bookingId);
+  await verifyInspectorAccess(report.bookingId, request);
 
   // Obtener el último sortOrder
   const lastPhoto = await db.inspectionPhoto.findFirst({
@@ -816,7 +821,7 @@ export async function addPhoto(input: AddPhotoInput) {
 // PHOTOS - Eliminar foto
 // ============================================
 
-export async function deletePhoto(photoId: number) {
+export async function deletePhoto(photoId: number, request?: Request) {
   const photo = await db.inspectionPhoto.findUnique({
     where: { id: photoId },
     include: {
@@ -829,7 +834,7 @@ export async function deletePhoto(photoId: number) {
   if (!photo) throw new Error('Foto no encontrada');
   if (photo.report.completedAt) throw new Error('El informe ya está finalizado');
 
-  await verifyInspectorAccess(photo.report.bookingId);
+  await verifyInspectorAccess(photo.report.bookingId, request);
 
   // Intentar eliminar de Cloudinary si está configurado
   if (isCloudinaryConfigured() && photo.url.includes('cloudinary')) {
@@ -861,7 +866,7 @@ export async function deletePhoto(photoId: number) {
 // PHOTOS - Obtener fotos del informe
 // ============================================
 
-export async function getReportPhotos(reportId: number) {
+export async function getReportPhotos(reportId: number, request?: Request) {
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: { bookingId: true },
@@ -870,8 +875,8 @@ export async function getReportPhotos(reportId: number) {
   if (!report) throw new Error('Informe no encontrado');
 
   // Verificar acceso básico
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
+  const user = await getAuthUser(request);
+  if (!user?.id) {
     throw new Error('Usuario no autenticado');
   }
 
@@ -887,18 +892,18 @@ export async function getReportPhotos(reportId: number) {
 // GET - Obtener inspecciones pendientes del inspector
 // ============================================
 
-export async function getInspectorPendingInspections() {
-  const session = await getServerSession(authOptions);
+export async function getInspectorPendingInspections(request?: Request) {
+  const user = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!user?.id) {
     throw new Error('Usuario no autenticado');
   }
 
-  if (session.user.role !== 'INSPECTOR' && session.user.role !== 'ADMIN') {
+  if (user.role !== 'INSPECTOR' && user.role !== 'ADMIN') {
     throw new Error('No autorizado');
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   const bookings = await db.booking.findMany({
     where: {
@@ -933,18 +938,18 @@ export async function getInspectorPendingInspections() {
 // GET - Obtener inspecciones completadas del inspector
 // ============================================
 
-export async function getInspectorCompletedInspections() {
-  const session = await getServerSession(authOptions);
+export async function getInspectorCompletedInspections(request?: Request) {
+  const user = await getAuthUser(request);
 
-  if (!session?.user?.id) {
+  if (!user?.id) {
     throw new Error('Usuario no autenticado');
   }
 
-  if (session.user.role !== 'INSPECTOR' && session.user.role !== 'ADMIN') {
+  if (user.role !== 'INSPECTOR' && user.role !== 'ADMIN') {
     throw new Error('No autorizado');
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   const bookings = await db.booking.findMany({
     where: {

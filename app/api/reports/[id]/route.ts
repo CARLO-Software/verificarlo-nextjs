@@ -5,8 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { updateReport } from "@/services/reports/reports.server";
 
 // GET - Obtener informe por ID
@@ -15,9 +14,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(req);
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json(
         { error: "Debe iniciar sesión" },
         { status: 401 }
@@ -68,10 +67,10 @@ export async function GET(
     }
 
     // Verificar acceso
-    const userId = session.user.id;
+    const userId = user.id;
     const isOwner = report.booking.clientId === userId;
     const isInspector = report.booking.inspectorId === userId;
-    const isAdmin = session.user.role === "ADMIN";
+    const isAdmin = user.role === "ADMIN";
 
     if (!isOwner && !isInspector && !isAdmin) {
       return NextResponse.json(
@@ -110,7 +109,7 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const report = await updateReport(reportId, body);
+    const report = await updateReport(reportId, body, req);
 
     return NextResponse.json({
       success: true,

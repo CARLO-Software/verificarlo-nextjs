@@ -40,27 +40,27 @@ export async function PATCH(
 
     switch (section) {
       case "legal":
-        result = await updateLegalSection(reportId, data);
+        result = await updateLegalSection(reportId, data, req);
         break;
 
       case "mechanical":
-        result = await updateMechanicalSection(reportId, data);
+        result = await updateMechanicalSection(reportId, data, req);
         break;
 
       case "body":
-        result = await updateBodySection(reportId, data);
+        result = await updateBodySection(reportId, data, req);
         break;
 
       case "vehicle":
-        result = await updateVehicleData(reportId, data);
+        result = await updateVehicleData(reportId, data, req);
         break;
 
       case "documents":
-        result = await updateDocumentsVerification(reportId, data);
+        result = await updateDocumentsVerification(reportId, data, req);
         break;
 
       case "checklist":
-        result = await updateChecklistResults(reportId, data);
+        result = await updateChecklistResults(reportId, data, req);
         break;
 
       default:

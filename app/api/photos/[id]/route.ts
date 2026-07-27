@@ -19,7 +19,7 @@ export async function DELETE(
       );
     }
 
-    await deletePhoto(photoId);
+    await deletePhoto(photoId, req);
 
     return NextResponse.json({
       success: true,

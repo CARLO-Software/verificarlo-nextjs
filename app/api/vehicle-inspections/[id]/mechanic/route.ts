@@ -15,8 +15,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 import {
   notifyLegalUnlocked,
@@ -31,10 +30,10 @@ type MechanicAction = "start" | "complete" | "register_plate";
 
 export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
     // Permitir acceso a INSPECTOR y ADMIN
-    if (!session?.user || !["INSPECTOR", "ADMIN"].includes(session.user.role)) {
+    if (!user || !["INSPECTOR", "ADMIN"].includes(user.role)) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -59,7 +58,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       );
     }
 
-    const isAdmin = session.user.role === "ADMIN";
+    const isAdmin = user.role === "ADMIN";
 
     // Para register_plate: cualquier inspector o admin puede hacerlo
     // Para otras acciones: solo el mecánico asignado
@@ -78,7 +77,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       inspection = await db.vehicleInspection.findFirst({
         where: {
           id: inspectionId,
-          ...(isAdmin ? {} : { assignedMechanicId: session.user.id }),
+          ...(isAdmin ? {} : { assignedMechanicId: user.id }),
         },
         include: {
           vehicle: { include: { model: { include: { brand: true } } } },
@@ -147,7 +146,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
       // Notificar a admins siempre que se registre una placa
       const vehicleDescription = `${inspection.vehicle.model.brand.name} ${inspection.vehicle.model.name} ${inspection.vehicle.year}`;
-      const registeredByName = session.user.name ?? (isAdmin ? "Administrador" : "Mecánico");
+      const registeredByName = user.name ?? (isAdmin ? "Administrador" : "Mecánico");
 
       if (wasBlocked) {
         // Si estaba bloqueado, usar notificación de desbloqueo

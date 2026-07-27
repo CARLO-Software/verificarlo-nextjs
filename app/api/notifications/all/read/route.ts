@@ -4,20 +4,19 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
-export async function PATCH() {
+export async function PATCH(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     const result = await db.notification.updateMany({
-      where: { userId: session.user.id, read: false },
+      where: { userId: user.id, read: false },
       data: { read: true },
     });
 

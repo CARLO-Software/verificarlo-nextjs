@@ -8,19 +8,18 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function PATCH(_request: Request, { params }: RouteParams) {
+export async function PATCH(request: Request, { params }: RouteParams) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -35,7 +34,7 @@ export async function PATCH(_request: Request, { params }: RouteParams) {
     const result = await db.notification.updateMany({
       where: {
         id: notificationId,
-        userId: session.user.id,
+        userId: user.id,
       },
       data: { read: true },
     });
