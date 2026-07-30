@@ -13,6 +13,11 @@
 import { db } from "@/lib/db";
 import { NotificationType } from "@prisma/client";
 import { sendEmail } from "@/lib/email/resend";
+import {
+  pushNewInspection,
+  pushInspectionCompleted,
+  sendPushToUsers,
+} from "@/lib/push-notifications";
 
 // ============================================
 // HELPERS INTERNOS
@@ -93,6 +98,16 @@ export async function notifyNewInspectionWithPlate(params: {
     inspectionId,
   });
 
+  // Push notification to admin mobile apps
+  sendPushToUsers(adminIds, {
+    type: "new_inspection",
+    inspectionId,
+    title: "Nueva inspección legal disponible",
+    message: `${vehicleDescription} (${plate}) — Cliente: ${clientName}`,
+  }).catch((err) =>
+    console.error("[notify] Error sending push NUEVA_INSPECCION:", err)
+  );
+
   // Email (no bloqueante — fallo silencioso para no romper el flujo)
   const emailScheduleInfo = scheduledDate && scheduledTime
     ? `\nFecha de cita: ${formatSchedule(scheduledDate, scheduledTime)}`
@@ -167,6 +182,16 @@ export async function notifyLegalUnlocked(params: {
     inspectionId,
   });
 
+  // Push notification to admin mobile apps
+  sendPushToUsers(adminIds, {
+    type: "legal_unlocked",
+    inspectionId,
+    title: "Inspección legal desbloqueada",
+    message: `${vehicleDescription} (${plate}) — Placa registrada por ${mechanicName}`,
+  }).catch((err) =>
+    console.error("[notify] Error sending push LEGAL_DESBLOQUEADO:", err)
+  );
+
   // Email
   sendEmail({
     to: adminEmails,
@@ -205,6 +230,16 @@ export async function notifyMechanicAssigned(params: {
     message: `Se te asignó la inspección de ${vehicleDescription} — Cliente: ${clientName}${scheduleInfo}.`,
     inspectionId,
   });
+
+  // Push notification to mobile app
+  pushNewInspection({
+    mechanicId,
+    inspectionId,
+    vehicleDescription,
+    clientName,
+  }).catch((err) =>
+    console.error("[notify] Error sending push MECANICO_ASIGNADO:", err)
+  );
 
   // Email al mecánico
   const mechanic = await db.user.findUnique({
@@ -247,6 +282,15 @@ export async function notifyInspectionCompleted(params: {
     message: `La inspección de ${vehicleDescription} fue completada. Ya puedes ver el informe.`,
     inspectionId,
   });
+
+  // Push notification to mobile app
+  pushInspectionCompleted({
+    clientId,
+    inspectionId,
+    vehicleDescription,
+  }).catch((err) =>
+    console.error("[notify] Error sending push INSPECCION_COMPLETADA:", err)
+  );
 
   // Email al cliente
   const client = await db.user.findUnique({

@@ -123,6 +123,9 @@ model User {
 
   // Créditos de inspección prepagados
   credits               UserCredit[]
+
+  // FCM tokens para push notifications
+  deviceTokens          DeviceToken[]
 }
 
 enum UserStatus{
@@ -808,6 +811,23 @@ model Notification {
   @@index([userId, read])
   @@index([userId])
   @@index([createdAt])
+}
+
+// ============================================
+// TOKENS DE DISPOSITIVOS (FCM Push Notifications)
+// ============================================
+
+model DeviceToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String   @default("android") // android, ios, web
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ============================================
