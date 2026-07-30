@@ -1,6 +1,7 @@
 "use client";
 
-import { Play } from "lucide-react";
+import { useState } from "react";
+import { Heart, Play } from "lucide-react";
 import styles from "./ReelCard.module.css";
 
 // ============================================
@@ -17,6 +18,7 @@ export interface ReelData {
   videoUrl?: string; // Video nativo - si existe, se usa en lugar del embed
   category: "TIPS" | "FRAUDES" | "PROCESO" | "TESTIMONIOS";
   views: number;
+  likes: number;
 }
 
 interface ReelCardProps {
@@ -30,11 +32,21 @@ interface ReelCardProps {
 // ============================================
 
 export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
+  const [likeCount, setLikeCount] = useState(reel.likes);
+  const [liked, setLiked] = useState(false);
+
   const categoryLabels: Record<string, string> = {
     TIPS: "Tip",
     FRAUDES: "Alerta",
     PROCESO: "Proceso",
     TESTIMONIOS: "Testimonio",
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLikeCount((prev) => prev + 1);
+    setLiked(true);
+    fetch(`/api/reels/${reel.id}/like`, { method: "POST" });
   };
 
   return (
@@ -63,6 +75,17 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
         {/* Badge de categoría */}
         <span className={styles.categoryBadge}>
           {categoryLabels[reel.category]}
+        </span>
+
+        {/* Likes - estilo TikTok */}
+        <span
+          className={`${styles.likesOverlay} ${liked ? styles.liked : ""}`}
+          onClick={handleLike}
+          role="button"
+          aria-label="Dar like"
+        >
+          <Heart size={14} fill={liked ? "#ff2d55" : "white"} />
+          {likeCount.toLocaleString("es-PE")}
         </span>
       </div>
 

@@ -4,88 +4,97 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-VerifiCARLO is a Next.js 14 (App Router) vehicle inspection service landing page, migrated from vanilla JavaScript. The site is in Spanish (es-PE) and targets the Lima, Peru market for used car inspections.
+VerifiCARLO is a full-stack Next.js 14 (App Router) platform for vehicle inspection services in Lima, Peru. Originally a vanilla JS landing page, it has evolved into a multi-role platform with booking, payments, inspection reports, blog, and admin/inspector dashboards. All UI text is in Spanish (es-PE).
 
 ## Commands
 
-### Development
 ```bash
-npm run dev    # Start development server on http://localhost:3000
-npm run build  # Build for production
-npm start      # Start production server
-npm run lint   # Run ESLint
+npm run dev              # Dev server on http://localhost:3000
+npm run build            # prisma generate && next build
+npm run lint             # ESLint
+npx prisma migrate dev   # Run pending migrations
+npx prisma studio        # Visual DB browser
+npx tsx prisma/seed.ts   # Seed database
 ```
+
+No test framework is configured.
 
 ## Architecture
 
-### Component Structure
+### Route Groups & Roles
 
-This project follows a **folder-based component organization** where each component lives in its own directory with co-located styles:
+The app uses Next.js route groups to separate concerns by user role:
 
-```
-app/components/
-├── ComponentName/
-│   ├── ComponentName.tsx
-│   └── ComponentName.module.css
-```
+- **`app/page.tsx`** — Public landing page. Redirects authenticated users by role (ADMIN → `/admin`, INSPECTOR → `/inspector`, CLIENT → `/perfil`).
+- **`app/(auth)/`** — Login, register, forgot/reset password, email verification.
+- **`app/(booking)/`** — Booking flow: scheduling (`/agendar`) and payment result pages.
+- **`app/(platform)/`** — Client-facing pages: inspections, vehicles, profile, settings.
+- **`app/(dashboard)/admin/`** — Admin dashboard: manage users, inspections, bookings, reports, blog, reels, newsletter, legal reviews.
+- **`app/(dashboard)/inspector/`** — Inspector dashboard: assigned inspections, schedule config.
+- **`app/(dashboard)/mis-inspecciones/`** — Client's own inspection history.
+- **`app/(legal)/`** — Terms, privacy policy, refund policy (standalone layouts).
+- **`app/blog/`** — Public blog with categories.
 
-All components are imported into `app/page.tsx`, which serves as the main **single-page layout router**. The home page (`app/page.tsx`) orchestrates the display of all sections in order:
+### Layout System
 
-1. PromotionalBanner
-2. NavBar
-3. Hero
-4. ProcessSection
-5. ServicesSection
-6. BenefitsSection
-7. EligeTranquiloSection
-8. CentroInspeccionSection
-9. FAQ
-10. Footer
-11. WhatsappFlotante (floating WhatsApp button)
+`app/layout.tsx` wraps everything in `<Providers>` (NextAuth session + Toast) and `<LayoutShell>`.
 
-### Shared Logic
+`app/layout/LayoutShell.tsx` is the smart layout router — it checks the pathname and session role to decide which chrome to show:
+- Admin/inspector routes → no shell (they have their own layouts)
+- Client platform routes → no shell (route group layout handles it)
+- Logged-in client on public pages → minimal header
+- Visitors → full landing layout (banner, navbar, footer, WhatsApp button)
 
-- **`app/services/Slider.tsx`**: Reusable Splide.js slider wrapper component
-  - Accepts `metodoSlider` prop: `"proceso-inspeccion"` or `"servicios"`
-  - Configured with different responsive breakpoints per slider type
-  - Used by ServicesSection and ProcessSection
+### Data Layer
 
-- **`app/hooks/useEscape.ts`**: Custom hook for ESC key handling
-  - Takes a callback function to execute on Escape key press
-  - Used in FAQ component to close open answers
+- **Prisma** with PostgreSQL (`lib/db.ts` exports the singleton client)
+- Schema at `prisma/schema.prisma` — key models: User, Booking, Vehicle, VehicleInspection, InspectionReport, BlogPost, Reel
+- Three roles: `CLIENT`, `INSPECTOR`, `ADMIN`
+- Booking statuses flow: `PENDING_PAYMENT → PENDING_VERIFICATION → PAID → COMPLETED`
 
-### Styling Approach
+### Auth
 
-- **Tailwind CSS** for utility classes
-- **Global styles** in `app/globals.css`
-- **Module CSS** files co-located with components
-- **External stylesheet** `/styles1.css` (legacy from vanilla JS migration)
+- **NextAuth v4** with Google OAuth + credentials (email/password with bcrypt)
+- Config in `lib/auth.ts`, API route at `app/api/auth/[...nextauth]/`
+- Email verification flow via Resend
 
-### Key Technologies
+### Payments
 
-- **Next.js 14** with App Router
-- **TypeScript** with strict mode enabled
-- **Splide.js** (`@splidejs/splide`) for carousels
-- **React hooks** for state and side effects
-- **"use client"** directive on interactive components (FAQ, page.tsx, Slider)
+- **Culqi** (Peruvian payment gateway) for card payments and Yape
+- Alternative payments: bank transfer, Yape/Plin (manual verification by admin)
+- Webhook at `app/api/webhooks/culqi/`
 
-### Analytics & Tracking
+### Key Integrations
 
-The `app/layout.tsx` includes tracking scripts loaded via `next/script`:
-- Google Tag Manager (GTM-N74TS6ZF)
-- Meta Pixel / Facebook (ID: 1381587826730443)
-- TikTok Pixel (ID: D4928FBC77U6O1UKRBG0)
+- **Cloudinary** — image/PDF uploads (reports, blog, reels)
+- **Resend** — transactional emails
+- **Google Maps API** — inspection location display
+- **Culqi** — payment processing
+
+### Component Organization
+
+Components live in `app/components/ComponentName/` with co-located `.module.css`. Landing-specific sections live in `app/landing/`.
+
+### Shared Libraries
+
+- `lib/scheduling/` — Availability calculation, inspector assignment, booking constants
+- `lib/vehicle-inspection/` — State machine for inspection flow, mechanic assignment, notifications
+- `lib/pdf/` — PDF generation for inspection/legal reports (uses `@react-pdf/renderer`)
+- `lib/email/` — Email templates via Resend
+
+### Styling
+
+- **Tailwind CSS** + **CSS Modules** co-located with components
+- Legacy `/styles1.css` still referenced — some component styles come from there
+
+### Middleware
+
+`middleware.ts` blocks known scraper bots (saves serverless invocations) and adds security headers. It does NOT handle auth — NextAuth manages that separately.
+
+### Analytics
+
+Layout includes Google Tag Manager, Meta Pixel, and TikTok Pixel via `next/script`.
 
 ### Path Aliases
 
-- `@/*` maps to project root (configured in `tsconfig.json`)
-
-## Migration Context
-
-This codebase is being migrated from vanilla JavaScript to Next.js/React. The git history shows:
-
-- Old component files at root level have been deleted (e.g., `app/components/Hero.tsx`)
-- New structure uses folders (e.g., `app/components/Hero/Hero.tsx`)
-- Legacy CSS and JS files (`/styles1.css`, `/script1.js`, `main.js`) are still referenced in layout.tsx
-
-When working on components, be aware that some styling may come from the legacy `/styles1.css` file rather than module CSS.
+`@/*` maps to project root (tsconfig.json).

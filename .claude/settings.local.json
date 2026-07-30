@@ -61,7 +61,13 @@
       "Bash(start:*)",
       "Bash(sort -k5 -h -r)",
       "Bash(mv:*)",
-      "Bash(curl -s http://localhost:3000)"
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "mcp__Neon__run_sql_transaction",
+      "Bash(where psql:*)",
+      "Bash(where choco:*)",
+      "Bash(where vercel:*)"
     ]
   }
 }

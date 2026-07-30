@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const report = await createReport({ bookingId });
+    const report = await createReport({ bookingId }, req);
 
     return NextResponse.json({
       success: true,
@@ -47,9 +47,9 @@ export async function GET(req: NextRequest) {
     let inspections;
 
     if (status === "completed") {
-      inspections = await getInspectorCompletedInspections();
+      inspections = await getInspectorCompletedInspections(req);
     } else {
-      inspections = await getInspectorPendingInspections();
+      inspections = await getInspectorPendingInspections(req);
     }
 
     return NextResponse.json({

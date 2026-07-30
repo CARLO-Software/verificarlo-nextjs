@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, description, embedUrl, embedType, thumbnailUrl, category, videoUrl } = body;
+    const { title, description, embedUrl, embedType, thumbnailUrl, category, videoUrl, likes } = body;
 
     // Validaciones
     if (!title || !thumbnailUrl) {
@@ -141,6 +141,7 @@ export async function POST(req: NextRequest) {
         videoUrl: videoUrl || null,
         thumbnailUrl,
         category: category || "TIPS",
+        likes: parseInt(likes) || 0,
         sortOrder: (maxOrder._max.sortOrder ?? -1) + 1,
       },
     });

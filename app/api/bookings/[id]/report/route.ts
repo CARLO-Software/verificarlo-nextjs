@@ -21,7 +21,7 @@ export async function GET(
       );
     }
 
-    const report = await getReportByBookingId(bookingId);
+    const report = await getReportByBookingId(bookingId, req);
 
     if (!report) {
       return NextResponse.json(
@@ -58,7 +58,7 @@ export async function POST(
       );
     }
 
-    const report = await createReport({ bookingId });
+    const report = await createReport({ bookingId }, req);
 
     return NextResponse.json({
       success: true,

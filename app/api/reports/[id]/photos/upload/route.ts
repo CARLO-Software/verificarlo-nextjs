@@ -3,8 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { addPhoto } from "@/services/reports/reports.server";
 import { db } from "@/lib/db";
@@ -15,13 +14,13 @@ export async function POST(
 ) {
   try {
     // 1. Verificar autenticación
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    const user = await getAuthUser(req);
+    if (!user?.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
     // Solo inspectores y admins pueden subir fotos
-    if (!["INSPECTOR", "ADMIN"].includes(session.user.role)) {
+    if (!["INSPECTOR", "ADMIN"].includes(user.role)) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 });
     }
 
@@ -69,7 +68,7 @@ export async function POST(
     }
 
     // Verificar acceso (inspector asignado o admin)
-    if (session.user.role === "INSPECTOR" && report.booking.inspectorId !== session.user.id) {
+    if (user.role === "INSPECTOR" && report.booking.inspectorId !== user.id) {
       return NextResponse.json(
         { error: "No tienes acceso a este informe" },
         { status: 403 }
@@ -148,7 +147,7 @@ export async function POST(
       thumbnailUrl,
       checklistItemId: checklistItemId || undefined,
       label: label || undefined,
-    });
+    }, req);
 
     return NextResponse.json({
       success: true,

@@ -4,28 +4,21 @@
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 import { startOfDay, endOfDay, addDays, parse } from "date-fns";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const authUser = await getAuthUser(req);
 
-  if (!session?.user?.id) {
+  if (!authUser?.id) {
     return NextResponse.json(
       { error: "Debe iniciar sesión" },
       { status: 401 }
     );
   }
 
-  // Verificar que sea inspector
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true, name: true },
-  });
-
-  if (user?.role !== "INSPECTOR") {
+  if (authUser.role !== "INSPECTOR") {
     return NextResponse.json(
       { error: "Acceso denegado. Solo para inspectores." },
       { status: 403 }
@@ -54,7 +47,7 @@ export async function GET(req: NextRequest) {
 
     const bookings = await db.booking.findMany({
       where: {
-        inspectorId: session.user.id,
+        inspectorId: authUser.id,
         status: { in: ["PAID", "COMPLETED"] },
         startTime: {
           gte: startDate,
@@ -122,7 +115,7 @@ export async function GET(req: NextRequest) {
     );
 
     return NextResponse.json({
-      inspector: user.name,
+      inspector: authUser.name,
       range: {
         from: startDate.toISOString(),
         to: endDate.toISOString(),
@@ -145,21 +138,16 @@ export async function GET(req: NextRequest) {
 // ============================================
 
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const authUser = await getAuthUser(req);
 
-  if (!session?.user?.id) {
+  if (!authUser?.id) {
     return NextResponse.json(
       { error: "Debe iniciar sesión" },
       { status: 401 }
     );
   }
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { role: true },
-  });
-
-  if (user?.role !== "INSPECTOR") {
+  if (authUser.role !== "INSPECTOR") {
     return NextResponse.json(
       { error: "Acceso denegado" },
       { status: 403 }
@@ -180,7 +168,7 @@ export async function PATCH(req: NextRequest) {
     const booking = await db.booking.findFirst({
       where: {
         id: bookingId,
-        inspectorId: session.user.id,
+        inspectorId: authUser.id,
       },
     });
 

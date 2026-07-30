@@ -22,7 +22,7 @@ export async function GET(
       );
     }
 
-    const photos = await getReportPhotos(reportId);
+    const photos = await getReportPhotos(reportId, req);
 
     return NextResponse.json({
       success: true,
@@ -77,7 +77,7 @@ export async function POST(
       category: category || "DAMAGE",
       label,
       checklistItemId,
-    });
+    }, req);
 
     return NextResponse.json({
       success: true,

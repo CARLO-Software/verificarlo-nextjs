@@ -43,7 +43,7 @@ export async function POST(
       executiveSummary: body.executiveSummary,
       estimatedRepairCost: body.estimatedRepairCost,
       mileageAtInspection: body.mileageAtInspection,
-    });
+    }, req);
 
     return NextResponse.json({
       success: true,

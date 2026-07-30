@@ -4,8 +4,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
 export async function DELETE(
@@ -13,9 +12,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
-    if (!session?.user) {
+    if (!user) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -33,7 +32,7 @@ export async function DELETE(
     const notification = await db.notification.findFirst({
       where: {
         id: notificationId,
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 

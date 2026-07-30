@@ -32,6 +32,7 @@ interface FormData {
   thumbnailUrl: string;
   videoUrl: string;
   category: ReelCategory;
+  likes: number;
   isActive: boolean;
 }
 
@@ -80,6 +81,7 @@ export default function EditarReelPage() {
     thumbnailUrl: "",
     videoUrl: "",
     category: "TIPS",
+    likes: 0,
     isActive: true,
   });
 
@@ -102,6 +104,7 @@ export default function EditarReelPage() {
           thumbnailUrl: data.thumbnailUrl || "",
           videoUrl: data.videoUrl || "",
           category: data.category || "TIPS",
+          likes: data.likes ?? 0,
           isActive: data.isActive ?? true,
         });
       } catch (err) {
@@ -141,45 +144,21 @@ export default function EditarReelPage() {
     setError(null);
 
     try {
-      // 1. Obtener firma para subida directa a Cloudinary
-      const signatureRes = await fetch("/api/admin/reels/upload-signature", {
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      const res = await fetch(`/api/admin/reels/${id}/thumbnail`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resourceType: "image" }),
+        body: formDataUpload,
       });
 
-      if (!signatureRes.ok) {
-        const signatureData = await signatureRes.json();
-        throw new Error(signatureData.error || "Error al obtener firma");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error al subir la imagen");
       }
 
-      const { signature, timestamp, cloudName, apiKey, folder } =
-        await signatureRes.json();
-
-      // 2. Subir directamente a Cloudinary
-      const cloudinaryFormData = new FormData();
-      cloudinaryFormData.append("file", file);
-      cloudinaryFormData.append("signature", signature);
-      cloudinaryFormData.append("timestamp", timestamp.toString());
-      cloudinaryFormData.append("api_key", apiKey);
-      cloudinaryFormData.append("folder", folder);
-
-      const cloudinaryRes = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: cloudinaryFormData,
-        }
-      );
-
-      const cloudinaryData = await cloudinaryRes.json();
-
-      if (!cloudinaryRes.ok) {
-        console.error("Cloudinary error:", cloudinaryData);
-        throw new Error(cloudinaryData.error?.message || "Error al subir la imagen a Cloudinary");
-      }
-
-      setFormData((prev) => ({ ...prev, thumbnailUrl: cloudinaryData.secure_url }));
+      setFormData((prev) => ({ ...prev, thumbnailUrl: data.thumbnailUrl }));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al subir imagen");
     } finally {
@@ -537,16 +516,23 @@ export default function EditarReelPage() {
               </label>
 
               {formData.thumbnailUrl ? (
-                <div className={styles.uploadedPreview}>
-                  <img src={formData.thumbnailUrl} alt="Thumbnail" />
-                  <button
-                    type="button"
-                    onClick={removeThumbnail}
-                    className={styles.removeButton}
-                    title="Cambiar imagen"
+                <div className={styles.thumbnailWrapper}>
+                  <div
+                    className={styles.uploadedPreview}
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{ cursor: 'pointer' }}
+                    title="Clic para cambiar imagen"
                   >
-                    <X size={16} />
-                  </button>
+                    <img src={formData.thumbnailUrl} alt="Thumbnail" />
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileInput}
+                    className={styles.fileInput}
+                    disabled={uploading}
+                  />
                 </div>
               ) : (
                 <div
@@ -674,6 +660,28 @@ export default function EditarReelPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Likes */}
+            <div className={styles.formGroup}>
+              <label className={styles.label}>Likes</label>
+              <input
+                type="number"
+                name="likes"
+                value={formData.likes}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    likes: parseInt(e.target.value) || 0,
+                  }))
+                }
+                placeholder="0"
+                className={styles.input}
+                min={0}
+              />
+              <span className={styles.hint}>
+                Cantidad de likes del video en la red social
+              </span>
             </div>
 
             {/* Botones */}

@@ -121,7 +121,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { title, description, embedUrl, embedType, thumbnailUrl, category, isActive, videoUrl } = body;
+    const { title, description, embedUrl, embedType, thumbnailUrl, category, isActive, videoUrl, likes } = body;
 
     // Validaciones
     if (title && title.length > 100) {
@@ -166,6 +166,7 @@ export async function PUT(
         ...(videoUrl !== undefined && { videoUrl }),
         ...(thumbnailUrl !== undefined && { thumbnailUrl }),
         ...(category !== undefined && { category }),
+        ...(likes !== undefined && { likes: parseInt(likes) || 0 }),
         ...(isActive !== undefined && { isActive }),
       },
     });
