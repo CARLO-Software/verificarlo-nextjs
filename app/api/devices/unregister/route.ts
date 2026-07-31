@@ -9,15 +9,14 @@
  */
 
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
 export async function DELETE(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const user = await getAuthUser(request);
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
@@ -35,7 +34,7 @@ export async function DELETE(request: Request) {
     await db.deviceToken.deleteMany({
       where: {
         token,
-        userId: session.user.id,
+        userId: user.id,
       },
     });
 
