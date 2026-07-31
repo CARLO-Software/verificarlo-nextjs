@@ -834,6 +834,18 @@ export async function createManualBooking(input: ManualBookingInput) {
     },
   });
 
+  // Push notification al inspector asignado
+  if (assignedInspectorId) {
+    const { sendPushToUser } = await import("@/lib/push-notifications");
+    const vehicleDesc = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+    sendPushToUser(assignedInspectorId, {
+      type: "new_inspection",
+      inspectionId: booking.id,
+      title: "Nueva inspección asignada",
+      message: `${vehicleDesc} — Cliente: ${booking.client.name}`,
+    }).catch((err) => console.error("[createBooking] Push to inspector failed:", err));
+  }
+
   // 8. Si está pagado, crear el registro de pago
   if (input.isPaid) {
     await db.payment.create({

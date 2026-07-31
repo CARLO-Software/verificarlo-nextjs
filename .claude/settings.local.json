@@ -67,7 +67,10 @@
       "mcp__Neon__run_sql_transaction",
       "Bash(where psql:*)",
       "Bash(where choco:*)",
-      "Bash(where vercel:*)"
+      "Bash(where vercel:*)",
+      "Bash(grep -oP 'CREATE TABLE.*?\"\\(\\\\w+\\)\"' prisma/migrations/*/migration.sql)",
+      "Bash(curl:*)",
+      "Bash(break)"
     ]
   }
 }
