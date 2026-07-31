@@ -6,7 +6,7 @@
  */
 
 import { db } from "@/lib/db";
-import { messaging, isFirebaseConfigured } from "@/lib/firebase-admin";
+import { getMessagingInstance, isFirebaseConfigured } from "@/lib/firebase-admin";
 
 export interface PushPayload {
   type: string;
@@ -40,7 +40,7 @@ export async function sendPushToUser(
   const tokens = deviceTokens.map((d) => d.token);
   const tokenIdMap = new Map(deviceTokens.map((d) => [d.token, d.id]));
 
-  const result = await messaging!.sendEachForMulticast({
+  const result = await getMessagingInstance()!.sendEachForMulticast({
     tokens,
     notification: {
       title: payload.title,

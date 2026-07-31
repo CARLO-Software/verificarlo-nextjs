@@ -10,10 +10,8 @@
 import { initializeApp, getApps, cert, App } from "firebase-admin/app";
 import { getMessaging, Messaging } from "firebase-admin/messaging";
 
-let firebaseApp: App | null = null;
-let messagingInstance: Messaging | null = null;
-
-function initializeFirebaseAdmin(): App | null {
+// ponytail: lazy init — avoids crashing next build when env vars aren't available
+function getFirebaseApp(): App | null {
   if (getApps().length > 0) {
     return getApps()[0];
   }
@@ -43,14 +41,11 @@ function initializeFirebaseAdmin(): App | null {
   });
 }
 
-firebaseApp = initializeFirebaseAdmin();
-
-if (firebaseApp) {
-  messagingInstance = getMessaging(firebaseApp);
+export function getMessagingInstance(): Messaging | null {
+  const app = getFirebaseApp();
+  return app ? getMessaging(app) : null;
 }
 
-export const messaging = messagingInstance;
-
 export function isFirebaseConfigured(): boolean {
-  return messaging !== null;
+  return getMessagingInstance() !== null;
 }
