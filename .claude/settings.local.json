@@ -70,7 +70,13 @@
       "Bash(where vercel:*)",
       "Bash(grep -oP 'CREATE TABLE.*?\"\\(\\\\w+\\)\"' prisma/migrations/*/migration.sql)",
       "Bash(curl:*)",
-      "Bash(break)"
+      "Bash(break)",
+      "WebSearch",
+      "WebFetch(domain:www.verificarlo.com)",
+      "WebFetch(domain:web.archive.org)",
+      "Bash(python3 -c \"import sys,json; print\\(json.dumps\\(json.load\\(sys.stdin\\), indent=2\\)\\)\")",
+      "mcp__Neon__query_logs",
+      "mcp__Neon__describe_project"
     ]
   }
 }

@@ -49,6 +49,14 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { title, newSlug, excerpt, content, coverImage, categoryId, author, published } = body;
 
+    // Validar que no se borre el contenido accidentalmente
+    if (content !== undefined && !content.trim()) {
+      return NextResponse.json(
+        { error: "El contenido del post no puede estar vacío" },
+        { status: 400 }
+      );
+    }
+
     const existingPost = await db.blogPost.findUnique({
       where: { slug },
     });
