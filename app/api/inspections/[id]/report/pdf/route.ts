@@ -14,9 +14,13 @@ export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await getServerSession(authOptions);
+  // ponytail: api-key auth for external services (Flutter/Laravel), upgrade to JWT if more endpoints need it
+  const apiKey = req.headers.get("x-api-key");
+  const isExternalAuth = apiKey && apiKey === process.env.EXTERNAL_API_KEY;
 
-  if (!session?.user?.id) {
+  const session = !isExternalAuth ? await getServerSession(authOptions) : null;
+
+  if (!isExternalAuth && !session?.user?.id) {
     return NextResponse.json(
       { error: "Debe iniciar sesión" },
       { status: 401 }
@@ -56,22 +60,24 @@ export async function GET(
       );
     }
 
-    // Verificar acceso
-    const userId = session.user.id;
-    const user = await db.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
+    // Verificar acceso (skip si auth por API key)
+    if (!isExternalAuth) {
+      const userId = session!.user!.id;
+      const user = await db.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
 
-    const isOwner = booking.clientId === userId;
-    const isAssignedInspector = booking.inspectorId === userId;
-    const isAdmin = user?.role === "ADMIN";
+      const isOwner = booking.clientId === userId;
+      const isAssignedInspector = booking.inspectorId === userId;
+      const isAdmin = user?.role === "ADMIN";
 
-    if (!isOwner && !isAssignedInspector && !isAdmin) {
-      return NextResponse.json(
-        { error: "No tiene acceso a esta inspección" },
-        { status: 403 }
-      );
+      if (!isOwner && !isAssignedInspector && !isAdmin) {
+        return NextResponse.json(
+          { error: "No tiene acceso a esta inspección" },
+          { status: 403 }
+        );
+      }
     }
 
     // Buscar VehicleInspection para verificar si la parte mecánica está completa

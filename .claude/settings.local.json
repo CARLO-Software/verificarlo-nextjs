@@ -76,7 +76,8 @@
       "WebFetch(domain:web.archive.org)",
       "Bash(python3 -c \"import sys,json; print\\(json.dumps\\(json.load\\(sys.stdin\\), indent=2\\)\\)\")",
       "mcp__Neon__query_logs",
-      "mcp__Neon__describe_project"
+      "mcp__Neon__describe_project",
+      "Bash(openssl rand:*)"
     ]
   }
 }
