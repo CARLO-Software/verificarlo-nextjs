@@ -7,20 +7,54 @@ interface BlogContentProps {
   content: string;
 }
 
+interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
 // Limpiar el HTML de caracteres problemáticos
 function cleanHtmlContent(html: string): string {
   return html
-    // Reemplazar &nbsp; con espacios normales para permitir saltos de línea naturales
     .replace(/&nbsp;/gi, ' ')
-    // Reemplazar múltiples espacios con uno solo
     .replace(/  +/g, ' ');
+}
+
+// Extraer headings del HTML y asegurar que tengan IDs
+function processContent(html: string): { html: string; toc: TocItem[] } {
+  const toc: TocItem[] = [];
+  let counter = 0;
+
+  const processed = html.replace(
+    /<(h[23])([^>]*)>([\s\S]*?)<\/\1>/gi,
+    (_match, tag: string, attrs: string, inner: string) => {
+      const level = parseInt(tag[1]);
+      const text = inner.replace(/<[^>]+>/g, '').trim();
+      if (!text) return _match;
+
+      // Usar ID existente o generar uno
+      const idMatch = attrs.match(/id\s*=\s*["']([^"']+)["']/);
+      const id = idMatch ? idMatch[1] : `sec-${++counter}`;
+
+      if (!idMatch) {
+        attrs += ` id="${id}"`;
+      }
+
+      toc.push({ id, text, level });
+      return `<${tag}${attrs}>${inner}</${tag}>`;
+    }
+  );
+
+  return { html: processed, toc };
 }
 
 export default function BlogContent({ content }: BlogContentProps) {
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Limpiar el contenido HTML de caracteres problemáticos
-  const cleanedContent = useMemo(() => cleanHtmlContent(content), [content]);
+  const { html: cleanedContent, toc } = useMemo(() => {
+    const cleaned = cleanHtmlContent(content);
+    return processContent(cleaned);
+  }, [content]);
 
   useEffect(() => {
     const container = contentRef.current;
@@ -30,44 +64,35 @@ export default function BlogContent({ content }: BlogContentProps) {
     const allElements = container.querySelectorAll('*');
     allElements.forEach((el) => {
       const htmlEl = el as HTMLElement;
-      if (htmlEl.style.wordBreak) {
-        htmlEl.style.wordBreak = '';
-      }
-      if (htmlEl.style.overflowWrap) {
-        htmlEl.style.overflowWrap = '';
-      }
+      if (htmlEl.style.wordBreak) htmlEl.style.wordBreak = '';
+      if (htmlEl.style.overflowWrap) htmlEl.style.overflowWrap = '';
     });
+
+    // Marcar los últimos elementos para el highlight amarillo
+    const children = container.children;
+    const totalChildren = children.length;
+    // ponytail: marca ~últimos 15% de elementos como "cierre", ajustar ratio si se ve raro
+    const highlightStart = Math.max(0, totalChildren - Math.ceil(totalChildren * 0.15));
+    for (let i = highlightStart; i < totalChildren; i++) {
+      children[i].classList.add(styles.highlightBlock);
+    }
 
     // Función para manejar clics en enlaces internos
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const link = target.closest("a");
-
       if (!link) return;
 
       const href = link.getAttribute("href");
-
-      // Solo procesar enlaces que empiezan con #
       if (href && href.startsWith("#")) {
         e.preventDefault();
-
-        const targetId = href.substring(1); // Remover el #
-
-        // Buscar el elemento - primero sin #, luego con # (para anclas mal creadas)
+        const targetId = href.substring(1);
         let targetElement = document.getElementById(targetId);
         if (!targetElement) {
-          // Fallback: buscar con # en el ID (bug de anclas antiguas)
           targetElement = document.getElementById("#" + targetId);
         }
-
         if (targetElement) {
-          // Scroll suave hacia el elemento
-          targetElement.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
-
-          // Actualizar la URL sin recargar (opcional)
+          targetElement.scrollIntoView({ behavior: "smooth", block: "start" });
           history.pushState(null, "", href);
         }
       }
@@ -75,23 +100,17 @@ export default function BlogContent({ content }: BlogContentProps) {
 
     container.addEventListener("click", handleClick);
 
-    // Manejar si la página carga con un hash en la URL
     const handleInitialHash = () => {
       const hash = window.location.hash;
       if (hash) {
         const targetId = hash.substring(1);
-        // Buscar el elemento - primero sin #, luego con # (para anclas mal creadas)
         let targetElement = document.getElementById(targetId);
         if (!targetElement) {
           targetElement = document.getElementById("#" + targetId);
         }
         if (targetElement) {
-          // Pequeño delay para asegurar que el contenido está renderizado
           setTimeout(() => {
-            targetElement!.scrollIntoView({
-              behavior: "smooth",
-              block: "start",
-            });
+            targetElement!.scrollIntoView({ behavior: "smooth", block: "start" });
           }, 100);
         }
       }
@@ -105,10 +124,27 @@ export default function BlogContent({ content }: BlogContentProps) {
   }, [content]);
 
   return (
-    <div
-      ref={contentRef}
-      className={styles.content}
-      dangerouslySetInnerHTML={{ __html: cleanedContent }}
-    />
+    <>
+      {toc.length >= 3 && (
+        <nav className={styles.toc}>
+          <h2 className={styles.tocTitle}>Contenido del artículo</h2>
+          <ul className={styles.tocList}>
+            {toc.map((item) => (
+              <li
+                key={item.id}
+                className={item.level === 3 ? styles.tocSubItem : styles.tocItem}
+              >
+                <a href={`#${item.id}`}>{item.text}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+      <div
+        ref={contentRef}
+        className={styles.content}
+        dangerouslySetInnerHTML={{ __html: cleanedContent }}
+      />
+    </>
   );
 }
