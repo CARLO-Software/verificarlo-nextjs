@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useMemo } from "react";
+import DOMPurify from "dompurify";
 import styles from "./BlogPost.module.css";
 
 interface BlogContentProps {
@@ -53,7 +54,13 @@ export default function BlogContent({ content }: BlogContentProps) {
 
   const { html: cleanedContent, toc } = useMemo(() => {
     const cleaned = cleanHtmlContent(content);
-    return processContent(cleaned);
+    // Sanitizar HTML para prevenir XSS almacenado
+    const sanitized = DOMPurify.sanitize(cleaned, {
+      ADD_TAGS: ["iframe"],
+      ADD_ATTR: ["target", "allowfullscreen", "frameborder", "allow", "loading"],
+      ALLOW_DATA_ATTR: false,
+    });
+    return processContent(sanitized);
   }, [content]);
 
   useEffect(() => {

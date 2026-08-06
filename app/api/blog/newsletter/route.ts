@@ -2,9 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getResendClient, EMAIL_FROM } from "@/lib/email/resend";
 import { getWelcomeNewsletterHtml } from "@/lib/email/templates/WelcomeNewsletter";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 // POST /api/blog/newsletter - Subscribe to newsletter
 export async function POST(request: NextRequest) {
+  // Rate limit: 3 suscripciones por IP cada 15 minutos
+  const blocked = rateLimitResponse(request, "newsletter", 3, 15 * 60 * 1000);
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { email } = body;

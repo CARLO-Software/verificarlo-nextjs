@@ -3,9 +3,25 @@ export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import { registerUser } from "@/services/auth/auth.server";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
-    const body = await req.json(); //fullName: "nombre ingresado", email: "email@gmail.com", password: "clave"
+    // Rate limit: 5 registros por IP cada 15 minutos
+    const blocked = rateLimitResponse(req, "register", 5, 15 * 60 * 1000);
+    if (blocked) return blocked;
+
+    const body = await req.json();
+
+    // Validar input básico
+    if (!body.fullName || typeof body.fullName !== "string" || body.fullName.trim().length < 2) {
+        return NextResponse.json({ message: "Nombre inválido" }, { status: 400 });
+    }
+    if (!body.email || typeof body.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
+        return NextResponse.json({ message: "Email inválido" }, { status: 400 });
+    }
+    if (!body.password || typeof body.password !== "string" || body.password.length < 8) {
+        return NextResponse.json({ message: "La contraseña debe tener al menos 8 caracteres" }, { status: 400 });
+    }
 
     try {
         await registerUser(body);

@@ -5,21 +5,28 @@
 // ============================================
 
 import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 import { runAllCleanupTasks } from "@/lib/cron/cleanup-expired";
 
 export async function GET(req: NextRequest) {
-  // Verificar autorización
-  // En producción, usar CRON_SECRET de Vercel
+  // Verificar autorización con timing-safe comparison
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  // En desarrollo, permitir sin auth
   if (process.env.NODE_ENV === "production") {
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (!cronSecret || !authHeader) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : authHeader;
+    try {
+      const isValid =
+        token.length === cronSecret.length &&
+        crypto.timingSafeEqual(Buffer.from(token), Buffer.from(cronSecret));
+      if (!isValid) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
 

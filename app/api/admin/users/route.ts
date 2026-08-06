@@ -41,7 +41,23 @@ export async function GET(_req: NextRequest) {
   }
 
   try {
-    const usuarios = await db.user.findMany();
+    const usuarios = await db.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        image: true,
+        role: true,
+        status: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+        isInspectorAvailable: true,
+        address: true,
+        district: true,
+      },
+    });
     return NextResponse.json(usuarios);
   } catch (error) {
     console.error("Error obteniendo usuarios:", error);

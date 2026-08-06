@@ -63,11 +63,8 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.imgur.com',
       },
-      // Permitir cualquier HTTPS para el blog (necesario para contenido dinámico)
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
+      // ponytail: si el blog necesita más dominios, agregar aquí explícitamente
+      // NO usar hostname: '**' — permite SSRF vía next/image
     ],
   },
 
@@ -145,7 +142,7 @@ const nextConfig = {
           },
         ],
       },
-      // Páginas HTML - cache corto con revalidación
+      // Páginas HTML - security headers completos
       {
         source: '/:path*',
         headers: [
@@ -160,6 +157,33 @@ const nextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self), interest-cohort=()',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://culqi.com https://*.culqi.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://*.googleusercontent.com https://images.unsplash.com https://i.imgur.com https://verificarlo.com https://*.verificarlo.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://api.culqi.com https://maps.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://analytics.tiktok.com",
+              "frame-src 'self' https://www.google.com https://www.youtube.com https://culqi.com https://*.culqi.com",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
           },
         ],
       },

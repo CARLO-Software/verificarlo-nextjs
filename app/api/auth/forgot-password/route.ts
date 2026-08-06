@@ -2,8 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import crypto from "crypto";
 import { getResendClient, EMAIL_FROM } from "@/lib/email/resend";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // Rate limit: 3 solicitudes por IP cada 15 minutos
+  const blocked = rateLimitResponse(req, "forgot-password", 3, 15 * 60 * 1000);
+  if (blocked) return blocked;
+
   const { email } = await req.json();
 
   if (!email) {

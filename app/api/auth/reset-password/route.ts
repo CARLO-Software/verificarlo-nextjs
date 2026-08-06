@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
+  // Rate limit: 5 intentos por IP cada 15 minutos
+  const blocked = rateLimitResponse(req, "reset-password", 5, 15 * 60 * 1000);
+  if (blocked) return blocked;
+
   const { token, password } = await req.json();
 
   if (!token || !password) {

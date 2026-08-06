@@ -5,12 +5,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Rate limit: 10 likes por IP por minuto
+    const blocked = rateLimitResponse(_req, "reel-like", 10, 60 * 1000);
+    if (blocked) return blocked;
+
     const { id } = await params;
     const reelId = parseInt(id);
 
