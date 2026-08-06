@@ -49,6 +49,12 @@ const SENSITIVE_API_PATHS = [
 ];
 
 export function middleware(request: NextRequest) {
+  // Defensa en profundidad: bloquear header interno de Next.js que podría usarse
+  // para bypass de middleware (CVE-2025-29927, parcheado en 14.2.25 pero protección extra)
+  if (request.headers.get('x-middleware-subrequest')) {
+    return new NextResponse(null, { status: 403 });
+  }
+
   const { pathname } = request.nextUrl;
   const userAgent = request.headers.get('user-agent') || '';
 
