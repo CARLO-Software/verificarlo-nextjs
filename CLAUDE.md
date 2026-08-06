@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 VerifiCARLO is a full-stack Next.js 14 (App Router) platform for vehicle inspection services in Lima, Peru. Originally a vanilla JS landing page, it has evolved into a multi-role platform with booking, payments, inspection reports, blog, and admin/inspector dashboards. All UI text is in Spanish (es-PE).
 
+## Setup
+
+Copy `.env.example` to `.env` and fill in values. Key services: PostgreSQL (DATABASE_URL), NextAuth (NEXTAUTH_SECRET), Google OAuth, Cloudinary, Resend, Culqi, Google Maps, Firebase (push notifications).
+
 ## Commands
 
 ```bash
@@ -51,6 +55,7 @@ The app uses Next.js route groups to separate concerns by user role:
 - Schema at `prisma/schema.prisma` — key models: User, Booking, Vehicle, VehicleInspection, InspectionReport, BlogPost, Reel
 - Three roles: `CLIENT`, `INSPECTOR`, `ADMIN`
 - Booking statuses flow: `PENDING_PAYMENT → PENDING_VERIFICATION → PAID → COMPLETED`
+- All dates/times use `America/Lima` timezone (UTC-5). Date logic uses `date-fns` and `date-fns-tz`.
 
 ### Auth
 
@@ -64,16 +69,25 @@ The app uses Next.js route groups to separate concerns by user role:
 - Alternative payments: bank transfer, Yape/Plin (manual verification by admin)
 - Webhook at `app/api/webhooks/culqi/`
 
+### API Routes
+
+All API routes are in `app/api/`. Admin-only endpoints live under `app/api/admin/`. Auth is checked via `getServerSession(authOptions)` from `lib/auth.ts` — there is no middleware-level auth. Rate limiting uses an in-memory store (`lib/rate-limit.ts`). Input validation uses **Zod** (v4).
+
 ### Key Integrations
 
 - **Cloudinary** — image/PDF uploads (reports, blog, reels)
-- **Resend** — transactional emails
+- **Resend** — transactional emails (`lib/email/`)
 - **Google Maps API** — inspection location display
-- **Culqi** — payment processing
+- **Culqi** — payment processing (webhook signature verified via RSA)
+- **Firebase Admin** — push notifications (`lib/push-notifications.ts`)
 
 ### Component Organization
 
 Components live in `app/components/ComponentName/` with co-located `.module.css`. Landing-specific sections live in `app/landing/`.
+
+### Key Dependencies
+
+`next-auth` v4, `prisma` v5, `zod` v4, `date-fns` v4, `zustand` (client state), `react-quill-new` (rich text editor), `@phosphor-icons/react` + `lucide-react` (icons), `framer-motion` (animations), `@splidejs/splide` (carousels).
 
 ### Shared Libraries
 
@@ -81,6 +95,8 @@ Components live in `app/components/ComponentName/` with co-located `.module.css`
 - `lib/vehicle-inspection/` — State machine for inspection flow, mechanic assignment, notifications
 - `lib/pdf/` — PDF generation for inspection/legal reports (uses `@react-pdf/renderer`)
 - `lib/email/` — Email templates via Resend
+- `lib/rate-limit.ts` — In-memory rate limiter for sensitive endpoints
+- `lib/auth-jwt.ts` — JWT utilities for external API auth (Flutter app)
 
 ### Styling
 

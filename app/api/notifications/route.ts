@@ -10,6 +10,8 @@ import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-jwt";
 import { db } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const user = await getAuthUser(request);

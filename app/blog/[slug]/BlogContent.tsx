@@ -54,12 +54,15 @@ export default function BlogContent({ content }: BlogContentProps) {
 
   const { html: cleanedContent, toc } = useMemo(() => {
     const cleaned = cleanHtmlContent(content);
-    // Sanitizar HTML para prevenir XSS almacenado
-    const sanitized = DOMPurify.sanitize(cleaned, {
-      ADD_TAGS: ["iframe"],
-      ADD_ATTR: ["target", "allowfullscreen", "frameborder", "allow", "loading"],
-      ALLOW_DATA_ATTR: false,
-    });
+    // DOMPurify requires a browser DOM — skip sanitization during SSR prerender
+    const sanitized =
+      typeof window !== "undefined"
+        ? DOMPurify.sanitize(cleaned, {
+            ADD_TAGS: ["iframe"],
+            ADD_ATTR: ["target", "allowfullscreen", "frameborder", "allow", "loading"],
+            ALLOW_DATA_ATTR: false,
+          })
+        : cleaned;
     return processContent(sanitized);
   }, [content]);
 
