@@ -912,7 +912,7 @@ export async function getInspectorPendingInspections(request?: Request) {
     },
     include: {
       client: {
-        select: { id: true, name: true, phone: true },
+        select: { id: true, name: true, phone: true, address: true, district: true },
       },
       vehicle: {
         include: {
@@ -958,7 +958,7 @@ export async function getInspectorCompletedInspections(request?: Request) {
     },
     include: {
       client: {
-        select: { id: true, name: true },
+        select: { id: true, name: true, address: true, district: true },
       },
       vehicle: {
         include: {
