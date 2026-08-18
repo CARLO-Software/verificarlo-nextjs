@@ -13,7 +13,7 @@ export function getBlogNewsletterHtml({
   slug,
   author,
 }: BlogNewsletterProps): string {
-  const blogUrl = `https://verificarlo.pe/blog/${slug}`;
+  const blogUrl = `https://verificarlo.com/blog/${slug}`;
 
   return `
 <!DOCTYPE html>
@@ -79,7 +79,7 @@ export function getBlogNewsletterHtml({
               <p style="font-size:15px;color:#333;margin:0 0 15px;">
                 ¿Vas a comprar un auto usado? Asegúrate de que esté en buen estado.
               </p>
-              <a href="https://verificarlo.pe" style="background:#1a1a1a;color:#FFD700;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;display:inline-block;">
+              <a href="https://verificarlo.com" style="background:#1a1a1a;color:#FFD700;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;display:inline-block;">
                 Agenda tu inspección
               </a>
             </td>

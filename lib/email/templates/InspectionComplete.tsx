@@ -6,6 +6,7 @@ interface InspectionCompleteProps {
   vehicleYear: number;
   verdict: string;
   bookingId: number;
+  pdfDownloadUrl?: string;
 }
 
 export function getInspectionCompleteHtml({
@@ -16,8 +17,9 @@ export function getInspectionCompleteHtml({
   vehicleYear,
   verdict,
   bookingId,
+  pdfDownloadUrl,
 }: InspectionCompleteProps): string {
-  const reportUrl = `https://verificarlo.pe/mis-inspecciones/${bookingId}`;
+  const reportUrl = `https://verificarlo.com/mis-inspecciones/${bookingId}`;
 
   const verdictColors: Record<string, { bg: string; text: string }> = {
     APROBADO: { bg: '#22c55e', text: '#ffffff' },
@@ -33,6 +35,13 @@ export function getInspectionCompleteHtml({
 
   const colors = verdictColors[verdict] || verdictColors.OBSERVADO;
   const label = verdictLabels[verdict] || verdict;
+
+  const pdfButton = pdfDownloadUrl ? `
+              <div style="text-align:center;margin:15px 0 30px;">
+                <a href="${pdfDownloadUrl}" style="background:#1a1a1a;color:#FFD700;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;">
+                  Descargar PDF del informe
+                </a>
+              </div>` : '';
 
   return `
 <!DOCTYPE html>
@@ -76,15 +85,13 @@ export function getInspectionCompleteHtml({
                 </span>
               </div>
 
-              <div style="text-align:center;margin:30px 0;">
+              ${pdfButton}
+
+              <div style="text-align:center;margin:15px 0;">
                 <a href="${reportUrl}" style="background:#FFD700;color:#1a1a1a;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;">
-                  Ver informe completo
+                  Ver informe en la plataforma
                 </a>
               </div>
-
-              <p style="font-size:14px;color:#666;line-height:1.6;margin:25px 0 0;">
-                Desde tu panel también podrás descargar el informe en formato PDF.
-              </p>
             </td>
           </tr>
 

@@ -45,7 +45,7 @@ export function getWelcomeNewsletterHtml(email: string): string {
               </p>
 
               <div style="text-align:center;margin:30px 0;">
-                <a href="https://verificarlo.pe" style="background:#FFD700;color:#1a1a1a;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;">
+                <a href="https://verificarlo.com" style="background:#FFD700;color:#1a1a1a;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;font-size:16px;display:inline-block;">
                   Agenda tu inspección
                 </a>
               </div>

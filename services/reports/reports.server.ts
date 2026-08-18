@@ -1,7 +1,7 @@
 import { db } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth-jwt';
 import { InspectionResultStatus, PhotoCategory } from '@prisma/client';
-import { generateInspectionPDF, uploadPDFToCloudinary } from '@/lib/pdf';
+import { generateInspectionPDF, uploadPDFToCloudinary, generateSignedPdfUrl } from '@/lib/pdf';
 import { cloudinary, isCloudinaryConfigured } from '@/lib/cloudinary';
 import { createLegalReport } from '@/services/legalReport/legalReport.server';
 import { sendLegalReviewNotification } from '@/lib/email/sendLegalReviewNotification';
@@ -683,54 +683,40 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
     ] : []),
   ]);
 
-  // Generar PDF en segundo plano (no bloquea la respuesta)
-  if (isCloudinaryConfigured()) {
-    generateAndUploadPDF(reportId).catch((error) => {
-      console.error('Error generando/subiendo PDF:', error);
-    });
-  }
+  // Generar PDF, luego enviar email al cliente con link de descarga (en segundo plano)
+  generatePDFAndNotifyClient(reportId, mechanicalVerdict).catch((error) => {
+    console.error('Error en PDF/email de inspección completa:', error);
+  });
 
   // Crear LegalReport y notificar a admins (en segundo plano)
   createLegalReportAndNotify(reportId).catch((error) => {
     console.error('Error creando LegalReport o enviando notificación:', error);
   });
 
-  // Email al cliente notificando que su inspección está lista (en segundo plano)
-  sendInspectionCompleteEmail(reportId, mechanicalVerdict).catch((error) => {
-    console.error('Error enviando email de inspección completa:', error);
-  });
-
   return updatedReport;
 }
 
-// Función auxiliar para generar y subir PDF
-async function generateAndUploadPDF(reportId: number): Promise<void> {
-  try {
-    console.log(`Generando PDF para reporte ${reportId}...`);
+async function generatePDFAndNotifyClient(reportId: number, verdict: string): Promise<void> {
+  let pdfDownloadUrl: string | undefined;
 
-    const { buffer, hash } = await generateInspectionPDF(reportId);
-    console.log(`PDF generado (${buffer.length} bytes, hash: ${hash.substring(0, 16)}...)`);
+  // 1. Generar y subir PDF
+  if (isCloudinaryConfigured()) {
+    try {
+      const { buffer, hash } = await generateInspectionPDF(reportId);
+      const { public_id } = await uploadPDFToCloudinary(buffer, reportId);
 
-    const { public_id } = await uploadPDFToCloudinary(buffer, reportId);
-    console.log(`PDF subido a Cloudinary. Public ID: ${public_id}`);
+      await db.inspectionReport.update({
+        where: { id: reportId },
+        data: { pdfUrl: public_id, pdfHash: hash },
+      });
 
-    // Guardamos el public_id para generar URLs firmadas después
-    await db.inspectionReport.update({
-      where: { id: reportId },
-      data: {
-        pdfUrl: public_id,
-        pdfHash: hash,
-      },
-    });
-
-    console.log(`Public ID del PDF guardado en la base de datos para reporte ${reportId}`);
-  } catch (error) {
-    console.error(`Error en generateAndUploadPDF para reporte ${reportId}:`, error);
-    throw error;
+      pdfDownloadUrl = generateSignedPdfUrl(public_id);
+    } catch (error) {
+      console.error(`Error generando/subiendo PDF para reporte ${reportId}:`, error);
+    }
   }
-}
 
-async function sendInspectionCompleteEmail(reportId: number, verdict: string): Promise<void> {
+  // 2. Enviar email al cliente (con o sin link de descarga)
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: {
@@ -757,6 +743,7 @@ async function sendInspectionCompleteEmail(reportId: number, verdict: string): P
     vehicleYear: vehicle.year,
     verdict,
     bookingId: report.bookingId,
+    pdfDownloadUrl,
   });
 
   await sendEmail({
