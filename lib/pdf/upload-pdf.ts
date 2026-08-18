@@ -3,20 +3,25 @@
 // ============================================
 
 import { cloudinary, isCloudinaryConfigured } from '@/lib/cloudinary';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET!;
+const APP_URL = process.env.NEXTAUTH_URL || 'https://verificarlo.com';
 
 export interface UploadPDFResult {
   secure_url: string;
   public_id: string;
 }
 
-// Generar URL pública para un PDF
-export function generateSignedPdfUrl(publicId: string): string {
-  return cloudinary.url(publicId, {
-    resource_type: 'raw',
-    type: 'upload',
-    secure: true,
-    flags: 'attachment',
-  });
+// Generar URL de descarga con token firmado (funciona sin login desde email)
+export function generateSignedPdfUrl(bookingId: number): string {
+  const token = jwt.sign(
+    { bookingId, purpose: 'pdf-download' },
+    JWT_SECRET,
+    { expiresIn: '30d' }
+  );
+
+  return `${APP_URL}/api/inspections/${bookingId}/report/pdf?token=${token}`;
 }
 
 // Subir PDF a Cloudinary

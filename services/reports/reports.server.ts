@@ -697,26 +697,7 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
 }
 
 async function generatePDFAndNotifyClient(reportId: number, verdict: string): Promise<void> {
-  let pdfDownloadUrl: string | undefined;
-
-  // 1. Generar y subir PDF
-  if (isCloudinaryConfigured()) {
-    try {
-      const { buffer, hash } = await generateInspectionPDF(reportId);
-      const { public_id } = await uploadPDFToCloudinary(buffer, reportId);
-
-      await db.inspectionReport.update({
-        where: { id: reportId },
-        data: { pdfUrl: public_id, pdfHash: hash },
-      });
-
-      pdfDownloadUrl = generateSignedPdfUrl(public_id);
-    } catch (error) {
-      console.error(`Error generando/subiendo PDF para reporte ${reportId}:`, error);
-    }
-  }
-
-  // 2. Enviar email al cliente (con o sin link de descarga)
+  // 1. Obtener datos del reporte y booking
   const report = await db.inspectionReport.findUnique({
     where: { id: reportId },
     select: {
@@ -732,6 +713,24 @@ async function generatePDFAndNotifyClient(reportId: number, verdict: string): Pr
   });
 
   if (!report?.booking?.client?.email) return;
+
+  // 2. Generar y subir PDF a Cloudinary (backup)
+  if (isCloudinaryConfigured()) {
+    try {
+      const { buffer, hash } = await generateInspectionPDF(reportId);
+      const { public_id } = await uploadPDFToCloudinary(buffer, reportId);
+
+      await db.inspectionReport.update({
+        where: { id: reportId },
+        data: { pdfUrl: public_id, pdfHash: hash },
+      });
+    } catch (error) {
+      console.error(`Error generando/subiendo PDF para reporte ${reportId}:`, error);
+    }
+  }
+
+  // 3. Generar URL de descarga firmada (apunta al endpoint propio, no a Cloudinary)
+  const pdfDownloadUrl = generateSignedPdfUrl(report.bookingId);
 
   const { client, vehicle } = report.booking;
 

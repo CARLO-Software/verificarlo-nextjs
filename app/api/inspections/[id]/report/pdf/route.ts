@@ -9,18 +9,30 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateInspectionPDF, generatePDFOnDemand, uploadPDFToCloudinary, generateSignedPdfUrl } from "@/lib/pdf";
 import { isCloudinaryConfigured } from "@/lib/cloudinary";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET!;
 
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // ponytail: api-key auth for external services (Flutter/Laravel), upgrade to JWT if more endpoints need it
   const apiKey = req.headers.get("x-api-key");
   const isExternalAuth = apiKey && apiKey === process.env.EXTERNAL_API_KEY;
 
-  const session = !isExternalAuth ? await getServerSession(authOptions) : null;
+  // Token firmado en query param (para links desde email)
+  const downloadToken = req.nextUrl.searchParams.get("token");
+  let isTokenAuth = false;
+  if (downloadToken) {
+    try {
+      const payload = jwt.verify(downloadToken, JWT_SECRET) as { bookingId: number; purpose: string };
+      isTokenAuth = payload.purpose === 'pdf-download' && payload.bookingId === parseInt(params.id);
+    } catch {}
+  }
 
-  if (!isExternalAuth && !session?.user?.id) {
+  const session = (!isExternalAuth && !isTokenAuth) ? await getServerSession(authOptions) : null;
+
+  if (!isExternalAuth && !isTokenAuth && !session?.user?.id) {
     return NextResponse.json(
       { error: "Debe iniciar sesión" },
       { status: 401 }
@@ -60,8 +72,8 @@ export async function GET(
       );
     }
 
-    // Verificar acceso (skip si auth por API key)
-    if (!isExternalAuth) {
+    // Verificar acceso (skip si auth por API key o token de descarga)
+    if (!isExternalAuth && !isTokenAuth) {
       const userId = session!.user!.id;
       const user = await db.user.findUnique({
         where: { id: userId },
@@ -225,7 +237,7 @@ export async function POST(
     if (isCloudinaryConfigured()) {
       const result = await uploadPDFToCloudinary(buffer, booking.report.id);
       publicId = result.public_id;
-      signedUrl = generateSignedPdfUrl(publicId);
+      signedUrl = generateSignedPdfUrl(bookingId);
       console.log(`PDF subido a Cloudinary. Public ID: ${publicId}`);
 
       // Guardar public_id en pdfUrl para generar URLs firmadas después
