@@ -663,13 +663,14 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
                   const knownIds = new Set(
                     INSPECTION_CATEGORIES.flatMap(c => c.sections.flatMap(s => s.items.map(i => i.id)))
                   );
-                  const extraItems = Object.entries(checklistResults)
+                  type ExtraItem = { id: string; [key: string]: any };
+                  const extraItems: ExtraItem[] = Object.entries(checklistResults)
                     .filter(([id]) => !knownIds.has(id))
                     .map(([id, result]) => ({ id, ...(result as Record<string, any>) }));
 
                   if (extraItems.length === 0) return null;
 
-                  const grouped = extraItems.reduce<Record<string, typeof extraItems>>((acc, item) => {
+                  const grouped = extraItems.reduce<Record<string, ExtraItem[]>>((acc, item) => {
                     const key = item.subcategory || 'Otros';
                     (acc[key] ||= []).push(item);
                     return acc;
