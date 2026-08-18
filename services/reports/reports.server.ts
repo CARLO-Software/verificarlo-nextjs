@@ -5,6 +5,8 @@ import { generateInspectionPDF, uploadPDFToCloudinary } from '@/lib/pdf';
 import { cloudinary, isCloudinaryConfigured } from '@/lib/cloudinary';
 import { createLegalReport } from '@/services/legalReport/legalReport.server';
 import { sendLegalReviewNotification } from '@/lib/email/sendLegalReviewNotification';
+import { sendEmail } from '@/lib/email/resend';
+import { getInspectionCompleteHtml } from '@/lib/email/templates/InspectionComplete';
 
 // ============================================
 // Tipos
@@ -693,6 +695,11 @@ export async function completeReport(reportId: number, input?: CompleteReportInp
     console.error('Error creando LegalReport o enviando notificación:', error);
   });
 
+  // Email al cliente notificando que su inspección está lista (en segundo plano)
+  sendInspectionCompleteEmail(reportId, mechanicalVerdict).catch((error) => {
+    console.error('Error enviando email de inspección completa:', error);
+  });
+
   return updatedReport;
 }
 
@@ -721,6 +728,42 @@ async function generateAndUploadPDF(reportId: number): Promise<void> {
     console.error(`Error en generateAndUploadPDF para reporte ${reportId}:`, error);
     throw error;
   }
+}
+
+async function sendInspectionCompleteEmail(reportId: number, verdict: string): Promise<void> {
+  const report = await db.inspectionReport.findUnique({
+    where: { id: reportId },
+    select: {
+      bookingId: true,
+      booking: {
+        select: {
+          id: true,
+          client: { select: { email: true, name: true } },
+          vehicle: { select: { plate: true, year: true, model: { select: { name: true, brand: { select: { name: true } } } } } },
+        },
+      },
+    },
+  });
+
+  if (!report?.booking?.client?.email) return;
+
+  const { client, vehicle } = report.booking;
+
+  const html = getInspectionCompleteHtml({
+    clientName: client.name || 'Cliente',
+    vehiclePlate: vehicle.plate || 'N/A',
+    vehicleBrand: vehicle.model.brand.name,
+    vehicleModel: vehicle.model.name,
+    vehicleYear: vehicle.year,
+    verdict,
+    bookingId: report.bookingId,
+  });
+
+  await sendEmail({
+    to: client.email,
+    subject: 'Tu inspección mecánica está lista - Verificarlo',
+    html,
+  });
 }
 
 // Función auxiliar para crear LegalReport y notificar a admins

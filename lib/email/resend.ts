@@ -41,6 +41,7 @@ export async function sendEmail(options: {
   to: string | string[];
   subject: string;
   react?: React.ReactElement | null;
+  html?: string;
   text?: string;
 }) {
   const resend = getResendClient();
@@ -55,6 +56,10 @@ export async function sendEmail(options: {
 
   if (options.react) {
     payload.react = options.react;
+  }
+
+  if (options.html) {
+    payload.html = options.html;
   }
 
   if (options.text) {
