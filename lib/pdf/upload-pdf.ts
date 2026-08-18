@@ -11,11 +11,11 @@ export interface UploadPDFResult {
 
 // Generar URL pública para un PDF
 export function generateSignedPdfUrl(publicId: string): string {
-  // Usar el public_id exactamente como está guardado en la BD
   return cloudinary.url(publicId, {
     resource_type: 'raw',
     type: 'upload',
     secure: true,
+    flags: 'attachment',
   });
 }
 
