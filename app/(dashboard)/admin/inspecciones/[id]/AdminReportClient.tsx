@@ -28,7 +28,7 @@ interface Photo {
 
 interface Report {
   id: number;
-  checklistResults: Record<string, { status: string; comment?: string }> | null;
+  checklistResults: Record<string, { status: string; comment?: string; name?: string; subcategory?: string; selectedChips?: string[] }> | null;
   mileageAtInspection: number | null;
   overallScore: number | null;
   overallStatus: ResultStatus;
@@ -196,7 +196,8 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
         if (item) return item.label;
       }
     }
-    return itemId;
+    const result = checklistResults[itemId] as Record<string, any> | undefined;
+    return result?.name || itemId;
   };
 
   return (
@@ -578,7 +579,7 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
                             </h4>
                             <div className={styles.checklistItems}>
                               {section.items.map((item) => {
-                                const result = checklistResults[item.id];
+                                const result = checklistResults[item.id] as Record<string, any> | undefined;
                                 const status = result?.status as InspectionStatus;
                                 const photos = getPhotosForItem(item.id);
                                 const config = status
@@ -592,7 +593,7 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
                                   >
                                     <div className={styles.checklistItemHeader}>
                                       <span className={styles.checklistItemLabel}>
-                                        {item.label}
+                                        {result?.name || item.label}
                                       </span>
                                       {status ? (
                                         <span
@@ -656,6 +657,89 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
                     )}
                   </div>
                 ))}
+
+                {/* Items del JSON que no están en las categorías predefinidas */}
+                {(() => {
+                  const knownIds = new Set(
+                    INSPECTION_CATEGORIES.flatMap(c => c.sections.flatMap(s => s.items.map(i => i.id)))
+                  );
+                  const extraItems = Object.entries(checklistResults)
+                    .filter(([id]) => !knownIds.has(id))
+                    .map(([id, result]) => ({ id, ...(result as Record<string, any>) }));
+
+                  if (extraItems.length === 0) return null;
+
+                  const grouped = extraItems.reduce<Record<string, typeof extraItems>>((acc, item) => {
+                    const key = item.subcategory || 'Otros';
+                    (acc[key] ||= []).push(item);
+                    return acc;
+                  }, {});
+
+                  return (
+                    <div className={styles.categoryAccordion}>
+                      <div className={styles.categoryAccordionContent} style={{ padding: '12px' }}>
+                        {Object.entries(grouped).map(([groupName, items]) => (
+                          <div key={groupName} className={styles.checklistGroup}>
+                            <h4 className={styles.checklistGroupTitle}>{groupName}</h4>
+                            <div className={styles.checklistItems}>
+                              {items.map((item) => {
+                                const status = item.status as InspectionStatus;
+                                const config = status ? STATUS_CONFIG[status] : null;
+                                const photos = getPhotosForItem(item.id);
+
+                                return (
+                                  <div key={item.id} className={styles.checklistItem}>
+                                    <div className={styles.checklistItemHeader}>
+                                      <span className={styles.checklistItemLabel}>
+                                        {item.name || item.id}
+                                      </span>
+                                      {status ? (
+                                        <span
+                                          className={styles.checklistItemStatus}
+                                          style={{ backgroundColor: config?.bg, color: config?.color }}
+                                        >
+                                          {config?.label}
+                                        </span>
+                                      ) : (
+                                        <span
+                                          className={styles.checklistItemStatus}
+                                          style={{ backgroundColor: "#F3F4F6", color: "#9CA3AF" }}
+                                        >
+                                          Sin revisar
+                                        </span>
+                                      )}
+                                    </div>
+                                    {item.selectedChips?.length > 0 && (
+                                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 4 }}>
+                                        {item.selectedChips.map((chip: string) => (
+                                          <span key={chip} style={{ fontSize: 12, background: '#F3F4F6', borderRadius: 4, padding: '2px 8px' }}>
+                                            {chip}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    {item.comment && (
+                                      <p className={styles.checklistItemComment}>{item.comment}</p>
+                                    )}
+                                    {photos.length > 0 && (
+                                      <div className={styles.checklistItemPhotos}>
+                                        {photos.map((photo) => (
+                                          <button key={photo.id} className={styles.photoThumb} onClick={() => setSelectedPhoto(photo)}>
+                                            <Image src={photo.thumbnailUrl || photo.url} alt={photo.label || "Foto"} width={80} height={80} className={styles.photoThumbImg} />
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </section>
 
               {/* Galeria de fotos general */}
