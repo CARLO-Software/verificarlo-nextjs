@@ -617,41 +617,48 @@
 }
 
 /* =============================================================================
-   Card modal (reemplaza modal Culqi)
+   Card modal — estilo Culqi Checkout
    ============================================================================= */
 
 .cardModal {
-  background: white;
-  border-radius: 12px;
+  background: #f7f7f7;
+  border-radius: 8px;
   width: 100%;
-  max-width: 380px;
+  max-width: 400px;
   overflow: hidden;
   animation: slideUp 0.3s ease;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* -- Banner superior (logo + precio + cierre) -- */
 .cardModalBanner {
   background: #FDBF12;
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem 1rem;
+  position: relative;
+}
+
+.cardModalBannerTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 0.75rem;
 }
 
 .cardModalLogo {
-  height: 32px;
+  height: 30px;
   width: auto;
   object-fit: contain;
 }
 
 .cardModalClose {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: none;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.08);
   color: #1a1a1a;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -661,65 +668,82 @@
 }
 
 .cardModalClose:hover {
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.15);
 }
 
+/* Precio dentro del banner, como Culqi */
 .cardModalAmount {
-  text-align: center;
-  padding: 1.25rem 1rem 0.5rem;
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 0.25rem;
+  gap: 0.2rem;
 }
 
 .cardModalCurrency {
-  font-size: 1.1rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: #666;
-}
-
-.cardModalPrice {
-  font-size: 2rem;
-  font-weight: 700;
   color: #1a1a1a;
 }
 
+.cardModalPrice {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  letter-spacing: -0.02em;
+}
+
+.cardModalBannerTitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.6);
+  margin-top: 0.15rem;
+}
+
+/* Icono decorativo (escudo/tarjeta) */
+.cardModalBannerIcon {
+  display: none;
+}
+
+/* -- Cuerpo del formulario -- */
 .cardModalBody {
-  padding: 0.5rem 1.5rem 1.5rem;
+  background: white;
+  padding: 1.5rem 1.5rem 1.25rem;
+  margin: 0;
 }
 
 .cardModalDescription {
-  text-align: center;
-  font-size: 0.85rem;
-  color: #666;
-  margin: 0 0 1.25rem;
+  text-align: left;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #888;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .cardModalField {
-  margin-bottom: 0.875rem;
+  margin-bottom: 1rem;
 }
 
 .cardModalField label {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  color: #555;
-  margin-bottom: 0.35rem;
+  color: #888;
+  margin-bottom: 0.4rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
 .cardModalField input,
 .cardModalField select {
   width: 100%;
-  padding: 0.65rem 0.75rem;
-  border: 1.5px solid #ddd;
-  border-radius: 6px;
+  padding: 0.75rem 0.875rem;
+  border: 1px solid #d4d4d4;
+  border-radius: 4px;
   font-size: 0.95rem;
-  color: #1a1a1a;
+  color: #333;
   background: white;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -727,7 +751,7 @@
 .cardModalField select:focus {
   outline: none;
   border-color: #FDBF12;
-  box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.15);
+  box-shadow: 0 0 0 2px rgba(253, 191, 18, 0.2);
 }
 
 .cardModalField input::placeholder {
@@ -736,47 +760,63 @@
 
 .cardRow {
   display: flex;
-  gap: 0.75rem;
+  gap: 0.625rem;
 }
 
+/* -- Botón de pago -- */
 .cardModalPayButton {
   width: 100%;
-  padding: 0.85rem;
+  padding: 0.9rem;
   margin-top: 0.5rem;
-  background: #FDBF12;
-  color: #1a1a1a;
+  background: #F97316;
+  color: white;
   font-weight: 700;
   font-size: 1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  transition: all 0.2s;
+  transition: background 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .cardModalPayButton:hover:not(:disabled) {
-  background: #e6ac00;
-  transform: translateY(-1px);
+  background: #EA580C;
 }
 
 .cardModalPayButton:disabled {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: #d4d4d4;
+  color: #999;
   cursor: not-allowed;
-  transform: none;
 }
 
+/* -- Footer con candado + tarjetas aceptadas -- */
 .cardModalFooter {
+  background: #f7f7f7;
+  padding: 1rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
-  margin-top: 1rem;
+  gap: 0.5rem;
   font-size: 0.75rem;
   color: #999;
+}
+
+.cardModalFooterCards {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: 0.5rem;
+}
+
+.cardModalFooterCards img {
+  height: 18px;
+  width: auto;
+  opacity: 0.5;
 }
 
 /* =============================================================================

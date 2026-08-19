@@ -135,7 +135,9 @@ export function useGooglePlacesAutocomplete(
 
     script.onerror = (e) => {
       console.error("[GooglePlaces] ERROR cargando script:", e);
-      setError("Error cargando Google Maps");
+      console.error("[GooglePlaces] URL del script:", script.src);
+      console.error("[GooglePlaces] Revisa la consola Network para ver el status HTTP de maps.googleapis.com");
+      setError("Error cargando Google Maps. Revisa la consola del navegador (F12 → Network) para más detalles.");
       googleMapsLoading = false;
     };
 

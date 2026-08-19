@@ -688,27 +688,28 @@ export default function PaymentMethods({
         {showCardModal && (
           <div className={styles.modalOverlay} onClick={() => !culqiLoading && setShowCardModal(false)}>
             <div className={styles.cardModal} onClick={(e) => e.stopPropagation()}>
-              {/* Banner */}
+              {/* Banner — estilo Culqi: logo, precio, descripción */}
               <div className={styles.cardModalBanner}>
-                <img src="/logo.png" alt="VerifiCARLO" className={styles.cardModalLogo} />
-                <button
-                  className={styles.cardModalClose}
-                  onClick={() => !culqiLoading && setShowCardModal(false)}
-                >
-                  &times;
-                </button>
+                <div className={styles.cardModalBannerTop}>
+                  <img src="/logo.png" alt="VerifiCARLO" className={styles.cardModalLogo} />
+                  <button
+                    className={styles.cardModalClose}
+                    onClick={() => !culqiLoading && setShowCardModal(false)}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className={styles.cardModalAmount}>
+                  <span className={styles.cardModalCurrency}>S/</span>
+                  <span className={styles.cardModalPrice}>{bookingDetails.totalAmount.toFixed(2)}</span>
+                </div>
+                <span className={styles.cardModalBannerTitle}>{bookingDetails.planTitle}</span>
               </div>
 
-              {/* Monto */}
-              <div className={styles.cardModalAmount}>
-                <span className={styles.cardModalCurrency}>S/</span>
-                <span className={styles.cardModalPrice}>{bookingDetails.totalAmount.toFixed(2)}</span>
-              </div>
-
+              {/* Formulario */}
               <div className={styles.cardModalBody}>
-                <p className={styles.cardModalDescription}>{bookingDetails.planTitle}</p>
+                <p className={styles.cardModalDescription}>Datos de la tarjeta</p>
 
-                {/* Error */}
                 {culqiError && (
                   <div className={styles.errorMessage}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -719,7 +720,6 @@ export default function PaymentMethods({
                   </div>
                 )}
 
-                {/* Email */}
                 <div className={styles.cardModalField}>
                   <label>Correo electrónico</label>
                   <input
@@ -731,7 +731,6 @@ export default function PaymentMethods({
                   />
                 </div>
 
-                {/* Número de tarjeta */}
                 <div className={styles.cardModalField}>
                   <label>Número de tarjeta</label>
                   <input
@@ -748,7 +747,6 @@ export default function PaymentMethods({
                   />
                 </div>
 
-                {/* Vencimiento + CVV */}
                 <div className={styles.cardRow}>
                   <div className={styles.cardModalField} style={{ flex: 1 }}>
                     <label>Mes</label>
@@ -792,7 +790,6 @@ export default function PaymentMethods({
                   </div>
                 </div>
 
-                {/* Botón pagar */}
                 <button
                   className={styles.cardModalPayButton}
                   onClick={handleCardPayment}
@@ -807,15 +804,20 @@ export default function PaymentMethods({
                     <>Pagar S/ {bookingDetails.totalAmount.toFixed(2)}</>
                   )}
                 </button>
+              </div>
 
-                {/* Footer seguridad */}
-                <p className={styles.cardModalFooter}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
-                  Pago seguro
-                </p>
+              {/* Footer — candado + logos de tarjetas */}
+              <div className={styles.cardModalFooter}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Pago seguro
+                <div className={styles.cardModalFooterCards}>
+                  <img src="/assets/icons/visa.svg" alt="Visa" />
+                  <img src="/assets/icons/mastercard.svg" alt="MC" />
+                  <img src="/assets/icons/amex.svg" alt="Amex" />
+                </div>
               </div>
             </div>
           </div>
