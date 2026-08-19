@@ -77,6 +77,9 @@ export default function AgendarForm({
   // Paso actual (1-4)
   const [currentStep, setCurrentStep] = useState<BookingStep>(1);
 
+  // Flag: el usuario volvió del login con draft listo para pagar
+  const [pendingPayment, setPendingPayment] = useState(false);
+
   // Estados de carga y error
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,12 +167,12 @@ export default function AgendarForm({
       if (draft.currentStep) {
         console.log("[AgendarForm] Restaurando currentStep:", draft.currentStep);
         setCurrentStep(draft.currentStep);
+        if (draft.currentStep === 3) {
+          setPendingPayment(true);
+        }
       }
 
-      // NO eliminamos el draft aquí - el auto-guardado lo mantiene actualizado
-      // y se elimina automáticamente cuando se crea el booking (paso 4)
-
-      console.log("[AgendarForm] Draft restaurado exitosamente. Estados actualizados.");
+      console.log("[AgendarForm] Draft restaurado exitosamente.");
     } catch (e) {
       console.error("[AgendarForm] Error restaurando draft:", e);
       // Solo eliminar si hay error de parsing
@@ -178,10 +181,14 @@ export default function AgendarForm({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Debug: Log cuando cambia el paso
+  // Auto-proceder al pago si el usuario volvió del login con draft en paso 3
   useEffect(() => {
-    console.log("[AgendarForm] currentStep cambió a:", currentStep);
-  }, [currentStep]);
+    if (pendingPayment && status === "authenticated" && currentStep === 3 && canProceedStep3) {
+      setPendingPayment(false);
+      handleProceedToPayment();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPayment, status, currentStep, canProceedStep3]);
 
   // =========================================================================
   // EFECTO: Pre-seleccionar plan desde parámetro de URL

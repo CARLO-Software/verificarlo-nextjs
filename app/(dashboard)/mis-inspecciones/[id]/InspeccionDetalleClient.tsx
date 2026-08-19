@@ -163,32 +163,7 @@ function Header({ code }: { code: string }) {
 function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<"culqi" | "transfer" | "yape" | "whatsapp" | null>("culqi");
-  const [cancelLoading, setCancelLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-
-  const handleCancel = async () => {
-    setCancelLoading(true);
-    try {
-      const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
-        method: "POST",
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        router.push("/mis-inspecciones");
-        router.refresh();
-      } else {
-        setError(data.error || "Error al cancelar la inspección");
-        setShowCancelConfirm(false);
-      }
-    } catch {
-      setError("Error de conexión. Intenta nuevamente.");
-      setShowCancelConfirm(false);
-    } finally {
-      setCancelLoading(false);
-    }
-  };
 
   const handlePaymentSuccess = () => {
     router.refresh();
@@ -240,45 +215,6 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           onAlternativePaymentSuccess={handleAlternativePaymentSuccess}
         />
 
-        {/* Botón cancelar */}
-        <div style={{ marginTop: "1rem" }}>
-          <button
-            onClick={() => setShowCancelConfirm(true)}
-            disabled={cancelLoading}
-            className={styles.secondaryButton}
-            style={{ width: "100%" }}
-          >
-            Cancelar reserva
-          </button>
-        </div>
-
-        {/* Cancel Confirmation Modal */}
-        {showCancelConfirm && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.modal}>
-              <h3 className={styles.modalTitle}>¿Cancelar reserva?</h3>
-              <p className={styles.modalMessage}>
-                Esta acción no se puede deshacer. ¿Estás seguro de que deseas cancelar esta inspección?
-              </p>
-              <div className={styles.modalActions}>
-                <button
-                  onClick={() => setShowCancelConfirm(false)}
-                  disabled={cancelLoading}
-                  className={styles.secondaryButton}
-                >
-                  No, mantener
-                </button>
-                <button
-                  onClick={handleCancel}
-                  disabled={cancelLoading}
-                  className={styles.dangerButton}
-                >
-                  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

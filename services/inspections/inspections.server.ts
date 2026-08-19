@@ -697,6 +697,10 @@ export interface ManualBookingInput {
   timeSlot: string; // HH:mm
   inspectorId?: string;
   adminNotes?: string;
+  // Ubicación
+  address?: string;
+  district?: string;
+  locationUrl?: string;
   // Pago manual
   isPaid?: boolean;
   passClient: string
@@ -713,6 +717,10 @@ export async function createManualBooking(input: ManualBookingInput) {
   let client = await db.user.findUnique({
     where: { email: input.clientEmail.toLowerCase().trim() },
   });
+
+  if (client && client.role !== 'CLIENT') {
+    throw new Error('El correo ya existe pero no se puede usar porque pertenece a un rol no permitido');
+  }
 
   if (!client) {
     // Hashear la contraseña antes de crear el usuario
@@ -819,6 +827,9 @@ export async function createManualBooking(input: ManualBookingInput) {
       startTime,
       endTime,
       status,
+      address: input.address?.trim() || null,
+      district: input.district?.trim() || null,
+      locationUrl: input.locationUrl?.trim() || null,
       adminNotes: input.adminNotes || `Reserva creada manualmente por admin (WhatsApp)`,
       confirmedAt: assignedInspectorId ? new Date() : null,
     },

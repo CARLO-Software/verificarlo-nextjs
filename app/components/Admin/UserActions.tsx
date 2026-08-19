@@ -8,6 +8,7 @@ interface Props {
   role: "ADMIN" | "INSPECTOR" | "CLIENT";
   status: "ACTIVE" | "SUSPENDED";
   isSelf?: boolean;
+  onEditName: (userId: string) => void;
   onEditRole: (userId: string) => void;
   onSuspend: (userId: string) => void;
   onDelete: (userId: string) => void;
@@ -19,6 +20,7 @@ export function UserActions({
   role,
   status,
   isSelf = false,
+  onEditName,
   onEditRole,
   onSuspend,
   onDelete,
@@ -78,12 +80,12 @@ export function UserActions({
           role="menu"
         >
           <ul className="py-1 text-sm">
-            {/* Cambiar rol */}
+            {/* Editar nombre */}
             <li role="menuitem">
               <button
                 className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
                 onClick={() => {
-                  onEditRole(userId);
+                  onEditName(userId);
                   setOpen(false);
                 }}
               >
@@ -95,6 +97,22 @@ export function UserActions({
                     strokeLinecap="round"
                     strokeLinejoin="round"
                   />
+                </svg>
+                Editar nombre
+              </button>
+            </li>
+
+            {/* Cambiar rol */}
+            <li role="menuitem">
+              <button
+                className="w-full px-4 py-2 text-left hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                onClick={() => {
+                  onEditRole(userId);
+                  setOpen(false);
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2a3 3 0 100 6 3 3 0 000-6zM3 14c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 Cambiar rol
               </button>

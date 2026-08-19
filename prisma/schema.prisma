@@ -276,6 +276,11 @@ model Booking {
   completedAt DateTime?
   cancelledAt DateTime?
 
+  // Ubicación de la inspección
+  address     String?  // Dirección
+  district    String?  // Distrito de Lima
+  locationUrl String?  // URL de Google Maps
+
   // Notas
   clientNotes    String? @db.Text // Notas del cliente
   inspectorNotes String? @db.Text // Notas del inspector

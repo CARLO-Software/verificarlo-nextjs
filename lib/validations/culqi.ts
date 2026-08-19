@@ -18,7 +18,7 @@ export const CulqiChargeRequestSchema = z.object({
   token: z
     .string({ message: "token es requerido" })
     .min(1, "token no puede estar vacío")
-    .regex(/^tkn_/, "token debe empezar con 'tkn_'"),
+    .regex(/^(tkn_|ype_)/, "token inválido"),
 });
 
 export type CulqiChargeRequest = z.infer<typeof CulqiChargeRequestSchema>;

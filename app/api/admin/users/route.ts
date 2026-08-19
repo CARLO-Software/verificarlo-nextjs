@@ -163,7 +163,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { userId, action, newRole } = body;
+  const { userId, action, newRole, newName } = body;
 
   if (!userId || !action) {
     return NextResponse.json(
@@ -188,6 +188,26 @@ export async function PATCH(req: NextRequest) {
         { error: "No puede modificar su propia cuenta" },
         { status: 400 }
       );
+    }
+
+    // --- Cambiar nombre ---
+    if (action === "changeName") {
+      if (!newName || typeof newName !== "string" || newName.trim().length < 2) {
+        return NextResponse.json(
+          { error: "El nombre debe tener al menos 2 caracteres" },
+          { status: 400 }
+        );
+      }
+
+      await db.user.update({
+        where: { id: userId },
+        data: { name: newName.trim() },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: `Nombre actualizado a ${newName.trim()}`,
+      });
     }
 
     // --- Cambiar rol ---

@@ -28,6 +28,8 @@ export function UsersTable() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editingNameValue, setEditingNameValue] = useState("");
   const [roleFilter, setRoleFilter] = useState<Role | "ALL">("ALL");
 
   // Modals
@@ -128,6 +130,47 @@ export function UsersTable() {
         prev.map((u) => (u.id === user.id ? { ...u, role: oldRole } : u)),
       );
       showToast("No se pudo actualizar el rol", "error");
+    }
+  };
+
+  // ========== Cambiar nombre (inline) ==========
+  const handleNameSave = async (user: User) => {
+    const newName = editingNameValue.trim();
+    if (!newName || newName.length < 2) {
+      showToast("El nombre debe tener al menos 2 caracteres", "error");
+      return;
+    }
+    if (newName === user.name) {
+      setEditingNameId(null);
+      return;
+    }
+
+    const oldName = user.name;
+    setUsers((prev) =>
+      prev.map((u) => (u.id === user.id ? { ...u, name: newName } : u)),
+    );
+    setEditingNameId(null);
+
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: user.id, action: "changeName", newName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setUsers((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, name: oldName } : u)),
+        );
+        showToast(data.error || "No se pudo actualizar el nombre", "error");
+        return;
+      }
+      showToast(`Nombre actualizado a ${newName}`, "success");
+    } catch {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, name: oldName } : u)),
+      );
+      showToast("No se pudo actualizar el nombre", "error");
     }
   };
 
@@ -361,9 +404,23 @@ export function UsersTable() {
                         </span>
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-gray-900 truncate text-sm lg:text-base">
-                          {user.name ?? "—"}
-                        </p>
+                        {editingNameId === user.id ? (
+                          <input
+                            autoFocus
+                            value={editingNameValue}
+                            onChange={(e) => setEditingNameValue(e.target.value)}
+                            onBlur={() => handleNameSave(user)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleNameSave(user);
+                              if (e.key === "Escape") setEditingNameId(null);
+                            }}
+                            className="font-medium text-gray-900 text-sm lg:text-base w-full rounded border border-gray-200 px-2 py-0.5 focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 outline-none"
+                          />
+                        ) : (
+                          <p className="font-medium text-gray-900 truncate text-sm lg:text-base">
+                            {user.name ?? "—"}
+                          </p>
+                        )}
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
                     </div>
@@ -416,6 +473,11 @@ export function UsersTable() {
                       role={user.role}
                       status={user.status}
                       isSelf={user.id === session?.user?.id}
+                      onEditName={(id) => {
+                        const target = users.find((u) => u.id === id);
+                        setEditingNameId(id);
+                        setEditingNameValue(target?.name ?? "");
+                      }}
                       onEditRole={(id) => setEditingUserId(id)}
                       onSuspend={(id) => {
                         const target = users.find((u) => u.id === id);
@@ -458,9 +520,23 @@ export function UsersTable() {
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-gray-900 truncate">
-                      {user.name ?? "—"}
-                    </p>
+                    {editingNameId === user.id ? (
+                      <input
+                        autoFocus
+                        value={editingNameValue}
+                        onChange={(e) => setEditingNameValue(e.target.value)}
+                        onBlur={() => handleNameSave(user)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") handleNameSave(user);
+                          if (e.key === "Escape") setEditingNameId(null);
+                        }}
+                        className="font-semibold text-gray-900 w-full rounded border border-gray-200 px-2 py-0.5 focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400 outline-none text-sm"
+                      />
+                    ) : (
+                      <p className="font-semibold text-gray-900 truncate">
+                        {user.name ?? "—"}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-500 truncate">{user.email}</p>
                   </div>
                 </div>
@@ -469,6 +545,11 @@ export function UsersTable() {
                   role={user.role}
                   status={user.status}
                   isSelf={user.id === session?.user?.id}
+                  onEditName={(id) => {
+                    const target = users.find((u) => u.id === id);
+                    setEditingNameId(id);
+                    setEditingNameValue(target?.name ?? "");
+                  }}
                   onEditRole={(id) => setEditingUserId(id)}
                   onSuspend={(id) => {
                     const target = users.find((u) => u.id === id);

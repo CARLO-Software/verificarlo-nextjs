@@ -589,6 +589,9 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     timeSlot: '',
     inspectorId: '',
     adminNotes: '',
+    district: '',
+    address: '',
+    locationUrl: '',
     isPaid: false,
   });
 
@@ -777,10 +780,13 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     }
 
     startTransition(async () => {
+      const rawPhone = formData.clientPhone.replace(/\s/g, '');
+      const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+51${rawPhone}`) : undefined;
+
       const result = await createManualInspectionAction({
         clientName: formData.clientName.trim(),
         clientEmail: formData.clientEmail.trim(),
-        clientPhone: formData.clientPhone.trim() || undefined,
+        clientPhone: phone,
         brandId: Number(formData.brandId),
         modelId: Number(formData.modelId),
         year: formData.year,
@@ -790,6 +796,9 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         timeSlot: formData.timeSlot,
         inspectorId: formData.inspectorId || undefined,
         adminNotes: formData.adminNotes.trim() || undefined,
+        district: formData.district || undefined,
+        address: formData.address.trim() || undefined,
+        locationUrl: formData.locationUrl.trim() || undefined,
         isPaid: formData.isPaid,
         passClient: formData.passClient,
       });
@@ -947,13 +956,17 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                     onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                   />
-                  <input
-                    type="tel"
-                    placeholder="Teléfono (opcional)"
-                    value={formData.clientPhone}
-                    onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                  />
+                  <div className="flex">
+                    <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-200 rounded-l-lg bg-gray-50 text-sm text-gray-500">+51</span>
+                    <input
+                      type="tel"
+                      placeholder="987 654 321"
+                      value={formData.clientPhone}
+                      onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value.replace(/[^\d\s]/g, '') })}
+                      maxLength={12}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-r-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -1102,6 +1115,55 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
               )}
             </div>
 
+            {/* Ubicación */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                Ubicación
+              </h3>
+              <div className="space-y-3">
+                <select
+                  value={formData.district}
+                  onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                >
+                  <option value="">Seleccionar distrito</option>
+                  {[
+                    'Ate', 'Barranco', 'Breña', 'Callao', 'Carabayllo', 'Chaclacayo',
+                    'Chorrillos', 'Cieneguilla', 'Comas', 'El Agustino', 'Independencia',
+                    'Jesús María', 'La Molina', 'La Victoria', 'Lima Cercado', 'Lince',
+                    'Los Olivos', 'Lurín', 'Magdalena del Mar', 'Miraflores',
+                    'Pachacámac', 'Pueblo Libre', 'Puente Piedra', 'Punta Negra',
+                    'Rímac', 'San Bartolo', 'San Borja', 'San Isidro',
+                    'San Juan de Lurigancho', 'San Juan de Miraflores', 'San Luis',
+                    'San Martín de Porres', 'San Miguel', 'Santa Anita', 'Santa Rosa',
+                    'Santiago de Surco', 'Surquillo', 'Villa El Salvador',
+                    'Villa María del Triunfo',
+                  ].map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  placeholder="Dirección (ej: Av. Javier Prado 1234)"
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                <input
+                  type="url"
+                  placeholder="URL de Google Maps (pegar enlace)"
+                  value={formData.locationUrl}
+                  onChange={(e) => setFormData({ ...formData, locationUrl: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                />
+                {formData.locationUrl && !/(google|maps|goo\.gl)/i.test(formData.locationUrl) && (
+                  <p className="text-xs text-amber-600">
+                    La URL no parece ser de Google Maps
+                  </p>
+                )}
+              </div>
+            </div>
+
             {/* Inspector */}
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
@@ -1172,7 +1234,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                 className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
               />
               <label htmlFor="isPaid" className="text-sm font-medium text-green-800">
-                Marcar como pagado (pago recibido por transferencia/efectivo)
+                Reserva de S/50 pagada (transferencia/Yape/efectivo)
               </label>
             </div>
           </div>

@@ -131,6 +131,12 @@ export default function PaymentMethods({
   const [culqiLoading, setCulqiLoading] = useState(false);
   const [culqiError, setCulqiError] = useState<string | null>(null);
 
+  // Card form fields
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryMonth, setExpiryMonth] = useState("");
+  const [expiryYear, setExpiryYear] = useState("");
+  const [cvv, setCvv] = useState("");
+
   // Timer
   const [timeLeft, setTimeLeft] = useState(0);
 
@@ -174,7 +180,7 @@ export default function PaymentMethods({
           title: "VerifiCARLO",
           currency: "PEN",
           description: bookingDetails.planTitle,
-          amount: bookingDetails.totalAmount * 100, // En céntimos
+          amount: Math.round(bookingDetails.totalAmount * 100),
         });
 
         window.Culqi.options({
@@ -275,10 +281,81 @@ export default function PaymentMethods({
         title: "VerifiCARLO",
         currency: "PEN",
         description: bookingDetails.planTitle,
-        amount: bookingDetails.totalAmount * 100,
+        amount: Math.round(bookingDetails.totalAmount * 100),
       });
 
       window.Culqi.open();
+    }
+  };
+
+  // Pago con tarjeta via API directa (sin modal Culqi)
+  const handleCardPayment = async () => {
+    const raw = cardNumber.replace(/\s/g, "");
+    if (raw.length < 13 || !expiryMonth || !expiryYear || cvv.length < 3) {
+      setCulqiError("Completa todos los campos de la tarjeta");
+      return;
+    }
+
+    const email = session?.user?.email;
+    if (!email) {
+      setCulqiError("Debe iniciar sesión para pagar");
+      return;
+    }
+
+    setCulqiLoading(true);
+    setCulqiError(null);
+
+    try {
+      // ponytail: token via REST API, bypasses Culqi modal bug with expiry dates
+      const tokenRes = await fetch("https://secure.culqi.com/v2/tokens", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_CULQI_PUBLIC_KEY}`,
+        },
+        body: JSON.stringify({
+          card_number: raw,
+          cvv,
+          expiration_month: expiryMonth,
+          expiration_year: expiryYear,
+          email,
+        }),
+      });
+
+      const tokenData = await tokenRes.json();
+
+      if (!tokenRes.ok) {
+        setCulqiError(tokenData.user_message || tokenData.merchant_message || "Error al procesar la tarjeta");
+        return;
+      }
+
+      const res = await fetch("/api/payments/culqi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          bookingId,
+          token: tokenData.id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        onPaymentSuccess();
+        const userRole = session?.user?.role;
+        if (userRole === "ADMIN") {
+          router.push("/admin/inspecciones");
+        } else {
+          router.push(`/mis-inspecciones/${bookingId}`);
+        }
+      } else {
+        setCulqiError(data.error || "Error procesando el pago");
+      }
+    } catch {
+      router.push(`/payment/pending?bookingId=${bookingId}`);
+      return;
+    } finally {
+      setCulqiLoading(false);
     }
   };
 
@@ -502,32 +579,90 @@ export default function PaymentMethods({
 
         {/* Botón de acción según método seleccionado */}
         {selectedMethod === "culqi" && (
-          <button
-            onClick={handleOpenCulqi}
-            disabled={!culqiReady || culqiLoading || isExpired}
-            className={styles.continueButton}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.5rem"
-            }}
-          >
-            {culqiLoading ? (
-              <>
-                <span className={styles.spinner} />
-                Procesando...
-              </>
-            ) : (
-              <>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="1" y="4" width="22" height="16" rx="2" />
-                  <path d="M1 10h22" />
-                </svg>
-                Pagar S/ {bookingDetails.totalAmount.toFixed(2)}
-              </>
-            )}
-          </button>
+          <div className={styles.cardForm}>
+            <div className={styles.inputGroup}>
+              <label className={styles.inputLabel}>Número de tarjeta</label>
+              <input
+                className={styles.input}
+                type="text"
+                inputMode="numeric"
+                autoComplete="cc-number"
+                maxLength={19}
+                placeholder="4111 1111 1111 1111"
+                value={cardNumber}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                  setCardNumber(v.replace(/(.{4})/g, "$1 ").trim());
+                }}
+              />
+            </div>
+            <div className={styles.cardRow}>
+              <div className={styles.inputGroup} style={{ flex: 1 }}>
+                <label className={styles.inputLabel}>Mes</label>
+                <select
+                  className={styles.input}
+                  value={expiryMonth}
+                  onChange={(e) => setExpiryMonth(e.target.value)}
+                  autoComplete="cc-exp-month"
+                >
+                  <option value="">MM</option>
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const m = String(i + 1).padStart(2, "0");
+                    return <option key={m} value={m}>{m}</option>;
+                  })}
+                </select>
+              </div>
+              <div className={styles.inputGroup} style={{ flex: 1 }}>
+                <label className={styles.inputLabel}>Año</label>
+                <select
+                  className={styles.input}
+                  value={expiryYear}
+                  onChange={(e) => setExpiryYear(e.target.value)}
+                  autoComplete="cc-exp-year"
+                >
+                  <option value="">AAAA</option>
+                  {Array.from({ length: 11 }, (_, i) => {
+                    const y = new Date().getFullYear() + i;
+                    return <option key={y} value={String(y)}>{y}</option>;
+                  })}
+                </select>
+              </div>
+              <div className={styles.inputGroup} style={{ flex: 0.7 }}>
+                <label className={styles.inputLabel}>CVV</label>
+                <input
+                  className={styles.input}
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="cc-csc"
+                  maxLength={4}
+                  placeholder="123"
+                  value={cvv}
+                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleCardPayment}
+              disabled={!cardNumber || !expiryMonth || !expiryYear || !cvv || culqiLoading || isExpired}
+              className={styles.continueButton}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              {culqiLoading ? (
+                <>
+                  <span className={styles.spinner} />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="1" y="4" width="22" height="16" rx="2" />
+                    <path d="M1 10h22" />
+                  </svg>
+                  Pagar S/ {bookingDetails.totalAmount.toFixed(2)}
+                </>
+              )}
+            </button>
+          </div>
         )}
 
         {selectedMethod === "yape" && (
