@@ -125,6 +125,7 @@ export default function PaymentMethods({
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [showYapePayment, setShowYapePayment] = useState(false);
+  const [showCardModal, setShowCardModal] = useState(false);
 
   // Estados para pago con tarjeta (Culqi)
   const [culqiReady, setCulqiReady] = useState(false);
@@ -136,6 +137,7 @@ export default function PaymentMethods({
   const [expiryMonth, setExpiryMonth] = useState("");
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
+  const [cardEmail, setCardEmail] = useState("");
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(0);
@@ -296,9 +298,9 @@ export default function PaymentMethods({
       return;
     }
 
-    const email = session?.user?.email;
+    const email = cardEmail || session?.user?.email;
     if (!email) {
-      setCulqiError("Debe iniciar sesión para pagar");
+      setCulqiError("Ingresa tu correo electrónico");
       return;
     }
 
@@ -579,90 +581,21 @@ export default function PaymentMethods({
 
         {/* Botón de acción según método seleccionado */}
         {selectedMethod === "culqi" && (
-          <div className={styles.cardForm}>
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Número de tarjeta</label>
-              <input
-                className={styles.input}
-                type="text"
-                inputMode="numeric"
-                autoComplete="cc-number"
-                maxLength={19}
-                placeholder="4111 1111 1111 1111"
-                value={cardNumber}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 16);
-                  setCardNumber(v.replace(/(.{4})/g, "$1 ").trim());
-                }}
-              />
-            </div>
-            <div className={styles.cardRow}>
-              <div className={styles.inputGroup} style={{ flex: 1 }}>
-                <label className={styles.inputLabel}>Mes</label>
-                <select
-                  className={styles.input}
-                  value={expiryMonth}
-                  onChange={(e) => setExpiryMonth(e.target.value)}
-                  autoComplete="cc-exp-month"
-                >
-                  <option value="">MM</option>
-                  {Array.from({ length: 12 }, (_, i) => {
-                    const m = String(i + 1).padStart(2, "0");
-                    return <option key={m} value={m}>{m}</option>;
-                  })}
-                </select>
-              </div>
-              <div className={styles.inputGroup} style={{ flex: 1 }}>
-                <label className={styles.inputLabel}>Año</label>
-                <select
-                  className={styles.input}
-                  value={expiryYear}
-                  onChange={(e) => setExpiryYear(e.target.value)}
-                  autoComplete="cc-exp-year"
-                >
-                  <option value="">AAAA</option>
-                  {Array.from({ length: 11 }, (_, i) => {
-                    const y = new Date().getFullYear() + i;
-                    return <option key={y} value={String(y)}>{y}</option>;
-                  })}
-                </select>
-              </div>
-              <div className={styles.inputGroup} style={{ flex: 0.7 }}>
-                <label className={styles.inputLabel}>CVV</label>
-                <input
-                  className={styles.input}
-                  type="password"
-                  inputMode="numeric"
-                  autoComplete="cc-csc"
-                  maxLength={4}
-                  placeholder="123"
-                  value={cvv}
-                  onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                />
-              </div>
-            </div>
-            <button
-              onClick={handleCardPayment}
-              disabled={!cardNumber || !expiryMonth || !expiryYear || !cvv || culqiLoading || isExpired}
-              className={styles.continueButton}
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
-            >
-              {culqiLoading ? (
-                <>
-                  <span className={styles.spinner} />
-                  Procesando...
-                </>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="1" y="4" width="22" height="16" rx="2" />
-                    <path d="M1 10h22" />
-                  </svg>
-                  Pagar S/ {bookingDetails.totalAmount.toFixed(2)}
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={() => {
+              if (!cardEmail && session?.user?.email) setCardEmail(session.user.email);
+              setShowCardModal(true);
+            }}
+            disabled={culqiLoading || isExpired}
+            className={styles.continueButton}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" />
+              <path d="M1 10h22" />
+            </svg>
+            Pagar S/ {bookingDetails.totalAmount.toFixed(2)}
+          </button>
         )}
 
         {selectedMethod === "yape" && (
@@ -750,6 +683,143 @@ export default function PaymentMethods({
           bookingCode={bookingDetails.bookingCode}
           whatsappUrl={getWhatsAppUrl()}
         />
+
+        {/* Modal de Tarjeta (reemplaza modal Culqi) */}
+        {showCardModal && (
+          <div className={styles.modalOverlay} onClick={() => !culqiLoading && setShowCardModal(false)}>
+            <div className={styles.cardModal} onClick={(e) => e.stopPropagation()}>
+              {/* Banner */}
+              <div className={styles.cardModalBanner}>
+                <img src="/logo.png" alt="VerifiCARLO" className={styles.cardModalLogo} />
+                <button
+                  className={styles.cardModalClose}
+                  onClick={() => !culqiLoading && setShowCardModal(false)}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Monto */}
+              <div className={styles.cardModalAmount}>
+                <span className={styles.cardModalCurrency}>S/</span>
+                <span className={styles.cardModalPrice}>{bookingDetails.totalAmount.toFixed(2)}</span>
+              </div>
+
+              <div className={styles.cardModalBody}>
+                <p className={styles.cardModalDescription}>{bookingDetails.planTitle}</p>
+
+                {/* Error */}
+                {culqiError && (
+                  <div className={styles.errorMessage}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <path d="M12 8v4M12 16h.01" />
+                    </svg>
+                    {culqiError}
+                  </div>
+                )}
+
+                {/* Email */}
+                <div className={styles.cardModalField}>
+                  <label>Correo electrónico</label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    placeholder="correo@ejemplo.com"
+                    value={cardEmail}
+                    onChange={(e) => setCardEmail(e.target.value)}
+                  />
+                </div>
+
+                {/* Número de tarjeta */}
+                <div className={styles.cardModalField}>
+                  <label>Número de tarjeta</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="cc-number"
+                    maxLength={19}
+                    placeholder="0000 0000 0000 0000"
+                    value={cardNumber}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\D/g, "").slice(0, 16);
+                      setCardNumber(v.replace(/(.{4})/g, "$1 ").trim());
+                    }}
+                  />
+                </div>
+
+                {/* Vencimiento + CVV */}
+                <div className={styles.cardRow}>
+                  <div className={styles.cardModalField} style={{ flex: 1 }}>
+                    <label>Mes</label>
+                    <select
+                      value={expiryMonth}
+                      onChange={(e) => setExpiryMonth(e.target.value)}
+                      autoComplete="cc-exp-month"
+                    >
+                      <option value="">MM</option>
+                      {Array.from({ length: 12 }, (_, i) => {
+                        const m = String(i + 1).padStart(2, "0");
+                        return <option key={m} value={m}>{m}</option>;
+                      })}
+                    </select>
+                  </div>
+                  <div className={styles.cardModalField} style={{ flex: 1 }}>
+                    <label>Año</label>
+                    <select
+                      value={expiryYear}
+                      onChange={(e) => setExpiryYear(e.target.value)}
+                      autoComplete="cc-exp-year"
+                    >
+                      <option value="">AAAA</option>
+                      {Array.from({ length: 11 }, (_, i) => {
+                        const y = new Date().getFullYear() + i;
+                        return <option key={y} value={String(y)}>{y}</option>;
+                      })}
+                    </select>
+                  </div>
+                  <div className={styles.cardModalField} style={{ flex: 0.8 }}>
+                    <label>CVV</label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      autoComplete="cc-csc"
+                      maxLength={4}
+                      placeholder="***"
+                      value={cvv}
+                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    />
+                  </div>
+                </div>
+
+                {/* Botón pagar */}
+                <button
+                  className={styles.cardModalPayButton}
+                  onClick={handleCardPayment}
+                  disabled={!cardNumber || !expiryMonth || !expiryYear || !cvv || !cardEmail || culqiLoading}
+                >
+                  {culqiLoading ? (
+                    <>
+                      <span className={styles.spinner} />
+                      Procesando...
+                    </>
+                  ) : (
+                    <>Pagar S/ {bookingDetails.totalAmount.toFixed(2)}</>
+                  )}
+                </button>
+
+                {/* Footer seguridad */}
+                <p className={styles.cardModalFooter}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                  Pago seguro
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

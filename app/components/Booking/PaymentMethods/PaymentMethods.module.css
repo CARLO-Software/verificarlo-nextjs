@@ -617,17 +617,166 @@
 }
 
 /* =============================================================================
-   Card form (custom Culqi)
+   Card modal (reemplaza modal Culqi)
    ============================================================================= */
 
-.cardForm {
-  animation: fadeIn 0.2s ease;
-  margin-bottom: 0.5rem;
+.cardModal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  overflow: hidden;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.cardModalBanner {
+  background: #FDBF12;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardModalLogo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.cardModalClose {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0, 0, 0, 0.1);
+  color: #1a1a1a;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.cardModalClose:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.cardModalAmount {
+  text-align: center;
+  padding: 1.25rem 1rem 0.5rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.cardModalCurrency {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.cardModalPrice {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.cardModalBody {
+  padding: 0.5rem 1.5rem 1.5rem;
+}
+
+.cardModalDescription {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #666;
+  margin: 0 0 1.25rem;
+}
+
+.cardModalField {
+  margin-bottom: 0.875rem;
+}
+
+.cardModalField label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cardModalField input,
+.cardModalField select {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  color: #1a1a1a;
+  background: white;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.cardModalField input:focus,
+.cardModalField select:focus {
+  outline: none;
+  border-color: #FDBF12;
+  box-shadow: 0 0 0 3px rgba(253, 191, 18, 0.15);
+}
+
+.cardModalField input::placeholder {
+  color: #bbb;
 }
 
 .cardRow {
   display: flex;
   gap: 0.75rem;
+}
+
+.cardModalPayButton {
+  width: 100%;
+  padding: 0.85rem;
+  margin-top: 0.5rem;
+  background: #FDBF12;
+  color: #1a1a1a;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.cardModalPayButton:hover:not(:disabled) {
+  background: #e6ac00;
+  transform: translateY(-1px);
+}
+
+.cardModalPayButton:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.cardModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #999;
 }
 
 /* =============================================================================
