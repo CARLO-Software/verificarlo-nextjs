@@ -138,6 +138,25 @@ export default function AgendarForm({
   } | null>(null);
 
   // =========================================================================
+  // VALIDACIONES POR PASO (declaradas antes de los efectos que las usan)
+  // =========================================================================
+  const canProceedStep1 = selectedInspection !== null;
+
+  const canProceedStep2 =
+    vehicleData.brandId !== null &&
+    vehicleData.modelId !== null &&
+    vehicleData.year !== null &&
+    locationData.districtId !== null &&
+    locationData.address.length >= 10;
+
+  const canProceedStep3 =
+    selectedDate !== null &&
+    selectedSlot !== null &&
+    contactData.fullName.length >= 3 &&
+    contactData.phone.length >= 9 &&
+    contactData.termsAccepted;
+
+  // =========================================================================
   // EFECTO: Restaurar borrador guardado (si el usuario volvió del login)
   // =========================================================================
   useEffect(() => {
@@ -255,27 +274,6 @@ export default function AgendarForm({
       console.log("[AgendarForm] Draft eliminado - booking creado");
     }
   }, [currentStep, bookingData]);
-
-  // =========================================================================
-  // VALIDACIONES POR PASO
-  // =========================================================================
-  // Estas funciones determinan si el usuario puede avanzar al siguiente paso.
-
-  const canProceedStep1 = selectedInspection !== null;
-
-  const canProceedStep2 =
-    vehicleData.brandId !== null &&
-    vehicleData.modelId !== null &&
-    vehicleData.year !== null &&
-    locationData.districtId !== null &&
-    locationData.address.length >= 10;
-
-  const canProceedStep3 =
-    selectedDate !== null &&
-    selectedSlot !== null &&
-    contactData.fullName.length >= 3 &&
-    contactData.phone.length >= 9 &&
-    contactData.termsAccepted;
 
   // canProceedStep4 se usa implícitamente en PaymentMethods
   const _canProceedStep4 = paymentMethod !== null;
