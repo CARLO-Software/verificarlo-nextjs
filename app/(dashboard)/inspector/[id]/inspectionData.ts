@@ -30,6 +30,7 @@ export interface InspectionCategory {
 export interface ItemResult {
   status: InspectionStatus;
   comment?: string;
+  name?: string;
 }
 
 export type InspectionResults = Record<string, ItemResult>;

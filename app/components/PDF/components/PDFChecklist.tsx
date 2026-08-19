@@ -350,8 +350,8 @@ const ITEM_NAMES: Record<string, string> = {
   'int-limpieza': 'Limpieza general',
 };
 
-function getItemName(id: string): string {
-  return ITEM_NAMES[id] || id;
+function getItemName(id: string, fallbackName?: string): string {
+  return ITEM_NAMES[id] || fallbackName || id;
 }
 
 export default function PDFChecklist({ categories, photosByItem = {} }: PDFChecklistProps) {
@@ -544,7 +544,7 @@ export default function PDFChecklist({ categories, photosByItem = {} }: PDFCheck
 
 // Helper para transformar checklistResults al formato esperado
 export function transformChecklistResults(
-  checklistResults: Record<string, { status: string; comment?: string }>
+  checklistResults: Record<string, { status: string; comment?: string; name?: string }>
 ): ChecklistCategory[] {
   // 📚 CONCEPTO REACT - Organización de datos:
   // Definimos el orden de las categorías aquí
@@ -571,7 +571,7 @@ export function transformChecklistResults(
 
     categoriesMap[categoryName].push({
       id: itemId,
-      name: getItemName(itemId),
+      name: getItemName(itemId, result.name),
       status: result.status,
       comment: result.comment,
     });
@@ -585,7 +585,7 @@ export function transformChecklistResults(
 
 // Extraer hallazgos críticos del checklist
 export function extractCriticalFindings(
-  checklistResults: Record<string, { status: string; comment?: string }>
+  checklistResults: Record<string, { status: string; comment?: string; name?: string }>
 ): Array<{
   category: string;
   item: string;
@@ -615,7 +615,7 @@ export function extractCriticalFindings(
 
     findings.push({
       category: categoryName,
-      item: getItemName(itemId),
+      item: getItemName(itemId, result.name),
       severity: result.status as 'DEFECTO' | 'OBSERVACION',
       comment: result.comment,
     });
@@ -626,7 +626,7 @@ export function extractCriticalFindings(
 
 // Helper para calcular resumen por categoría
 export function calculateCategorySummary(
-  checklistResults: Record<string, { status: string; comment?: string }>
+  checklistResults: Record<string, { status: string; comment?: string; name?: string }>
 ): Array<{
   name: string;
   total: number;

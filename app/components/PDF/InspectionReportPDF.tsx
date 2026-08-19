@@ -54,7 +54,7 @@ export interface PDFReportData {
   }>;
 
   // Checklist
-  checklistResults: Record<string, { status: string; comment?: string }>;
+  checklistResults: Record<string, { status: string; comment?: string; name?: string }>;
 
   // Documentos
   soatValid: boolean;
