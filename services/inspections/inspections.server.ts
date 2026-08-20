@@ -339,6 +339,7 @@ export async function getAllBookings(filters?: {
           status: true,
           amount: true,
           paidAt: true,
+          receiptNumber: true,
         },
       },
     },

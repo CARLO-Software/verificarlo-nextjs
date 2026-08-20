@@ -4,6 +4,8 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Role } from "@prisma/client";
 import { generateSecurePassword } from "@/lib/password";
+import { sendEmail } from "@/lib/email/resend";
+import { WelcomeCredentialsEmail } from "@/lib/email/templates/WelcomeCredentials";
 
 // Middleware para verificar rol de admin
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -129,6 +131,13 @@ export async function POST(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _password, ...userWithoutPassword } = newUser;
+
+    // Enviar credenciales por correo
+    await sendEmail({
+      to: email,
+      subject: "Tu cuenta en VerifiCARLO ha sido creada",
+      react: WelcomeCredentialsEmail({ name, email, password: generatedPassword, role }),
+    });
 
     // Devolver usuario + contraseña generada (solo en la creación)
     return NextResponse.json(
