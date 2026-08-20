@@ -123,6 +123,8 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
   );
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
 
+  const [downloading, setDownloading] = useState(false);
+
   const report = inspection.report;
   const checklistResults = (report?.checklistResults || {}) as InspectionResults;
   const scoresByCategory = calculateScoreByCategory(checklistResults);
@@ -137,6 +139,25 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
         ? prev.filter((id) => id !== categoryId)
         : [...prev, categoryId]
     );
+  };
+
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/inspections/${inspection.id}/report/pdf`);
+      if (!res.ok) throw new Error();
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `informe-${inspection.code}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      showToast("Error al descargar el PDF", "error");
+    } finally {
+      setDownloading(false);
+    }
   };
 
   // Guardar notas del admin
@@ -225,20 +246,34 @@ export function AdminReportClient({ inspection }: AdminReportClientProps) {
               {inspection.vehicle.plate && ` - ${inspection.vehicle.plate}`}
             </p>
           </div>
-          {isCompleted && (
-            <span className={styles.completedBadge}>
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M4 8l3 3 5-6"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Completado
-            </span>
-          )}
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {report && (
+              <button
+                onClick={handleDownloadPDF}
+                disabled={downloading}
+                className={styles.downloadButton}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M8 2v8M8 10l-3-3M8 10l3-3M3 13h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {downloading ? "Descargando..." : "Descargar PDF"}
+              </button>
+            )}
+            {isCompleted && (
+              <span className={styles.completedBadge}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M4 8l3 3 5-6"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Completado
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
