@@ -3,6 +3,7 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
+import { PhoneInput } from '@/app/components/ui/PhoneInput/PhoneInput';
 import { formatearFechaHoraCorta } from '@/app/domain/datetime';
 import { BookingStatus, InspectionType } from '@prisma/client';
 import {
@@ -45,6 +46,16 @@ interface Inspection {
   clientNotes: string | null;
   inspectorNotes: string | null;
   adminNotes: string | null;
+  address: string | null;
+  district: string | null;
+  locationUrl: string | null;
+  reservationPaidAt: Date | null;
+  inspectionPaidAt: Date | null;
+  payment: {
+    status: string;
+    amount: number;
+    paidAt: Date | null;
+  } | null;
   reportId: number | null;
   legalReportStatus: string | null;
   vehicleInspection: {
@@ -174,6 +185,10 @@ function InspectionDetailPanel({
   const [editedDate, setEditedDate] = useState<string>(originalDate);
   const [editedTimeSlot, setEditedTimeSlot] = useState<string>(originalTimeSlot);
 
+  // Estado para ubicación
+  const [editedAddress, setEditedAddress] = useState<string>(inspection.address || '');
+  const [editedDistrict, setEditedDistrict] = useState<string>(inspection.district || '');
+
   // Horarios disponibles
   const timeSlots = ['09:00', '10:30', '12:00', '14:00', '15:30'];
 
@@ -182,11 +197,13 @@ function InspectionDetailPanel({
 
   // Detectar si hay cambios
   const hasDateTimeChanges = editedDate !== originalDate || editedTimeSlot !== originalTimeSlot;
+  const hasLocationChanges = editedAddress !== (inspection.address || '') || editedDistrict !== (inspection.district || '');
   const hasChanges =
     editedStatus !== inspection.status ||
     editedInspectorId !== (inspection.inspector?.id ?? null) ||
     editedNotes !== (inspection.adminNotes || '') ||
-    hasDateTimeChanges;
+    hasDateTimeChanges ||
+    hasLocationChanges;
 
   const handleSave = () => {
     setSaveMessage(null);
@@ -198,6 +215,8 @@ function InspectionDetailPanel({
         adminNotes?: string;
         date?: string;
         timeSlot?: string;
+        address?: string;
+        district?: string;
       } = {};
 
       if (editedStatus !== inspection.status) {
@@ -215,6 +234,11 @@ function InspectionDetailPanel({
       if (hasDateTimeChanges) {
         changes.date = editedDate;
         changes.timeSlot = editedTimeSlot;
+      }
+
+      if (hasLocationChanges) {
+        changes.address = editedAddress;
+        changes.district = editedDistrict;
       }
 
       if (Object.keys(changes).length === 0) {
@@ -335,6 +359,44 @@ function InspectionDetailPanel({
                 <p className="text-sm text-gray-500">Placa: {inspection.vehicle.plate || 'Sin placa'}</p>
               </div>
 
+              {/* Ubicación */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase">Ubicación</h3>
+                  {(editedAddress || inspection.locationUrl) && (
+                    <a
+                      href={inspection.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(editedAddress + (editedDistrict ? ', ' + editedDistrict + ', Lima' : ''))}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                      </svg>
+                      Google Maps
+                    </a>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={editedDistrict}
+                    onChange={(e) => setEditedDistrict(e.target.value)}
+                    placeholder="Distrito"
+                    disabled={isPending}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                  <input
+                    type="text"
+                    value={editedAddress}
+                    onChange={(e) => setEditedAddress(e.target.value)}
+                    placeholder="Dirección completa"
+                    disabled={isPending}
+                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  />
+                </div>
+              </div>
+
               {/* Inspection info */}
               <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspección</h3>
@@ -382,6 +444,33 @@ function InspectionDetailPanel({
                       <option value="NO_SHOW">No se presentó</option>
                       <option value="EXPIRED">Expirado</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pagos */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Pagos</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Reserva S/50</span>
+                    {inspection.reservationPaidAt ? (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        {formatearFechaHoraCorta(inspection.reservationPaidAt)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400 italic">Pendiente</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Inspección {inspection.payment ? `S/${(inspection.payment.amount / 100).toFixed(0)}` : ''}</span>
+                    {inspection.inspectionPaidAt ? (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                        {formatearFechaHoraCorta(inspection.inspectionPaidAt)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-amber-600 italic">Pendiente</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -780,8 +869,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     }
 
     startTransition(async () => {
-      const rawPhone = formData.clientPhone.replace(/\s/g, '');
-      const phone = rawPhone ? (rawPhone.startsWith('+') ? rawPhone : `+51${rawPhone}`) : undefined;
+      const phone = formData.clientPhone || undefined;
 
       const result = await createManualInspectionAction({
         clientName: formData.clientName.trim(),
@@ -956,17 +1044,10 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                     onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                   />
-                  <div className="flex">
-                    <span className="inline-flex items-center px-3 py-2 border border-r-0 border-gray-200 rounded-l-lg bg-gray-50 text-sm text-gray-500">+51</span>
-                    <input
-                      type="tel"
-                      placeholder="987 654 321"
-                      value={formData.clientPhone}
-                      onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value.replace(/[^\d\s]/g, '') })}
-                      maxLength={12}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-r-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                    />
-                  </div>
+                  <PhoneInput
+                    value={formData.clientPhone}
+                    onChange={(fullPhone) => setFormData({ ...formData, clientPhone: fullPhone })}
+                  />
                 </div>
               )}
             </div>
@@ -1644,6 +1725,12 @@ export function AdminInspeccionesClient({
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
                     Inspector
                   </th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
+                    Reserva S/50
+                  </th>
+                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
+                    Pago Inspección
+                  </th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Estado
                   </th>
@@ -1655,7 +1742,7 @@ export function AdminInspeccionesClient({
               <tbody>
                 {filteredInspections.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
                       No se encontraron inspecciones
                     </td>
                   </tr>
@@ -1695,6 +1782,28 @@ export function AdminInspeccionesClient({
                           </div>
                         ) : (
                           <span className="text-sm text-gray-400 italic">Sin asignar</span>
+                        )}
+                      </td>
+                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
+                        {inspection.reservationPaidAt ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            {formatearFechaHoraCorta(inspection.reservationPaidAt)}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">Pendiente</span>
+                        )}
+                      </td>
+                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
+                        {inspection.inspectionPaidAt ? (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                            {formatearFechaHoraCorta(inspection.inspectionPaidAt)}
+                          </span>
+                        ) : inspection.payment ? (
+                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                            S/{(inspection.payment.amount / 100).toFixed(0)} - Pendiente
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400 italic">—</span>
                         )}
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">

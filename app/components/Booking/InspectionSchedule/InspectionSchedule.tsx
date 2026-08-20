@@ -21,6 +21,7 @@
 import styles from "./InspectionSchedule.module.css";
 import BookingCalendar from "@/app/components/Booking/Calendar/BookingCalendar";
 import TimeSlots from "@/app/components/Booking/TimeSlots/TimeSlots";
+import { PhoneInput } from "@/app/components/ui/PhoneInput/PhoneInput";
 
 interface ContactData {
   fullName: string;
@@ -139,21 +140,14 @@ export default function InspectionSchedule({
             <label className={styles.label}>
               Número de contacto <span className={styles.required}>*</span>
             </label>
-            <input
-              type="tel"
+            <PhoneInput
               value={contactData.phone}
-              onChange={(e) => {
-                // Solo permitir números
-                const value = e.target.value.replace(/[^0-9]/g, "");
+              onChange={(fullPhone) =>
                 onContactChange({
                   ...contactData,
-                  phone: value,
-                });
-              }}
-              placeholder="Ej: 987654321"
-              maxLength={9}
-              className={styles.input}
-              aria-required="true"
+                  phone: fullPhone,
+                })
+              }
             />
           </div>
         </div>

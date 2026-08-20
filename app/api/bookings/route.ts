@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { date, timeSlot, inspectionPlanId, vehicleId } = body;
+  const { date, timeSlot, inspectionPlanId, vehicleId, district, address } = body;
 
   // Validaciones básicas
   if (!date || !timeSlot || !inspectionPlanId || !vehicleId) {
@@ -139,12 +139,14 @@ export async function POST(req: NextRequest) {
           clientId: session.user.id,
           inspectionPlanId,
           vehicleId,
-          date: crearFechaSinConversion(date), // Usar 12:00 UTC para evitar cambio de día
+          date: crearFechaSinConversion(date),
           timeSlot,
           startTime,
           endTime,
           status: "PENDING_PAYMENT",
-          expiresAt, // 30 minutos para completar el pago
+          expiresAt,
+          district: district || undefined,
+          address: address || undefined,
         },
       });
 

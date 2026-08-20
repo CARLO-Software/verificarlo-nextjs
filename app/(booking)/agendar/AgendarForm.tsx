@@ -153,7 +153,7 @@ export default function AgendarForm({
     selectedDate !== null &&
     selectedSlot !== null &&
     contactData.fullName.length >= 3 &&
-    contactData.phone.length >= 9 &&
+    contactData.phone.replace(/\D/g, '').length >= 9 &&
     contactData.termsAccepted;
 
   // =========================================================================

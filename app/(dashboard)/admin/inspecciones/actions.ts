@@ -57,6 +57,8 @@ export async function saveInspectionChangesAction(
     adminNotes?: string;
     date?: string;
     timeSlot?: string;
+    address?: string;
+    district?: string;
   }
 ) {
   try {
@@ -152,6 +154,17 @@ export async function saveInspectionChangesAction(
     if (changes.date && changes.timeSlot) {
       await updateInspectionDateTime(id, changes.date, changes.timeSlot);
       results.dateTime = true;
+    }
+
+    // Actualizar ubicación si cambió
+    if (changes.address !== undefined || changes.district !== undefined) {
+      await db.booking.update({
+        where: { id },
+        data: {
+          ...(changes.address !== undefined && { address: changes.address || null }),
+          ...(changes.district !== undefined && { district: changes.district || null }),
+        },
+      });
     }
 
     revalidatePath('/admin/inspecciones');

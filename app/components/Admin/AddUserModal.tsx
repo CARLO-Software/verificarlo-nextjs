@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Modal } from "@/app/components/ui/Modal";
+import { PhoneInput } from "@/app/components/ui/PhoneInput/PhoneInput";
 import { Copy, Check, Key } from "lucide-react";
 
 type Role = "CLIENT" | "INSPECTOR" | "ADMIN";
@@ -68,8 +69,8 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
       newErrors.email = "Email inválido";
     }
 
-    if (formData.phone && !/^\d{9}$/.test(formData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Debe tener 9 dígitos";
+    if (formData.phone && formData.phone.replace(/\D/g, '').length < 7) {
+      newErrors.phone = "Número inválido";
     }
 
     if (!formData.role) {
@@ -307,18 +308,13 @@ export function AddUserModal({ isOpen, onClose, onSuccess }: AddUserModalProps) 
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Celular
           </label>
-          <input
-            type="tel"
-            name="phone"
+          <PhoneInput
             value={formData.phone}
-            onChange={handleChange}
-            placeholder="987654321"
-            maxLength={9}
-            className={`
-              w-full px-3 py-2.5 rounded-lg border text-sm
-              focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-400
-              ${errors.phone ? "border-red-400 bg-red-50" : "border-gray-200"}
-            `}
+            onChange={(fullPhone) => {
+              setFormData((prev) => ({ ...prev, phone: fullPhone }));
+              if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }));
+            }}
+            error={!!errors.phone}
           />
           {errors.phone && (
             <p className="text-xs text-red-600 mt-1">{errors.phone}</p>

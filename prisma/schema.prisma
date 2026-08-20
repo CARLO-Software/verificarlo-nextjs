@@ -281,6 +281,10 @@ model Booking {
   district    String?  // Distrito de Lima
   locationUrl String?  // URL de Google Maps
 
+  // Pagos parciales
+  reservationPaidAt DateTime? // Cuando se pagó la reserva de S/50
+  inspectionPaidAt  DateTime? // Cuando se pagó la inspección completa
+
   // Notas
   clientNotes    String? @db.Text // Notas del cliente
   inspectorNotes String? @db.Text // Notas del inspector

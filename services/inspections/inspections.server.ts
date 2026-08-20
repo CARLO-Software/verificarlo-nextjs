@@ -120,6 +120,11 @@ interface VehicleInspectionBrief {
 export interface AdminBookingWithDetails extends BookingBase {
   report?: ReportBrief | null;
   vehicleInspection?: VehicleInspectionBrief | null;
+  address: string | null;
+  district: string | null;
+  locationUrl: string | null;
+  reservationPaidAt: Date | null;
+  inspectionPaidAt: Date | null;
 }
 
 // Tipo para el flujo de inspección dual (mecánico + legal)
@@ -326,6 +331,14 @@ export async function getAllBookings(filters?: {
               status: true,
             },
           },
+        },
+      },
+      payment: {
+        select: {
+          id: true,
+          status: true,
+          amount: true,
+          paidAt: true,
         },
       },
     },

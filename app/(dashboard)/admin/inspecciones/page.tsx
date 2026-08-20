@@ -38,6 +38,16 @@ export default async function AdminInspeccionesPage() {
     clientNotes: inspection.clientNotes,
     inspectorNotes: inspection.inspectorNotes,
     adminNotes: inspection.adminNotes,
+    address: inspection.address,
+    district: inspection.district,
+    locationUrl: inspection.locationUrl,
+    reservationPaidAt: inspection.reservationPaidAt,
+    inspectionPaidAt: inspection.inspectionPaidAt,
+    payment: inspection.payment ? {
+      status: inspection.payment.status,
+      amount: inspection.payment.amount,
+      paidAt: inspection.payment.paidAt,
+    } : null,
     reportId: inspection.report?.id || null,
     legalReportStatus: inspection.report?.legalReport?.status || null,
     vehicleInspection: inspection.vehicleInspection
