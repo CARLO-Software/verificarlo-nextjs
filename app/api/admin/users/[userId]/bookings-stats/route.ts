@@ -77,9 +77,30 @@ export async function GET(
       } as Record<string, number>
     );
 
+    // Obtener inspecciones del cliente con detalle de pago
+    const inspections = await db.booking.findMany({
+      where: { clientId: userId },
+      select: {
+        id: true,
+        status: true,
+        date: true,
+        vehicle: {
+          select: {
+            plate: true,
+            model: { select: { name: true, brand: { select: { name: true } } } },
+            year: true,
+          },
+        },
+        inspectionPlan: { select: { title: true, price: true } },
+        payment: { select: { status: true, amount: true, paidAt: true } },
+      },
+      orderBy: { date: "desc" },
+    });
+
     return NextResponse.json({
       asClient: clientStats,
       asInspector: inspectorStats,
+      inspections,
     });
   } catch (error) {
     console.error("Error obteniendo stats de reservas:", error);

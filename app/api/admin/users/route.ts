@@ -373,7 +373,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Eliminar usuario (cascade elimina reservas automáticamente)
+    await db.vehicleInspection.deleteMany({ where: { clientId: userId } });
+    await db.blockedDate.deleteMany({ where: { createdBy: userId } });
     await db.user.delete({ where: { id: userId } });
 
     return NextResponse.json({

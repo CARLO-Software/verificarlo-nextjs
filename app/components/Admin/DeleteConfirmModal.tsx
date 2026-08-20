@@ -14,22 +14,25 @@ interface BookingStats {
   EXPIRED: number;
 }
 
+interface InspectionDetail {
+  id: number;
+  status: string;
+  date: string;
+  vehicle: {
+    plate: string | null;
+    model: { name: string; brand: { name: string } };
+    year: number;
+  };
+  inspectionPlan: { title: string; price: number };
+  payment: { status: string; amount: number; paidAt: string | null } | null;
+}
+
 interface DeleteConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: { id: string; name: string | null; email: string };
   onConfirm: () => Promise<void>;
 }
-
-const STATUS_LABELS: Record<string, string> = {
-  PENDING_PAYMENT: "Pendientes de pago",
-  PENDING_VERIFICATION: "Pendientes de verificación",
-  PAID: "Pagadas",
-  COMPLETED: "Completadas",
-  CANCELLED: "Canceladas",
-  NO_SHOW: "No presentados",
-  EXPIRED: "Expiradas",
-};
 
 export function DeleteConfirmModal({
   isOpen,
@@ -44,6 +47,7 @@ export function DeleteConfirmModal({
   const [stats, setStats] = useState<{
     asClient: BookingStats;
     asInspector: BookingStats;
+    inspections: InspectionDetail[];
   } | null>(null);
 
   const isConfirmed = confirmText.toLowerCase() === "eliminar";
@@ -94,30 +98,6 @@ export function DeleteConfirmModal({
     onClose();
   };
 
-  // Renderizar estadísticas de reservas
-  const renderBookingStats = (bookingStats: BookingStats, title: string) => {
-    if (bookingStats.total === 0) return null;
-
-    const statuses = Object.entries(bookingStats).filter(
-      ([key, value]) => key !== "total" && value > 0
-    );
-
-    return (
-      <div className="mb-3">
-        <p className="text-sm font-medium text-gray-700 mb-1">{title}: {bookingStats.total}</p>
-        <ul className="text-xs text-gray-600 ml-4 space-y-0.5">
-          {statuses.map(([status, count]) => (
-            <li key={status}>
-              • {STATUS_LABELS[status] || status}: <span className="font-medium">{count}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-    );
-  };
-
-  const hasBookings = stats && (stats.asClient.total > 0 || stats.asInspector.total > 0);
-
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Eliminar usuario">
       <div className="mb-4">
@@ -130,23 +110,49 @@ export function DeleteConfirmModal({
         <p className="text-sm text-gray-500">{user.email}</p>
       </div>
 
-      {/* Mostrar estadísticas de reservas */}
+      {/* Mostrar inspecciones asociadas */}
       {loadingStats ? (
         <div className="mb-4 p-3 bg-gray-50 rounded-md">
-          <p className="text-sm text-gray-500">Cargando reservas asociadas...</p>
+          <p className="text-sm text-gray-500">Cargando inspecciones asociadas...</p>
         </div>
-      ) : hasBookings ? (
+      ) : stats?.inspections && stats.inspections.length > 0 ? (
         <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md">
           <p className="text-sm font-medium text-amber-800 mb-2">
-            Se eliminarán las siguientes reservas:
+            Inspecciones asociadas ({stats.inspections.length}):
           </p>
-          {stats && renderBookingStats(stats.asClient, "Como cliente")}
-          {stats && renderBookingStats(stats.asInspector, "Como inspector")}
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {stats.inspections.map((insp) => {
+              const paid = insp.payment?.paidAt != null;
+              return (
+                <div key={insp.id} className="text-xs bg-white rounded p-2 border border-amber-100">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 truncate">
+                        {insp.vehicle.model.brand.name} {insp.vehicle.model.name} {insp.vehicle.year}
+                        {insp.vehicle.plate && ` — ${insp.vehicle.plate}`}
+                      </p>
+                      <p className="text-gray-500">{insp.inspectionPlan.title}</p>
+                    </div>
+                    <span className={`flex-shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium ${
+                      paid ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+                    }`}>
+                      {paid ? "Pagado" : "No pagado"}
+                    </span>
+                  </div>
+                  {paid && insp.payment && (
+                    <p className="text-gray-500 mt-0.5">
+                      S/ {(insp.payment.amount / 100).toFixed(2)}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : stats ? (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
           <p className="text-sm text-green-700">
-            Este usuario no tiene reservas asociadas.
+            Este usuario no tiene inspecciones asociadas.
           </p>
         </div>
       ) : null}
