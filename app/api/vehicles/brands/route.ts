@@ -7,6 +7,7 @@ export const revalidate = 86400;
 export async function GET() {
   try {
     const brands = await db.brand.findMany({
+      distinct: ['name'],
       orderBy: { name: "asc" },
     });
 

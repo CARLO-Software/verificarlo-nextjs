@@ -16,6 +16,7 @@ import { unstable_cache } from 'next/cache';
 export const getBrandsServer = unstable_cache(
     async (): Promise<Brand[]> => {
         const brands = await db.brand.findMany({
+            distinct: ['name'],
             orderBy: { name: "asc" },
         });
         return brands;

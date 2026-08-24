@@ -20,6 +20,7 @@ export async function GET(
 
     const models = await db.model.findMany({
       where: { brandId: brandId },
+      distinct: ['name'],
       orderBy: { name: "asc" },
     });
 
