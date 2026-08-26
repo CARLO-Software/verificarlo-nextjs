@@ -287,6 +287,7 @@ export async function deleteCancelledInspectionAction(bookingId: number) {
       const { sendPushToUser } = await import('@/lib/push-notifications');
       const vehicleDesc = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
       await sendPushToUser(booking.inspectorId, {
+        type: 'inspection_deleted',
         inspectionId: bookingId,
         title: 'Inspección eliminada',
         message: `${vehicleDesc} — Cliente: ${booking.client.name} fue eliminada`,
