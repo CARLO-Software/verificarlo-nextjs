@@ -13,6 +13,7 @@ export interface PushPayload {
   inspectionId: number;
   title: string;
   message: string;
+  locationUrl?: string;
 }
 
 /**
@@ -51,6 +52,7 @@ export async function sendPushToUser(
       inspectionId: String(payload.inspectionId),
       title: payload.title,
       message: payload.message,
+      ...(payload.locationUrl && { locationUrl: payload.locationUrl }),
     },
     android: {
       priority: "high",

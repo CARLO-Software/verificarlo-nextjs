@@ -30,6 +30,8 @@ export default async function AdminInspeccionesPage() {
       plate: inspection.vehicle.plate,
     },
     inspectionType: inspection.inspectionPlan.title,
+    inspectionPlanType: inspection.inspectionPlan.type,
+    inspectionPlanPrice: inspection.inspectionPlan.price,
     inspector: inspection.inspector ? {
       id: inspection.inspector.id,
       name: inspection.inspector.name,

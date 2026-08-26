@@ -716,7 +716,8 @@ export interface ManualBookingInput {
   district?: string;
   locationUrl?: string;
   // Pago manual
-  isPaid?: boolean;
+  isInspectionPaid?: boolean;  // Pago de inspección completado
+  isDomicilio?: boolean;       // true = a domicilio (reserva S/50 implícita), false = en showroom
   passClient: string
 }
 
@@ -796,36 +797,40 @@ export async function createManualBooking(input: ManualBookingInput) {
   const endTime = sumarMinutos(startTime, 60);
 
   // 6. Determinar el estado inicial y asignar inspector si es necesario
+  const RESERVATION_AMOUNT = 50;
+  const isBasicaOrCompleta = plan.type === 'basica' || plan.type === 'completa';
+  const hasReservation = isBasicaOrCompleta && input.isDomicilio;
+  const isFullyPaid = input.isInspectionPaid;
+
   let status: BookingStatus = 'PENDING_PAYMENT';
   let assignedInspectorId = input.inspectorId || null;
 
-  if (input.isPaid) {
-    // Si está pagado pero no tiene inspector, asignar uno al azar
-    if (!input.inspectorId) {
-      // Obtener inspectores disponibles para este slot
-      const availableInspectors = await db.user.findMany({
-        where: {
-          role: 'INSPECTOR',
-          isInspectorAvailable: true,
-          inspectorBookings: {
-            none: {
-              date: new Date(input.date),
-              timeSlot: input.timeSlot,
-              status: 'PAID',
-            },
+  if (isFullyPaid) {
+    status = 'PAID';
+  } else if (hasReservation) {
+    status = 'PENDING_PAYMENT';
+  }
+
+  // Asignar inspector automáticamente si no se seleccionó uno
+  if (!input.inspectorId) {
+    const availableInspectors = await db.user.findMany({
+      where: {
+        role: 'INSPECTOR',
+        isInspectorAvailable: true,
+        inspectorBookings: {
+          none: {
+            date: new Date(input.date),
+            timeSlot: input.timeSlot,
+            status: 'PAID',
           },
         },
-        select: { id: true, name: true },
-      });
+      },
+      select: { id: true, name: true },
+    });
 
-      if (availableInspectors.length > 0) {
-        // Seleccionar uno al azar
-        const randomIndex = Math.floor(Math.random() * availableInspectors.length);
-        assignedInspectorId = availableInspectors[randomIndex].id;
-      }
-      status = 'PAID';
-    } else {
-      status = 'PAID';
+    if (availableInspectors.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableInspectors.length);
+      assignedInspectorId = availableInspectors[randomIndex].id;
     }
   }
 
@@ -846,6 +851,8 @@ export async function createManualBooking(input: ManualBookingInput) {
       locationUrl: input.locationUrl?.trim() || null,
       adminNotes: input.adminNotes || `Reserva creada manualmente por admin (WhatsApp)`,
       confirmedAt: assignedInspectorId ? new Date() : null,
+      reservationPaidAt: hasReservation ? new Date() : null,
+      inspectionPaidAt: isFullyPaid ? new Date() : null,
     },
     include: {
       client: { select: { id: true, name: true, email: true, password: true } },
@@ -868,22 +875,31 @@ export async function createManualBooking(input: ManualBookingInput) {
       inspectionId: booking.id,
       title: "Nueva inspección asignada",
       message: `${vehicleDesc} — Cliente: ${booking.client.name}`,
+      locationUrl: booking.locationUrl || undefined,
     }).catch((err) => console.error("[createBooking] Push to inspector failed:", err));
   }
 
-  // 8. Si está pagado, crear el registro de pago
-  if (input.isPaid) {
+  // 8. Crear registros de pago según corresponda
+  if (hasReservation || isFullyPaid) {
+    // Calcular el monto del pago registrado
+    let paymentAmount: number;
+    if (isFullyPaid) {
+      paymentAmount = plan.price * 100; // Total en céntimos
+    } else {
+      paymentAmount = RESERVATION_AMOUNT * 100; // Solo reserva en céntimos
+    }
+
     await db.payment.create({
       data: {
         bookingId: booking.id,
-        amount: plan.price * 100, // Convertir a céntimos
+        amount: paymentAmount,
         status: 'COMPLETED',
         paidAt: new Date(),
         receiptNumber: `MAN-${booking.id}-${Date.now()}`,
       },
     });
 
-    // 9. Si está pagado, crear VehicleInspection y enviar notificaciones
+    // 9. Si tiene al menos la reserva pagada, crear VehicleInspection
     const { createVehicleInspection } = await import('@/lib/vehicle-inspection/create-inspection');
     const vehicleDescription = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
 

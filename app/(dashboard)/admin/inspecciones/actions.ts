@@ -231,18 +231,18 @@ export async function searchClientsAction(query: string) {
   try {
     const { db } = await import('@/lib/db');
 
-    if (!query || query.trim().length < 2) {
-      return { success: true, clients: [] };
-    }
+    const trimmed = query.trim();
 
     const clients = await db.user.findMany({
       where: {
         role: 'CLIENT',
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-          { phone: { contains: query, mode: 'insensitive' } },
-        ],
+        ...(trimmed.length >= 2 && {
+          OR: [
+            { name: { contains: trimmed, mode: 'insensitive' } },
+            { email: { contains: trimmed, mode: 'insensitive' } },
+            { phone: { contains: trimmed, mode: 'insensitive' } },
+          ],
+        }),
       },
       select: {
         id: true,
@@ -258,6 +258,51 @@ export async function searchClientsAction(query: string) {
   } catch (error) {
     console.error('Error buscando clientes:', error);
     return { success: false, error: 'Error al buscar clientes', clients: [] };
+  }
+}
+
+export async function deleteCancelledInspectionAction(bookingId: number) {
+  try {
+    const { db } = await import('@/lib/db');
+
+    const booking = await db.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        status: true,
+        inspectorId: true,
+        vehicle: { select: { model: { select: { name: true, brand: { select: { name: true } } } }, year: true } },
+        client: { select: { name: true } },
+      },
+    });
+
+    if (!booking) {
+      return { success: false, error: 'Inspección no encontrada' };
+    }
+
+    if (!['CANCELLED', 'EXPIRED', 'NO_SHOW'].includes(booking.status)) {
+      return { success: false, error: 'Solo se pueden eliminar inspecciones canceladas, expiradas o no presentadas' };
+    }
+
+    if (booking.inspectorId) {
+      const { sendPushToUser } = await import('@/lib/push-notifications');
+      const vehicleDesc = `${booking.vehicle.model.brand.name} ${booking.vehicle.model.name} ${booking.vehicle.year}`;
+      await sendPushToUser(booking.inspectorId, {
+        inspectionId: bookingId,
+        title: 'Inspección eliminada',
+        message: `${vehicleDesc} — Cliente: ${booking.client.name} fue eliminada`,
+      }).catch((err) => console.error('[deleteInspection] Push to inspector failed:', err));
+    }
+
+    await db.$transaction([
+      db.payment.deleteMany({ where: { bookingId } }),
+      db.booking.delete({ where: { id: bookingId } }),
+    ]);
+
+    revalidatePath('/admin/inspecciones');
+    return { success: true };
+  } catch (error) {
+    console.error('Error eliminando inspección:', error);
+    return { success: false, error: 'Error al eliminar la inspección' };
   }
 }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/app/components/ui/StatusBadge/StatusBadge';
 import { PhoneInput } from '@/app/components/ui/PhoneInput/PhoneInput';
@@ -15,6 +16,7 @@ import {
   searchClientsAction,
   getAvailabilityForDateAction,
   getAvailableInspectorsForSlotAction,
+  deleteCancelledInspectionAction,
 } from './actions';
 
 interface Inspection {
@@ -38,6 +40,8 @@ interface Inspection {
     plate: string | null;
   };
   inspectionType: string;
+  inspectionPlanType: string;
+  inspectionPlanPrice: number;
   inspector: {
     id: string;
     name: string;
@@ -125,6 +129,15 @@ const filterPills = [
   { value: 'COMPLETED_MECHANIC', label: 'Listo mecanico' },
   { value: 'COMPLETED_ADMIN', label: 'Listo admin' },
   { value: 'FULLY_COMPLETED', label: 'Completadas' },
+];
+
+const statusPills = [
+  { value: 'all', label: 'Todos' },
+  { value: 'PENDING_PAYMENT', label: 'Pendiente de pago' },
+  { value: 'PAID', label: 'Pagado' },
+  { value: 'CANCELLED', label: 'Cancelado' },
+  { value: 'NO_SHOW', label: 'No se presentó' },
+  { value: 'EXPIRED', label: 'Expirado' },
 ];
 
 function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
@@ -263,7 +276,7 @@ function InspectionDetailPanel({
     });
   };
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -428,50 +441,26 @@ function InspectionDetailPanel({
                     <span className="text-gray-500">Tipo</span>
                     <span className="font-medium">{inspection.inspectionType}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Estado</span>
-                    <select
-                      value={editedStatus}
-                      onChange={(e) => setEditedStatus(e.target.value as BookingStatus)}
-                      disabled={isPending}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                    >
-                      <option value="PENDING_PAYMENT">Pendiente de pago</option>
-                      <option value="PENDING_VERIFICATION">Pendiente verificación</option>
-                      <option value="PAID">Pagado</option>
-                      <option value="COMPLETED">Completado</option>
-                      <option value="CANCELLED">Cancelado</option>
-                      <option value="NO_SHOW">No se presentó</option>
-                      <option value="EXPIRED">Expirado</option>
-                    </select>
-                  </div>
                 </div>
               </div>
 
-              {/* Pagos */}
+              {/* Pago de inspección */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Pagos</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Reserva S/50</span>
-                    {inspection.reservationPaidAt ? (
-                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                        {formatearFechaHoraCorta(inspection.reservationPaidAt)}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400 italic">Pendiente</span>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Inspección {inspection.payment ? `S/${(inspection.payment.amount / 100).toFixed(0)}` : ''}</span>
-                    {inspection.inspectionPaidAt ? (
-                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                        {formatearFechaHoraCorta(inspection.inspectionPaidAt)}
-                      </span>
-                    ) : (
-                      <span className="text-xs text-amber-600 italic">Pendiente</span>
-                    )}
-                  </div>
+                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Pago de inspección</h3>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500">S/{inspection.inspectionPlanPrice}</span>
+                  <select
+                    value={editedStatus}
+                    onChange={(e) => setEditedStatus(e.target.value as BookingStatus)}
+                    disabled={isPending}
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  >
+                    <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                    <option value="PAID">Pagado</option>
+                    <option value="CANCELLED">Cancelado</option>
+                    <option value="NO_SHOW">No se presentó</option>
+                    <option value="EXPIRED">Expirado</option>
+                  </select>
                 </div>
               </div>
 
@@ -601,11 +590,31 @@ function InspectionDetailPanel({
           )}
 
           <div className="flex gap-3">
+            {(['CANCELLED', 'EXPIRED', 'NO_SHOW'] as string[]).includes(inspection.status) && (
+              <button
+                onClick={() => {
+                  if (!confirm('¿Eliminar esta inspección cancelada? Esta acción no se puede deshacer.')) return;
+                  startTransition(async () => {
+                    const result = await deleteCancelledInspectionAction(inspection.id);
+                    if (result.success) {
+                      onClose();
+                      window.location.reload();
+                    } else {
+                      setSaveMessage({ type: 'error', text: result.error || 'Error al eliminar' });
+                    }
+                  });
+                }}
+                disabled={isPending}
+                className="px-4 py-2.5 text-sm font-semibold rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors disabled:opacity-50"
+              >
+                {isPending ? 'Eliminando...' : 'Eliminar'}
+              </button>
+            )}
             <button
               onClick={handleSave}
               disabled={isPending || !hasChanges}
               className={`
-                w-full px-4 py-2.5 text-sm sm:text-base font-semibold rounded-lg transition-all
+                flex-1 px-4 py-2.5 text-sm sm:text-base font-semibold rounded-lg transition-all
                 ${hasChanges
                   ? 'bg-[#FFE14C] text-[#2D2D2D] hover:bg-[#FFD700]'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
@@ -618,7 +627,8 @@ function InspectionDetailPanel({
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
@@ -681,7 +691,8 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     district: '',
     address: '',
     locationUrl: '',
-    isPaid: false,
+    isDomicilio: true,
+    isInspectionPaid: false,
   });
 
   // Cargar marcas y planes al montar
@@ -721,24 +732,33 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     loadModels();
   }, [formData.brandId]);
 
-  // Buscar clientes con debounce
+  // Cargar todos los clientes al montar y filtrar localmente
+  const [allClients, setAllClients] = useState<Client[]>([]);
   useEffect(() => {
-    if (!clientSearchQuery || clientSearchQuery.length < 2) {
-      setSearchedClients([]);
-      return;
-    }
-
-    const timeoutId = setTimeout(async () => {
+    async function loadClients() {
       setSearchingClients(true);
-      const res = await searchClientsAction(clientSearchQuery);
+      const res = await searchClientsAction('');
       if (res.success && res.clients) {
+        setAllClients(res.clients);
         setSearchedClients(res.clients);
       }
       setSearchingClients(false);
-    }, 300);
+    }
+    loadClients();
+  }, []);
 
-    return () => clearTimeout(timeoutId);
-  }, [clientSearchQuery]);
+  useEffect(() => {
+    if (!clientSearchQuery) {
+      setSearchedClients(allClients);
+      return;
+    }
+    const q = clientSearchQuery.toLowerCase();
+    setSearchedClients(allClients.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      (c.phone && c.phone.includes(q))
+    ));
+  }, [clientSearchQuery, allClients]);
 
   // Cargar disponibilidad de horarios cuando cambia la fecha
   useEffect(() => {
@@ -887,7 +907,8 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         district: formData.district || undefined,
         address: formData.address.trim() || undefined,
         locationUrl: formData.locationUrl.trim() || undefined,
-        isPaid: formData.isPaid,
+        isDomicilio: formData.isDomicilio,
+        isInspectionPaid: formData.isInspectionPaid,
         passClient: formData.passClient,
       });
 
@@ -902,7 +923,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
     });
   };
 
-  return (
+  return createPortal(
     <>
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black/30 z-[60]" onClick={onClose} />
@@ -935,7 +956,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="space-y-4 sm:space-y-6">
             {/* Buscar o crear cliente */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Cliente
               </h3>
@@ -948,7 +969,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                       placeholder="Buscar cliente por nombre, email o teléfono..."
                       value={clientSearchQuery}
                       onChange={(e) => setClientSearchQuery(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                     />
                     {searchingClients && (
                       <div className="absolute right-3 top-2.5">
@@ -977,7 +998,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                     </div>
                   )}
 
-                  {clientSearchQuery.length >= 2 && !searchingClients && searchedClients.length === 0 && (
+                  {!searchingClients && searchedClients.length === 0 && (
                     <p className="text-sm text-gray-500 text-center py-2">
                       No se encontraron clientes
                     </p>
@@ -1028,21 +1049,21 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                     placeholder="Nombre completo *"
                     value={formData.clientName}
                     onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                   />
                   <input
                     type="email"
                     placeholder="Email *"
                     value={formData.clientEmail}
                     onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                   />
                   <input
                     type="password"
                     placeholder="Contraseña para el cliente *"
                     value={formData.passClient}
                     onChange={(e) => setFormData({ ...formData, passClient: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                   />
                   <PhoneInput
                     value={formData.clientPhone}
@@ -1053,7 +1074,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
 
             {/* Datos del vehículo */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Datos del vehículo
               </h3>
@@ -1062,7 +1083,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                   value={formData.brandId}
                   onChange={(e) => setFormData({ ...formData, brandId: e.target.value, modelId: '' })}
                   disabled={loadingBrands}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                 >
                   <option value="">Seleccionar marca *</option>
                   {brands.map((brand) => (
@@ -1074,7 +1095,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                   value={formData.modelId}
                   onChange={(e) => setFormData({ ...formData, modelId: e.target.value })}
                   disabled={!formData.brandId || loadingModels}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors disabled:bg-gray-100"
                 >
                   <option value="">
                     {loadingModels ? 'Cargando modelos...' : 'Seleccionar modelo *'}
@@ -1095,7 +1116,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                           setFormData({ ...formData, year: Number(e.target.value) });
                         }
                       }}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                      className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                     >
                       {yearRange.map((year) => (
                         <option key={year} value={year}>{year}</option>
@@ -1110,7 +1131,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                         onChange={(e) => setFormData({ ...formData, year: Number(e.target.value) })}
                         min={1950}
                         max={new Date().getFullYear() + 1}
-                        className="w-20 px-2 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                        className="w-20 px-2 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                       />
                     )}
                   </div>
@@ -1134,14 +1155,14 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
 
             {/* Plan de inspección */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Plan de inspección
               </h3>
               <select
                 value={formData.inspectionPlanId}
                 onChange={(e) => setFormData({ ...formData, inspectionPlanId: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
               >
                 <option value="">Seleccionar plan *</option>
                 {plans.map((plan) => (
@@ -1153,7 +1174,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
 
             {/* Fecha y hora */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Fecha y hora
               </h3>
@@ -1163,14 +1184,14 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value, timeSlot: '', inspectorId: '' })}
                   min={new Date().toISOString().split('T')[0]}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                 />
                 <div className="relative">
                   <select
                     value={formData.timeSlot}
                     onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value, inspectorId: '' })}
                     disabled={!formData.date || loadingSlots}
-                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100 disabled:cursor-not-allowed w-full"
+                    className="px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed w-full"
                   >
                     <option value="">
                       {loadingSlots ? 'Cargando...' : formData.date ? 'Selecciona horario *' : 'Primero selecciona fecha'}
@@ -1197,7 +1218,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
 
             {/* Ubicación */}
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
                 Ubicación
               </h3>
@@ -1205,7 +1226,7 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                 <select
                   value={formData.district}
                   onChange={(e) => setFormData({ ...formData, district: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                 >
                   <option value="">Seleccionar distrito</option>
                   {[
@@ -1228,14 +1249,14 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
                   placeholder="Dirección (ej: Av. Javier Prado 1234)"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                 />
                 <input
                   type="url"
                   placeholder="URL de Google Maps (pegar enlace)"
                   value={formData.locationUrl}
                   onChange={(e) => setFormData({ ...formData, locationUrl: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors"
                 />
                 {formData.locationUrl && !/(google|maps|goo\.gl)/i.test(formData.locationUrl) && (
                   <p className="text-xs text-amber-600">
@@ -1248,14 +1269,14 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             {/* Inspector */}
             <div>
               <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
-                Inspector (opcional)
+                Inspector
               </h3>
               <div className="relative">
                 <select
                   value={formData.inspectorId}
                   onChange={(e) => setFormData({ ...formData, inspectorId: e.target.value })}
                   disabled={loadingInspectors}
-                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] disabled:bg-gray-100"
+                  className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFE14C] focus:border-[#FFE14C] transition-colors disabled:bg-gray-100"
                 >
                   <option value="">Sin asignar (se asignará automáticamente)</option>
                   {inspectorsWithAvailability.length > 0 ? (
@@ -1306,17 +1327,65 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
             </div>
 
             {/* Pago */}
-            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg">
-              <input
-                type="checkbox"
-                id="isPaid"
-                checked={formData.isPaid}
-                onChange={(e) => setFormData({ ...formData, isPaid: e.target.checked })}
-                className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
-              />
-              <label htmlFor="isPaid" className="text-sm font-medium text-green-800">
-                Reserva de S/50 pagada (transferencia/Yape/efectivo)
-              </label>
+            <div className="bg-gray-100 rounded-lg p-4 border-l-4 border-yellow-400">
+              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-1">
+                Pago
+              </h3>
+              <p className="text-xs text-gray-400 mb-3">(Se recomienda seleccionar después de la inspección)</p>
+              <div className="space-y-3">
+                {/* Toggle Domicilio / Showroom - solo para básica y completa */}
+                {(() => {
+                  const selectedPlan = plans.find(p => p.id === Number(formData.inspectionPlanId));
+                  const isBasicaOrCompleta = selectedPlan && (selectedPlan.type === 'basica' || selectedPlan.type === 'completa');
+                  const reservationAmount = 50;
+                  const totalPrice = selectedPlan?.price ?? 0;
+                  const remainingPrice = totalPrice - reservationAmount;
+
+                  return (
+                    <>
+                      {isBasicaOrCompleta && (
+                        <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                          <span className="text-sm font-medium text-gray-700">Modalidad</span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs ${!formData.isDomicilio ? 'font-semibold text-[#2D2D2D]' : 'text-gray-400'}`}>
+                              Showroom
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, isDomicilio: !formData.isDomicilio })}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.isDomicilio ? 'bg-[#FFE14C]' : 'bg-gray-300'}`}
+                            >
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.isDomicilio ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                            <span className={`text-xs ${formData.isDomicilio ? 'font-semibold text-[#2D2D2D]' : 'text-gray-400'}`}>
+                              A domicilio
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Checkbox Pago Inspección */}
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <input
+                          type="checkbox"
+                          id="isInspectionPaid"
+                          checked={formData.isInspectionPaid}
+                          onChange={(e) => setFormData({ ...formData, isInspectionPaid: e.target.checked })}
+                          className="w-5 h-5 text-green-600 rounded focus:ring-green-500"
+                        />
+                        <label htmlFor="isInspectionPaid" className="text-sm font-medium text-green-800">
+                          Pago inspección completado
+                          {selectedPlan && (
+                            <span className="ml-1 text-green-600">
+                              — S/{isBasicaOrCompleta && formData.isDomicilio ? remainingPrice : totalPrice}
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -1352,7 +1421,8 @@ function CreateInspectionPanel({ inspectors, onClose, onSuccess, }: { inspectors
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
@@ -1363,6 +1433,8 @@ export function AdminInspeccionesClient({
 }: AdminInspeccionesClientProps) {
   const router = useRouter();
   const [filter, setFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [inspectorFilter, setInspectorFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showCreatePanel, setShowCreatePanel] = useState(false);
@@ -1427,6 +1499,16 @@ export function AdminInspeccionesClient({
         if (!vi || vi.legalStatus !== 'COMPLETADO' || vi.mechanicalStatus !== 'COMPLETADO') {
           return false;
         }
+      }
+    }
+    if (statusFilter !== 'all' && inspection.status !== statusFilter) {
+      return false;
+    }
+    if (inspectorFilter !== 'all') {
+      if (inspectorFilter === 'none') {
+        if (inspection.inspector) return false;
+      } else {
+        if (inspection.inspector?.id !== inspectorFilter) return false;
       }
     }
     if (searchQuery) {
@@ -1513,7 +1595,7 @@ export function AdminInspeccionesClient({
             />
           </div>
           {/* Filter pills con scroll horizontal en móvil */}
-          <div>
+          <div className="space-y-2">
             <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible -webkit-overflow-scrolling-touch">
               {filterPills.map((pill) => (
                 <button
@@ -1522,6 +1604,23 @@ export function AdminInspeccionesClient({
                   className={`
                     px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex-shrink-0
                     ${filter === pill.value
+                      ? 'bg-[#2D2D2D] text-white'
+                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'
+                    }
+                  `}
+                >
+                  {pill.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 items-center overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible -webkit-overflow-scrolling-touch">
+              {statusPills.map((pill) => (
+                <button
+                  key={pill.value}
+                  onClick={() => setStatusFilter(pill.value)}
+                  className={`
+                    px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex-shrink-0
+                    ${statusFilter === pill.value
                       ? 'bg-[#FFE14C] text-[#2D2D2D]'
                       : 'bg-white text-gray-600 border border-gray-200 hover:border-[#FFE14C]'
                     }
@@ -1530,6 +1629,17 @@ export function AdminInspeccionesClient({
                   {pill.label}
                 </button>
               ))}
+              <select
+                value={inspectorFilter}
+                onChange={(e) => setInspectorFilter(e.target.value)}
+                className="px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium border border-gray-200 bg-white text-gray-600 focus:outline-none focus:border-gray-400 flex-shrink-0"
+              >
+                <option value="all">Todos los inspectores</option>
+                <option value="none">Sin inspector</option>
+                {inspectors.map((ins) => (
+                  <option key={ins.id} value={ins.id}>{ins.name}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -1726,10 +1836,7 @@ export function AdminInspeccionesClient({
                     Inspector
                   </th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                    Reserva S/50
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                    Pago Inspección
+                    Tipo
                   </th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
                     Estado
@@ -1742,7 +1849,7 @@ export function AdminInspeccionesClient({
               <tbody>
                 {filteredInspections.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
                       No se encontraron inspecciones
                     </td>
                   </tr>
@@ -1785,26 +1892,7 @@ export function AdminInspeccionesClient({
                         )}
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                        {inspection.reservationPaidAt ? (
-                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                            {formatearFechaHoraCorta(inspection.reservationPaidAt)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">Pendiente</span>
-                        )}
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                        {inspection.inspectionPaidAt ? (
-                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                            {formatearFechaHoraCorta(inspection.inspectionPaidAt)}
-                          </span>
-                        ) : inspection.payment ? (
-                          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
-                            S/{(inspection.payment.amount / 100).toFixed(0)} - Pendiente
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">—</span>
-                        )}
+                        <span className="text-sm text-gray-700">{inspection.inspectionType}</span>
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
                         <StatusBadge status={inspection.status} size="sm" />
