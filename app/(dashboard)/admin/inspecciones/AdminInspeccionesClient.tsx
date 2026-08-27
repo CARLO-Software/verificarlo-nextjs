@@ -1683,8 +1683,7 @@ export function AdminInspeccionesClient({
                     )}
                   </div>
                 </div>
-                {/* Mobile action buttons */}
-                <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                <div className="flex justify-end gap-1.5 mt-3 pt-3 border-t border-gray-100 flex-wrap">
                   {inspection.status === 'PENDING_VERIFICATION' && (
                     <button
                       onClick={(e) => {
@@ -1692,68 +1691,69 @@ export function AdminInspeccionesClient({
                         handleVerifyPayment(inspection.id);
                       }}
                       disabled={verifyingId === inspection.id}
-                      className="p-2 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Verificar pago"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors disabled:opacity-50"
                     >
                       {verifyingId === inspection.id ? (
-                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                         </svg>
                       ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       )}
+                      Verificar
                     </button>
                   )}
                   {inspection.vehicleInspection && (
                     inspection.vehicleInspection.legalStatus === 'BLOQUEADO' ? (
                       <span
-                        className="p-2 rounded-lg text-red-400 cursor-not-allowed opacity-60"
-                        title="Bloqueado: esperando placa del mecánico"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-400 cursor-not-allowed opacity-60"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
+                        Legal
                       </span>
                     ) : (
                       <a
                         href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
                         onClick={(e) => e.stopPropagation()}
-                        className={`p-2 rounded-lg transition-colors ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                           inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                            ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
+                            ? 'bg-green-50 text-green-600 hover:bg-green-100'
                             : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                            ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
-                            : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
                         }`}
-                        title={
-                          inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                            ? 'Revisión legal completada'
-                            : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                            ? 'Continuar revisión legal'
-                            : 'Iniciar revisión legal'
-                        }
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          {inspection.vehicleInspection.legalStatus === 'COMPLETADO' ? (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          ) : (
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          )}
                         </svg>
+                        {inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                          ? 'Legal ✓'
+                          : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                          ? 'Legal...'
+                          : 'Legal'}
                       </a>
                     )
                   )}
-                  {/* Boton ver reporte mobile */}
                   {(inspection.reportId || inspection.vehicleInspection?.mechanicalStatus === 'COMPLETADO') && (
                     <a
                       href={`/admin/inspecciones/${inspection.id}`}
                       onClick={(e) => e.stopPropagation()}
-                      className="p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                      title="Ver reporte completo"
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
+                      Reporte
                     </a>
                   )}
                   <button
@@ -1761,13 +1761,13 @@ export function AdminInspeccionesClient({
                       e.stopPropagation();
                       setSelectedInspection(inspection);
                     }}
-                    className="p-2 text-gray-400 hover:text-[#FFE14C] hover:bg-gray-100 rounded-lg transition-colors"
-                    title="Ver detalles"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
+                    Ver
                   </button>
                 </div>
               </div>
@@ -1857,7 +1857,7 @@ export function AdminInspeccionesClient({
                   paginatedInspections.map((inspection, index) => (
                     <tr
                       key={inspection.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${index % 2 === 1 ? 'bg-gray-50/50' : ''}`}
                       style={{ animationDelay: `${index * 50}ms` }}
                       onClick={() => setSelectedInspection(inspection)}
                     >
@@ -1898,8 +1898,7 @@ export function AdminInspeccionesClient({
                         <StatusBadge status={inspection.status} size="sm" />
                       </td>
                       <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <div className="flex justify-end gap-1 lg:gap-2">
-                          {/* Botón verificar pago - solo para PENDING_VERIFICATION */}
+                        <div className="flex justify-end gap-1">
                           {inspection.status === 'PENDING_VERIFICATION' && (
                             <button
                               onClick={(e) => {
@@ -1907,69 +1906,70 @@ export function AdminInspeccionesClient({
                                 handleVerifyPayment(inspection.id);
                               }}
                               disabled={verifyingId === inspection.id}
-                              className="p-2 text-orange-500 hover:text-orange-700 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-50"
-                              title="Verificar pago y asignar inspector"
+                              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors bg-orange-50 text-orange-600 hover:bg-orange-100 disabled:opacity-50"
                             >
                               {verifyingId === inspection.id ? (
-                                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                                 </svg>
                               ) : (
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                               )}
+                              Verificar
                             </button>
                           )}
-                          {/* Botón revisión legal */}
                           {inspection.vehicleInspection && (
                             inspection.vehicleInspection.legalStatus === 'BLOQUEADO' ? (
                               <span
-                                className="p-2 rounded-lg text-red-400 cursor-not-allowed opacity-60"
-                                title="Bloqueado: esperando placa del mecánico"
+                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-400 cursor-not-allowed opacity-60"
+                                title="Esperando placa del mecánico"
                                 onClick={(e) => e.stopPropagation()}
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
+                                Legal
                               </span>
                             ) : (
                               <a
                                 href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
                                 onClick={(e) => e.stopPropagation()}
-                                className={`p-2 rounded-lg transition-colors ${
+                                className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                                   inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                                    ? 'text-green-500 hover:text-green-700 hover:bg-green-50'
+                                    ? 'bg-green-50 text-green-600 hover:bg-green-100'
                                     : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                                    ? 'text-blue-500 hover:text-blue-700 hover:bg-blue-50'
-                                    : 'text-purple-500 hover:text-purple-700 hover:bg-purple-50'
+                                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
                                 }`}
-                                title={
-                                  inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                                    ? 'Revisión legal completada'
-                                    : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                                    ? 'Continuar revisión legal'
-                                    : 'Iniciar revisión legal'
-                                }
                               >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  {inspection.vehicleInspection.legalStatus === 'COMPLETADO' ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                  ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                  )}
                                 </svg>
+                                {inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                                  ? 'Legal ✓'
+                                  : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                  ? 'Legal...'
+                                  : 'Legal'}
                               </a>
                             )
                           )}
-                          {/* Boton ver reporte - solo cuando hay reporte o mecanico completo */}
                           {(inspection.reportId || inspection.vehicleInspection?.mechanicalStatus === 'COMPLETADO') && (
                             <a
                               href={`/admin/inspecciones/${inspection.id}`}
                               onClick={(e) => e.stopPropagation()}
-                              className="p-2 text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                              title="Ver reporte completo"
+                              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
+                              Reporte
                             </a>
                           )}
                           <button
@@ -1977,13 +1977,13 @@ export function AdminInspeccionesClient({
                               e.stopPropagation();
                               setSelectedInspection(inspection);
                             }}
-                            className="p-2 text-gray-400 hover:text-[#FFE14C] hover:bg-gray-100 rounded-lg transition-colors"
-                            title="Ver detalles"
+                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                           >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
+                            Ver
                           </button>
                         </div>
                       </td>
