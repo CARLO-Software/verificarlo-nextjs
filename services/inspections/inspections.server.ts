@@ -770,6 +770,12 @@ export async function createManualBooking(input: ManualBookingInput) {
     vehicle = await db.vehicle.findFirst({
       where: { plate: normalizedPlate },
     });
+    if (vehicle) {
+      vehicle = await db.vehicle.update({
+        where: { id: vehicle.id },
+        data: { modelId: input.modelId, year: input.year },
+      });
+    }
   }
 
   if (!vehicle) {
