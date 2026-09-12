@@ -121,6 +121,7 @@ export async function getLegalReportDataForPDF(
       key,
       label,
       status: finalStatus,
+      badgeText: '',
       text: finalObservation,
     };
   });

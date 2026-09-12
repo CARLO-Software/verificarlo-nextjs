@@ -486,10 +486,20 @@ export interface LegalReportData {
   vehicleDescription: string;
   clientName: string;
   date: string;
+  conclusion?: {
+    label: string;
+    text: string;
+  };
+  vehicleDetails?: {
+    color?: string;
+    nroMotor?: string;
+    nroVin?: string;
+  };
   fields: {
     key: string;
     label: string;
     status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
+    badgeText: string;
     text: string;
   }[];
   otherObservations: string;
@@ -529,29 +539,28 @@ const FIELD_ICONS: Record<string, string> = {
   accidentHistory: `${ICONS_BASE_URL}/seguro.png`,
 };
 
-// Componente para el badge de estado
+function statusSymbol(status: string) {
+  switch (status) {
+    case 'OK': return '✓';
+    case 'WARNING': return '!';
+    case 'CRITICAL': return 'X';
+    default: return '−';
+  }
+}
+
+function statusBadgeStyle(status: string) {
+  switch (status) {
+    case 'OK': return styles.checkBadgeOK;
+    case 'WARNING': return styles.checkBadgeWARNING;
+    case 'CRITICAL': return styles.checkBadgeCRITICAL;
+    default: return styles.checkBadgePENDING;
+  }
+}
+
 function StatusBadge({ status }: { status: string }) {
-  const getSymbol = () => {
-    switch (status) {
-      case 'OK': return '√';
-      case 'WARNING': return '!';
-      case 'CRITICAL': return 'X';
-      default: return '?';
-    }
-  };
-
-  const getBadgeStyle = () => {
-    switch (status) {
-      case 'OK': return styles.checkBadgeOK;
-      case 'WARNING': return styles.checkBadgeWARNING;
-      case 'CRITICAL': return styles.checkBadgeCRITICAL;
-      default: return styles.checkBadgePENDING;
-    }
-  };
-
   return (
-    <View style={[styles.checkBadge, getBadgeStyle()]}>
-      <Text style={styles.checkText}>{getSymbol()}</Text>
+    <View style={[styles.checkBadge, statusBadgeStyle(status)]}>
+      <Text style={styles.checkText}>{statusSymbol(status)}</Text>
     </View>
   );
 }
@@ -586,40 +595,28 @@ function getItemTextStyle(status: string) {
   }
 }
 
-// Obtener el texto e icono del indicador según estado
-function getStatusLabel(status: string): { icon: string; text: string } {
+function defaultBadgeText(status: string): string {
   switch (status) {
-    case 'OK': return { icon: '√', text: 'OK' };
-    case 'WARNING': return { icon: '!', text: 'OBSERVACIÓN' };
-    case 'CRITICAL': return { icon: 'X', text: 'CRÍTICO' };
-    default: return { icon: '?', text: 'PENDIENTE' };
+    case 'OK': return 'OK';
+    case 'WARNING': return 'REVISAR';
+    case 'CRITICAL': return 'ALERTA';
+    default: return 'NO CONSULTADO';
   }
 }
 
-// Obtener texto por defecto según estado
-function getDefaultText(status: string): string {
-  switch (status) {
-    case 'OK': return 'Sin problemas detectados';
-    case 'WARNING': return 'Requiere atención';
-    case 'CRITICAL': return 'Problema detectado';
-    default: return 'Pendiente de verificación';
-  }
-}
-
-// Componente para cada item del grid
 function GridItem({
   field,
   isRight,
   extraInfo
 }: {
-  field: { key: string; label: string; status: string; text: string };
+  field: { key: string; label: string; status: string; badgeText?: string; text: string };
   isRight: boolean;
   extraInfo?: string | null;
 }) {
   const iconUrl = FIELD_ICONS[field.key];
   const baseStyle = isRight ? [styles.gridItem, styles.gridItemRight] : [styles.gridItem];
   const bgStyle = getItemBgStyle(field.status);
-  const displayText = field.text || getDefaultText(field.status);
+  const badge = field.badgeText || defaultBadgeText(field.status);
 
   return (
     <View style={[...baseStyle, bgStyle]}>
@@ -631,12 +628,12 @@ function GridItem({
         <View style={styles.itemLabelRow}>
           <Text style={styles.itemLabel}>{field.label}</Text>
           <View style={[styles.statusIndicator, getStatusIndicatorStyle(field.status)]}>
-            <Text style={styles.statusIcon}>{getStatusLabel(field.status).icon}</Text>
-            <Text style={styles.statusIndicatorText}>{getStatusLabel(field.status).text}</Text>
+            <Text style={styles.statusIcon}>{statusSymbol(field.status)}</Text>
+            <Text style={styles.statusIndicatorText}>{badge}</Text>
           </View>
         </View>
         <Text style={[styles.itemText, getItemTextStyle(field.status)]}>
-          {displayText}
+          {field.text || 'Sin información disponible'}
         </Text>
         {extraInfo && (
           <Text style={styles.itemExtraInfo}>{extraInfo}</Text>

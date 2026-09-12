@@ -2,325 +2,376 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import styles from './ServicesSection.module.css';
+import styles from "./ServicesSection.module.css";
 import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
-// Iconos: X (cerrar), Play (video)
 import { X, Play } from "lucide-react";
 
 type ModalData = {
-    title: string;
-    description: string;
-    price: number;
-    items: string[];
-    whatsappLink: string;
-    planIndex: number;
-    videoId: string | null; // ID del video de YouTube (null para plan básico que usa PDF)
+  title: string;
+  description: string;
+  price: number;
+  items: string[];
+  planIndex: number;
+  videoId: string | null;
 } | null;
 
-// IDs de videos de YouTube para cada plan (reemplazar con los reales)
 const PLAN_VIDEO_IDS: Record<number, string | null> = {
-    0: "qpFzaaocpPo",  // Plan Legal Express: reemplazar con ID real
-    1: "8PycK5S8CpM",  // Plan Básico: reemplazar con ID real
-    2: "z1favRdoTSY",  // Plan Premium: reemplazar con ID real
+  1: "8PycK5S8CpM",
+  2: "z1favRdoTSY",
 };
 
-// Imágenes de fondo para el carrusel de desktop (una por cada plan)
-// El índice corresponde al plan: 0 = Básico, 1 = Estándar, 2 = Premium
 const PLAN_IMAGES = [
-    "/assets/images/modal-bg-png.webp",    // Plan Básico
-    "/assets/images/modal-bg-3.webp",  // Plan Estándar
-    "/assets/images/modal-bg-2.webp",  // Plan Premium
+  "/assets/images/modal-bg-png.webp",
+  "/assets/images/modal-bg-3.webp",
+  "/assets/images/modal-bg-2.webp",
 ];
 
-// Mensajes de WhatsApp personalizados para cada plan
-const PLAN_WHATSAPP_MESSAGES: Record<number, string> = {
-    0: "¡Hola! Quiero saber los antecedentes de un carro usado que quiero comprar.",
-    1: "¡Hola! Voy a comprar un carro usado y quiero agendar una cita para la Inspección Básica 🚘✅",
-    2: "¡Hola! Voy a comprar un carro usado y quiero agendar cita para una Inspección Premium 🚘✅",
-};
+const CheckIcon = () => (
+  <svg
+    width="17"
+    height="17"
+    viewBox="0 0 24 24"
+    fill="none"
+    strokeWidth="2.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={styles.checkIcon}
+  >
+    <path d="M5 13l4 4L19 7" />
+  </svg>
+);
 
-// Función para generar el enlace de WhatsApp
-const getWhatsAppLink = (planIndex: number) => {
-    const message = PLAN_WHATSAPP_MESSAGES[planIndex] || "";
-    return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
-};
+const ArrowIcon = ({ size = 18, color = "#16171b" }: { size?: number; color?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth="2.4"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 12h15" />
+    <path d="M13 6l6 6-6 6" />
+  </svg>
+);
 
 export default function ServicesSection() {
-    const [modalData, setModalData] = useState<ModalData>(null);
-    // Controla si el video está reproduciéndose en el modal
-    const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [modalData, setModalData] = useState<ModalData>(null);
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
 
-    const openModal = (inspection: typeof inspectionPlans[0], items: string[], planIndex: number) => {
-        setModalData({
-            title: inspection.title,
-            description: inspection.landingDescription,
-            price: inspection.price,
-            items,
-            whatsappLink: getWhatsAppLink(planIndex),
-            planIndex,
-            videoId: PLAN_VIDEO_IDS[planIndex] // Asigna el video según el plan
-        });
-        document.body.style.overflow = "hidden";
-    };
+  const legalPlan = inspectionPlans[0];
+  const premiumPlan = inspectionPlans[2];
+  const basicaPlan = inspectionPlans[1];
+  const premiumItems = inspectionPlanItems.find((ii) => ii.inspectionPlanId === 3);
+  const basicaItems = inspectionPlanItems.find((ii) => ii.inspectionPlanId === 2);
 
-    const closeModal = () => {
-        setModalData(null);
-        setIsPlayingVideo(false); // Reset al cerrar
-        document.body.style.overflow = "";
-    };
+  const openModal = (
+    plan: typeof inspectionPlans[0],
+    items: string[],
+    planIndex: number
+  ) => {
+    setModalData({
+      title: plan.title,
+      description: plan.landingDescription,
+      price: plan.price,
+      items,
+      planIndex,
+      videoId: PLAN_VIDEO_IDS[planIndex] ?? null,
+    });
+    document.body.style.overflow = "hidden";
+  };
 
-    // Activa la reproducción del video
-    const handlePlayVideo = () => {
-        setIsPlayingVideo(true);
-    };
+  const closeModal = () => {
+    setModalData(null);
+    setIsPlayingVideo(false);
+    document.body.style.overflow = "";
+  };
 
-    return (
-        <section id="planes" className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
-            <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
-                {/* Header con título */}
-                <div className={styles['services-header']}>
-                    <div className={styles['services-div']}>
-                        <h2 id="services-heading" className={styles['heading-2']}>
-                            El plan que eliges <span className={styles['negrita']}>define cuánto descubres.</span>
-                        </h2>
-                    </div>
-                </div>
-                {/* Versión Móvil - Cards en vertical */}
-                <div className={styles['mobile-plans']}>
-                    {inspectionPlans.map((inspection, inspectionIndex) => {
-                        const itemsForInspection = inspectionPlanItems.find(
-                            ii => ii.inspectionPlanId === inspectionIndex + 1
-                        );
-                        const isPremium = inspection.classType === "last";
+  return (
+    <section id="planes" className={styles.section} aria-labelledby="planes-heading">
+      <div className={styles.container}>
+        {/* Banner: Reporte Legal S/29 */}
+        <div className={styles.legalBanner}>
+          <div className={styles.bannerGlow} aria-hidden="true" />
+          <div className={styles.bannerContent}>
+            <span className={styles.bannerTitle}>
+              Con <span className={styles.bannerPrice}>S/{legalPlan.price}</span> obtén tu
+              reporte legal
+            </span>
+            <span className={styles.bannerDivider} />
+            <span className={styles.bannerDesc}>
+              Siniestros, gravámenes, papeletas e historial de propietarios. Entrega
+              inmediata.
+            </span>
+          </div>
+          <a href="/consultar" className={styles.bannerCta}>
+            Obtener mi reporte
+            <ArrowIcon />
+          </a>
+        </div>
 
-                        return (
-                            <article key={inspection.type} className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
-                                {isPremium && (
-                                    <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
-                                        </svg>
-                                        <span>9 de cada 10 eligen este</span>
-                                    </span>
-                                )}
-                                <div className={styles['services-box']}>
-                                    <header className={styles['card-header']}>
-                                        <h3 className={styles['header-title']}>{inspection.title}</h3>
-                                        <p className={styles['card-description']}>
-                                            {inspection.landingDescription}
-                                        </p>
-                                    </header>
-                                    <div className="flex justify-between items-center w-full">
-                                        <p className={styles['card-price']} aria-label={`Precio ${inspection.price} soles`}>S/ {inspection.price}</p>
-                                     
-                                    </div>
-                                </div>
-                                <div className={styles['mobile-buttons']}>
-                                    <a
-                                        href={`/agendar?plan=${inspection.type}`}
-                                        className={styles['btn-add-cart']}
-                                    >
-                                        Elegir plan
-                                    </a>
-                                    <button
-                                        type="button"
-                                        className={styles['btn-secondary']}
-                                        onClick={() => openModal(inspection, itemsForInspection?.label || [], inspectionIndex)}
-                                        aria-label={`Saber más sobre ${inspection.title}`}
-                                    >
-                                        Saber más
-                                    </button>
-                                </div>
-                            </article>
-                        );
-                    })}
-                </div>
+        {/* Título de planes mecánicos */}
+        <h2 id="planes-heading" className={styles.planesTitle}>
+          Complementa tu reporte legal con una revisión mecánica
+        </h2>
 
-                {/* Versión PC - Grid con 3 planes (Premium al centro) */}
-                <div className={styles['desktop-plans']}>
-                    {/* Reordenamos: Legal Express (0), Premium (2), Básica (1) - Premium al centro */}
-                    {[0, 2, 1].map((originalIndex) => {
-                        const inspection = inspectionPlans[originalIndex];
-                        const itemsForInspection = inspectionPlanItems.find(
-                            ii => ii.inspectionPlanId === originalIndex + 1
-                        );
-
-                        const isPremium = originalIndex === 2; // Plan Premium
-
-                        return (
-                            <div
-                                key={inspection.type}
-                                className={`${styles['desktop-plan-card']} ${isPremium ? styles['desktop-plan-featured'] : ''}`}
-                            >
-                                {/* Badge "Más Popular" para Premium - diseño premium */}
-                                {isPremium && (
-                                    <div className={styles['premium-badge-top']}>
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
-                                        </svg>
-                                        <span>MÁS POPULAR</span>
-                                    </div>
-                                )}
-
-                                {/* Imagen de fondo completa */}
-                                <img
-                                    src={PLAN_IMAGES[originalIndex]}
-                                    alt={`Imagen de ${inspection.title}`}
-                                    className={styles['carousel-image']}
-                                />
-                                {/* Degradado oscuro */}
-                                <div className={styles['carousel-gradient']} />
-
-                                {/* Contenido del plan sobre la imagen */}
-                                <div className={styles['carousel-content']}>
-                                    <div className={styles['carousel-header']}>
-                                        <div className={styles['carousel-title-row']}>
-                                            <h3 className={styles['carousel-title']}>{inspection.title}</h3>
-                                         
-                                        </div>
-                                        <p className={styles['carousel-description']}>
-                                            {inspection.landingDescription}
-                                        </p>
-                                        {/* Precio grande */}
-                                        <p className={styles['carousel-price-large']}>S/{inspection.price}</p>
-                                    </div>
-
-                                    {/* Lista de items con checks verdes */}
-                                    <ul className={styles['carousel-items-list']}>
-                                        {itemsForInspection?.label.map((item, itemIndex) => (
-                                            <li key={itemIndex} className={styles['carousel-item']}>
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
-                                                    <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                                </svg>
-                                                <span>{item}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    {/* Botones */}
-                                    <div className={styles['carousel-buttons']}>
-                                        <a
-                                            href={`/agendar?plan=${inspection.type}`}
-                                            className={styles['carousel-cta']}
-                                        >
-                                            Elegir plan
-                                        </a>
-                                        <button
-                                            type="button"
-                                            className={styles['carousel-btn-secondary']}
-                                            onClick={() => {
-                                                openModal(inspection, itemsForInspection?.label || [], originalIndex);
-                                                setIsPlayingVideo(true);
-                                            }}
-                                        >
-                                            <Play size={18} />
-                                            <span>Ver video</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+        {/* ===== Mobile: cards compactas ===== */}
+        <div className={styles.mobileCards}>
+          <div
+            className={`${styles.mobileCard} ${styles.mobileCardFeatured}`}
+            onClick={() =>
+              openModal(premiumPlan, premiumItems?.label || [], 2)
+            }
+          >
+            <span className={styles.featuredBadge}>MÁS COMPLETA</span>
+            <div className={styles.mobileCardInfo}>
+              <span className={styles.mobileCardTitle}>Inspección Premium</span>
+              <span className={styles.mobileCardDesc}>
+                Videoscopía de motor y asesoría de reparación
+              </span>
             </div>
-
-            {/* Modal "Saber más" */}
-            {modalData && (
-                <div className={styles['modal-overlay']} onClick={closeModal}>
-                    {/* Wrapper para que la X no se corte por el overflow:hidden */}
-                    <div className={styles['modal-wrapper']} onClick={(e) => e.stopPropagation()}>
-                        {/* Botón cerrar - Fuera del modal-content para que no se corte */}
-                        <button
-                            className={styles['modal-close']}
-                            onClick={closeModal}
-                            aria-label="Cerrar modal"
-                        >
-                            <X size={20} />
-                        </button>
-
-                        <div className={styles['modal-content']}>
-                            {/* Fondo del modal: muestra video o imagen según el estado */}
-                            <div className={`${styles['modal-background']} ${isPlayingVideo ? styles['modal-background-video'] : ''}`}>
-                                {isPlayingVideo && modalData.videoId ? (
-                                    // Iframe de YouTube cuando el usuario hace clic en "Ver video"
-                                    <iframe
-                                        src={`https://www.youtube.com/embed/${modalData.videoId}?autoplay=1&rel=0`}
-                                        title="Video del plan"
-                                        className={styles['modal-video']}
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                ) : (
-                                    // Imagen de fondo por defecto
-                                    <>
-                                        <Image
-                                            src={PLAN_IMAGES[modalData.planIndex]}
-                                            alt={`Imagen de ${modalData.title}`}
-                                            className={styles['modal-bg-image']}
-                                            fill
-                                            sizes="(max-width: 768px) 100vw, 600px"
-                                            quality={75}
-                                        />
-                                        <div className={styles['modal-bg-overlay']} />
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Botón play - Se oculta cuando el video está reproduciéndose */}
-                            {!isPlayingVideo && (
-                                <button
-                                    type="button"
-                                    onClick={handlePlayVideo}
-                                    className={`${styles['btn-view-report']} ${styles['btn-play-circle']} ${styles['ripple-animation']}`}
-                                    aria-label="Ver video"
-                                >
-                                    <Play size={16} color="black" fill="black" />
-                                </button>
-                            )}
-
-                        {/* Contenido del modal */}
-                        <div className={`${styles['modal-body']} ${isPlayingVideo ? styles['modal-body-video'] : ''}`}>
-
-
-                            <div className={styles['modal-header']}>
-                                <h3 className={styles['modal-title']}>{modalData.title}</h3>
-                                <p className={styles['modal-description']}>
-                                    {modalData.description}
-                                    {/* Precio inline - solo visible en móvil */}
-                                    <span className={styles['modal-price-inline']}> por S/{modalData.price}.</span>
-                                </p>
-                                {/* Precio grande - solo visible en PC */}
-                                <p className={styles['modal-price-desktop']}>S/{modalData.price}</p>
-                            </div>
-
-                            <ul className={styles['modal-items-list']}>
-                                {modalData.items.map((item, index) => (
-                                    <li key={index} className={styles['modal-item']}>
-                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
-                                            <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                                        </svg>
-                                        <span>{item}</span>
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <a
-                                href={`/agendar?plan=${inspectionPlans[modalData.planIndex]?.type}`}
-                                className={styles['modal-cta']}
-                                onClick={closeModal}
-                            >
-                                <span>Elegir este plan</span>
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                    <polyline points="12 5 19 12 12 19" />
-                                </svg>
-                            </a>
-                        </div>
-                        </div>{/* cierre modal-content */}
-                    </div>{/* cierre modal-wrapper */}
+            <div className={styles.mobileCardFooter}>
+              <div className={styles.mobileCardPrices}>
+                <span className={styles.mobileCardPrice}>+S/{premiumPlan.price - legalPlan.price}</span>
+                <span className={styles.mobileCardOldPrice}>S/400</span>
+              </div>
+              <div className={styles.mobileCardMore}>
+                Conocer más
+                <div className={styles.mobileCardMoreIcon}>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#16171b"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
                 </div>
-            )}
-        </section >
-    );
-}
+              </div>
+            </div>
+          </div>
 
+          <div
+            className={styles.mobileCard}
+            onClick={() =>
+              openModal(basicaPlan, basicaItems?.label || [], 1)
+            }
+          >
+            <div className={styles.mobileCardInfo}>
+              <span className={styles.mobileCardTitle}>Inspección Básica</span>
+              <span className={styles.mobileCardDesc}>
+                200+ puntos, escáner OBD2 y escaneo de pintura
+              </span>
+            </div>
+            <div className={styles.mobileCardFooter}>
+              <div className={styles.mobileCardPrices}>
+                <span className={styles.mobileCardPrice}>+S/{basicaPlan.price - legalPlan.price}</span>
+                <span className={styles.mobileCardOldPrice}>S/350</span>
+              </div>
+              <div className={styles.mobileCardMore}>
+                Conocer más
+                <div className={styles.mobileCardMoreIcon}>
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#16171b"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ===== Desktop: full plan cards ===== */}
+        <div className={styles.desktopGrid}>
+          {/* Premium */}
+          <div className={`${styles.desktopCard} ${styles.desktopCardFeatured}`}>
+            <span className={styles.desktopBadge}>MÁS COMPLETA</span>
+            <div className={styles.desktopCardHeader}>
+              <span className={styles.desktopCardTitle}>Inspección Premium</span>
+            </div>
+            <div className={styles.desktopCardPriceRow}>
+              <span className={styles.desktopCardPrice}>+S/{premiumPlan.price - legalPlan.price}</span>
+              <span className={styles.desktopCardOldPrice}>S/400</span>
+              <span className={styles.ofertaBadge}>OFERTA</span>
+            </div>
+            <div className={styles.desktopCardItems}>
+              {premiumItems?.label.map((item, i) => (
+                <div key={i} className={styles.desktopCardItem}>
+                  <CheckIcon />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.desktopCardButtons}>
+              <a
+                href={`/agendar?plan=${premiumPlan.type}`}
+                className={styles.desktopCtaPrimary}
+              >
+                Elegir plan
+              </a>
+              <button
+                type="button"
+                className={styles.desktopCtaSecondary}
+                onClick={() => {
+                  openModal(premiumPlan, premiumItems?.label || [], 2);
+                  setIsPlayingVideo(true);
+                }}
+              >
+                <Play size={15} fill="#16171b" stroke="none" />
+                Ver video
+              </button>
+            </div>
+          </div>
+
+          {/* Básica */}
+          <div className={styles.desktopCard}>
+            <div className={styles.desktopCardHeader}>
+              <span className={styles.desktopCardTitle}>Inspección Básica</span>
+            </div>
+            <div className={styles.desktopCardPriceRow}>
+              <span className={styles.desktopCardPrice}>+S/{basicaPlan.price - legalPlan.price}</span>
+              <span className={styles.desktopCardOldPrice}>S/350</span>
+              <span className={styles.ofertaBadge}>OFERTA</span>
+            </div>
+            <div className={styles.desktopCardItems}>
+              {basicaItems?.label.map((item, i) => (
+                <div key={i} className={styles.desktopCardItem}>
+                  <CheckIcon />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.desktopCardButtons}>
+              <a
+                href={`/agendar?plan=${basicaPlan.type}`}
+                className={styles.desktopCtaOutline}
+              >
+                Elegir plan
+              </a>
+              <button
+                type="button"
+                className={styles.desktopCtaSecondary}
+                onClick={() => {
+                  openModal(basicaPlan, basicaItems?.label || [], 1);
+                  setIsPlayingVideo(true);
+                }}
+              >
+                <Play size={15} fill="#16171b" stroke="none" />
+                Ver video
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal "Saber más" / Video */}
+      {modalData && (
+        <div className={styles.modalOverlay} onClick={closeModal}>
+          <div
+            className={styles.modalWrapper}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className={styles.modalClose}
+              onClick={closeModal}
+              aria-label="Cerrar modal"
+            >
+              <X size={20} />
+            </button>
+
+            <div className={styles.modalContent}>
+              <div
+                className={`${styles.modalBackground} ${
+                  isPlayingVideo ? styles.modalBackgroundVideo : ""
+                }`}
+              >
+                {isPlayingVideo && modalData.videoId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${modalData.videoId}?autoplay=1&rel=0`}
+                    title="Video del plan"
+                    className={styles.modalVideo}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <>
+                    <Image
+                      src={PLAN_IMAGES[modalData.planIndex]}
+                      alt={`Imagen de ${modalData.title}`}
+                      className={styles.modalBgImage}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 600px"
+                      quality={75}
+                    />
+                    <div className={styles.modalBgOverlay} />
+                  </>
+                )}
+              </div>
+
+              {!isPlayingVideo && (
+                <button
+                  type="button"
+                  onClick={() => setIsPlayingVideo(true)}
+                  className={styles.btnPlayCircle}
+                  aria-label="Ver video"
+                >
+                  <Play size={16} color="black" fill="black" />
+                </button>
+              )}
+
+              <div
+                className={`${styles.modalBody} ${
+                  isPlayingVideo ? styles.modalBodyVideo : ""
+                }`}
+              >
+                <div className={styles.modalHeader}>
+                  <h3 className={styles.modalTitle}>{modalData.title}</h3>
+                  <p className={styles.modalDescription}>
+                    {modalData.description}
+                    <span className={styles.modalPriceInline}>
+                      {" "}
+                      por S/{modalData.price}.
+                    </span>
+                  </p>
+                  <p className={styles.modalPriceDesktop}>S/{modalData.price}</p>
+                </div>
+
+                <ul className={styles.modalItemsList}>
+                  {modalData.items.map((item, index) => (
+                    <li key={index} className={styles.modalItem}>
+                      <CheckIcon />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <a
+                  href={`/agendar?plan=${inspectionPlans[modalData.planIndex]?.type}`}
+                  className={styles.modalCta}
+                  onClick={closeModal}
+                >
+                  <span>Elegir este plan</span>
+                  <ArrowIcon />
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}

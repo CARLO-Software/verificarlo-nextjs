@@ -1,0 +1,1629 @@
+/* ============================================
+   Loading Page
+   ============================================ */
+.loadingPage {
+  position: relative;
+  min-height: 100vh;
+  background: #FFFFFF;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.loadingBgPattern {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(120deg, #EFEDE7 0 16px, #F7F6F3 16px 32px);
+  opacity: 0.5;
+}
+
+.loadingGlow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  background: #FBD307;
+  opacity: 0.1;
+  top: -160px;
+  left: 50%;
+  margin-left: -260px;
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.loadingHeader {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.11);
+}
+
+.loadingContent {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 0;
+}
+
+/* Logo */
+.logo {
+  display: flex;
+  align-items: baseline;
+  text-decoration: none;
+}
+
+.logoVerifi {
+  font: 800 20px 'DM Sans', sans-serif;
+  color: #EFC901;
+  letter-spacing: -0.02em;
+}
+
+.logoCarlo {
+  font: italic 700 20px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  margin-left: -1px;
+}
+
+/* Ring spinner */
+.ringContainer {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringBg {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(26, 27, 31, 0.08);
+}
+
+.ringSpinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #8A6A00;
+  border-right-color: rgba(251, 211, 7, 0.4);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ringInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.ringPercent {
+  font: 800 28px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.03em;
+}
+
+.ringLabel {
+  font: 500 11px 'DM Mono', monospace;
+  color: rgba(26, 27, 31, 0.6);
+}
+
+.loadingTitle {
+  margin: 24px 0 0;
+  font: 800 22px/1.2 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.02em;
+  max-width: 620px;
+}
+
+.loadingSubtitle {
+  margin: 12px 0 0;
+  font: 400 14px/1.55 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+  max-width: 460px;
+}
+
+.progressBar {
+  margin-top: 26px;
+  width: 100%;
+  max-width: 400px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(26, 27, 31, 0.09);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #5C8A0E, #FBD307);
+  border-radius: 999px;
+  transition: width 0.1s linear;
+}
+
+.stepsList {
+  margin-top: 30px;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  font: 500 14px 'DM Sans', sans-serif;
+}
+
+.stepDone {
+  background: rgba(92, 138, 14, 0.08);
+  border: 1px solid rgba(92, 138, 14, 0.2);
+  color: #1c1d22;
+}
+
+.stepActive {
+  background: rgba(251, 211, 7, 0.1);
+  border: 1px solid rgba(251, 211, 7, 0.3);
+  color: #1c1d22;
+}
+
+.stepPending {
+  background: rgba(26, 27, 31, 0.03);
+  border: 1px solid rgba(26, 27, 31, 0.08);
+  color: rgba(26, 27, 31, 0.5);
+}
+
+.stepIcon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepSpinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2.4px solid rgba(251, 211, 7, 0.25);
+  border-top-color: #8A6A00;
+  animation: spin 1s linear infinite;
+}
+
+.stepDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(26, 27, 31, 0.22);
+}
+
+/* ============================================
+   Report Page
+   ============================================ */
+.reportPage {
+  background: #E4E1DA;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.reportHeader {
+  flex: none;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 60px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.13);
+}
+
+.reportHeaderRight {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.reportStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 12.5px 'DM Sans', sans-serif;
+  color: #5C8A0E;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5C8A0E;
+}
+
+.sectionsBadge {
+  display: none;
+}
+
+.reportScroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: 180px;
+}
+
+.reportDocument {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid rgba(26, 27, 31, 0.14);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(26, 27, 31, 0.12);
+  overflow: hidden;
+}
+
+/* Document header */
+.docHeader {
+  padding: 20px;
+  border-bottom: 2px solid #16171b;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.docHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docKicker {
+  font: 600 10px 'DM Mono', monospace;
+  color: rgba(26, 27, 31, 0.6);
+  letter-spacing: 0.08em;
+}
+
+.docHeaderRight {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docPlate {
+  flex: none;
+  white-space: nowrap;
+  font: 800 16px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 7px;
+  background: #F2F2F2;
+  align-self: flex-start;
+}
+
+.docMeta {
+  font: 500 12px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+}
+
+/* Vehicle info */
+.docVehicle {
+  padding: 20px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.1);
+}
+
+.docVehicleTitle {
+  margin: 0;
+  font: 800 24px/1.15 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.025em;
+}
+
+.docVehicleDesc {
+  margin: 6px 0 0;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+}
+
+/* Section */
+.docSection {
+  padding: 20px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.docSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.docSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.docNum {
+  font: 700 14px 'DM Mono', monospace;
+  color: rgba(26, 27, 31, 0.45);
+}
+
+.docFieldTitle {
+  font: 700 16px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.badgeOpen {
+  flex: none;
+  font: 600 10.5px 'DM Mono', monospace;
+  color: #2AAD22;
+  background: rgba(92, 138, 14, 0.12);
+  padding: 4px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.06em;
+}
+
+.docBigValue {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+
+.bigNum {
+  font: 800 32px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.03em;
+}
+
+.bigLabel {
+  font: 500 14px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+}
+
+.docRows {
+  display: flex;
+  flex-direction: column;
+}
+
+.docRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(26, 27, 31, 0.09);
+  font: 400 13px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+}
+
+.docRowValue {
+  color: #1c1d22;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Locked sections */
+.lockedContainer {
+  position: relative;
+  border-top: 1px solid rgba(26, 27, 31, 0.1);
+}
+
+.lockedBlur {
+  filter: blur(6px);
+  opacity: 0.6;
+  user-select: none;
+  pointer-events: none;
+}
+
+.lockedRow {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.09);
+}
+
+.lockedOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.9) 40%, #fff 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.lockIcon {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(251, 211, 7, 0.16);
+  border: 1px solid rgba(251, 211, 7, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lockTitle {
+  flex: none;
+  margin: 16px 0 0;
+  font: 800 22px/1.2 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.02em;
+}
+
+.lockDesc {
+  flex: none;
+  margin: 10px 0 0;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+  max-width: 440px;
+}
+
+/* Sticky CTA */
+.stickyCta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(228, 225, 218, 0) 0%, rgba(228, 225, 218, 0.92) 45%, #E4E1DA 100%);
+}
+
+.stickyCtaCard {
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid rgba(26, 27, 31, 0.14);
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(26, 27, 31, 0.16);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.stickyCtaText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stickyCtaPriceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.stickyCtaLabel {
+  font: 700 16px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.stickyCtaPrice {
+  font: 800 16px 'DM Sans', sans-serif;
+  color: #16171b;
+  background: #FBD307;
+  padding: 2px 9px;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.stickyCtaSubtext {
+  font: 400 12.5px/1.45 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+}
+
+.stickyCtaBtn {
+  flex: none;
+  height: 54px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(251, 211, 7, 0.32);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stickyCtaBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(251, 211, 7, 0.4);
+}
+
+.stickyCtaHidden {
+  display: none;
+}
+
+/* Plans overlay */
+.planesOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.planesOverlayHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 60px;
+  border-bottom: 1px solid rgba(26, 27, 31, 0.13);
+}
+
+.planesBackBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 13px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.planesBackBtn:hover {
+  background: rgba(26, 27, 31, 0.06);
+}
+
+.planesOverlayScroll {
+  flex: 1;
+  overflow-y: auto;
+  background: #FFFFFF;
+  padding-bottom: 40px;
+}
+
+/* ============================================
+   Checkout Overlay
+   ============================================ */
+.checkoutScroll {
+  flex: 1;
+  overflow-y: auto;
+  background: #F4F2ED;
+  padding: 18px 16px 40px;
+}
+
+.checkoutGrid {
+  max-width: 520px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkoutLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.checkoutRight {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkoutVehicle {
+  background: #fff;
+  border: 1px solid rgba(26, 27, 31, 0.13);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.checkoutVehicleIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: rgba(251, 211, 7, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.checkoutVehicleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkoutVehicleKicker {
+  font: 600 10.5px 'DM Mono', monospace;
+  color: rgba(26, 27, 31, 0.68);
+}
+
+.checkoutVehicleName {
+  font: 700 16px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+/* Upsell card */
+.checkoutUpsell {
+  background: #fff;
+  border: 2px solid #FBD307;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upsellWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.upsellWarning svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.upsellWarningText {
+  font: 700 14px/1.4 'DM Sans', sans-serif;
+  color: #C1352A;
+}
+
+.upsellStats {
+  margin: 0;
+  font: 400 12px/1.55 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+}
+
+.upsellHighlight {
+  color: #EFC901;
+  font-weight: 700;
+}
+
+/* Bump options */
+.bumpOption {
+  position: relative;
+  cursor: pointer;
+  border-radius: 14px;
+  border: 1.5px solid rgba(26, 27, 31, 0.15);
+  background: transparent;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.bumpSelected {
+  border-color: #FBD307;
+  background: rgba(251, 211, 7, 0.06);
+}
+
+.bumpCheck {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 2px solid rgba(26, 27, 31, 0.25);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bumpCheckActive {
+  border-color: #16171b;
+  background: #FBD307;
+}
+
+.bumpInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.bumpName {
+  font: 700 13.5px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.bumpOldPrice {
+  text-decoration: line-through;
+  color: rgba(255, 0, 0, 0.5);
+  font-weight: 500;
+}
+
+.bumpDesc {
+  font: 400 12px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.65);
+}
+
+.bumpTotal {
+  font: 700 13px 'DM Sans', sans-serif;
+  color: #8A6A00;
+  margin-top: 2px;
+}
+
+.bumpBadge {
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  font: 700 9px 'DM Sans', sans-serif;
+  color: #16171b;
+  background: #FBD307;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+/* Order summary */
+.checkoutSummary {
+  background: #fff;
+  border: 1px solid rgba(26, 27, 31, 0.13);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.summaryTitle {
+  margin: 0;
+  padding: 16px 18px;
+  font: 700 14px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.summaryRows {
+  padding: 0 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  font: 400 13px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+}
+
+.summaryRowHighlight {
+  color: #8A6A00;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: rgba(26, 27, 31, 0.08);
+}
+
+.summaryTotal {
+  display: flex;
+  justify-content: space-between;
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+/* Checkout CTA */
+.checkoutCta {
+  height: 54px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(251, 211, 7, 0.32);
+  transition: all 0.3s ease;
+}
+
+.checkoutCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(251, 211, 7, 0.4);
+}
+
+/* Schedule form */
+.scheduleForm {
+  border-radius: 14px;
+  background: #F4F2ED;
+  border: 1px solid rgba(26, 27, 31, 0.13);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: fadeInUp 0.25s ease;
+}
+
+.scheduleFormHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scheduleFormTitle {
+  font: 600 12.5px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.scheduleFormDesc {
+  font: 400 11.5px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+}
+
+.scheduleInput {
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(26, 27, 31, 0.14);
+  background: #fff;
+  color: #1c1d22;
+  padding: 0 12px;
+  font: 400 13px 'DM Sans', sans-serif;
+  width: 100%;
+}
+
+.scheduleInput:focus {
+  outline: none;
+  border-color: #FBD307;
+}
+
+.scheduleDateRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.scheduleDateWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scheduleLabel {
+  font: 500 11px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+}
+
+/* Payment methods */
+.paymentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.paymentTitle {
+  font: 700 14px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  padding: 2px 0;
+}
+
+.payOption {
+  cursor: pointer;
+  border-radius: 13px;
+  background: #fff;
+  border: 1.5px solid rgba(26, 27, 31, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  width: 100%;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.payOptionActive {
+  border-color: #16171b;
+  background: rgba(26, 27, 31, 0.03);
+}
+
+.payRadio {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(26, 27, 31, 0.25);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.payRadioActive {
+  border-color: #16171b;
+}
+
+.payRadioDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #16171b;
+}
+
+.payBrandYape {
+  flex: none;
+  width: 38px;
+  height: 28px;
+  border-radius: 7px;
+  background: #742284;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 10.5px 'DM Sans', sans-serif;
+  color: #fff;
+}
+
+.payBrandPlin {
+  flex: none;
+  width: 34px;
+  height: 28px;
+  border-radius: 7px;
+  background: #0FB8B0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 10.5px 'DM Sans', sans-serif;
+  color: #fff;
+}
+
+.payBrandBcp {
+  flex: none;
+  width: 38px;
+  height: 28px;
+  border-radius: 7px;
+  background: #00427A;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 800 10.5px 'DM Sans', sans-serif;
+  color: #fff;
+}
+
+.payOptionInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.payOptionName {
+  font: 700 13.5px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.payOptionDesc {
+  font: 400 11.5px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+}
+
+.paySecure {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  font: 400 12px 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.68);
+  padding-bottom: 8px;
+}
+
+/* ============================================
+   Plans Comparison
+   ============================================ */
+.planesSection {
+  max-width: 100%;
+  margin: 30px auto 0;
+  padding: 0 16px;
+}
+
+.planesHeader {
+  text-align: center;
+  padding: 40px 20px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.planesTitle {
+  margin: 0;
+  font: 800 27px/1.2 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.02em;
+}
+
+.planesSubtitle {
+  margin: 14px 0 0;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Desktop table - hidden on mobile */
+.planesTable {
+  display: none;
+}
+
+/* Mobile accordion */
+.mobilePlans {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0 16px 20px;
+}
+
+.mobilePlanCard {
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.mobilePlanHead {
+  cursor: pointer;
+  width: 100%;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1.5px solid rgba(26, 27, 31, 0.15);
+  border-radius: 20px;
+  text-align: left;
+}
+
+.mobilePlanHead[class*="Featured"] {
+  border-color: rgba(251, 211, 7, 0.5);
+  background: rgba(251, 211, 7, 0.06);
+}
+
+.mobilePlanHeadFeatured {
+  border-color: rgba(251, 211, 7, 0.5) !important;
+  background: rgba(251, 211, 7, 0.06) !important;
+}
+
+[data-expanded="true"] .mobilePlanHead {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.mobilePlanInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mobilePlanNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobilePlanName {
+  font: 700 17px 'DM Sans', sans-serif;
+  color: #B48A00;
+}
+
+.mobilePlanPrice {
+  font: 800 22px 'DM Sans', sans-serif;
+  color: #B48A00;
+}
+
+.chevronUp {
+  transform: rotate(180deg);
+}
+
+.mobilePlanBody {
+  background: #F4F2ED;
+  padding: 18px 20px 22px;
+  border: 1.5px solid rgba(26, 27, 31, 0.15);
+  border-top: 0;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobilePlanItem {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.78);
+}
+
+.mobilePlanItem svg {
+  flex: none;
+  margin-top: 2px;
+  width: 16px;
+  height: 16px;
+}
+
+/* Plan badge */
+.planBadge {
+  font: 700 9.5px 'DM Sans', sans-serif;
+  color: #16171b;
+  background: #FBD307;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Plan CTA buttons */
+.planCtaOutline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(26, 27, 31, 0.28);
+  font: 700 14px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.planCtaPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  font: 700 14px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+  cursor: pointer;
+  border: none;
+  margin-top: 8px;
+}
+
+/* Table cells */
+.dash {
+  color: rgba(26, 27, 31, 0.35);
+  font: 400 15px 'DM Sans', sans-serif;
+}
+
+/* Nudge section */
+.planesNudge {
+  background: #F4F2ED;
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  border-radius: 16px;
+  margin: 20px 16px 0;
+}
+
+.nudgeTitle {
+  margin: 0;
+  font: 700 22px 'DM Sans', sans-serif;
+  color: #1c1d22;
+}
+
+.nudgeDesc {
+  margin: 0;
+  font: 400 14px/1.55 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+  max-width: 480px;
+}
+
+.nudgeCta {
+  height: 52px;
+  padding: 0 30px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  display: flex;
+  align-items: center;
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+}
+
+/* ============================================
+   Desktop (768px+)
+   ============================================ */
+@media screen and (min-width: 768px) {
+  .loadingHeader {
+    height: 80px;
+  }
+
+  .logoVerifi {
+    font-size: 28px;
+  }
+
+  .logoCarlo {
+    font-size: 28px;
+  }
+
+  .ringContainer {
+    width: 120px;
+    height: 120px;
+  }
+
+  .ringPercent {
+    font-size: 36px;
+  }
+
+  .loadingTitle {
+    font-size: 30px;
+  }
+
+  .loadingSubtitle {
+    font-size: 16px;
+  }
+
+  .progressBar {
+    max-width: 500px;
+  }
+
+  .stepsList {
+    max-width: 500px;
+  }
+
+  .reportHeader {
+    padding: 0 40px;
+    height: 70px;
+  }
+
+  .sectionsBadge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: #F4F2ED;
+    border: 1px solid rgba(26, 27, 31, 0.13);
+    font: 600 11.5px 'DM Mono', monospace;
+    color: rgba(26, 27, 31, 0.68);
+  }
+
+  .reportScroll {
+    padding: 30px 40px;
+    padding-bottom: 180px;
+  }
+
+  .reportDocument {
+    border-radius: 20px;
+  }
+
+  .docHeader {
+    padding: 30px 36px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .docHeaderRight {
+    align-items: flex-end;
+  }
+
+  .docPlate {
+    font-size: 18px;
+  }
+
+  .docVehicle {
+    padding: 28px 36px;
+  }
+
+  .docVehicleTitle {
+    font-size: 32px;
+  }
+
+  .docSection {
+    padding: 28px 36px;
+  }
+
+  .docFieldTitle {
+    font-size: 18px;
+  }
+
+  .bigNum {
+    font-size: 40px;
+  }
+
+  .docRow {
+    font-size: 14px;
+  }
+
+  .lockedRow {
+    padding: 28px 36px;
+  }
+
+  .stickyCtaCard {
+    padding: 20px 24px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stickyCtaLabel {
+    font-size: 18px;
+  }
+
+  .stickyCtaPrice {
+    font-size: 18px;
+  }
+
+  /* Plans comparison - desktop table */
+  .planesSection {
+    padding: 0 56px;
+  }
+
+  .planesTitle {
+    font-size: 42px;
+    letter-spacing: -0.02em;
+    max-width: 720px;
+  }
+
+  .planesSubtitle {
+    font-size: 16px;
+  }
+
+  .planesHeader {
+    padding: 50px 56px 30px;
+  }
+
+  .planesTable {
+    display: block;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(26, 27, 31, 0.14);
+    overflow: hidden;
+  }
+
+  .mobilePlans {
+    display: none;
+  }
+
+  .planesTableHead {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: #F4F2ED;
+    border-bottom: 1px solid rgba(26, 27, 31, 0.1);
+    display: grid;
+    grid-template-columns: 300px 1fr 1fr 1fr;
+  }
+
+  .planesTableCol {
+    padding: 20px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-left: 1px solid rgba(26, 27, 31, 0.11);
+  }
+
+  .planesTableColFeatured {
+    background: rgba(251, 211, 7, 0.08);
+  }
+
+  .planColName {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 700 16px 'DM Sans', sans-serif;
+    color: #1c1d22;
+  }
+
+  .planesTableColFeatured .planColName {
+    color: #8A6A00;
+  }
+
+  .planColPrice {
+    font: 800 24px 'DM Sans', sans-serif;
+    color: #1c1d22;
+  }
+
+  .planesTableColFeatured .planColPrice {
+    color: #8A6A00;
+  }
+
+  .planesTableRow {
+    display: grid;
+    grid-template-columns: 300px 1fr 1fr 1fr;
+    border-top: 1px solid rgba(26, 27, 31, 0.1);
+  }
+
+  .planesTableLabel {
+    padding: 15px 18px 15px 0;
+    font: 400 14.5px 'DM Sans', sans-serif;
+    color: rgba(26, 27, 31, 0.82);
+  }
+
+  .planesTableCell {
+    border-left: 1px solid rgba(26, 27, 31, 0.1);
+    padding: 15px 18px;
+    display: flex;
+    align-items: center;
+  }
+
+  .planesTableCellFeatured {
+    background: rgba(251, 211, 7, 0.04);
+  }
+
+  .planesGroup {
+    margin-top: 26px;
+    padding: 0 0 0 18px;
+  }
+
+  .planesGroupTitle {
+    font: 600 12px 'DM Mono', monospace;
+    color: rgba(26, 27, 31, 0.6);
+    letter-spacing: 0.08em;
+    padding: 0 0 10px;
+  }
+
+  .planDurationLabel {
+    font: 400 13.5px 'DM Sans', sans-serif;
+    color: rgba(26, 27, 31, 0.68);
+  }
+
+  .planDurationCell {
+    font: 500 13.5px 'DM Sans', sans-serif;
+    color: rgba(26, 27, 31, 0.7);
+  }
+
+  .planesTableCellFeatured.planDurationCell {
+    color: #8A6A00;
+  }
+
+  .planesTable .planCtaOutline,
+  .planesTable .planCtaPrimary {
+    margin-top: 0;
+    width: 100%;
+  }
+
+  .planesTable > .planesTableRow:first-of-type {
+    border-top: none;
+  }
+
+  .planesTable > .planesTableRow:first-of-type .planesTableCell {
+    padding: 20px 18px 24px;
+  }
+
+  .planesOverlayHeader {
+    padding: 0 40px;
+    height: 70px;
+  }
+
+  .checkoutScroll {
+    padding: 30px 40px 40px;
+  }
+
+  .checkoutGrid {
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .checkoutRight {
+    position: sticky;
+    top: 30px;
+  }
+
+  .planesNudge {
+    margin: 30px 0 0;
+    padding: 56px;
+    border-radius: 16px;
+  }
+
+  .nudgeTitle {
+    font-size: 26px;
+  }
+
+  .nudgeDesc {
+    font-size: 15px;
+  }
+}
+
+/* PDF success view */
+.pdfSuccess {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.pdfSuccessIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(34, 197, 94, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.pdfSuccessTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #16171b;
+  text-align: center;
+}
+
+.pdfSuccessDesc {
+  font-size: 14px;
+  color: rgba(26, 27, 31, 0.6);
+  text-align: center;
+}
+
+.pdfViewer {
+  width: 100%;
+  height: 500px;
+  border: 1px solid rgba(26, 27, 31, 0.08);
+  border-radius: 12px;
+  margin: 16px 0;
+}
+
+.checkoutError {
+  color: #dc2626;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ringSpinner,
+  .stepSpinner {
+    animation: none;
+  }
+
+  .stickyCtaBtn {
+    transition: none;
+  }
+}
