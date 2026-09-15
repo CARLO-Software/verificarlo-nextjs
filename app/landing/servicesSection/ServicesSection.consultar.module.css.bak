@@ -1,0 +1,676 @@
+/* ============================================
+   Services / Plans Section
+   ============================================ */
+.section {
+  background: #F4F2ED;
+  padding: 26px 16px 30px;
+}
+
+.container {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ============================================
+   Legal Report Banner
+   ============================================ */
+.legalBanner {
+  position: relative;
+  overflow: hidden;
+  background: #16171b;
+  border-radius: 18px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bannerGlow {
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  background: #FBD307;
+  opacity: 0.2;
+  top: -130px;
+  right: -60px;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+
+.bannerContent {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bannerTitle {
+  font: 800 22px/1.15 'DM Sans', sans-serif;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.bannerPrice {
+  color: #FBD307;
+}
+
+.bannerDivider {
+  display: none;
+}
+
+.bannerDesc {
+  position: relative;
+  font: 400 12.5px/1.45 'DM Sans', sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.bannerCta {
+  position: relative;
+  height: 46px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: 700 14.5px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+}
+
+.bannerCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
+}
+
+/* ============================================
+   Plans Title
+   ============================================ */
+.planesTitle {
+  margin: 8px 0 0;
+  font: 800 22px/1.22 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================
+   Mobile Cards
+   ============================================ */
+.mobileCards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mobileCard {
+  cursor: pointer;
+  position: relative;
+  background: #fff;
+  border: 1px solid rgba(26, 27, 31, 0.14);
+  border-radius: 18px;
+  padding: 18px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 6px 18px rgba(26, 27, 31, 0.07);
+  transition: transform 0.2s ease;
+}
+
+.mobileCard:active {
+  transform: scale(0.98);
+}
+
+.mobileCardFeatured {
+  border: 2px solid #FBD307;
+}
+
+.featuredBadge {
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  font: 700 9.5px 'DM Sans', sans-serif;
+  color: #16171b;
+  background: #FBD307;
+  padding: 3px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+.mobileCardInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mobileCardTitle {
+  font: 800 18px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.01em;
+}
+
+.mobileCardDesc {
+  font: 400 12.5px/1.4 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+}
+
+.mobileCardFooter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(26, 27, 31, 0.1);
+}
+
+.mobileCardPrices {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mobileCardPrice {
+  font: 800 28px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.03em;
+}
+
+.mobileCardOldPrice {
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #C1352A;
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.mobileCardMore {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 12.5px 'DM Sans', sans-serif;
+  color: #8A6A00;
+}
+
+.mobileCardMoreIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #FBD307;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============================================
+   Desktop Grid (hidden on mobile)
+   ============================================ */
+.desktopGrid {
+  display: none;
+}
+
+/* ============================================
+   Check Icon
+   ============================================ */
+.checkIcon {
+  flex: none;
+  margin-top: 3px;
+  stroke: #409500;
+}
+
+/* ============================================
+   Oferta badge
+   ============================================ */
+.ofertaBadge {
+  font: 600 11px 'DM Mono', monospace;
+  color: #C1352A;
+  background: rgba(193, 53, 42, 0.1);
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+
+/* ============================================
+   Modal (reused from old design)
+   ============================================ */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modalWrapper {
+  position: relative;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+}
+
+.modalClose {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  z-index: 10;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s;
+}
+
+.modalClose:hover {
+  transform: scale(1.1);
+}
+
+.modalContent {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modalBackground {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.modalBackgroundVideo {
+  height: 0;
+  padding-bottom: 56.25%;
+}
+
+.modalVideo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.modalBgImage {
+  object-fit: cover;
+}
+
+.modalBgOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+}
+
+.btnPlayCircle {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+
+.btnPlayCircle:hover {
+  transform: translateX(-50%) scale(1.1);
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modalBodyVideo {
+  padding-top: 16px;
+}
+
+.modalHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.modalTitle {
+  margin: 0;
+  font: 800 22px 'DM Sans', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.01em;
+}
+
+.modalDescription {
+  margin: 0;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+}
+
+.modalPriceInline {
+  font-weight: 700;
+  color: #1c1d22;
+}
+
+.modalPriceDesktop {
+  display: none;
+}
+
+.modalItemsList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modalItem {
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+  font: 400 14px/1.5 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.8);
+}
+
+.modalCta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 52px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  font: 700 15px 'DM Sans', sans-serif;
+  color: #16171b;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+  transition: all 0.3s ease;
+}
+
+.modalCta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
+}
+
+/* ============================================
+   Desktop (768px+)
+   ============================================ */
+@media screen and (min-width: 768px) {
+  .section {
+    padding: 90px 56px 100px;
+  }
+
+  .container {
+    gap: 44px;
+  }
+
+  /* Banner desktop */
+  .legalBanner {
+    border-radius: 22px;
+    padding: 30px 38px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+
+  .bannerGlow {
+    width: 340px;
+    height: 340px;
+    top: -140px;
+    right: 120px;
+    filter: blur(80px);
+  }
+
+  .bannerContent {
+    flex-direction: row;
+    align-items: center;
+    gap: 26px;
+  }
+
+  .bannerTitle {
+    font-size: 34px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+
+  .bannerDivider {
+    display: block;
+    width: 1px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .bannerDesc {
+    font-size: 14.5px;
+    line-height: 1.45;
+    max-width: 280px;
+  }
+
+  .bannerCta {
+    flex: none;
+    height: 56px;
+    padding: 0 32px;
+    font-size: 16px;
+    gap: 10px;
+  }
+
+  /* Title desktop */
+  .planesTitle {
+    margin: 0;
+    font-size: 40px;
+    line-height: 1.15;
+    max-width: 700px;
+  }
+
+  /* Hide mobile, show desktop */
+  .mobileCards {
+    display: none;
+  }
+
+  .desktopGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* Desktop plan cards */
+  .desktopCard {
+    background: #FFFFFF;
+    border: 1px solid rgba(26, 27, 31, 0.13);
+    border-radius: 22px;
+    padding: 34px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .desktopCardFeatured {
+    position: relative;
+    border: 2px solid #FBD307;
+    box-shadow: 0 14px 34px rgba(26, 27, 31, 0.1);
+  }
+
+  .desktopBadge {
+    position: absolute;
+    top: -12px;
+    left: 32px;
+    font: 700 12px 'DM Sans', sans-serif;
+    color: #16171b;
+    background: #FBD307;
+    padding: 4px 11px;
+    border-radius: 999px;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  .desktopCardHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .desktopCardTitle {
+    font: 800 25px 'DM Sans', sans-serif;
+    color: #1c1d22;
+    letter-spacing: -0.01em;
+  }
+
+  .desktopCardPriceRow {
+    display: flex;
+    align-items: baseline;
+    gap: 9px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(26, 27, 31, 0.11);
+  }
+
+  .desktopCardPrice {
+    font: 800 40px 'DM Sans', sans-serif;
+    color: #1c1d22;
+    letter-spacing: -0.03em;
+  }
+
+  .desktopCardOldPrice {
+    font: 700 20px 'DM Sans', sans-serif;
+    color: #C1352A;
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+
+  .desktopCardItems {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .desktopCardItem {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+    font: 400 14.5px/1.5 'DM Sans', sans-serif;
+    color: rgba(26, 27, 31, 0.8);
+  }
+
+  .desktopCardButtons {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .desktopCtaPrimary {
+    flex: 1;
+    height: 52px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #FBD307, #FFE04D);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 15px 'DM Sans', sans-serif;
+    color: #16171b;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .desktopCtaPrimary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
+  }
+
+  .desktopCtaOutline {
+    flex: 1;
+    height: 52px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(26, 27, 31, 0.28);
+    background: #FDDD3A;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: 700 15px 'DM Sans', sans-serif;
+    color: #1c1d22;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .desktopCtaOutline:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(26, 27, 31, 0.1);
+  }
+
+  .desktopCtaSecondary {
+    cursor: pointer;
+    height: 52px;
+    padding: 0 22px;
+    border-radius: 999px;
+    border: 1.5px solid rgba(26, 27, 31, 0.28);
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 700 15px 'DM Sans', sans-serif;
+    color: #1c1d22;
+    transition: all 0.2s ease;
+  }
+
+  .desktopCtaSecondary:hover {
+    background: rgba(26, 27, 31, 0.04);
+  }
+
+  /* Modal desktop */
+  .modalBackground {
+    height: 260px;
+  }
+
+  .modalPriceInline {
+    display: none;
+  }
+
+  .modalPriceDesktop {
+    display: block;
+    margin: 4px 0 0;
+    font: 800 32px 'DM Sans', sans-serif;
+    color: #1c1d22;
+  }
+}
+
+/* ============================================
+   Reduced Motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  .bannerCta,
+  .modalCta,
+  .desktopCtaPrimary,
+  .desktopCtaOutline {
+    transition: none;
+  }
+
+  .bannerCta:hover,
+  .modalCta:hover,
+  .desktopCtaPrimary:hover,
+  .desktopCtaOutline:hover {
+    transform: none;
+  }
+}
