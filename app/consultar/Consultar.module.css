@@ -258,6 +258,22 @@
   display: none;
 }
 
+.generatePdfBtn {
+  padding: 8px 16px;
+  background: #FBD307;
+  color: #16171b;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.generatePdfBtn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .reportScroll {
   flex: 1;
   overflow-y: auto;

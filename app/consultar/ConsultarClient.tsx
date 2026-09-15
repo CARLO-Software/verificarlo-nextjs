@@ -95,6 +95,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [showPlans, setShowPlans] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   useEffect(() => {
     if (phase !== "loading") return;
@@ -192,6 +193,35 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             Reporte generado
           </div>
           <div className={styles.sectionsBadge}>2 de 7 secciones desbloqueadas</div>
+          <button
+            type="button"
+            className={styles.generatePdfBtn}
+            disabled={generatingPdf}
+            onClick={async () => {
+              setGeneratingPdf(true);
+              try {
+                const res = await fetch("/api/legal-report/generate", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ plate: placa }),
+                });
+                if (!res.ok) throw new Error("Error generando PDF");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `reporte-legal-${placa}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+              } catch {
+                alert("Error generando el reporte. Intenta de nuevo.");
+              } finally {
+                setGeneratingPdf(false);
+              }
+            }}
+          >
+            {generatingPdf ? "Generando…" : "Generar PDF Legal"}
+          </button>
         </div>
       </div>
 
