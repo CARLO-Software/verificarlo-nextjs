@@ -53,6 +53,8 @@ interface ApiResponse {
     vigencia_hasta: string;
     nro_certificado: string;
     nro_accidentes: string;
+    nro_poliza?: string;
+    vigencia?: string;
     estado?: string;
   }[];
   desglose_seguro_vehicular?: { aseguradora?: string; nro_poliza?: string; periodo?: string; cantidad?: number }[];
@@ -78,9 +80,31 @@ function semaforoToStatus(semaforo: string): FieldStatus {
 function parseDatosComplementarios(raw?: string): Record<string, string> {
   if (!raw) return {};
   const result: Record<string, string> = {};
-  for (const pair of raw.split(';')) {
-    const idx = pair.indexOf(':');
-    if (idx > 0) result[pair.slice(0, idx).trim()] = pair.slice(idx + 1).trim();
+  // Format: "Partida XXXXX, Zona Registral..., Oficina Registral... . Key1 Value1, Key2 Value2, ..."
+  // Split on comma, then try "Key Value" or "Key: Value" patterns
+  const parts = raw.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+  for (const part of parts) {
+    // Try "Key: Value" first
+    const colonIdx = part.indexOf(':');
+    if (colonIdx > 0) {
+      result[part.slice(0, colonIdx).trim()] = part.slice(colonIdx + 1).trim();
+      continue;
+    }
+    // Known keys with space-separated values
+    const knownKeys = [
+      'Partida', 'Tipo Carrocería', 'Tipo Carroceria', 'Nro. Ruedas', 'Nro. Ejes',
+      'Fórmula Rodante', 'Formula Rodante', 'Potencia Motor', 'Nro. Cilindros',
+      'Cilindrada', 'Longitud', 'Ancho', 'Altura', 'Nro. Asientos', 'Nro. Pasajeros',
+      'Peso Bruto', 'Peso Neto', 'Carga Util', 'Carga Útil',
+      'Nro. Versión', 'Nro. Version', 'Zona Registral', 'Oficina Registral',
+    ];
+    for (const key of knownKeys) {
+      if (part.startsWith(key)) {
+        const val = part.slice(key.length).trim().replace(/^\.?\s*/, '');
+        if (val) result[key] = val;
+        break;
+      }
+    }
   }
   return result;
 }
@@ -93,6 +117,21 @@ function parseDate(dateStr: string): Date | null {
 
 function findDeuda(deudas: ApiResponse['deudas_multas_capturas'], fuente: string) {
   return deudas?.find(d => d.fuente === fuente);
+}
+
+function cleanResultText(text: string): string {
+  let clean = text
+    .replace(/\s*\([^)]*=[^)]*\)/g, '')
+    .replace(/\s*\([^)]*:\s*[^)]*=[^)]*\)/g, '')
+    .replace(/\s*\w+:\s*\w+=\w+/g, '')
+    .replace(/\.\s*\./g, '.')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  // Improve common terse outputs
+  if (/^Sin resultados$/i.test(clean)) clean = 'No presenta infracciones pendientes de pago.';
+  if (/^Sin papeletas registradas$/i.test(clean)) clean = 'No presenta papeletas pendientes de pago.';
+  if (/^SIN REGISTRO en SBS$/i.test(clean)) clean = 'Sin registro de seguro vehicular en SBS.';
+  return clean;
 }
 
 // === CONCEPT BUILDERS (summary badges) ===
@@ -138,10 +177,10 @@ function buildCaptura(api: ApiResponse) {
   if (!d) {
     const captura = api.deudas_multas_capturas?.find(x => x.fuente.includes('captura'));
     if (!captura) return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'No presenta orden de captura.' };
-    return { status: semaforoToStatus(captura.semaforo), badgeText: captura.semaforo === 'verde' ? 'OK' : 'CON CAPTURA', text: captura.resultado };
+    return { status: semaforoToStatus(captura.semaforo), badgeText: captura.semaforo === 'verde' ? 'OK' : 'CON CAPTURA', text: cleanResultText(captura.resultado) };
   }
   const status = semaforoToStatus(d.semaforo);
-  return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: d.resultado };
+  return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: cleanResultText(d.resultado) };
 }
 
 function buildImpuesto(api: ApiResponse) {
@@ -166,14 +205,14 @@ function buildPapeletas(api: ApiResponse, fuente: string, label: string) {
     const match = d.resultado.match(/S\/\s*[\d,.]+/);
     badgeText = match ? `${match[0]} PENDIENTE` : 'CON DEUDA';
   } else if (status === 'WARNING') badgeText = 'REVISAR';
-  return { status, badgeText, text: d.resultado };
+  return { status, badgeText, text: cleanResultText(d.resultado) };
 }
 
 function buildSutran(api: ApiResponse) {
   const d = findDeuda(api.deudas_multas_capturas, 'sutran_record') ?? findDeuda(api.deudas_multas_capturas, 'sutran');
   if (!d) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'No se pudo consultar SUTRAN.' };
   const status = semaforoToStatus(d.semaforo);
-  return { status, badgeText: status === 'OK' ? 'OK' : status === 'WARNING' ? 'REVISAR' : 'PENDIENTES', text: d.resultado };
+  return { status, badgeText: status === 'OK' ? 'OK' : status === 'WARNING' ? 'REVISAR' : 'PENDIENTES', text: cleanResultText(d.resultado) };
 }
 
 function buildSoat(api: ApiResponse) {
@@ -201,7 +240,7 @@ function buildRevisionTecnica(api: ApiResponse) {
     if (status === 'CRITICAL') badgeText = 'VENCIDO';
     else if (status === 'WARNING') badgeText = 'VENCE PRONTO';
     else if (status === 'PENDING') badgeText = 'NO EXIGIBLE';
-    return { status, badgeText, text: citv.resultado };
+    return { status, badgeText, text: cleanResultText(citv.resultado) };
   }
   if (api.revision_tecnica) {
     const rt = api.revision_tecnica as { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
@@ -209,7 +248,7 @@ function buildRevisionTecnica(api: ApiResponse) {
     let badgeText = 'VIGENTE';
     if (status === 'CRITICAL') badgeText = 'VENCIDO';
     else if (status === 'WARNING') badgeText = rt.detalle?.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
-    return { status, badgeText, text: rt.detalle || rt.estado };
+    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
 }
@@ -221,7 +260,7 @@ function buildSiniestros(api: ApiResponse) {
     const status = semaforoToStatus(sin.semaforo);
     const match = sin.resultado.match(/(\d+)\s*(?:siniestro|accidente)/i);
     const count = match ? parseInt(match[1], 10) : 0;
-    return { status, badgeText: status === 'OK' ? 'OK' : `${count} SINIESTRO${count !== 1 ? 'S' : ''}`, text: sin.resultado };
+    return { status, badgeText: status === 'OK' ? 'OK' : `${count} SINIESTRO${count !== 1 ? 'S' : ''}`, text: cleanResultText(sin.resultado) };
   }
   const soat = api.desglose_soat?.[0];
   if (soat) {
@@ -239,7 +278,7 @@ function buildActivaciones(api: ApiResponse) {
     const status = semaforoToStatus(act.semaforo);
     const match = act.resultado.match(/(\d+)\s*activacion/i);
     const count = match ? parseInt(match[1], 10) : 0;
-    return { status, badgeText: status === 'OK' ? 'OK' : status === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.`, text: act.resultado };
+    return { status, badgeText: status === 'OK' ? 'OK' : status === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.`, text: cleanResultText(act.resultado) };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: 'SBS no respondió.' };
 }
@@ -249,10 +288,14 @@ function buildGnv(api: ApiResponse) {
   if (arr && arr.length > 0) {
     const allGray = arr.every(g => g.semaforo === 'gris');
     if (allGray) return { status: 'OK' as FieldStatus, badgeText: 'NO APLICA', text: 'Sin registro de conversión a GNV.' };
+    const infogas = arr.find(g => g.concepto === 'infogas');
+    const fise = arr.find(g => g.concepto === 'fise');
     const hasRed = arr.some(g => g.semaforo === 'rojo');
-    if (hasRed) return { status: 'CRITICAL' as FieldStatus, badgeText: 'REVISAR GNV', text: arr.map(g => g.resultado).join('. ') };
     const hasYellow = arr.some(g => g.semaforo === 'amarillo' || g.semaforo === 'ambar');
+    if (hasRed) return { status: 'CRITICAL' as FieldStatus, badgeText: 'REVISAR GNV', text: arr.map(g => g.resultado).join('. ') };
     if (hasYellow) return { status: 'WARNING' as FieldStatus, badgeText: 'REVISAR GNV', text: arr.map(g => g.resultado).join('. ') };
+    if (infogas?.semaforo === 'verde') return { status: 'OK' as FieldStatus, badgeText: 'HABILITADO', text: arr.map(g => g.resultado).join('. ') };
+    if (fise?.semaforo === 'verde') return { status: 'OK' as FieldStatus, badgeText: fise.resultado.toLowerCase().includes('recaudando') ? 'RECAUDANDO' : 'PAGADO', text: arr.map(g => g.resultado).join('. ') };
     return { status: 'OK' as FieldStatus, badgeText: 'OK', text: arr.map(g => g.resultado).join('. ') };
   }
   if (api.fuentes_consultadas?.some(f => f.toLowerCase().includes('infogas') || f.toLowerCase().includes('fise')))
@@ -277,25 +320,50 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   const debts: TableEntry[] = [];
 
   const captura = dmc.find(d => d.fuente.includes('captura'));
+  let capturaResult = captura?.resultado;
+  if (!capturaResult) {
+    // Extract captura info from sat_lima combined result
+    const satEntry = dmc.find(d => d.fuente === 'sat_lima');
+    const capturaMatch = satEntry?.resultado.match(/Sin orden de captura[^.)]*/i);
+    capturaResult = capturaMatch ? capturaMatch[0] : `No tiene orden de captura en la provincia de Lima (al ${format(now, 'dd/MM/yyyy')}).`;
+  }
   debts.push({
     concept: 'Orden de captura',
     entity: 'SAT Lima',
-    result: captura?.resultado || `No tiene orden de captura en la provincia de Lima (al ${format(now, 'dd/MM/yyyy')}).`,
+    result: cleanResultText(capturaResult),
     status: captura ? semaforoToStatus(captura.semaforo) : 'OK',
     statusText: captura && captura.semaforo !== 'verde' ? 'CON CAPTURA' : 'OK',
   });
 
   const sat = dmc.find(d => d.fuente === 'sat_lima');
-  if (sat) debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: sat.resultado, status: semaforoToStatus(sat.semaforo), statusText: semaforoToStatus(sat.semaforo) === 'OK' ? 'OK' : 'PENDIENTE' });
+  if (sat) {
+    const st = semaforoToStatus(sat.semaforo);
+    const match = sat.resultado.match(/S\/\s*[\d,.]+/);
+    // Extract only the papeletas part if the result combines papeletas + captura
+    const papeletasPart = sat.resultado.split(/\.\s*Sin orden de captura/i)[0];
+    debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(papeletasPart), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+  }
 
   const callao = dmc.find(d => d.fuente === 'mun_callao');
-  if (callao) debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: callao.resultado, status: semaforoToStatus(callao.semaforo), statusText: semaforoToStatus(callao.semaforo) === 'OK' ? 'OK' : 'PENDIENTE' });
+  if (callao) {
+    const st = semaforoToStatus(callao.semaforo);
+    const match = callao.resultado.match(/S\/\s*[\d,.]+/);
+    debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+  }
 
   const atu = dmc.find(d => d.fuente === 'atu');
-  if (atu) debts.push({ concept: 'Infracciones', entity: 'ATU', result: atu.resultado, status: semaforoToStatus(atu.semaforo), statusText: semaforoToStatus(atu.semaforo) === 'OK' ? 'OK' : 'PENDIENTE' });
+  if (atu) {
+    const st = semaforoToStatus(atu.semaforo);
+    const match = atu.resultado.match(/S\/\s*[\d,.]+/);
+    debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+  }
 
   const sutran = dmc.find(d => d.fuente === 'sutran_record');
-  if (sutran) debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: sutran.resultado, status: semaforoToStatus(sutran.semaforo), statusText: semaforoToStatus(sutran.semaforo) === 'OK' ? 'OK' : 'PENDIENTE' });
+  if (sutran) {
+    const st = semaforoToStatus(sutran.semaforo);
+    const match = sutran.resultado.match(/S\/\s*[\d,.]+/);
+    debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+  }
 
   return debts;
 }
@@ -310,7 +378,7 @@ function buildInsuranceTable(api: ApiResponse): TableEntry[] {
     const st = semaforoToStatus(soat.semaforo);
     items.push({
       concept: 'SOAT', entity: soatDetail ? `APESEG / ${soatDetail.compania}` : 'APESEG',
-      result: soat.resultado, status: st,
+      result: cleanResultText(soat.resultado), status: st,
       statusText: st === 'OK' ? 'VIGENTE' : st === 'WARNING' ? 'VENCE PRONTO' : st === 'CRITICAL' ? 'NO VIGENTE' : 'SIN REGISTRO',
     });
   }
@@ -318,10 +386,13 @@ function buildInsuranceTable(api: ApiResponse): TableEntry[] {
   const citv = srs.find(s => s.concepto === 'citv');
   if (citv) {
     const st = semaforoToStatus(citv.semaforo);
+    let citvText = 'VIGENTE';
+    if (st === 'CRITICAL') citvText = citv.resultado.toLowerCase().includes('sin registro') ? 'SIN REGISTRO' : 'VENCIDO';
+    else if (st === 'WARNING') citvText = citv.resultado.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    else if (st === 'PENDING') citvText = citv.resultado.toLowerCase().includes('no exigible') ? 'NO EXIGIBLE' : 'NO CONSULTADO';
     items.push({
       concept: 'Revision tecnica (CITV)', entity: 'MTC',
-      result: citv.resultado, status: st,
-      statusText: st === 'OK' ? 'VIGENTE' : st === 'PENDING' ? 'NO EXIGIBLE' : 'VENCIDO',
+      result: cleanResultText(citv.resultado), status: st, statusText: citvText,
     });
   }
 
@@ -335,7 +406,7 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
   const sin = srs.find(s => s.concepto === 'siniestros_soat');
   if (sin) {
     const st = semaforoToStatus(sin.semaforo);
-    items.push({ concept: 'Siniestros con cobertura SOAT', entity: 'SBS', result: sin.resultado, status: st, statusText: st === 'OK' ? 'OK' : 'SINIESTROS' });
+    items.push({ concept: 'Siniestros con cobertura SOAT', entity: 'SBS', result: cleanResultText(sin.resultado), status: st, statusText: st === 'OK' ? 'OK' : 'SINIESTROS' });
   }
 
   const act = srs.find(s => s.concepto === 'accidentes_seguro_vehicular');
@@ -343,10 +414,26 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
     const st = semaforoToStatus(act.semaforo);
     const match = act.resultado.match(/(\d+)\s*activacion/i);
     const count = match ? parseInt(match[1], 10) : 0;
-    items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: act.resultado, status: st, statusText: st === 'OK' ? 'OK' : st === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.` });
+    items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: cleanResultText(act.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.` });
   }
 
   return items;
+}
+
+const NON_ORDINARY_ACTS = ['sucesión', 'sucesion', 'anticipo de legítima', 'anticipo de legitima', 'dación en pago', 'dacion en pago', 'remate judicial', 'adjudicación', 'adjudicacion'];
+const LIEN_ACTS = ['constitución de garantía', 'constitucion de garantia', 'levantamiento de garantía', 'levantamiento de garantia', 'embargo', 'levantamiento de embargo'];
+
+function buildRegistryNote(api: ApiResponse): { status: FieldStatus; title: string; detail: string } {
+  const entries = api.asientos_registrales?.lista || [];
+  const pendientes = api.asientos_registrales?.nota_titulos_pendientes || '';
+  const hasPending = pendientes.length > 0;
+  const hasNonOrdinary = entries.some(e => NON_ORDINARY_ACTS.some(act => e.acto.toLowerCase().includes(act)));
+  const hasHistoricalLien = entries.some(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
+
+  if (hasPending) return { status: 'WARNING', title: 'TÍTULO PENDIENTE', detail: pendientes };
+  if (hasNonOrdinary) return { status: 'WARNING', title: 'ACTO NO ORDINARIO', detail: 'Al menos un asiento es sucesión, anticipo de legítima, dación en pago, remate judicial o adjudicación. Puede requerir documentación adicional.' };
+  if (hasHistoricalLien) return { status: 'WARNING', title: 'CARGA HISTÓRICA', detail: 'Al menos un asiento registra constitución o levantamiento de garantía/embargo, ya resuelto (sin vigencia).' };
+  return { status: 'OK', title: 'SIN PENDIENTES', detail: 'No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios.' };
 }
 
 export function transformApiResponse(api: ApiResponse, plate: string): LegalReportData {
@@ -429,32 +516,41 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
       { label: 'Long. / Ancho / Alto', value: [comp['Longitud'], comp['Ancho'], comp['Altura']].filter(Boolean).join(' / ') },
       { label: 'Inmatriculacion', value: hist[0]?.fecha || '' },
       { label: 'Adquisicion titular actual', value: hist[hist.length - 1]?.fecha || '' },
+      { label: 'N.° de partida', value: [comp['Partida'], comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') },
     ] : undefined,
 
-    owners: hist.map((h, i) => ({
-      number: i + 1,
-      name: h.nombre,
-      document: `${h.tipo_documento} ${h.documento}`,
-      acquisitionDate: h.fecha,
-      timeAsOwner: h.tiempo_como_propietario,
-      price: h.precio,
-      title: h.titulo,
-      tags: [
-        i === 0 ? '1.ª inscripcion' : undefined,
-        h.estado === 'Titular vigente' ? 'Titular vigente' : undefined,
-      ].filter(Boolean) as string[],
-    })),
+    owners: hist.map((h, i) => {
+      const isSociedad = /\bY\b/.test(h.nombre) && h.nombre.split(/\bY\b/).length === 2;
+      return {
+        number: i + 1,
+        name: h.nombre,
+        document: `${h.tipo_documento} ${h.documento}`,
+        acquisitionDate: h.fecha,
+        timeAsOwner: h.tiempo_como_propietario,
+        price: h.precio,
+        title: h.titulo,
+        tags: [
+          i === 0 ? '1.ª inscripcion' : undefined,
+          isSociedad ? 'Sociedad conyugal' : undefined,
+          h.estado === 'Titular vigente' ? 'Titular vigente' : undefined,
+        ].filter(Boolean) as string[],
+      };
+    }),
     ownershipNote: api.titularidad?.nota_titular_vigente || '',
 
-    registryEntries: (api.asientos_registrales?.lista || []).map((a, i) => ({
-      number: i + 1,
-      date: a.fecha,
-      act: a.acto,
-      title: a.titulo,
-    })),
-    registryNote: api.asientos_registrales?.nota_titulos_pendientes || '',
-    registryNoteStatus: liensStatus === 'OK' || liensStatus === 'PENDING' ? 'OK' : liensStatus,
-    registryNoteTitle: liensStatus === 'OK' || liensStatus === 'PENDING' ? 'SIN PENDIENTES' : 'CON AFECTACIONES',
+    registryEntries: (api.asientos_registrales?.lista || []).map((a, i) => {
+      let act = a.acto;
+      const ownerMatch = hist.find(h => h.fecha === a.fecha);
+      if (ownerMatch) {
+        const parts = ownerMatch.nombre.split(/\s+/);
+        const apellidos = parts.slice(0, 2).join(' ');
+        if (apellidos) act = `${a.acto} (${apellidos})`;
+      }
+      return { number: i + 1, date: a.fecha, act, title: a.titulo };
+    }),
+    registryNote: buildRegistryNote(api).detail,
+    registryNoteStatus: buildRegistryNote(api).status as 'OK' | 'WARNING' | 'CRITICAL',
+    registryNoteTitle: buildRegistryNote(api).title,
 
     liensStatus,
     liensTitle: liensStatus === 'OK' || liensStatus === 'PENDING'
@@ -463,13 +559,15 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     liensDetail: api.gravamenes?.detalle || '',
     liensSource: 'SUNARP · SIGM',
 
-    taxYears: (api.impuesto_vehicular?.anios || []).map(a => ({
-      year: a.anio,
-      contributor: '',
-      amount: '',
-      status: semaforoToStatus(a.semaforo) as 'OK' | 'WARNING' | 'CRITICAL',
-      statusText: semaforoToStatus(a.semaforo) === 'OK' ? 'PAGADO' : 'PENDIENTE',
-    })),
+    taxYears: (api.impuesto_vehicular?.anios || []).map(a => {
+      const st = semaforoToStatus(a.semaforo);
+      const estado = (a.estado || '').toLowerCase();
+      let statusText = 'PAGADO';
+      if (st === 'CRITICAL') statusText = 'PENDIENTE';
+      else if (st === 'WARNING') statusText = estado.includes('vencer') ? 'POR VENCER' : 'PENDIENTE';
+      else if (st === 'PENDING') statusText = estado.includes('no exigible') ? 'NO EXIGIBLE' : 'SIN REGISTRO';
+      return { year: a.anio, contributor: '', amount: '', status: st, statusText };
+    }),
     taxCriteria: api.impuesto_vehicular?.criterio_aplicado || '',
     taxReminder: api.impuesto_vehicular?.recordatorio || 'Requisito de transferencia: el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
     taxSource: 'SAT — Lima',
@@ -483,16 +581,53 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     insuranceSource: 'APESEG · MTC — CITV',
 
     claims: buildClaimsTable(api),
+    activationsTable: (api.desglose_soat || [])
+      .filter(d => parseInt(d.nro_accidentes, 10) > 0)
+      .map(d => {
+        let period = '';
+        if (d.vigencia) {
+          const years = d.vigencia.match(/(\d{4})/g);
+          if (years && years.length >= 2) period = `${years[0]}–${years[1]}`;
+          else if (years) period = years[0];
+        } else {
+          const yFrom = d.vigencia_desde?.match(/(\d{4})/)?.[1];
+          const yTo = d.vigencia_hasta?.match(/(\d{4})/)?.[1];
+          if (yFrom && yTo) period = `${yFrom}–${yTo}`;
+          else if (yFrom) period = yFrom;
+        }
+        return {
+          insurer: d.compania || '',
+          policyNumber: d.nro_poliza || d.nro_certificado || '',
+          period,
+          count: parseInt(d.nro_accidentes, 10) || 0,
+        };
+      }),
     claimsNote: 'Nota: se distingue entre siniestros con cobertura SOAT (lesiones a personas) y activaciones de seguro vehicular (daños materiales atendidos por la poliza, generalmente eventos menores).',
     claimsSource: 'SBS',
 
-    gnvItems: (api.conversion_gnv || []).map(g => ({
-      concept: g.concepto === 'infogas' ? 'Conversion a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
-      entity: g.concepto === 'infogas' ? 'InfoGas' : g.concepto === 'fise' ? 'FISE' : g.concepto,
-      result: g.resultado,
-      status: semaforoToStatus(g.semaforo),
-      statusText: g.semaforo === 'gris' ? 'NO APLICA' : semaforoToStatus(g.semaforo) === 'OK' ? 'OK' : 'REVISAR',
-    })),
+    gnvItems: (api.conversion_gnv || []).map(g => {
+      const st = semaforoToStatus(g.semaforo);
+      let statusText = 'NO APLICA';
+      if (g.semaforo !== 'gris') {
+        if (g.concepto === 'infogas') {
+          statusText = st === 'OK' ? 'HABILITADO' : st === 'WARNING' ? 'REVISAR GNV' : st === 'CRITICAL' ? 'REVISAR GNV' : 'NO CONSULTADO';
+        } else if (g.concepto === 'fise') {
+          const lower = g.resultado.toLowerCase();
+          if (st === 'OK') statusText = lower.includes('recaudando') ? 'RECAUDANDO' : 'PAGADO';
+          else if (st === 'WARNING') statusText = 'RECAUDANDO';
+          else statusText = 'NO CONSULTADO';
+        } else {
+          statusText = st === 'OK' ? 'OK' : 'REVISAR';
+        }
+      }
+      return {
+        concept: g.concepto === 'infogas' ? 'Conversion a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
+        entity: g.concepto === 'infogas' ? 'InfoGas' : g.concepto === 'fise' ? 'FISE' : g.concepto,
+        result: cleanResultText(g.resultado),
+        status: st,
+        statusText,
+      };
+    }),
     gnvSource: 'InfoGas · FISE',
 
     conclusionText: api.conclusion?.texto || '',

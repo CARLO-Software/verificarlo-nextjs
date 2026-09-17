@@ -5,6 +5,8 @@ import {
   View,
   Text,
   StyleSheet,
+  Svg,
+  Path,
 } from '@react-pdf/renderer';
 
 // === TYPES ===
@@ -42,7 +44,7 @@ export interface LegalReportData {
   liensTitle?: string;
   liensDetail?: string;
   liensSource?: string;
-  taxYears?: { year: string; contributor: string; amount: string; status: 'OK' | 'WARNING' | 'CRITICAL'; statusText: string }[];
+  taxYears?: { year: string; contributor: string; amount: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; statusText: string }[];
   taxCriteria?: string;
   taxReminder?: string;
   taxSource?: string;
@@ -79,10 +81,14 @@ export interface LegalReportData {
 // === COLORS ===
 
 const C = {
-  primary: '#FBBF24',
-  dark: '#333333',
-  darkHeader: '#4B5563',
+  yellow: '#f8d309',
+  dark: '#1c1d21',
   white: '#FFFFFF',
+  lightYellow: '#fff8e5',
+  darkGrayRow: '#f4f4f4',
+  lightGrayRow: '#ffffff',
+
+
   offWhite: '#F9FAFB',
   lightGray: '#F3F4F6',
   border: '#E5E7EB',
@@ -110,13 +116,77 @@ function badgeColor(status: string): string {
   }
 }
 
-function statusIcon(status: string): string {
+function SvgCheck({ size = 7, color = C.green }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" fill={color} />
+    </Svg>
+  );
+}
+
+function SvgX({ size = 7, color = C.red }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill={color} />
+    </Svg>
+  );
+}
+
+function SvgBang({ size = 7, color = C.amber }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M11 3h2v12h-2zM11 19h2v2h-2z" fill={color} />
+    </Svg>
+  );
+}
+
+function SvgDash({ size = 7, color = C.grayBadge }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M6 11h12v2H6z" fill={color} />
+    </Svg>
+  );
+}
+
+function SvgStar({ size = 7, color = C.amber }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01z" fill={color} />
+    </Svg>
+  );
+}
+
+function StatusIcon({ status, size = 7, color }: { status: string; size?: number; color?: string }) {
   switch (status) {
-    case 'OK': return '✓';
-    case 'WARNING': return '!';
-    case 'CRITICAL': return '✕';
-    default: return '–';
+    case 'OK': return <SvgCheck size={size} color={color || C.green} />;
+    case 'WARNING': return <SvgBang size={size} color={color || C.amber} />;
+    case 'CRITICAL': return <SvgX size={size} color={color || C.red} />;
+    default: return <SvgDash size={size} color={color || C.grayBadge} />;
   }
+}
+
+const SEC_ICON_PATHS: Record<string, string> = {
+  shield: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z',
+  car: 'M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z',
+  person: 'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z',
+  document: 'M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z',
+  lock: 'M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zM9 8V6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9z',
+  receipt: 'M19.5 3.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2 7.5 3.5 6 2v20l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5zM19 19H5V5h14v14zM6 15h12v2H6zm0-4h12v2H6zm0-4h12v2H6z',
+  search: 'M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z',
+  insurance: 'M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z',
+  warning: 'M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z',
+  gas: 'M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5z',
+  gavel: 'M1 21h12v2H1zM5.245 8.07l2.83-2.827 14.14 14.142-2.828 2.828zM9.9 2.41l2.83 2.83-2.83 2.827-2.828-2.828zM5.657 6.65l2.828 2.83L2.05 15.913 1 14.5z',
+};
+
+function SectionIconSvg({ type, size = 13, color = C.white }: { type: string; size?: number; color?: string }) {
+  const d = SEC_ICON_PATHS[type];
+  if (!d) return null;
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d={d} fill={color} />
+    </Svg>
+  );
 }
 
 function formatPlate(plate: string): string {
@@ -144,31 +214,32 @@ const s = StyleSheet.create({
   topBold: { fontFamily: 'Helvetica-Bold' },
 
   // Main banner
-  banner: { backgroundColor: C.dark, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 10, marginBottom: 0 },
-  logo: { fontFamily: 'Helvetica-BoldOblique', fontSize: 26, color: C.white, letterSpacing: 1 },
-  plateBox: { backgroundColor: C.white, borderWidth: 1.5, borderColor: C.border, paddingHorizontal: 10, paddingVertical: 5, alignItems: 'center', borderRadius: 3 },
-  plateCountry: { fontSize: 5.5, color: C.textLight, letterSpacing: 1.5, marginBottom: 1, fontFamily: 'Helvetica-Bold' },
-  plateFlag: { flexDirection: 'row', justifyContent: 'center', marginBottom: 2 },
-  plateFlagR: { width: 7, height: 4, backgroundColor: '#DC2626' },
-  plateFlagW: { width: 7, height: 4, backgroundColor: C.white, borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: '#E5E7EB' },
+  banner: { backgroundColor: C.yellow, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 10, marginBottom: 0 },
+  logo: { fontFamily: 'Helvetica-BoldOblique', fontSize: 26, color: '#000000', letterSpacing: 1 },
+  plateBox: { backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#000000', paddingHorizontal: 10, paddingVertical: 3, alignItems: 'center', borderRadius: 3 },
+  plateTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  plateCountry: { fontSize: 5.5, color: C.textLight, letterSpacing: 1.5, fontFamily: 'Helvetica-Bold', marginLeft: 3 },
+  plateFlag: { flexDirection: 'row' },
+  plateFlagR: { width: 5, height: 3.5, backgroundColor: '#DC2626' },
+  plateFlagW: { width: 5, height: 3.5, backgroundColor: C.white, borderTopWidth: 0.5, borderBottomWidth: 0.5, borderColor: '#E5E7EB' },
   plateNum: { fontFamily: 'Helvetica-Bold', fontSize: 16, color: C.text, letterSpacing: 2 },
 
   // Section banners
-  secYellow: { backgroundColor: C.primary, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, marginTop: 10 },
-  secDark: { backgroundColor: C.dark, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, marginTop: 10 },
-  secIcon: { width: 22, height: 22, borderRadius: 11, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 8 },
-  secIconText: { fontFamily: 'Helvetica-Bold', fontSize: 10, color: C.white },
+  secYellow: { backgroundColor: C.yellow, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, marginTop: 10 },
+  secDark: { backgroundColor: C.dark, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 6, marginTop: 10 },
+  secIcon: { width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', marginRight: 8 },
   secContent: { flex: 1 },
-  secTitle: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, color: C.white, letterSpacing: 0.3 },
-  secTitleYellow: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, color: C.primary, letterSpacing: 0.3 },
+  secTitle: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, color: C.dark, letterSpacing: 0.3 },
+  secTitleYellow: { fontFamily: 'Helvetica-Bold', fontSize: 9.5, color: C.yellow, letterSpacing: 0.3 },
   secSub: { fontSize: 6.5, color: 'rgba(255,255,255,0.85)', marginTop: 1 },
+  secSubDark: { fontSize: 6.5, color: 'rgba(0,0,0,0.55)', marginTop: 1 },
 
   // Summary table
-  sumHeader: { flexDirection: 'row', backgroundColor: C.darkHeader, paddingVertical: 5, paddingHorizontal: 10 },
-  sumHeaderL: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.white, flex: 1, letterSpacing: 0.5 },
-  sumHeaderR: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.white, width: 110, textAlign: 'right', letterSpacing: 0.5 },
-  sumRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 10, borderBottomWidth: 0.5, borderBottomColor: C.border, minHeight: 26 },
-  sumRowAlt: { backgroundColor: C.offWhite },
+  sumHeader: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 5, paddingHorizontal: 10 },
+  sumHeaderL: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.dark, flex: 1, letterSpacing: 0.5 },
+  sumHeaderR: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.dark, width: 110, textAlign: 'right', letterSpacing: 0.5 },
+  sumRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 5, paddingHorizontal: 10, borderBottomWidth: 0.5, borderBottomColor: C.border, minHeight: 26, backgroundColor: C.darkGrayRow },
+  sumRowAlt: { backgroundColor: C.lightGrayRow },
   sumLeft: { flex: 1 },
   sumLabel: { fontFamily: 'Helvetica-Bold', fontSize: 7.5, color: C.text },
   sumDesc: { fontSize: 6.5, color: C.textLight, marginTop: 1, lineHeight: 1.3 },
@@ -177,7 +248,7 @@ const s = StyleSheet.create({
   // Badge
   badge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 7, paddingVertical: 2.5, borderRadius: 3 },
   badgeCircle: { width: 11, height: 11, borderRadius: 5.5, backgroundColor: C.white, justifyContent: 'center', alignItems: 'center', marginRight: 4 },
-  badgeCircleText: { fontFamily: 'Helvetica-Bold', fontSize: 7 },
+  // badgeCircleText removed — replaced by SVG icons
   badgeText: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.white, letterSpacing: 0.3 },
 
   // Vehicle tables
@@ -185,16 +256,17 @@ const s = StyleSheet.create({
   vehTable: { width: '50%' },
   vehHeader: { backgroundColor: C.dark, paddingVertical: 4, paddingHorizontal: 6 },
   vehHeaderText: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.white, textAlign: 'center', letterSpacing: 0.3 },
-  vehRow: { flexDirection: 'row', paddingVertical: 2.5, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
-  vehRowAlt: { backgroundColor: C.offWhite },
+  vehRow: { flexDirection: 'row', paddingVertical: 2.5, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: C.darkGrayRow },
+  vehRowAlt: { backgroundColor: C.lightGrayRow },
   vehLabel: { fontSize: 6.5, color: C.textLight, width: '48%' },
   vehValue: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, width: '52%' },
 
   // Owner table
   ownHeader: { flexDirection: 'row', backgroundColor: C.dark, paddingVertical: 4, paddingHorizontal: 6 },
   ownHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.white, letterSpacing: 0.3 },
-  ownRow: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'flex-start' },
-  ownRowAlt: { backgroundColor: C.offWhite },
+  ownRow: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'flex-start', backgroundColor: C.darkGrayRow },
+  ownRowAlt: { backgroundColor: C.lightGrayRow },
+  ownRowTitular: { backgroundColor: '#FEF9E6' },
   ownNum: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: C.dark, width: 18, textAlign: 'center' },
   ownName: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text },
   ownTag: { fontSize: 5.5, color: C.amber, marginTop: 1 },
@@ -203,16 +275,16 @@ const s = StyleSheet.create({
 
   // Registry table
   regHeader: { flexDirection: 'row', backgroundColor: C.dark, paddingVertical: 4, paddingHorizontal: 6 },
-  regRow: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
-  regRowAlt: { backgroundColor: C.offWhite },
+  regRow: { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: C.darkGrayRow },
+  regRowAlt: { backgroundColor: C.lightGrayRow },
   regNum: { width: 30, alignItems: 'center', justifyContent: 'center' },
-  regNumCircle: { width: 18, height: 18, borderRadius: 9, backgroundColor: C.primary, justifyContent: 'center', alignItems: 'center' },
+  regNumCircle: { width: 18, height: 18, borderRadius: 9, backgroundColor: C.lightGray, justifyContent: 'center', alignItems: 'center' },
   regNumText: { fontFamily: 'Helvetica-Bold', fontSize: 7, color: C.dark },
 
   // Callout box
   callout: { flexDirection: 'row', padding: 10, marginTop: 6, borderLeftWidth: 3 },
   calloutIcon: { width: 18, height: 18, borderRadius: 9, justifyContent: 'center', alignItems: 'center', marginRight: 8 },
-  calloutIconText: { fontFamily: 'Helvetica-Bold', fontSize: 10, color: C.white },
+  // calloutIconText removed — replaced by SVG icons
   calloutContent: { flex: 1 },
   calloutTitle: { fontFamily: 'Helvetica-Bold', fontSize: 8, marginBottom: 2 },
   calloutText: { fontSize: 7, color: C.text, lineHeight: 1.4 },
@@ -220,8 +292,8 @@ const s = StyleSheet.create({
   // 4-col table
   t4Header: { flexDirection: 'row', backgroundColor: C.dark, paddingVertical: 4, paddingHorizontal: 6 },
   t4HeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.white, letterSpacing: 0.3 },
-  t4Row: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'center' },
-  t4RowAlt: { backgroundColor: C.offWhite },
+  t4Row: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'center', backgroundColor: C.darkGrayRow },
+  t4RowAlt: { backgroundColor: C.lightGrayRow },
   t4Cell: { fontSize: 6.5, color: C.text },
   t4CellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text },
 
@@ -229,7 +301,7 @@ const s = StyleSheet.create({
   taxContainer: { flexDirection: 'row', /* gap:0 not supported */ },
   taxTable: { width: '48%' },
   taxCriteria: { width: '52%', paddingLeft: 8 },
-  taxCriteriaBox: { backgroundColor: C.offWhite, padding: 8, borderLeftWidth: 2, borderLeftColor: C.primary },
+  taxCriteriaBox: { backgroundColor: C.offWhite, padding: 8, borderLeftWidth: 2, borderLeftColor: C.yellow },
   taxCriteriaTitle: { fontFamily: 'Helvetica-Bold', fontSize: 7, color: C.text, marginBottom: 3 },
   taxCriteriaText: { fontSize: 6.5, color: C.text, lineHeight: 1.4 },
 
@@ -255,7 +327,8 @@ const s = StyleSheet.create({
   // Activation sub-table
   actHeader: { flexDirection: 'row', backgroundColor: C.lightGray, paddingVertical: 3, paddingHorizontal: 6, marginTop: 6 },
   actHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.text, letterSpacing: 0.3 },
-  actRow: { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
+  actRow: { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, backgroundColor: C.darkGrayRow },
+  actRowAlt: { backgroundColor: C.lightGrayRow },
   actLabel: { fontFamily: 'Helvetica-Bold', fontSize: 7, color: C.text, marginTop: 6, marginBottom: 2 },
 });
 
@@ -266,28 +339,43 @@ function StatusBadge({ status, text }: { status: string; text: string }) {
   return (
     <View style={[s.badge, { backgroundColor: bg }]}>
       <View style={s.badgeCircle}>
-        <Text style={[s.badgeCircleText, { color: bg }]}>{statusIcon(status)}</Text>
+        <StatusIcon status={status} size={7} color={bg} />
       </View>
       <Text style={s.badgeText}>{text}</Text>
     </View>
   );
 }
 
-function SectionBanner({ type, title, subtitle, icon }: { type: 'yellow' | 'dark'; title: string; subtitle?: string; icon?: string }) {
+function SectionBanner({ type, title, subtitle, icon, noTopMargin }: { type: 'yellow' | 'dark'; title: string; subtitle?: string; icon?: string; noTopMargin?: boolean }) {
   const isYellow = type === 'yellow';
   return (
-    <View style={isYellow ? s.secYellow : s.secDark} wrap={false}>
+    <View style={[isYellow ? s.secYellow : s.secDark, noTopMargin ? { marginTop: 0 } : {}]} wrap={false}>
       {icon && (
         <View style={s.secIcon}>
-          <Text style={s.secIconText}>{icon}</Text>
+          <SectionIconSvg type={icon} size={13} color={C.white} />
         </View>
       )}
       <View style={s.secContent}>
         <Text style={isYellow ? s.secTitle : s.secTitleYellow}>{title}</Text>
-        {subtitle && <Text style={s.secSub}>{subtitle}</Text>}
+        {subtitle && <Text style={isYellow ? s.secSubDark : s.secSub}>{subtitle}</Text>}
       </View>
     </View>
   );
+}
+
+function BoldCapsText({ children, style }: { children: string; style: any }) {
+  const regex = /([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ.\-/]{1,}(?:\s[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ.\-/]{1,})*)/g;
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  let m;
+  while ((m = regex.exec(children)) !== null) {
+    if (m.index > last) parts.push(children.slice(last, m.index));
+    parts.push(<Text key={m.index} style={{ fontFamily: 'Helvetica-Bold' }}>{m[0]}</Text>);
+    last = regex.lastIndex;
+  }
+  if (last < children.length) parts.push(children.slice(last));
+  if (parts.length === 0) return <Text style={style}>{children}</Text>;
+  return <Text style={style}>{parts}</Text>;
 }
 
 function SourceLine({ text }: { text: string }) {
@@ -299,11 +387,10 @@ function CalloutBox({ status, title, detail }: { status: 'OK' | 'WARNING' | 'CRI
   const border = status === 'OK' ? C.greenBorder : status === 'WARNING' ? C.amberBorder : C.redBorder;
   const iconBg = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : C.red;
   const titleColor = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : C.red;
-  const iconChar = status === 'OK' ? '✓' : status === 'WARNING' ? '!' : '✕';
   return (
     <View style={[s.callout, { backgroundColor: bg, borderLeftColor: border }]} wrap={false}>
       <View style={[s.calloutIcon, { backgroundColor: iconBg }]}>
-        <Text style={s.calloutIconText}>{iconChar}</Text>
+        <StatusIcon status={status} size={10} color={C.white} />
       </View>
       <View style={s.calloutContent}>
         <Text style={[s.calloutTitle, { color: titleColor }]}>{title}</Text>
@@ -370,11 +457,13 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
         <View style={s.banner}>
           <Text style={s.logo}>VERIFICARLO</Text>
           <View style={s.plateBox}>
-            <Text style={s.plateCountry}>PERÚ</Text>
-            <View style={s.plateFlag}>
-              <View style={s.plateFlagR} />
-              <View style={s.plateFlagW} />
-              <View style={s.plateFlagR} />
+            <View style={s.plateTopRow}>
+              <View style={s.plateFlag}>
+                <View style={s.plateFlagR} />
+                <View style={s.plateFlagW} />
+                <View style={s.plateFlagR} />
+              </View>
+              <Text style={s.plateCountry}>PERÚ</Text>
             </View>
             <Text style={s.plateNum}>{plate}</Text>
           </View>
@@ -382,10 +471,11 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
         {/* ===== SUMMARY SECTION ===== */}
         <SectionBanner
-          type="yellow"
+          type="dark"
           title="RESUMEN DE LA SITUACIÓN LEGAL DEL VEHÍCULO"
           subtitle="Situación registral, tributaria, de infracciones y de seguros a la fecha de emisión."
-          icon="V"
+          icon="shield"
+          noTopMargin
         />
 
         <View style={s.sumHeader}>
@@ -409,10 +499,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
         {data.vehicleMain && data.vehicleComplementary && (
           <>
             <SectionBanner
-              type="dark"
+              type="yellow"
               title="CARACTERÍSTICAS DEL VEHÍCULO"
               subtitle={data.vehicleDescription || 'Datos técnicos según la partida registral (SUNARP).'}
-              icon="E"
+              icon="car"
             />
             <View style={s.vehContainer}>
               {/* Left table */}
@@ -447,10 +537,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
         {hasDetail && data.owners && data.owners.length > 0 && (
           <View break>
             <SectionBanner
-              type="yellow"
+              type="dark"
               title="TITULARIDAD E HISTORIAL DE PROPIETARIOS"
               subtitle={`Cadena de propietarios de la placa ${data.plate} según SUNARP.`}
-              icon="P"
+              icon="person"
             />
 
             {/* Owner table */}
@@ -464,13 +554,18 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
               <Text style={[s.ownHeaderCell, { width: '12%' }]}>TÍTULO</Text>
             </View>
 
-            {data.owners.map((own, i) => (
-              <View key={i} style={[s.ownRow, i % 2 === 1 ? s.ownRowAlt : {}]} wrap={false}>
+            {data.owners.map((own, i) => {
+              const isTitular = own.tags?.includes('Titular vigente');
+              return (
+              <View key={i} style={[s.ownRow, i % 2 === 1 ? s.ownRowAlt : {}, isTitular ? s.ownRowTitular : {}]} wrap={false}>
                 <Text style={[s.ownNum, { width: 18 }]}>{own.number}</Text>
                 <View style={{ width: '26%' }}>
                   <Text style={s.ownName}>{own.name}</Text>
                   {own.tags?.map((tag, ti) => (
-                    <Text key={ti} style={s.ownTag}>{tag === 'Titular vigente' ? `★ ${tag}` : tag}</Text>
+                    <View key={ti} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 1 }}>
+                      {tag === 'Titular vigente' && <SvgStar size={6} color={C.amber} />}
+                      <Text style={[s.ownTag, tag === 'Titular vigente' ? { marginLeft: 2 } : {}]}>{tag}</Text>
+                    </View>
                   ))}
                 </View>
                 <Text style={[s.ownCell, { width: '17%' }]}>{own.document}</Text>
@@ -479,11 +574,15 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                 <Text style={[s.ownCell, { width: '12%' }]}>{own.price}</Text>
                 <Text style={[s.ownCell, { width: '12%' }]}>{own.title}</Text>
               </View>
-            ))}
+              );
+            })}
 
             {/* Ownership note */}
             {data.ownershipNote && (
-              <Text style={s.note}>{data.ownershipNote}</Text>
+              <Text style={s.note}>
+                <Text style={s.noteBold}>Titular actual: </Text>
+                {data.ownershipNote}
+              </Text>
             )}
 
             <SourceLine text="SUNARP" />
@@ -492,10 +591,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             {data.registryEntries && data.registryEntries.length > 0 && (
               <>
                 <SectionBanner
-                  type="dark"
+                  type="yellow"
                   title="LISTA DE ASIENTOS REGISTRALES"
                   subtitle="Historial completo de actos inscritos en la partida, en orden cronológico."
-                  icon="a"
+                  icon="document"
                 />
 
                 <View style={s.regHeader}>
@@ -538,10 +637,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
           <View break>
             {/* LIENS */}
             <SectionBanner
-              type="yellow"
+              type="dark"
               title="GRAVÁMENES Y AFECTACIONES"
               subtitle="Embargos, garantías mobiliarias u otras cargas que impidan la transferencia."
-              icon="V"
+              icon="lock"
             />
 
             {data.liensStatus && (
@@ -558,38 +657,26 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             {data.taxYears && data.taxYears.length > 0 && (
               <>
                 <SectionBanner
-                  type="dark"
+                  type="yellow"
                   title="IMPUESTO VEHICULAR"
                   subtitle="Estado de pago del impuesto vehicular ante el SAT, detallado por año."
-                  icon="a"
+                  icon="receipt"
                 />
 
                 <View style={s.taxContainer}>
                   <View style={s.taxTable}>
-                    {(() => {
-                      const hasCont = data.taxYears!.some(t => t.contributor);
-                      const hasAmt = data.taxYears!.some(t => t.amount);
-                      return (
-                        <>
-                          <View style={s.t4Header}>
-                            <Text style={[s.t4HeaderCell, { width: '30%' }]}>AÑO</Text>
-                            {hasCont && <Text style={[s.t4HeaderCell, { width: '25%' }]}>CONTRIBUYENTE</Text>}
-                            {hasAmt && <Text style={[s.t4HeaderCell, { width: '20%' }]}>MONTO</Text>}
-                            <Text style={[s.t4HeaderCell, { flex: 1, textAlign: 'right' }]}>ESTADO</Text>
-                          </View>
-                          {data.taxYears!.map((ty, i) => (
-                            <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
-                              <Text style={[s.t4CellBold, { width: '30%' }]}>{ty.year}</Text>
-                              {hasCont && <Text style={[s.t4Cell, { width: '25%' }]}>{ty.contributor}</Text>}
-                              {hasAmt && <Text style={[s.t4Cell, { width: '20%' }]}>{ty.amount}</Text>}
-                              <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                                <StatusBadge status={ty.status} text={ty.statusText} />
-                              </View>
-                            </View>
-                          ))}
-                        </>
-                      );
-                    })()}
+                    <View style={s.t4Header}>
+                      <Text style={[s.t4HeaderCell, { width: '30%' }]}>AÑO</Text>
+                      <Text style={[s.t4HeaderCell, { flex: 1, textAlign: 'right' }]}>ESTADO</Text>
+                    </View>
+                    {data.taxYears!.map((ty, i) => (
+                      <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
+                        <Text style={[s.t4CellBold, { width: '30%' }]}>{ty.year}</Text>
+                        <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                          <StatusBadge status={ty.status} text={ty.statusText} />
+                        </View>
+                      </View>
+                    ))}
                   </View>
 
                   {data.taxCriteria && (
@@ -619,10 +706,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             {data.debts && data.debts.length > 0 && (
               <>
                 <SectionBanner
-                  type="dark"
+                  type="yellow"
                   title="DEUDAS, MULTAS Y CAPTURAS"
                   subtitle="Consultas a SAT, Municipalidad del Callao, ATU y SUTRAN."
-                  icon="Q"
+                  icon="search"
                 />
 
                 <FourColTable
@@ -648,7 +735,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                   type="dark"
                   title="SEGUROS Y REVISIÓN TÉCNICA"
                   subtitle="Vigencia de SOAT e inspección técnica (CITV)."
-                  icon="V"
+                  icon="insurance"
                 />
 
                 <FourColTable
@@ -679,7 +766,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                   type="dark"
                   title="SINIESTRALIDAD"
                   subtitle="Reporte de siniestros y activaciones de póliza (SBS)."
-                  icon="!"
+                  icon="warning"
                 />
 
                 <FourColTable
@@ -704,7 +791,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                       <Text style={[s.actHeaderCell, { width: '20%', textAlign: 'right' }]}>CANTIDAD</Text>
                     </View>
                     {data.activationsTable.map((act, i) => (
-                      <View key={i} style={s.actRow}>
+                      <View key={i} style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}]}>
                         <Text style={[s.t4Cell, { width: '30%' }]}>{act.insurer}</Text>
                         <Text style={[s.t4Cell, { width: '25%' }]}>{act.policyNumber}</Text>
                         <Text style={[s.t4Cell, { width: '25%' }]}>{act.period}</Text>
@@ -723,10 +810,10 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             {data.gnvItems && data.gnvItems.length > 0 && (
               <>
                 <SectionBanner
-                  type="yellow"
+                  type="dark"
                   title="CONVERSIÓN / SISTEMA A GNV"
                   subtitle="Verificación de instalación de GNV (InfoGas) y subsidio asociado (FISE)."
-                  icon="G"
+                  icon="gas"
                 />
 
                 <FourColTable
@@ -748,13 +835,15 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             {data.conclusionText && (
               <>
                 <SectionBanner
-                  type="yellow"
+                  type="dark"
                   title="CONCLUSIÓN LEGAL"
-                  icon="V"
+                  icon="gavel"
                 />
 
                 <View style={s.conclusionBox}>
-                  <Text style={s.conclusionText}>{data.conclusionText}</Text>
+                  {data.conclusionText!.split(/\n\n+/).map((para, i) => (
+                    <BoldCapsText key={i} style={[s.conclusionText, i > 0 ? { marginTop: 6 } : {}]}>{para.trim()}</BoldCapsText>
+                  ))}
                 </View>
               </>
             )}

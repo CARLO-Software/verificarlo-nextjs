@@ -1,35 +1,43 @@
 "use client";
 
-// NOTA: El diseño nuevo con input de placa y modal está respaldado en Hero.consultar.tsx.bak
-// Cuando esté al 100%, restaurar desde ese archivo.
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./Hero.module.css";
-import { Car } from "@phosphor-icons/react";
 
-const ArrowRightIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-);
+function formatPlate(raw: string): string {
+  const clean = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (clean.length <= 3) return clean;
+  return clean.slice(0, 3) + "-" + clean.slice(3, 6);
+}
 
+function cleanPlate(formatted: string): string {
+  return formatted.replace(/-/g, "");
+}
 
 export default function Hero() {
-  return (
-    <header className={styles.heroSection} id="hero">
-      {/* Video Background */}
-      <div className={styles.videoContainer}>
+  const [plate, setPlate] = useState("");
+  const router = useRouter();
 
+  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+    const clean = raw.replace(/-/g, "");
+    if (clean.length <= 6) {
+      setPlate(formatPlate(clean));
+    }
+  };
+
+  const handleConsultar = () => {
+    if (cleanPlate(plate).length < 6) return;
+    router.push(`/consultar?placa=${encodeURIComponent(cleanPlate(plate))}`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleConsultar();
+  };
+
+  return (
+    <header className={styles.hero} id="hero">
+      <div className={styles.videoContainer}>
         <video
           autoPlay
           muted
@@ -43,29 +51,100 @@ export default function Hero() {
         <div className={styles.videoOverlay} aria-hidden="true" />
       </div>
 
-      {/* Hero Content */}
-      <div className={styles.heroContainer}>
-        <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            <span className={styles.titleLine1}>¿Estás por comprar</span>
-            <span className={styles.titleLine2}>
-              un auto usado?
-            </span>
-            <p className={styles.heroDescription}>
-              Descubre las fallas que oculta y asegura tu inversión
-            </p>
-          </h1>
+      <div className={styles.content}>
+        <h1 className={styles.title}>
+          ¿Vas a comprar
+          <br />
+          un auto usado?
+        </h1>
+        <p className={styles.subtitle}>
+          Verifica gratis cualquier placa antes de comprar
+        </p>
 
-          <div className={styles.queRevisamosSection}>
-            <a href="/agendar" className={styles.ctaButton}>
-              <span>Agendar inspección ahora</span>
-              <ArrowRightIcon />
-            </a>
+        <div className={styles.plateBox}>
+          <div className={styles.plateInput}>
+            <div className={styles.plateFlag}>
+              <span className={styles.plateFlagCode}>PE</span>
+              <div className={styles.plateFlagStripes}>
+                <div className={styles.stripeRed} />
+                <div className={styles.stripeWhite} />
+                <div className={styles.stripeRed} />
+              </div>
+            </div>
+            <div className={styles.plateDivider} />
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#8A8A8F"
+              strokeWidth="2.1"
+              strokeLinecap="round"
+              className={styles.plateSearchIcon}
+            >
+              <circle cx="11" cy="11" r="7" />
+              <path d="M16.5 16.5L21 21" />
+            </svg>
+            <input
+              type="text"
+              value={plate}
+              onChange={handlePlateChange}
+              onKeyDown={handleKeyDown}
+              placeholder="Ingresa tu placa"
+              maxLength={7}
+              className={styles.plateInputField}
+              aria-label="Numero de placa del vehiculo"
+            />
+          </div>
+          <button
+            onClick={handleConsultar}
+            className={styles.plateBtn}
+            disabled={cleanPlate(plate).length < 6}
+          >
+            Consultar
+            <svg
+              width="17"
+              height="17"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#16171b"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M4 12h15" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </button>
+        </div>
 
-            <a href="#proceso" className={styles.queRevisamosButton}>
-              <Car size={22} weight="fill" color="white" />
-              <span>¿Qué revisamos?</span>
-            </a>
+        <div className={styles.heroCtas}>
+          <a href="/agendar" className={styles.ctaAgendar}>
+            Agendar inspeccion
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 12h15" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
+          </a>
+          <a href="#planes" className={styles.ctaPlanes}>
+            Ver planes
+          </a>
+        </div>
+
+        <div className={styles.stats}>
+          <div className={styles.stat}>
+            <span className={styles.statValue}>+500</span>
+            <span className={styles.statLabel}>inspecciones</span>
+          </div>
+          <div className={styles.statDivider} />
+          <div className={styles.stat}>
+            <span className={styles.statValue}>S/8,500</span>
+            <span className={styles.statLabel}>de ahorro promedio</span>
+          </div>
+          <div className={styles.statDivider} />
+          <div className={styles.stat}>
+            <span className={styles.statValue}>5.0 ★</span>
+            <span className={styles.statLabel}>Google Reviews</span>
           </div>
         </div>
       </div>

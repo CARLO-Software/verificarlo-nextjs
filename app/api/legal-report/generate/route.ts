@@ -79,7 +79,8 @@ function getMockLegalData(plate: string): LegalReportData {
 
 export async function POST(req: NextRequest) {
   try {
-    const { plate, useMock } = await req.json();
+    const body = await req.json();
+    const { plate, useMock, apiData: cachedApiData } = body;
 
     if (!plate || typeof plate !== "string" || plate.replace(/-/g, "").length !== 6) {
       return NextResponse.json({ error: "Placa inválida" }, { status: 400 });
@@ -88,14 +89,15 @@ export async function POST(req: NextRequest) {
     const cleanPlate = plate.toUpperCase().replace(/-/g, "");
 
     let data: LegalReportData;
-    if (useMock) {
+    if (cachedApiData) {
+      data = transformApiResponse(cachedApiData, cleanPlate);
+    } else if (useMock) {
       data = getMockLegalData(cleanPlate);
     } else {
       try {
         data = await fetchInformeFromApi(cleanPlate);
       } catch (apiError) {
         console.error("Error llamando API de informes, usando mock:", apiError);
-        // ponytail: fallback a mock si la API falla, quitar cuando sea estable
         data = getMockLegalData(cleanPlate);
       }
     }

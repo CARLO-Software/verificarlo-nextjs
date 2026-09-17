@@ -40,85 +40,159 @@ const CheckMark = () => (
   </svg>
 );
 
-const MOCK_STEPS = [
+const LOADING_STEPS = [
   "Consultando SUNARP...",
   "Revisando historial SUTRAN...",
   "Verificando papeletas SAT...",
-  "Consultando siniestros SBS...",
+  "Consultando seguros APESEG...",
+  "Verificando siniestros SBS...",
+  "Consultando InfoGas / FISE...",
+  "Generando análisis...",
 ];
 
-const MOCK_VEHICLE = {
-  marca: "SUZUKI",
-  modelo: "SWIFT",
-  anio: "2014",
-  color: "PLATA",
-  combustible: "GASOLINA",
-  uso: "PARTICULAR",
+interface PreviewVehicle {
+  marca: string;
+  modelo: string;
+  anio: string;
+  color: string;
+  combustible: string;
+  uso: string;
+}
+
+interface PreviewField {
+  key: string;
+  label: string;
+  status: string;
+  badgeText: string;
+  text: string;
+}
+
+interface PreviewOwner {
+  number: number;
+  name: string;
+  document: string;
+  acquisitionDate: string;
+  timeAsOwner: string;
+  price: string;
+  title: string;
+  tags?: string[];
+}
+
+interface PreviewData {
+  vehicle: PreviewVehicle;
+  fields: PreviewField[];
+  owners: PreviewOwner[];
+  conclusionLabel: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  apiData?: any;
+}
+
+const STATUS_COLORS: Record<string, string> = {
+  OK: "#2AAD22",
+  WARNING: "#D97706",
+  CRITICAL: "#C1352A",
+  PENDING: "#6B7280",
 };
 
-const OPEN_SECTIONS = [
-  {
-    num: "01",
-    title: "Historial de propietarios",
-    bigValue: "3",
-    bigLabel: "propietarios registrados",
-    rows: [
-      { label: "Propietario actual", value: "Persona natural · desde 2022" },
-      { label: "2do propietario", value: "Persona natural · 2020–2022" },
-      { label: "1er propietario", value: "Concesionario · 2019" },
-    ],
-  },
-  {
-    num: "02",
-    title: "Última transferencia",
-    bigValue: "2022",
-    bigLabel: "hace 4 años",
-    rows: [
-      { label: "Fecha registrada", value: "14 de marzo, 2022" },
-      { label: "Sede registral", value: "Lima" },
-      { label: "Tipo", value: "Compraventa" },
-    ],
-  },
-];
+function buildOpenSections(data: PreviewData) {
+  const ownerField = data.fields.find(f => f.key === "ownerHistory");
+  const transferField = data.fields.find(f => f.key === "lastTransfer");
+  const sections = [];
 
-const LOCKED_SECTIONS = [
-  { num: "03", label: "Siniestros reportados", value: "2 registros", tone: "#C1352A" },
-  { num: "04", label: "Gravámenes y embargos", value: "Sin cargas", tone: "#2AAD22" },
-  { num: "05", label: "Papeletas pendientes", value: "1 papeleta", tone: "#C1352A" },
-  { num: "06", label: "Deudas tributarias", value: "Sin deuda", tone: "#2AAD22" },
-  { num: "07", label: "Boleta informativa SUNARP", value: "Disponible", tone: "#1c1d22" },
-];
+  if (ownerField) {
+    sections.push({
+      num: "01",
+      title: "Historial de propietarios",
+      bigValue: String(data.owners.length),
+      bigLabel: data.owners.length === 1 ? "propietario registrado" : "propietarios registrados",
+      rows: data.owners.slice(0, 3).map((o, i) => ({
+        label: i === data.owners.length - 1 ? "Titular vigente" : `${i + 1}° propietario`,
+        value: `${o.name.split(" ").slice(0, 2).join(" ")} · ${o.acquisitionDate}`,
+      })),
+    });
+  }
+
+  if (transferField) {
+    const year = data.owners[data.owners.length - 1]?.acquisitionDate?.split("/").pop() || "";
+    const now = new Date().getFullYear();
+    const diff = year ? now - parseInt(year) : 0;
+    sections.push({
+      num: "02",
+      title: "Ultima transferencia",
+      bigValue: year,
+      bigLabel: diff > 0 ? `hace ${diff} año${diff > 1 ? "s" : ""}` : "reciente",
+      rows: [
+        { label: "Fecha registrada", value: data.owners[data.owners.length - 1]?.acquisitionDate || "" },
+        { label: "Tipo", value: transferField.text.split(".")[0] || "" },
+      ].filter(r => r.value),
+    });
+  }
+
+  return sections;
+}
+
+function buildLockedSections(data: PreviewData) {
+  const keys = [
+    { key: "siniestroSoat", num: "03", label: "Siniestros reportados" },
+    { key: "sunarpLiens", num: "04", label: "Gravamenes y embargos" },
+    { key: "satTickets", num: "05", label: "Papeletas pendientes" },
+    { key: "vehicleTax", num: "06", label: "Impuesto vehicular" },
+    { key: "soat", num: "07", label: "SOAT y revision tecnica" },
+  ];
+
+  return keys.map(({ key, num, label }) => {
+    const field = data.fields.find(f => f.key === key);
+    return {
+      num,
+      label,
+      value: field?.badgeText || "—",
+      tone: field ? STATUS_COLORS[field.status] || "#6B7280" : "#6B7280",
+    };
+  });
+}
 
 export default function ConsultarClient({ placa }: { placa: string }) {
-  const [phase, setPhase] = useState<"loading" | "report">("loading");
+  const [phase, setPhase] = useState<"loading" | "report" | "error">("loading");
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const [showPlans, setShowPlans] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
 
   useEffect(() => {
     if (phase !== "loading") return;
+    let cancelled = false;
 
-    const duration = 3000;
-    const interval = 50;
-    const steps = duration / interval;
-    let tick = 0;
+    const stepInterval = setInterval(() => {
+      setCurrentStep(prev => prev < LOADING_STEPS.length - 1 ? prev + 1 : prev);
+    }, 6000);
 
-    const timer = setInterval(() => {
-      tick++;
-      const pct = Math.min(Math.round((tick / steps) * 100), 100);
-      setProgress(pct);
-      setCurrentStep(Math.min(Math.floor((pct / 100) * MOCK_STEPS.length), MOCK_STEPS.length - 1));
+    const progressInterval = setInterval(() => {
+      setProgress(prev => Math.min(prev + 1, 95));
+    }, 400);
 
-      if (pct >= 100) {
-        clearInterval(timer);
-        setTimeout(() => setPhase("report"), 400);
-      }
-    }, interval);
+    fetch("/api/legal-report/preview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plate: placa }),
+    })
+      .then(res => { if (!res.ok) throw new Error("Error"); return res.json(); })
+      .then((data: PreviewData) => {
+        if (cancelled) return;
+        setPreviewData(data);
+        setProgress(100);
+        setCurrentStep(LOADING_STEPS.length - 1);
+        setTimeout(() => setPhase("report"), 500);
+      })
+      .catch(() => { if (!cancelled) setPhase("error"); })
+      .finally(() => {
+        clearInterval(stepInterval);
+        clearInterval(progressInterval);
+      });
 
-    return () => clearInterval(timer);
-  }, [phase]);
+    return () => { cancelled = true; clearInterval(stepInterval); clearInterval(progressInterval); };
+  }, [phase, placa]);
 
   if (phase === "loading") {
     return (
@@ -144,10 +218,10 @@ export default function ConsultarClient({ placa }: { placa: string }) {
           </div>
 
           <h2 className={styles.loadingTitle}>
-            Estamos armando el reporte de tu {placa}
+            Consultando 14 fuentes oficiales para {placa}
           </h2>
           <p className={styles.loadingSubtitle}>
-            Esto toma <b>30 segundos como máximo</b>. No cierres esta ventana.
+            Esto toma entre <b>30 segundos y 2 minutos</b>. No cierres esta ventana.
           </p>
 
           <div className={styles.progressBar}>
@@ -155,7 +229,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
           </div>
 
           <div className={styles.stepsList}>
-            {MOCK_STEPS.map((step, i) => (
+            {LOADING_STEPS.map((step, i) => (
               <div
                 key={i}
                 className={`${styles.stepItem} ${
@@ -180,6 +254,27 @@ export default function ConsultarClient({ placa }: { placa: string }) {
     );
   }
 
+  if (phase === "error") {
+    return (
+      <div className={styles.loadingPage}>
+        <div className={styles.loadingContent}>
+          <h2 className={styles.loadingTitle}>No pudimos consultar esta placa</h2>
+          <p className={styles.loadingSubtitle}>
+            Hubo un error consultando las fuentes. Intenta de nuevo.
+          </p>
+          <button className={styles.generatePdfBtn} onClick={() => { setPhase("loading"); setProgress(0); setCurrentStep(0); }}>
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const vehicle = previewData?.vehicle;
+  const openSections = previewData ? buildOpenSections(previewData) : [];
+  const lockedSections = previewData ? buildLockedSections(previewData) : [];
+  const totalSections = openSections.length + lockedSections.length;
+
   return (
     <div className={styles.reportPage}>
       <div className={styles.reportHeader}>
@@ -192,7 +287,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             <div className={styles.statusDot} />
             Reporte generado
           </div>
-          <div className={styles.sectionsBadge}>2 de 7 secciones desbloqueadas</div>
+          <div className={styles.sectionsBadge}>{openSections.length} de {totalSections} secciones desbloqueadas</div>
           <button
             type="button"
             className={styles.generatePdfBtn}
@@ -203,7 +298,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
                 const res = await fetch("/api/legal-report/generate", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ plate: placa }),
+                  body: JSON.stringify({ plate: placa, apiData: previewData?.apiData }),
                 });
                 if (!res.ok) throw new Error("Error generando PDF");
                 const blob = await res.blob();
@@ -238,22 +333,22 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             </div>
             <div className={styles.docHeaderRight}>
               <span className={styles.docPlate}>{placa}</span>
-              <span className={styles.docMeta}>Emitido hoy · 2 de 7 secciones</span>
+              <span className={styles.docMeta}>Emitido hoy · {openSections.length} de {totalSections} secciones</span>
             </div>
           </div>
 
           {/* Vehicle info */}
           <div className={styles.docVehicle}>
             <h1 className={styles.docVehicleTitle}>
-              {MOCK_VEHICLE.marca} {MOCK_VEHICLE.modelo} {MOCK_VEHICLE.anio}
+              {vehicle ? `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}` : placa}
             </h1>
             <p className={styles.docVehicleDesc}>
-              Encontramos 7 registros asociados a esta placa. Los dos primeros son visibles.
+              Encontramos {totalSections} registros asociados a esta placa. Los dos primeros son visibles.
             </p>
           </div>
 
           {/* Open sections */}
-          {OPEN_SECTIONS.map((section) => (
+          {openSections.map((section) => (
             <div key={section.num} className={styles.docSection}>
               <div className={styles.docSectionHeader}>
                 <div className={styles.docSectionTitle}>
@@ -280,7 +375,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
           {/* Locked sections */}
           <div className={styles.lockedContainer}>
             <div className={styles.lockedBlur}>
-              {LOCKED_SECTIONS.map((section) => (
+              {lockedSections.map((section) => (
                 <div key={section.num} className={styles.lockedRow}>
                   <div className={styles.docSectionTitle}>
                     <span className={styles.docNum}>{section.num}</span>
@@ -301,7 +396,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
               </div>
               <h3 className={styles.lockTitle}>Falta lo que decide la compra</h3>
               <p className={styles.lockDesc}>
-                5 secciones bloqueadas: siniestros, gravámenes, papeletas, deudas y boleta informativa.
+                {lockedSections.length} secciones bloqueadas: siniestros, gravamenes, papeletas, impuesto y SOAT.
               </p>
             </div>
           </div>
@@ -327,6 +422,37 @@ export default function ConsultarClient({ placa }: { placa: string }) {
               </svg>
             </button>
           </div>
+          {process.env.NODE_ENV === "development" && (
+            <button
+              type="button"
+              disabled={generatingPdf}
+              style={{ marginTop: 8, width: "100%", padding: "12px 0", background: "#7C3AED", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: generatingPdf ? 0.5 : 1 }}
+              onClick={async () => {
+                setGeneratingPdf(true);
+                try {
+                  const res = await fetch("/api/legal-report/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ plate: placa, apiData: previewData?.apiData }),
+                  });
+                  if (!res.ok) throw new Error("Error generando PDF");
+                  const blob = await res.blob();
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `reporte-legal-${placa}.pdf`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                } catch {
+                  alert("Error generando el reporte.");
+                } finally {
+                  setGeneratingPdf(false);
+                }
+              }}
+            >
+              {generatingPdf ? "Generando PDF..." : "Pagar (DEV)"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -437,7 +563,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
       )}
 
       {showCheckout && (
-        <CheckoutOverlay placa={placa} vehicle={MOCK_VEHICLE} onBack={() => { setShowCheckout(false); setShowPlans(true); }} />
+        <CheckoutOverlay placa={placa} vehicle={vehicle || { marca: "", modelo: "", anio: "", color: "", combustible: "", uso: "" }} apiData={previewData?.apiData} onBack={() => { setShowCheckout(false); setShowPlans(true); }} />
       )}
     </div>
   );
@@ -519,7 +645,8 @@ const REPORT_SOURCES = [
   "Generando análisis del informe...",
 ];
 
-function CheckoutOverlay({ placa, vehicle, onBack }: { placa: string; vehicle: typeof MOCK_VEHICLE; onBack: () => void }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; vehicle: PreviewVehicle; apiData?: any; onBack: () => void }) {
   const [bump, setBump] = useState<"none" | "basica" | "premium">("none");
   const [payMethod, setPayMethod] = useState<"yape" | "transfer">("yape");
   const [address, setAddress] = useState("");
@@ -567,7 +694,7 @@ function CheckoutOverlay({ placa, vehicle, onBack }: { placa: string; vehicle: t
       const res = await fetch("/api/legal-report/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plate: placa }),
+        body: JSON.stringify({ plate: placa, apiData }),
       });
       if (!res.ok) throw new Error("Error generando el reporte");
       const blob = await res.blob();
