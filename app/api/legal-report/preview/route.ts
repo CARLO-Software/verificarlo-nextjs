@@ -1,8 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { transformApiResponse } from "@/lib/pdf/legal/transform-api-response";
 
-const INFORME_API_URL = "http://161.132.38.122/informe/placa";
-const API_TIMEOUT_MS = 5 * 60 * 1000;
+const FREE_CONSULTAR_URL = "http://161.132.38.122/free/consultar/placa";
+const FREE_INFORME_URL = "http://161.132.38.122/free/informe/placa";
+const TIMEOUT_MS = 30 * 1000;
+const INFORME_TIMEOUT_MS = 15 * 1000;
+const MAX_RETRIES = 3;
+
+async function fetchWithRetry(
+  url: string,
+  opts: RequestInit,
+  timeoutMs: number,
+  retries = MAX_RETRIES
+): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...opts, signal: controller.signal });
+      if (res.ok || attempt === retries) return res;
+      if (res.status !== 503) return res;
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  throw new Error("Unreachable");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,42 +44,43 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "API key no configurada" }, { status: 500 });
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+    const reqOpts = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": apiKey,
+        "Accept": "application/json",
+      },
+      body: JSON.stringify({ placa: cleanPlate }),
+    };
 
-    try {
-      const res = await fetch(INFORME_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
-        body: JSON.stringify({ placa: cleanPlate }),
-        signal: controller.signal,
-      });
+    // consultar first
+    const consultarRes = await fetchWithRetry(FREE_CONSULTAR_URL, reqOpts, TIMEOUT_MS);
 
-      if (!res.ok) {
-        const body = await res.text().catch(() => "");
-        throw new Error(`API respondio ${res.status}: ${body}`);
-      }
-
-      const apiData = await res.json();
-      const data = transformApiResponse(apiData, cleanPlate);
-
-      return NextResponse.json({
-        vehicle: {
-          marca: apiData.vehiculo?.marca || "",
-          modelo: apiData.vehiculo?.modelo || "",
-          anio: apiData.vehiculo?.anio_modelo || "",
-          color: apiData.vehiculo?.color || "",
-          combustible: apiData.vehiculo?.combustible || "",
-          uso: apiData.vehiculo?.uso || "",
-        },
-        fields: data.fields,
-        owners: data.owners,
-        conclusionLabel: apiData.conclusion?.etiqueta || "",
-        apiData,
-      });
-    } finally {
-      clearTimeout(timeout);
+    if (!consultarRes.ok) {
+      const errBody = await consultarRes.text().catch(() => "");
+      console.error(`API consultar ${consultarRes.status}: ${errBody}`);
+      return NextResponse.json({ error: "No se pudo consultar la placa" }, { status: 502 });
     }
+
+    const consultarData = await consultarRes.json();
+
+    // informe second (sequential to avoid rate limiting), non-blocking
+    let informeData = null;
+    try {
+      const informeRes = await fetchWithRetry(FREE_INFORME_URL, reqOpts, INFORME_TIMEOUT_MS, 1);
+      if (informeRes.ok) {
+        informeData = await informeRes.json();
+      }
+    } catch {
+      // informe is optional
+    }
+
+    return NextResponse.json({
+      consultar: consultarData,
+      informe: informeData,
+      plate: cleanPlate,
+    });
   } catch (error) {
     console.error("Error en preview:", error);
     return NextResponse.json({ error: "Error consultando la placa" }, { status: 500 });

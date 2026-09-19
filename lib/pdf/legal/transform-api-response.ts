@@ -40,7 +40,7 @@ interface ApiResponse {
   };
   gravamenes?: { estado: string; semaforo: string; detalle: string };
   impuesto_vehicular?: {
-    anios: { anio: string; estado: string; semaforo: string }[];
+    anios: { anio: string; estado: string; semaforo: string; contribuyente?: string; monto?: string }[];
     criterio_aplicado?: string;
     recordatorio?: string;
   };
@@ -121,6 +121,7 @@ function findDeuda(deudas: ApiResponse['deudas_multas_capturas'], fuente: string
 
 function cleanResultText(text: string): string {
   let clean = text
+    .replace(/\s*\([^)]*:\s*\w+\)/g, '')
     .replace(/\s*\([^)]*=[^)]*\)/g, '')
     .replace(/\s*\([^)]*:\s*[^)]*=[^)]*\)/g, '')
     .replace(/\s*\w+:\s*\w+=\w+/g, '')
@@ -128,6 +129,8 @@ function cleanResultText(text: string): string {
     .replace(/\s{2,}/g, ' ')
     .trim();
   // Improve common terse outputs
+  clean = clean.replace(/\s*\(sin_resultados:\s*\w+\)/gi, '');
+  if (/^Sin resultados en InfoGas$/i.test(clean)) clean = 'No registra conversión a GNV.';
   if (/^Sin resultados$/i.test(clean)) clean = 'No presenta infracciones pendientes de pago.';
   if (/^Sin papeletas registradas$/i.test(clean)) clean = 'No presenta papeletas pendientes de pago.';
   if (/^SIN REGISTRO en SBS$/i.test(clean)) clean = 'Sin registro de seguro vehicular en SBS.';
@@ -420,6 +423,54 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
   return items;
 }
 
+const BOLD_PHRASES = [
+  'no registra garantías mobiliarias, embargos ni cargas',
+  'no registra garantías mobiliarias',
+  'embargos ni cargas',
+  'sin vigencia',
+  'títulos pendientes',
+  'actos ordinarios',
+  'sucesión', 'anticipo de legítima', 'dación en pago', 'remate judicial', 'adjudicación',
+  'garantía', 'embargo',
+];
+
+function boldKeyPhrases(text: string): string {
+  if (!text) return text;
+  const sorted = [...BOLD_PHRASES].sort((a, b) => b.length - a.length);
+  let result = text;
+  for (const phrase of sorted) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`(?<!\\*\\*)${escaped}(?!\\*\\*)`, 'gi'), '**$&**');
+  }
+  return result;
+}
+
+const CONCLUSION_BOLD = [
+  'registral y tributaria limpia: sin gravámenes ni afectaciones',
+  'registral y tributaria limpia',
+  'sin gravámenes ni afectaciones',
+  'impuesto vehicular al día',
+  'sin papeletas ni orden de captura',
+  'siniestros con cobertura SOAT',
+  'SOAT no se encuentra vigente',
+  'activaciones de seguro vehicular',
+  'alta rotación de propietarios',
+  'La decisión final es del cliente',
+];
+
+function boldConclusionText(text: string, code: string): string {
+  if (!text) return text;
+  const phrases = [...CONCLUSION_BOLD];
+  if (code) phrases.push(code);
+  const sorted = phrases.sort((a, b) => b.length - a.length);
+  let result = text;
+  for (const phrase of sorted) {
+    const escaped = phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    result = result.replace(new RegExp(`(?<!\\*\\*)${escaped}(?!\\*\\*)`, 'gi'), '**$&**');
+  }
+  return result;
+}
+
 const NON_ORDINARY_ACTS = ['sucesión', 'sucesion', 'anticipo de legítima', 'anticipo de legitima', 'dación en pago', 'dacion en pago', 'remate judicial', 'adjudicación', 'adjudicacion'];
 const LIEN_ACTS = ['constitución de garantía', 'constitucion de garantia', 'levantamiento de garantía', 'levantamiento de garantia', 'embargo', 'levantamiento de embargo'];
 
@@ -541,14 +592,14 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     registryEntries: (api.asientos_registrales?.lista || []).map((a, i) => {
       let act = a.acto;
       const ownerMatch = hist.find(h => h.fecha === a.fecha);
-      if (ownerMatch) {
+      if (ownerMatch && !/primera inscripci[oó]n/i.test(a.acto)) {
         const parts = ownerMatch.nombre.split(/\s+/);
         const apellidos = parts.slice(0, 2).join(' ');
         if (apellidos) act = `${a.acto} (${apellidos})`;
       }
       return { number: i + 1, date: a.fecha, act, title: a.titulo };
     }),
-    registryNote: buildRegistryNote(api).detail,
+    registryNote: boldKeyPhrases(buildRegistryNote(api).detail),
     registryNoteStatus: buildRegistryNote(api).status as 'OK' | 'WARNING' | 'CRITICAL',
     registryNoteTitle: buildRegistryNote(api).title,
 
@@ -556,7 +607,9 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     liensTitle: liensStatus === 'OK' || liensStatus === 'PENDING'
       ? 'NO REGISTRA AFECTACIONES VIGENTES'
       : 'REGISTRA AFECTACIONES VIGENTES',
-    liensDetail: api.gravamenes?.detalle || '',
+    liensDetail: liensStatus === 'OK' || liensStatus === 'PENDING'
+      ? boldKeyPhrases((api.gravamenes?.detalle || '').toUpperCase())
+      : boldKeyPhrases(api.gravamenes?.detalle || ''),
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (api.impuesto_vehicular?.anios || []).map(a => {
@@ -566,14 +619,14 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
       if (st === 'CRITICAL') statusText = 'PENDIENTE';
       else if (st === 'WARNING') statusText = estado.includes('vencer') ? 'POR VENCER' : 'PENDIENTE';
       else if (st === 'PENDING') statusText = estado.includes('no exigible') ? 'NO EXIGIBLE' : 'SIN REGISTRO';
-      return { year: a.anio, contributor: '', amount: '', status: st, statusText };
+      return { year: a.anio, contributor: a.contribuyente || '', amount: a.monto || '', status: st, statusText };
     }),
     taxCriteria: api.impuesto_vehicular?.criterio_aplicado || '',
-    taxReminder: api.impuesto_vehicular?.recordatorio || 'Requisito de transferencia: el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
+    taxReminder: api.impuesto_vehicular?.recordatorio || '**Requisito de transferencia:** el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
     taxSource: 'SAT — Lima',
 
     debts: buildDebtsTable(api, now),
-    debtsNote: 'Para cada papeleta se recomienda solicitar el detalle por infraccion: codigo de falta, fecha, importe, gastos y monto con descuento por pronto pago.',
+    debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
     insurance: buildInsuranceTable(api),
@@ -630,8 +683,8 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     }),
     gnvSource: 'InfoGas · FISE',
 
-    conclusionText: api.conclusion?.texto || '',
-    disclaimer: `Sobre este informe. Documento elaborado por VERIFICARLO a partir de consultas a fuentes oficiales para el vehiculo de placa ${plate.toUpperCase()}, emitido el ${format(now, "dd/MM/yyyy 'a las' HH:mm 'h'")}. La informacion registral proviene de copia informativa de SUNARP, que solo tiene fines informativos y no constituye publicidad registral ni reemplaza un certificado vigente para tramites. Los resultados de deudas, infracciones y vigencias corresponden a la fecha de consulta y pueden variar.`,
+    conclusionText: boldConclusionText(api.conclusion?.texto || '', code),
+    disclaimer: `**Sobre este informe.** Documento elaborado por VERIFICARLO a partir de consultas a fuentes oficiales para el vehiculo de placa ${plate.toUpperCase()}, emitido el ${format(now, "dd/MM/yyyy 'a las' HH:mm 'h'")}. La informacion registral proviene de copia informativa de SUNARP, que solo tiene fines informativos y no constituye publicidad registral ni reemplaza un certificado vigente para tramites. Los resultados de deudas, infracciones y vigencias corresponden a la fecha de consulta y pueden variar.`,
 
     // Backward compat
     inspectionId: 0,

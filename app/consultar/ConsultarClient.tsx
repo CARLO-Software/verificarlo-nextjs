@@ -42,15 +42,30 @@ const CheckMark = () => (
 
 const LOADING_STEPS = [
   "Consultando SUNARP...",
-  "Revisando historial SUTRAN...",
-  "Verificando papeletas SAT...",
-  "Consultando seguros APESEG...",
-  "Verificando siniestros SBS...",
-  "Consultando InfoGas / FISE...",
-  "Generando análisis...",
+  "Verificando SOAT...",
+  "Consultando revisión técnica...",
+  "Procesando resultados...",
 ];
 
-interface PreviewVehicle {
+const STATUS_COLORS: Record<string, string> = {
+  OK: "#2AAD22",
+  WARNING: "#D97706",
+  CRITICAL: "#C1352A",
+  PENDING: "#6B7280",
+  verde: "#2AAD22",
+  amarillo: "#D97706",
+  rojo: "#C1352A",
+  gris: "#6B7280",
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+interface ApiPreviewResponse {
+  consultar: any;
+  informe: any;
+  plate: string;
+}
+
+interface VehicleInfo {
   marca: string;
   modelo: string;
   anio: string;
@@ -59,97 +74,147 @@ interface PreviewVehicle {
   uso: string;
 }
 
-interface PreviewField {
-  key: string;
-  label: string;
-  status: string;
-  badgeText: string;
-  text: string;
-}
-
-interface PreviewOwner {
-  number: number;
-  name: string;
-  document: string;
-  acquisitionDate: string;
-  timeAsOwner: string;
-  price: string;
+interface OpenSection {
+  num: string;
   title: string;
-  tags?: string[];
+  rows: { label: string; value: string }[];
 }
 
-interface PreviewData {
-  vehicle: PreviewVehicle;
-  fields: PreviewField[];
-  owners: PreviewOwner[];
-  conclusionLabel: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  apiData?: any;
+interface LockedSection {
+  num: string;
+  label: string;
+  desc: string;
+  value: string;
+  tone: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  OK: "#2AAD22",
-  WARNING: "#D97706",
-  CRITICAL: "#C1352A",
-  PENDING: "#6B7280",
-};
+function getTitulos(consultar: any): any[] {
+  const t1 = consultar?.sunarp?.siguelo?.titulos;
+  if (Array.isArray(t1) && t1.length > 0) return t1;
+  const t2 = consultar?.siguelo?.titulos;
+  if (Array.isArray(t2) && t2.length > 0) return t2;
+  return [];
+}
 
-function buildOpenSections(data: PreviewData) {
-  const ownerField = data.fields.find(f => f.key === "ownerHistory");
-  const transferField = data.fields.find(f => f.key === "lastTransfer");
-  const sections = [];
+function getVehicleTitulo(consultar: any) {
+  const titulos = getTitulos(consultar);
+  return titulos.find((t: any) => t.marca) || null;
+}
 
-  if (ownerField) {
+function extractVehicle(consultar: any): VehicleInfo {
+  const t = getVehicleTitulo(consultar) || {};
+  return {
+    marca: t.marca || "",
+    modelo: t.modelo || "",
+    anio: t.anio_fabricacion || t.anio_modelo || "",
+    color: t.color || "",
+    combustible: t.combustible || "",
+    uso: t.tipo_uso || "",
+  };
+}
+
+const SKIP_NAMES = new Set(["COPROPIEDAD", "PROPIEDAD EXCLUSIVA", "PERSONA NATURAL", "PERSONA JURÍDICA", "PERSONA JURIDICA", "SOLTERO", "SOLTERA", "CASADO", "CASADA", "VIUDO", "VIUDA", "DIVORCIADO", "DIVORCIADA"]);
+
+function countOwners(consultar: any): number {
+  const titulos = getTitulos(consultar);
+  if (titulos.length === 0) return 0;
+  const ownerNames = new Set<string>();
+  for (const t of titulos) {
+    if (t?.nombre && typeof t.nombre === "string") {
+      t.nombre.split("|").map((n: string) => n.trim()).filter(Boolean)
+        .filter((n: string) => !SKIP_NAMES.has(n.toUpperCase()))
+        .forEach((n: string) => ownerNames.add(n.toUpperCase()));
+    }
+  }
+  return ownerNames.size || titulos.length;
+}
+
+function isVigente(fechaVcto: string | undefined): string {
+  if (!fechaVcto) return "Sin información";
+  const parts = fechaVcto.split("/");
+  if (parts.length !== 3) return fechaVcto;
+  const [d, m, y] = parts;
+  const expiry = new Date(`${y}-${m}-${d}T23:59:59`);
+  return expiry >= new Date() ? "VIGENTE" : "NO VIGENTE";
+}
+
+function buildOpenFromConsultar(consultar: any): OpenSection[] {
+  const sections: OpenSection[] = [];
+
+  const t = getVehicleTitulo(consultar);
+  if (t) {
+    const rows: { label: string; value: string }[] = [];
+    if (t.marca) rows.push({ label: "Marca", value: t.marca });
+    if (t.modelo) rows.push({ label: "Modelo", value: t.modelo });
+    if (t.anio_fabricacion) rows.push({ label: "Año", value: t.anio_fabricacion });
+    if (t.color) rows.push({ label: "Color", value: t.color });
+    if (t.tipo_carroceria) rows.push({ label: "Carrocería", value: t.tipo_carroceria });
+    if (t.combustible) rows.push({ label: "Combustible", value: t.combustible });
+    if (t.cilindrada) rows.push({ label: "Cilindrada", value: t.cilindrada });
+    if (t.nro_motor) rows.push({ label: "N.º Motor", value: t.nro_motor });
+    if (rows.length > 0) {
+      sections.push({ num: "01", title: "Características del vehículo (SUNARP)", rows });
+    }
+  }
+
+  const nOwners = countOwners(consultar);
+  if (nOwners > 0) {
     sections.push({
-      num: "01",
-      title: "Historial de propietarios",
-      bigValue: String(data.owners.length),
-      bigLabel: data.owners.length === 1 ? "propietario registrado" : "propietarios registrados",
-      rows: data.owners.slice(0, 3).map((o, i) => ({
-        label: i === data.owners.length - 1 ? "Titular vigente" : `${i + 1}° propietario`,
-        value: `${o.name.split(" ").slice(0, 2).join(" ")} · ${o.acquisitionDate}`,
-      })),
+      num: "02",
+      title: "Propietarios registrados",
+      rows: [{ label: "N.º de propietarios", value: String(nOwners) }],
     });
   }
 
-  if (transferField) {
-    const year = data.owners[data.owners.length - 1]?.acquisitionDate?.split("/").pop() || "";
-    const now = new Date().getFullYear();
-    const diff = year ? now - parseInt(year) : 0;
+  const citv = consultar?.citv;
+  if (citv) {
+    const estado = isVigente(citv.fecha_vcto);
     sections.push({
-      num: "02",
-      title: "Ultima transferencia",
-      bigValue: year,
-      bigLabel: diff > 0 ? `hace ${diff} año${diff > 1 ? "s" : ""}` : "reciente",
-      rows: [
-        { label: "Fecha registrada", value: data.owners[data.owners.length - 1]?.acquisitionDate || "" },
-        { label: "Tipo", value: transferField.text.split(".")[0] || "" },
-      ].filter(r => r.value),
+      num: "03",
+      title: "Revisión técnica (RTV)",
+      rows: [{ label: "Estado", value: estado }],
+    });
+  }
+
+  const soat = consultar?.sbs_soat;
+  if (soat) {
+    const estado = isVigente(soat.vencimiento);
+    sections.push({
+      num: "04",
+      title: "SOAT",
+      rows: [{ label: "Estado", value: estado }],
     });
   }
 
   return sections;
 }
 
-function buildLockedSections(data: PreviewData) {
-  const keys = [
-    { key: "siniestroSoat", num: "03", label: "Siniestros reportados" },
-    { key: "sunarpLiens", num: "04", label: "Gravamenes y embargos" },
-    { key: "satTickets", num: "05", label: "Papeletas pendientes" },
-    { key: "vehicleTax", num: "06", label: "Impuesto vehicular" },
-    { key: "soat", num: "07", label: "SOAT y revision tecnica" },
+function buildLockedFromInforme(informe: any, startNum: number): LockedSection[] {
+  const items = [
+    { key: "gravamenes", label: "Gravámenes y embargos", desc: "Si el auto tiene cargas activas", fallback: "Verificar cargas" },
+    { key: "ultimo_precio", label: "Último precio de compra", desc: "Referencia para negociar", fallback: "Ver precio" },
+    { key: "siniestros_soat", label: "Historial de siniestros reportados", desc: "Choques y eventos registrados", fallback: "Ver historial" },
+    { key: "deudas_multas_capturas", label: "Papeletas y deudas", desc: "Papeletas pendientes y multas", fallback: "Ver deudas" },
   ];
 
-  return keys.map(({ key, num, label }) => {
-    const field = data.fields.find(f => f.key === key);
+  return items.map((m, i) => {
+    const num = String(startNum + i).padStart(2, "0");
+    if (!informe?.[m.key]) {
+      return { num, label: m.label, desc: m.desc, value: m.fallback, tone: "#6B7280" };
+    }
+    const section = informe[m.key];
+    const semaforo = section.semaforo || section.estado || "gris";
+    const badge = section.badge_text || section.etiqueta || section.estado || m.fallback;
     return {
       num,
-      label,
-      value: field?.badgeText || "—",
-      tone: field ? STATUS_COLORS[field.status] || "#6B7280" : "#6B7280",
+      label: m.label,
+      desc: m.desc,
+      value: typeof badge === "string" ? badge.toUpperCase() : m.fallback,
+      tone: STATUS_COLORS[semaforo] || "#6B7280",
     };
   });
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export default function ConsultarClient({ placa }: { placa: string }) {
   const [phase, setPhase] = useState<"loading" | "report" | "error">("loading");
@@ -158,7 +223,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
   const [showPlans, setShowPlans] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [generatingPdf, setGeneratingPdf] = useState(false);
-  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  const [apiResponse, setApiResponse] = useState<ApiPreviewResponse | null>(null);
 
   useEffect(() => {
     if (phase !== "loading") return;
@@ -166,11 +231,11 @@ export default function ConsultarClient({ placa }: { placa: string }) {
 
     const stepInterval = setInterval(() => {
       setCurrentStep(prev => prev < LOADING_STEPS.length - 1 ? prev + 1 : prev);
-    }, 6000);
+    }, 800);
 
     const progressInterval = setInterval(() => {
-      setProgress(prev => Math.min(prev + 1, 95));
-    }, 400);
+      setProgress(prev => Math.min(prev + 3, 95));
+    }, 80);
 
     fetch("/api/legal-report/preview", {
       method: "POST",
@@ -178,9 +243,9 @@ export default function ConsultarClient({ placa }: { placa: string }) {
       body: JSON.stringify({ plate: placa }),
     })
       .then(res => { if (!res.ok) throw new Error("Error"); return res.json(); })
-      .then((data: PreviewData) => {
+      .then((data: ApiPreviewResponse) => {
         if (cancelled) return;
-        setPreviewData(data);
+        setApiResponse(data);
         setProgress(100);
         setCurrentStep(LOADING_STEPS.length - 1);
         setTimeout(() => setPhase("report"), 500);
@@ -213,15 +278,15 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             <div className={styles.ringSpinner} />
             <div className={styles.ringInner}>
               <span className={styles.ringPercent}>{progress}%</span>
-              <span className={styles.ringLabel}>GENERANDO</span>
+              <span className={styles.ringLabel}>CONSULTANDO</span>
             </div>
           </div>
 
           <h2 className={styles.loadingTitle}>
-            Consultando 14 fuentes oficiales para {placa}
+            Consultando fuentes oficiales para {placa}
           </h2>
           <p className={styles.loadingSubtitle}>
-            Esto toma entre <b>30 segundos y 2 minutos</b>. No cierres esta ventana.
+            Esto toma entre <b>10 y 30 segundos</b>. No cierres esta ventana.
           </p>
 
           <div className={styles.progressBar}>
@@ -257,6 +322,8 @@ export default function ConsultarClient({ placa }: { placa: string }) {
   if (phase === "error") {
     return (
       <div className={styles.loadingPage}>
+        <div className={styles.loadingBgPattern} />
+        <div className={styles.loadingGlow} />
         <div className={styles.loadingContent}>
           <h2 className={styles.loadingTitle}>No pudimos consultar esta placa</h2>
           <p className={styles.loadingSubtitle}>
@@ -270,9 +337,10 @@ export default function ConsultarClient({ placa }: { placa: string }) {
     );
   }
 
-  const vehicle = previewData?.vehicle;
-  const openSections = previewData ? buildOpenSections(previewData) : [];
-  const lockedSections = previewData ? buildLockedSections(previewData) : [];
+  const vehicle = apiResponse ? extractVehicle(apiResponse.consultar) : null;
+  const openSections = apiResponse ? buildOpenFromConsultar(apiResponse.consultar) : [];
+  const startNum = openSections.length + 1;
+  const lockedSections = buildLockedFromInforme(apiResponse?.informe, startNum);
   const totalSections = openSections.length + lockedSections.length;
 
   return (
@@ -285,38 +353,9 @@ export default function ConsultarClient({ placa }: { placa: string }) {
         <div className={styles.reportHeaderRight}>
           <div className={styles.reportStatus}>
             <div className={styles.statusDot} />
-            Reporte generado
+            Vistazo gratuito
           </div>
-          <div className={styles.sectionsBadge}>{openSections.length} de {totalSections} secciones desbloqueadas</div>
-          <button
-            type="button"
-            className={styles.generatePdfBtn}
-            disabled={generatingPdf}
-            onClick={async () => {
-              setGeneratingPdf(true);
-              try {
-                const res = await fetch("/api/legal-report/generate", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ plate: placa, apiData: previewData?.apiData }),
-                });
-                if (!res.ok) throw new Error("Error generando PDF");
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `reporte-legal-${placa}.pdf`;
-                a.click();
-                URL.revokeObjectURL(url);
-              } catch {
-                alert("Error generando el reporte. Intenta de nuevo.");
-              } finally {
-                setGeneratingPdf(false);
-              }
-            }}
-          >
-            {generatingPdf ? "Generando…" : "Generar PDF Legal"}
-          </button>
+          <div className={styles.sectionsBadge}>{openSections.length} de {totalSections} secciones visibles</div>
         </div>
       </div>
 
@@ -329,11 +368,11 @@ export default function ConsultarClient({ placa }: { placa: string }) {
                 <span className={styles.logoVerifi}>VERIFI</span>
                 <span className={styles.logoCarlo}>CARLO</span>
               </div>
-              <span className={styles.docKicker}>REPORTE LEGAL VEHICULAR</span>
+              <span className={styles.docKicker}>CONSULTA VEHICULAR GRATUITA</span>
             </div>
             <div className={styles.docHeaderRight}>
               <span className={styles.docPlate}>{placa}</span>
-              <span className={styles.docMeta}>Emitido hoy · {openSections.length} de {totalSections} secciones</span>
+              <span className={styles.docMeta}>Vistazo gratuito · {openSections.length} de {totalSections} secciones</span>
             </div>
           </div>
 
@@ -343,7 +382,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
               {vehicle ? `${vehicle.marca} ${vehicle.modelo} ${vehicle.anio}` : placa}
             </h1>
             <p className={styles.docVehicleDesc}>
-              Encontramos {totalSections} registros asociados a esta placa. Los dos primeros son visibles.
+              Encontramos {totalSections} registros asociados a esta placa. Las primeras secciones son gratuitas.
             </p>
           </div>
 
@@ -355,11 +394,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
                   <span className={styles.docNum}>{section.num}</span>
                   <span className={styles.docFieldTitle}>{section.title}</span>
                 </div>
-                <span className={styles.badgeOpen}>ABIERTO</span>
-              </div>
-              <div className={styles.docBigValue}>
-                <span className={styles.bigNum}>{section.bigValue}</span>
-                <span className={styles.bigLabel}>{section.bigLabel}</span>
+                <span className={styles.badgeOpen}>GRATIS</span>
               </div>
               <div className={styles.docRows}>
                 {section.rows.map((row, i) => (
@@ -372,16 +407,19 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             </div>
           ))}
 
-          {/* Locked sections */}
+          {/* Locked sections — light blur so content peeks through */}
           <div className={styles.lockedContainer}>
             <div className={styles.lockedBlur}>
               {lockedSections.map((section) => (
                 <div key={section.num} className={styles.lockedRow}>
-                  <div className={styles.docSectionTitle}>
-                    <span className={styles.docNum}>{section.num}</span>
-                    <span className={styles.docFieldTitle}>{section.label}</span>
+                  <div className={styles.lockedRowLeft}>
+                    <div className={styles.docSectionTitle}>
+                      <span className={styles.docNum}>{section.num}</span>
+                      <span className={styles.docFieldTitle}>{section.label}</span>
+                    </div>
+                    <span className={styles.lockedRowDesc}>{section.desc}</span>
                   </div>
-                  <span style={{ color: section.tone, fontWeight: 700, fontSize: 14 }}>
+                  <span className={styles.lockedRowBadge} style={{ color: section.tone }}>
                     {section.value}
                   </span>
                 </div>
@@ -389,15 +427,18 @@ export default function ConsultarClient({ placa }: { placa: string }) {
             </div>
             <div className={styles.lockedOverlay}>
               <div className={styles.lockIcon}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16171b" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16171b" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="4" y="10.5" width="16" height="10.5" rx="3" />
                   <path d="M8 10.5V7.5a4 4 0 018 0v3" />
                 </svg>
               </div>
-              <h3 className={styles.lockTitle}>Falta lo que decide la compra</h3>
+              <h3 className={styles.lockTitle}>Desbloquea el informe completo</h3>
               <p className={styles.lockDesc}>
-                {lockedSections.length} secciones bloqueadas: siniestros, gravamenes, papeletas, impuesto y SOAT.
+                Gravámenes, precio de compra, siniestros y papeletas detallados con PDF descargable.
               </p>
+              <button type="button" className={styles.lockBtn} onClick={() => setShowCheckout(true)}>
+                Desbloquear por S/19.90
+              </button>
             </div>
           </div>
         </div>
@@ -407,15 +448,15 @@ export default function ConsultarClient({ placa }: { placa: string }) {
           <div className={styles.stickyCtaCard}>
             <div className={styles.stickyCtaText}>
               <div className={styles.stickyCtaPriceRow}>
-                <span className={styles.stickyCtaLabel}>Desbloquea las 5 secciones por</span>
-                <span className={styles.stickyCtaPrice}>S/29</span>
+                <span className={styles.stickyCtaLabel}>Desbloquea el informe legal completo por</span>
+                <span className={styles.stickyCtaPrice}>S/19.90</span>
               </div>
               <span className={styles.stickyCtaSubtext}>
-                Revisamos los datos en tiempo real y recibes tu informe en 2 minutos.
+                Análisis de 14 fuentes oficiales con PDF descargable.
               </span>
             </div>
-            <button type="button" className={styles.stickyCtaBtn} onClick={() => setShowPlans(true)}>
-              Ver el reporte completo
+            <button type="button" className={styles.stickyCtaBtn} onClick={() => setShowCheckout(true)}>
+              Desbloquear por S/19.90
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16171b" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 12h15" />
                 <path d="M13 6l6 6-6 6" />
@@ -433,7 +474,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
                   const res = await fetch("/api/legal-report/generate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ plate: placa, apiData: previewData?.apiData }),
+                    body: JSON.stringify({ plate: placa }),
                   });
                   if (!res.ok) throw new Error("Error generando PDF");
                   const blob = await res.blob();
@@ -450,7 +491,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
                 }
               }}
             >
-              {generatingPdf ? "Generando PDF..." : "Pagar (DEV)"}
+              {generatingPdf ? "Generando PDF..." : "Generar PDF (DEV)"}
             </button>
           )}
         </div>
@@ -563,7 +604,7 @@ export default function ConsultarClient({ placa }: { placa: string }) {
       )}
 
       {showCheckout && (
-        <CheckoutOverlay placa={placa} vehicle={vehicle || { marca: "", modelo: "", anio: "", color: "", combustible: "", uso: "" }} apiData={previewData?.apiData} onBack={() => { setShowCheckout(false); setShowPlans(true); }} />
+        <CheckoutOverlay placa={placa} vehicle={vehicle || { marca: "", modelo: "", anio: "", color: "", combustible: "", uso: "" }} onBack={() => setShowCheckout(false)} />
       )}
     </div>
   );
@@ -645,8 +686,7 @@ const REPORT_SOURCES = [
   "Generando análisis del informe...",
 ];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; vehicle: PreviewVehicle; apiData?: any; onBack: () => void }) {
+function CheckoutOverlay({ placa, vehicle, onBack }: { placa: string; vehicle: VehicleInfo; onBack: () => void }) {
   const [bump, setBump] = useState<"none" | "basica" | "premium">("none");
   const [payMethod, setPayMethod] = useState<"yape" | "transfer">("yape");
   const [address, setAddress] = useState("");
@@ -658,11 +698,12 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const legalPrice = inspectionPlans[0].price;
+  const legalPrice = 19.9;
   const basicaPrice = inspectionPlans[1].price;
   const premiumPrice = inspectionPlans[2].price;
 
   const total = bump === "premium" ? premiumPrice : bump === "basica" ? basicaPrice : legalPrice;
+  const fmt = (n: number) => n % 1 === 0 ? String(n) : n.toFixed(2);
   const hasBump = bump !== "none";
   const availableSlots = getAvailableSlots(date);
 
@@ -673,7 +714,6 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
 
   const handlePay = async () => {
     if (hasBump) {
-      // Básica/Premium → redirect to /agendar (existing flow)
       const planType = bump === "premium" ? inspectionPlans[2].type : inspectionPlans[1].type;
       window.location.href = `/agendar?plan=${planType}&placa=${placa}`;
       return;
@@ -682,7 +722,6 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
     setError(null);
     setLoadingStep(0);
 
-    // Animar pasos cada ~12s para cubrir ~3 min de espera
     const stepTimer = setInterval(() => {
       setLoadingStep(prev => {
         if (prev < REPORT_SOURCES.length - 1) return prev + 1;
@@ -694,7 +733,7 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
       const res = await fetch("/api/legal-report/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plate: placa, apiData }),
+        body: JSON.stringify({ plate: placa }),
       });
       if (!res.ok) throw new Error("Error generando el reporte");
       const blob = await res.blob();
@@ -816,7 +855,7 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
             <path d="M19 12H5" />
             <path d="M12 5l-7 7 7 7" />
           </svg>
-          Volver a planes
+          Volver
         </button>
       </div>
 
@@ -856,9 +895,9 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
                   {bump === "basica" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16171b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
                 </div>
                 <div className={styles.bumpInfo}>
-                  <span className={styles.bumpName}>Agregar inspección básica <span className={styles.bumpOldPrice}>S/350</span> +S/{basicaPrice - legalPrice}</span>
+                  <span className={styles.bumpName}>Agregar inspección básica <span className={styles.bumpOldPrice}>S/350</span> +S/{fmt(basicaPrice - legalPrice)}</span>
                   <span className={styles.bumpDesc}>200+ puntos, escáner profesional, escaneo de pintura</span>
-                  {bump === "basica" && <span className={styles.bumpTotal}>Total S/{basicaPrice}</span>}
+                  {bump === "basica" && <span className={styles.bumpTotal}>Total S/{fmt(basicaPrice)}</span>}
                 </div>
               </button>
 
@@ -868,9 +907,9 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
                   {bump === "premium" && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16171b" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>}
                 </div>
                 <div className={styles.bumpInfo}>
-                  <span className={styles.bumpName}>Agregar Inspección premium <span className={styles.bumpOldPrice}>S/400</span> +S/{premiumPrice - legalPrice}</span>
+                  <span className={styles.bumpName}>Agregar Inspección premium <span className={styles.bumpOldPrice}>S/400</span> +S/{fmt(premiumPrice - legalPrice)}</span>
                   <span className={styles.bumpDesc}>+ videoscopía de motor y asesoría de presupuesto</span>
-                  {bump === "premium" && <span className={styles.bumpTotal}>Total S/{premiumPrice}</span>}
+                  {bump === "premium" && <span className={styles.bumpTotal}>Total S/{fmt(premiumPrice)}</span>}
                 </div>
               </button>
 
@@ -897,107 +936,70 @@ function CheckoutOverlay({ placa, vehicle, apiData, onBack }: { placa: string; v
                   />
                   <div className={styles.scheduleDateRow}>
                     <div className={styles.scheduleDateWrap}>
-                      <label className={styles.scheduleLabel}>Fecha preferida</label>
-                      <input
-                        type="date"
-                        value={date}
-                        min={todayStr}
-                        onChange={(e) => { setDate(e.target.value); setTime(""); }}
-                        className={styles.scheduleInput}
-                      />
+                      <label className={styles.scheduleLabel}>Fecha</label>
+                      <input type="date" min={todayStr} value={date} onChange={(e) => { setDate(e.target.value); setTime(""); }} className={styles.scheduleInput} />
                     </div>
                     <div className={styles.scheduleDateWrap}>
-                      <label className={styles.scheduleLabel}>Hora preferida</label>
-                      <select
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className={styles.scheduleInput}
-                        disabled={availableSlots.length === 0}
-                      >
-                        <option value="">{date ? (availableSlots.length ? "Seleccionar hora" : "No disponible") : "Elige fecha primero"}</option>
-                        {availableSlots.map((slot) => (
-                          <option key={slot} value={slot}>{slot}</option>
-                        ))}
+                      <label className={styles.scheduleLabel}>Hora</label>
+                      <select value={time} onChange={(e) => setTime(e.target.value)} className={styles.scheduleInput} disabled={!date}>
+                        <option value="">Seleccionar</option>
+                        {availableSlots.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Order summary */}
-            <div className={styles.checkoutSummary}>
-              <h3 className={styles.summaryTitle}>Resumen del pedido</h3>
-              <div className={styles.summaryRows}>
-                <div className={styles.summaryRow}>
-                  <span>Informe Legal Express</span>
-                  <span>S/{legalPrice}</span>
-                </div>
-                {bump === "basica" && (
-                  <div className={`${styles.summaryRow} ${styles.summaryRowHighlight}`}>
-                    <span>Inspección Básica</span>
-                    <span>+S/{basicaPrice - legalPrice}</span>
-                  </div>
-                )}
-                {bump === "premium" && (
-                  <div className={`${styles.summaryRow} ${styles.summaryRowHighlight}`}>
-                    <span>Upgrade Premium</span>
-                    <span>+S/{premiumPrice - legalPrice}</span>
-                  </div>
-                )}
-                <div className={styles.summaryDivider} />
-                <div className={styles.summaryTotal}>
-                  <span>Total a pagar hoy</span>
-                  <span>S/{total}</span>
-                </div>
-              </div>
-            </div>
           </div>
 
-          {/* RIGHT COLUMN - Payment */}
+          {/* RIGHT COLUMN */}
           <div className={styles.checkoutRight}>
-            <div className={styles.paymentSection}>
-              <span className={styles.paymentTitle}>Métodos de pago</span>
-
-              <button type="button" className={`${styles.payOption} ${payMethod === "yape" ? styles.payOptionActive : ""}`} onClick={() => setPayMethod("yape")}>
-                <div className={`${styles.payRadio} ${payMethod === "yape" ? styles.payRadioActive : ""}`}>
-                  {payMethod === "yape" && <div className={styles.payRadioDot} />}
+            <div className={styles.checkoutSummary}>
+              <h3 className={styles.summaryTitle}>Resumen</h3>
+              <div className={styles.summaryRow}>
+                <span>Informe Legal Express</span>
+                <span>S/{fmt(legalPrice)}</span>
+              </div>
+              {bump === "basica" && (
+                <div className={styles.summaryRow}>
+                  <span>Inspección Básica</span>
+                  <span>+S/{fmt(basicaPrice - legalPrice)}</span>
                 </div>
-                <div className={styles.payBrandYape}>yape</div>
-                <div className={styles.payBrandPlin}>plin</div>
-                <div className={styles.payOptionInfo}>
-                  <span className={styles.payOptionName}>Yape / Plin</span>
-                  <span className={styles.payOptionDesc}>QR en segundos</span>
+              )}
+              {bump === "premium" && (
+                <div className={styles.summaryRow}>
+                  <span>Inspección Premium</span>
+                  <span>+S/{fmt(premiumPrice - legalPrice)}</span>
                 </div>
-              </button>
-
-              <button type="button" className={`${styles.payOption} ${payMethod === "transfer" ? styles.payOptionActive : ""}`} onClick={() => setPayMethod("transfer")}>
-                <div className={`${styles.payRadio} ${payMethod === "transfer" ? styles.payRadioActive : ""}`}>
-                  {payMethod === "transfer" && <div className={styles.payRadioDot} />}
-                </div>
-                <div className={styles.payBrandBcp}>BCP</div>
-                <div className={styles.payOptionInfo}>
-                  <span className={styles.payOptionName}>Transferencia bancaria</span>
-                  <span className={styles.payOptionDesc}>Subes el voucher</span>
-                </div>
-              </button>
+              )}
+              <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
+                <span>Total</span>
+                <span>S/{fmt(total)}</span>
+              </div>
             </div>
+
+            {!hasBump && (
+              <div className={styles.payMethods}>
+                <h4 className={styles.payMethodTitle}>Método de pago</h4>
+                <button type="button" className={`${styles.payMethodBtn} ${payMethod === "yape" ? styles.payMethodActive : ""}`} onClick={() => setPayMethod("yape")}>
+                  Yape / Plin
+                </button>
+                <button type="button" className={`${styles.payMethodBtn} ${payMethod === "transfer" ? styles.payMethodActive : ""}`} onClick={() => setPayMethod("transfer")}>
+                  Transferencia
+                </button>
+              </div>
+            )}
+
+            {error && <p style={{ color: "#DC2626", fontSize: 14, marginTop: 8 }}>{error}</p>}
 
             <button
               type="button"
               className={styles.checkoutCta}
               onClick={handlePay}
-              disabled={paying}
+              disabled={hasBump && (!address || !district || !date || !time)}
             >
-              {paying ? "Generando reporte…" : `Pagar S/${total}`}
+              {hasBump ? `Pagar S/${fmt(total)} y agendar` : `Pagar S/${fmt(total)} y generar reporte`}
             </button>
-            {error && <p className={styles.checkoutError}>{error}</p>}
-            <div className={styles.paySecure}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(26,27,31,.68)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2l7 3v6c0 5-3 8-7 11-4-3-7-6-7-11V5z" />
-              </svg>
-              Pago 100% seguro
-            </div>
           </div>
         </div>
       </div>
