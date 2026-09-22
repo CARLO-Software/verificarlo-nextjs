@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const FREE_CONSULTAR_URL = "http://161.132.38.122/free/consultar/placa";
-const FREE_INFORME_URL = "http://161.132.38.122/free/informe/placa";
 const TIMEOUT_MS = 30 * 1000;
-const INFORME_TIMEOUT_MS = 15 * 1000;
 const MAX_RETRIES = 3;
 
 async function fetchWithRetry(
@@ -65,20 +63,9 @@ export async function POST(req: NextRequest) {
 
     const consultarData = await consultarRes.json();
 
-    // informe second (sequential to avoid rate limiting), non-blocking
-    let informeData = null;
-    try {
-      const informeRes = await fetchWithRetry(FREE_INFORME_URL, reqOpts, INFORME_TIMEOUT_MS, 1);
-      if (informeRes.ok) {
-        informeData = await informeRes.json();
-      }
-    } catch {
-      // informe is optional
-    }
-
     return NextResponse.json({
       consultar: consultarData,
-      informe: informeData,
+      informe: null,
       plate: cleanPlate,
     });
   } catch (error) {

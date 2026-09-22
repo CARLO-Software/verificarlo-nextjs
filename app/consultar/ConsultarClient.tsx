@@ -737,12 +737,15 @@ function CheckoutOverlay({ placa, vehicle, onBack }: { placa: string; vehicle: V
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plate: placa }),
       });
-      if (!res.ok) throw new Error("Error generando el reporte");
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({ error: "Error generando el reporte" }));
+        throw new Error(errBody.error || "Error generando el reporte");
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
-    } catch {
-      setError("Hubo un error generando tu reporte. Intenta de nuevo.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Hubo un error generando tu reporte. Intenta de nuevo.");
     } finally {
       clearInterval(stepTimer);
       setPaying(false);
