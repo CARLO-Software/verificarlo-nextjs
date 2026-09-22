@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { inspectionPlans } from "@/prisma/data/inspections";
+import AddressAutocomplete from "@/app/components/Booking/AddressAutocomplete";
+import { getDistrictsGroupedByZone } from "@/prisma/data/districts";
 import styles from "./Consultar.module.css";
 
 const FEATURE_GROUPS = [
@@ -920,20 +922,31 @@ function CheckoutOverlay({ placa, vehicle, onBack }: { placa: string; vehicle: V
                     <span className={styles.scheduleFormTitle}>¿Dónde está el auto?</span>
                     <span className={styles.scheduleFormDesc}>Coordinamos la visita del técnico.</span>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Dirección"
+                  <AddressAutocomplete
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={setAddress}
+                    onPlaceSelect={(place) => {
+                      setAddress(place.formatted_address);
+                      const distComp = place.address_components.find(c => c.types.includes("locality") || c.types.includes("administrative_area_level_2"));
+                      if (distComp) setDistrict(distComp.long_name);
+                    }}
+                    placeholder="Dirección"
                     className={styles.scheduleInput}
                   />
-                  <input
-                    type="text"
-                    placeholder="Distrito"
+                  <select
                     value={district}
                     onChange={(e) => setDistrict(e.target.value)}
                     className={styles.scheduleInput}
-                  />
+                  >
+                    <option value="">Seleccionar distrito</option>
+                    {getDistrictsGroupedByZone().map(group => (
+                      <optgroup key={group.zone} label={group.zoneName}>
+                        {group.districts.map(d => (
+                          <option key={d.id} value={d.name}>{d.name}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                   <div className={styles.scheduleDateRow}>
                     <div className={styles.scheduleDateWrap}>
                       <label className={styles.scheduleLabel}>Fecha</label>

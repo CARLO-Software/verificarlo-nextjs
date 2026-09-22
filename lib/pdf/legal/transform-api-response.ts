@@ -66,6 +66,20 @@ interface ApiResponse {
   reglas_condicionales_aplicadas?: string[];
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export interface Api2Response {
+  sat_tributos?: {
+    contribuyentes?: {
+      nombre?: string;
+      tributos?: Record<string, string>[];
+    }[];
+  };
+  citv?: { certificado?: string; [k: string]: any };
+  siguelo?: { titulos?: Record<string, any>[] };
+  sunarp?: { siguelo?: { titulos?: Record<string, any>[] } };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 type FieldStatus = 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
 
 function semaforoToStatus(semaforo: string): FieldStatus {
@@ -234,16 +248,17 @@ function buildSoat(api: ApiResponse) {
   return { status, badgeText, text: `${soat.compania}. Vigente del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${soat.nro_certificado}.`, expiryDate: hasta };
 }
 
-function buildRevisionTecnica(api: ApiResponse) {
+function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string) {
   const srs = api.seguros_revision_siniestros;
   const citv = srs?.find(s => s.concepto === 'citv');
+  const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
   if (citv) {
     const status = semaforoToStatus(citv.semaforo);
     let badgeText = 'VIGENTE';
     if (status === 'CRITICAL') badgeText = 'VENCIDO';
     else if (status === 'WARNING') badgeText = 'VENCE PRONTO';
     else if (status === 'PENDING') badgeText = 'NO EXIGIBLE';
-    return { status, badgeText, text: cleanResultText(citv.resultado) };
+    return { status, badgeText, text: cleanResultText(citv.resultado) + certSuffix };
   }
   if (api.revision_tecnica) {
     const rt = api.revision_tecnica as { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
@@ -251,7 +266,7 @@ function buildRevisionTecnica(api: ApiResponse) {
     let badgeText = 'VIGENTE';
     if (status === 'CRITICAL') badgeText = 'VENCIDO';
     else if (status === 'WARNING') badgeText = rt.detalle?.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
-    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) };
+    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) + certSuffix };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
 }
@@ -371,7 +386,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   return debts;
 }
 
-function buildInsuranceTable(api: ApiResponse): TableEntry[] {
+function buildInsuranceTable(api: ApiResponse, citvCertificado?: string): TableEntry[] {
   const items: TableEntry[] = [];
   const srs = api.seguros_revision_siniestros || [];
   const soatDetail = api.desglose_soat?.[0];
@@ -386,16 +401,17 @@ function buildInsuranceTable(api: ApiResponse): TableEntry[] {
     });
   }
 
-  const citv = srs.find(s => s.concepto === 'citv');
-  if (citv) {
-    const st = semaforoToStatus(citv.semaforo);
+  const citvEntry = srs.find(s => s.concepto === 'citv');
+  if (citvEntry) {
+    const st = semaforoToStatus(citvEntry.semaforo);
     let citvText = 'VIGENTE';
-    if (st === 'CRITICAL') citvText = citv.resultado.toLowerCase().includes('sin registro') ? 'SIN REGISTRO' : 'VENCIDO';
-    else if (st === 'WARNING') citvText = citv.resultado.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
-    else if (st === 'PENDING') citvText = citv.resultado.toLowerCase().includes('no exigible') ? 'NO EXIGIBLE' : 'NO CONSULTADO';
+    if (st === 'CRITICAL') citvText = citvEntry.resultado.toLowerCase().includes('sin registro') ? 'SIN REGISTRO' : 'VENCIDO';
+    else if (st === 'WARNING') citvText = citvEntry.resultado.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    else if (st === 'PENDING') citvText = citvEntry.resultado.toLowerCase().includes('no exigible') ? 'NO EXIGIBLE' : 'NO CONSULTADO';
+    const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
     items.push({
       concept: 'Revision tecnica (CITV)', entity: 'MTC',
-      result: cleanResultText(citv.resultado), status: st, statusText: citvText,
+      result: cleanResultText(citvEntry.resultado) + certSuffix, status: st, statusText: citvText,
     });
   }
 
@@ -487,10 +503,11 @@ function buildRegistryNote(api: ApiResponse): { status: FieldStatus; title: stri
   return { status: 'OK', title: 'SIN PENDIENTES', detail: 'No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios.' };
 }
 
-export function transformApiResponse(api: ApiResponse, plate: string): LegalReportData {
+export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api2Response | null): LegalReportData {
   const now = toZonedTime(new Date(), 'America/Lima');
   const v = api.vehiculo;
   const comp = parseDatosComplementarios(v?.datos_complementarios_partida);
+  const t0 = api2?.siguelo?.titulos?.[0] || api2?.sunarp?.siguelo?.titulos?.[0];
   const vehicleDescription = v ? `${v.marca} ${v.modelo} ${v.anio_modelo}` : plate;
   const hist = api.titularidad?.historial || [];
 
@@ -499,7 +516,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
   const grav = buildGravamenes(api);
   const captura = buildCaptura(api);
   const soat = buildSoat(api);
-  const citv = buildRevisionTecnica(api);
+  const citv = buildRevisionTecnica(api, api2?.citv?.certificado);
   const impuesto = buildImpuesto(api);
   const gnv = buildGnv(api);
   const satPap = buildPapeletas(api, 'sat_lima', 'papeletas SAT');
@@ -557,14 +574,14 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
 
     vehicleComplementary: v ? [
       { label: 'Combustible', value: v.combustible || '' },
-      { label: 'Potencia motor', value: comp['Potencia Motor'] || '' },
-      { label: 'N.° de cilindros', value: comp['Nro. Cilindros'] || '' },
-      { label: 'Cilindrada', value: comp['Cilindrada'] || '' },
-      { label: 'N.° de asientos', value: comp['Nro. Asientos'] || '' },
-      { label: 'Formula rodante', value: comp['Fórmula Rodante'] || comp['Formula Rodante'] || '' },
-      { label: 'Peso neto / bruto', value: [comp['Peso Neto'], comp['Peso Bruto']].filter(Boolean).join(' / ') },
-      { label: 'Carga util', value: comp['Carga Util'] || '' },
-      { label: 'Long. / Ancho / Alto', value: [comp['Longitud'], comp['Ancho'], comp['Altura']].filter(Boolean).join(' / ') },
+      { label: 'Potencia motor', value: t0?.potencia_motor || comp['Potencia Motor'] || '' },
+      { label: 'N.° de cilindros', value: t0?.nro_cilindros || comp['Nro. Cilindros'] || '' },
+      { label: 'Cilindrada', value: t0?.cilindrada || comp['Cilindrada'] || '' },
+      { label: 'N.° de asientos', value: t0?.nro_asientos || comp['Nro. Asientos'] || '' },
+      { label: 'Formula rodante', value: t0?.formula_rodante || comp['Fórmula Rodante'] || comp['Formula Rodante'] || '' },
+      { label: 'Peso neto / bruto', value: [t0?.peso_neto || comp['Peso Neto'], t0?.peso_bruto || comp['Peso Bruto']].filter(Boolean).join(' / ') },
+      { label: 'Carga util', value: t0?.carga_util || comp['Carga Util'] || '' },
+      { label: 'Long. / Ancho / Alto', value: [t0?.longitud || comp['Longitud'], t0?.ancho || comp['Ancho'], t0?.altura || comp['Altura']].filter(Boolean).join(' / ') },
       { label: 'Inmatriculacion', value: hist[0]?.fecha || '' },
       { label: 'Adquisicion titular actual', value: hist[hist.length - 1]?.fecha || '' },
       { label: 'N.° de partida', value: [comp['Partida'], comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') },
@@ -583,7 +600,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
         tags: [
           i === 0 ? '1.ª inscripcion' : undefined,
           isSociedad ? 'Sociedad conyugal' : undefined,
-          h.estado === 'Titular vigente' ? 'Titular vigente' : undefined,
+          (h.estado === 'Titular vigente' || i === hist.length - 1) ? 'Titular vigente' : undefined,
         ].filter(Boolean) as string[],
       };
     }),
@@ -619,7 +636,22 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
       if (st === 'CRITICAL') statusText = 'PENDIENTE';
       else if (st === 'WARNING') statusText = estado.includes('vencer') ? 'POR VENCER' : 'PENDIENTE';
       else if (st === 'PENDING') statusText = estado.includes('no exigible') ? 'NO EXIGIBLE' : 'SIN REGISTRO';
-      return { year: a.anio, contributor: a.contribuyente || '', amount: a.monto || '', status: st, statusText };
+      let amount = a.monto || '';
+      let contributor = a.contribuyente || '';
+      if (api2?.sat_tributos?.contribuyentes) {
+        let yearSum = 0;
+        for (const c of api2.sat_tributos.contribuyentes) {
+          for (const t of c.tributos || []) {
+            const tYear = t['Año'] || t.anio || '';
+            if (tYear === a.anio) {
+              if (!amount) yearSum += parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
+              if (!contributor) contributor = c.nombre || '';
+            }
+          }
+        }
+        if (!amount && yearSum > 0) amount = `S/ ${yearSum.toFixed(2)}`;
+      }
+      return { year: a.anio, contributor, amount, status: st, statusText };
     }),
     taxCriteria: api.impuesto_vehicular?.criterio_aplicado || '',
     taxReminder: api.impuesto_vehicular?.recordatorio || '**Requisito de transferencia:** el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
@@ -629,7 +661,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
     debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
-    insurance: buildInsuranceTable(api),
+    insurance: buildInsuranceTable(api, api2?.citv?.certificado),
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emision; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 
