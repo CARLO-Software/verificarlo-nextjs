@@ -240,32 +240,63 @@ function buildSoat(api: ApiResponse) {
   const now = new Date();
   let status: FieldStatus = 'OK';
   let badgeText = 'VIGENTE';
-  if (!expiry || expiry < now) { status = 'CRITICAL'; badgeText = 'NO VIGENTE'; }
-  else {
+  if (!expiry || expiry < now) {
+    status = 'CRITICAL';
+    badgeText = 'VENCIDO';
+  } else {
     const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / 86400000);
-    if (daysLeft <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
+    if (daysLeft === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
+    else if (daysLeft <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
   }
   return { status, badgeText, text: `${soat.compania}. Vigente del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${soat.nro_certificado}.`, expiryDate: hasta };
 }
 
-function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string) {
+function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
+  const hasta = api.revision_tecnica?.vigencia_hasta || api2?.citv?.fecha_vcto;
+  if (!hasta) return null;
+  const expiry = parseDate(hasta);
+  if (!expiry) return null;
+  const now = new Date();
+  if (expiry < now) return -1;
+  return Math.ceil((expiry.getTime() - now.getTime()) / 86400000);
+}
+
+function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null) {
   const srs = api.seguros_revision_siniestros;
   const citv = srs?.find(s => s.concepto === 'citv');
   const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
   if (citv) {
-    const status = semaforoToStatus(citv.semaforo);
+    let status = semaforoToStatus(citv.semaforo);
+    const lower = citv.resultado.toLowerCase();
     let badgeText = 'VIGENTE';
-    if (status === 'CRITICAL') badgeText = 'VENCIDO';
-    else if (status === 'WARNING') badgeText = 'VENCE PRONTO';
-    else if (status === 'PENDING') badgeText = 'NO EXIGIBLE';
+    if (status === 'CRITICAL') {
+      if (lower.includes('sin registro')) { status = 'WARNING'; badgeText = 'SIN REGISTRO'; }
+      else badgeText = 'VENCIDO';
+    } else if (status === 'WARNING') badgeText = lower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    else if (status === 'PENDING') {
+      if (lower.includes('no exigible')) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
+      else badgeText = 'NO CONSULTADO';
+    } else if (status === 'OK') {
+      const days = citvExpiryDays(api, api2);
+      if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
+      else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
+    }
     return { status, badgeText, text: cleanResultText(citv.resultado) + certSuffix };
   }
   if (api.revision_tecnica) {
     const rt = api.revision_tecnica as { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
-    const status = semaforoToStatus(rt.semaforo);
+    let status = semaforoToStatus(rt.semaforo);
+    const lower = (rt.detalle || rt.estado).toLowerCase();
     let badgeText = 'VIGENTE';
-    if (status === 'CRITICAL') badgeText = 'VENCIDO';
-    else if (status === 'WARNING') badgeText = rt.detalle?.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    if (status === 'CRITICAL') {
+      if (lower.includes('sin registro')) { status = 'WARNING'; badgeText = 'SIN REGISTRO'; }
+      else badgeText = 'VENCIDO';
+    } else if (status === 'WARNING') badgeText = lower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    else if (status === 'OK') {
+      const days = citvExpiryDays(api, api2);
+      if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
+      else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
+    }
     return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) + certSuffix };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
@@ -386,28 +417,49 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   return debts;
 }
 
-function buildInsuranceTable(api: ApiResponse, citvCertificado?: string): TableEntry[] {
+function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null): TableEntry[] {
   const items: TableEntry[] = [];
   const srs = api.seguros_revision_siniestros || [];
   const soatDetail = api.desglose_soat?.[0];
 
   const soat = srs.find(s => s.concepto === 'soat');
   if (soat) {
-    const st = semaforoToStatus(soat.semaforo);
+    let st = semaforoToStatus(soat.semaforo);
+    let soatStatusText = 'VIGENTE';
+    if (st === 'CRITICAL') soatStatusText = 'VENCIDO';
+    else if (st === 'WARNING') soatStatusText = 'VENCE PRONTO';
+    else if (st === 'PENDING') soatStatusText = 'SIN REGISTRO';
+    if (st === 'OK' && soatDetail) {
+      const expiry = parseDate(soatDetail.vigencia_hasta);
+      if (expiry) {
+        const daysLeft = Math.ceil((expiry.getTime() - new Date().getTime()) / 86400000);
+        if (daysLeft === 0) { st = 'CRITICAL'; soatStatusText = 'VENCE HOY'; }
+        else if (daysLeft <= 30) { st = 'WARNING'; soatStatusText = 'VENCE PRONTO'; }
+      }
+    }
     items.push({
       concept: 'SOAT', entity: soatDetail ? `APESEG / ${soatDetail.compania}` : 'APESEG',
-      result: cleanResultText(soat.resultado), status: st,
-      statusText: st === 'OK' ? 'VIGENTE' : st === 'WARNING' ? 'VENCE PRONTO' : st === 'CRITICAL' ? 'NO VIGENTE' : 'SIN REGISTRO',
+      result: cleanResultText(soat.resultado), status: st, statusText: soatStatusText,
     });
   }
 
   const citvEntry = srs.find(s => s.concepto === 'citv');
   if (citvEntry) {
-    const st = semaforoToStatus(citvEntry.semaforo);
+    let st = semaforoToStatus(citvEntry.semaforo);
+    const citvLower = citvEntry.resultado.toLowerCase();
     let citvText = 'VIGENTE';
-    if (st === 'CRITICAL') citvText = citvEntry.resultado.toLowerCase().includes('sin registro') ? 'SIN REGISTRO' : 'VENCIDO';
-    else if (st === 'WARNING') citvText = citvEntry.resultado.toLowerCase().includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
-    else if (st === 'PENDING') citvText = citvEntry.resultado.toLowerCase().includes('no exigible') ? 'NO EXIGIBLE' : 'NO CONSULTADO';
+    if (st === 'CRITICAL') {
+      if (citvLower.includes('sin registro')) { st = 'WARNING'; citvText = 'SIN REGISTRO'; }
+      else citvText = 'VENCIDO';
+    } else if (st === 'WARNING') citvText = citvLower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
+    else if (st === 'PENDING') {
+      if (citvLower.includes('no exigible')) { st = 'OK'; citvText = 'NO EXIGIBLE'; }
+      else citvText = 'NO CONSULTADO';
+    } else if (st === 'OK') {
+      const days = citvExpiryDays(api, api2);
+      if (days === 0) { st = 'CRITICAL'; citvText = 'VENCE HOY'; }
+      else if (days !== null && days <= 30) { st = 'WARNING'; citvText = 'VENCE PRONTO'; }
+    }
     const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
     items.push({
       concept: 'Revision tecnica (CITV)', entity: 'MTC',
@@ -516,7 +568,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const grav = buildGravamenes(api);
   const captura = buildCaptura(api);
   const soat = buildSoat(api);
-  const citv = buildRevisionTecnica(api, api2?.citv?.certificado);
+  const citv = buildRevisionTecnica(api, api2?.citv?.certificado, api2);
   const impuesto = buildImpuesto(api);
   const gnv = buildGnv(api);
   const satPap = buildPapeletas(api, 'sat_lima', 'papeletas SAT');
@@ -661,7 +713,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
-    insurance: buildInsuranceTable(api, api2?.citv?.certificado),
+    insurance: buildInsuranceTable(api, api2?.citv?.certificado, api2),
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emision; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 
