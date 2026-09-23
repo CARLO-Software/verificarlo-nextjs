@@ -163,15 +163,25 @@ function buildOwnerHistory(api: ApiResponse) {
   return { status, badgeText, text: `${count} propietario${count > 1 ? 's' : ''} registrado${count > 1 ? 's' : ''}. ${nota}`.trim() };
 }
 
-function buildLastTransfer(api: ApiResponse) {
+function buildLastTransfer(api: ApiResponse, api2?: Api2Response | null) {
   const hist = api.titularidad?.historial;
   if (!hist?.length) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Sin datos de transferencia.', extraInfo: undefined };
   const last = hist[hist.length - 1];
+  let fecha = last.fecha || '';
+  let precio = last.precio;
+  if (!fecha && api2) {
+    const titulos = api2.siguelo?.titulos || api2.sunarp?.siguelo?.titulos || [];
+    const lastTitulo = titulos.filter(t => t.fecha).pop();
+    if (lastTitulo) {
+      fecha = lastTitulo.fecha;
+      if ((!precio || precio === 'N/A') && lastTitulo.precio) precio = lastTitulo.precio;
+    }
+  }
   return {
     status: 'OK' as FieldStatus,
     badgeText: 'SIN PROBLEMAS',
-    text: `Compraventa registrada el ${last.fecha}.`,
-    extraInfo: last.precio !== 'N/A' ? `Monto: ${last.precio}` : undefined,
+    text: fecha ? `Compraventa registrada el ${fecha}.` : 'Compraventa registrada (fecha no disponible).',
+    extraInfo: precio && precio !== 'N/A' ? `Monto: ${precio}` : undefined,
   };
 }
 
@@ -577,7 +587,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const hist = api.titularidad?.historial || [];
 
   const owner = buildOwnerHistory(api);
-  const transfer = buildLastTransfer(api);
+  const transfer = buildLastTransfer(api, api2);
   const grav = buildGravamenes(api);
   const captura = buildCaptura(api);
   const soat = buildSoat(api);
@@ -698,34 +708,29 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const anios = api.impuesto_vehicular?.anios || [];
       if (anios.length === 0) {
         if (!api2?.sat_tributos?.contribuyentes?.length) return [];
-        const yearMap = new Map<string, { paid: number; total: number; contributor: string }>();
+        const yearMap = new Map<string, { paid: number; unpaid: number; contributor: string }>();
         for (const c of api2.sat_tributos.contribuyentes) {
           for (const t of c.tributos || []) {
             const y = t['Año'] || t.anio || '';
             if (!y) continue;
-            const entry = yearMap.get(y) || { paid: 0, total: 0, contributor: '' };
+            const entry = yearMap.get(y) || { paid: 0, unpaid: 0, contributor: '' };
             const pagado = parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
-            const deuda = parseFloat((t['Total Deuda 1/'] || t['Deuda Web/Bancos'] || '0').replace(/,/g, ''));
             entry.paid += pagado;
-            entry.total++;
             if (!entry.contributor) entry.contributor = c.nombre || '';
             const estado = (t.Estado || t.estado || '').toLowerCase();
-            if (estado && !estado.includes('pagado')) entry.paid = -1;
+            if (estado && !estado.includes('pagado')) entry.unpaid++;
             yearMap.set(y, entry);
           }
         }
         return Array.from(yearMap.entries())
           .sort(([a], [b]) => a.localeCompare(b))
-          .map(([year, info]) => {
-            const allPaid = info.paid > 0;
-            return {
-              year,
-              contributor: info.contributor,
-              amount: info.paid > 0 ? `S/ ${info.paid.toFixed(2)}` : '',
-              status: (allPaid ? 'OK' : 'WARNING') as FieldStatus,
-              statusText: allPaid ? 'PAGADO' : 'PENDIENTE',
-            };
-          });
+          .map(([year, info]) => ({
+            year,
+            contributor: info.contributor,
+            amount: info.paid > 0 ? `S/ ${info.paid.toFixed(2)}` : '',
+            status: (info.unpaid === 0 ? 'OK' : 'WARNING') as FieldStatus,
+            statusText: info.unpaid === 0 ? 'PAGADO' : 'PENDIENTE',
+          }));
       }
       return anios.map(a => {
         const estado = (a.estado || '').toLowerCase();
