@@ -45,6 +45,7 @@ export interface LegalReportData {
   liensDetail?: string;
   liensSource?: string;
   taxYears?: { year: string; contributor: string; amount: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; statusText: string }[];
+  taxPendingSummary?: string;
   taxCriteria?: string;
   taxReminder?: string;
   taxSource?: string;
@@ -308,7 +309,7 @@ const s = StyleSheet.create({
   t4CellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text },
 
   // Tax section side-by-side
-  taxContainer: { flexDirection: 'row', /* gap:0 not supported */ },
+  taxContainer: { flexDirection: 'row', marginTop: 4/* gap:0 not supported */ },
   taxTable: { width: '48%' },
   taxCriteria: { width: '52%', paddingLeft: 8 },
   taxCriteriaBox: { backgroundColor: C.offWhite, padding: 8, borderLeftWidth: 2, borderLeftColor: C.yellow },
@@ -692,7 +693,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             <SourceLine text={data.liensSource || 'SUNARP · SIGM'} />
 
             {/* TAX */}
-            {data.taxYears && data.taxYears.length > 0 && (
+            {(data.taxYears || data.taxCriteria || data.taxReminder) && (
               <>
                 <SectionBanner
                   type="dark"
@@ -703,23 +704,40 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
                 <View style={s.taxContainer}>
                   <View style={s.taxTable}>
-                    <View style={s.t4Header}>
-                      <Text style={[s.t4HeaderCell, { width: '15%' }]}>AÑO</Text>
-                      <Text style={[s.t4HeaderCell, { width: '35%' }]}>CONTRIBUYENTE</Text>
-                      <Text style={[s.t4HeaderCell, { width: '20%' }]}>MONTO</Text>
-                      <Text style={[s.t4HeaderCell, { flex: 1, textAlign: 'right' }]}>ESTADO</Text>
-                    </View>
-                    {data.taxYears!.map((ty, i) => (
-                      <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
-                        <Text style={[s.t4CellBold, { width: '15%' }]}>{ty.year}</Text>
-                        <Text style={[s.t4Cell, { width: '35%' }]}>{ty.contributor}</Text>
-                        <Text style={[s.t4Cell, { width: '20%' }]}>{ty.amount}</Text>
-                        <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                          <StatusBadge status={ty.status} text={ty.statusText} />
+                    {data.taxYears && data.taxYears.length > 0 ? (
+                      <>
+                        <View style={s.t4Header}>
+                          <Text style={[s.t4HeaderCell, { width: '15%' }]}>AÑO</Text>
+                          <Text style={[s.t4HeaderCell, { width: '35%' }]}>CONTRIBUYENTE</Text>
+                          <Text style={[s.t4HeaderCell, { width: '20%' }]}>MONTO</Text>
+                          <Text style={[s.t4HeaderCell, { flex: 1, textAlign: 'right' }]}>ESTADO</Text>
                         </View>
+                        {data.taxYears.map((ty, i) => (
+                          <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
+                            <Text style={[s.t4CellBold, { width: '15%' }]}>{ty.year}</Text>
+                            <Text style={[s.t4Cell, { width: '35%' }]}>{ty.contributor}</Text>
+                            <Text style={[s.t4Cell, { width: '20%' }]}>{ty.amount}</Text>
+                            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                              <StatusBadge status={ty.status} text={ty.statusText} />
+                            </View>
+                          </View>
+                        ))}
+                      </>
+                    ) : (
+                      <View style={[s.t4Row, { paddingVertical: 8 }]}>
+                        <Text style={s.t4Cell}>No se ubicó registro de pago de impuesto vehicular para esta placa.</Text>
                       </View>
-                    ))}
+                    )}
                   </View>
+
+                  {data.taxPendingSummary && (
+                    <View style={s.taxCriteria}>
+                      <View style={{ ...s.taxCriteriaBox, borderLeftColor: C.red }}>
+                        <Text style={{ ...s.taxCriteriaTitle, color: C.red }}>Cuotas pendientes.</Text>
+                        <Text style={s.taxCriteriaText}>{data.taxPendingSummary}</Text>
+                      </View>
+                    </View>
+                  )}
 
                   {data.taxCriteria && (
                     <View style={s.taxCriteria}>

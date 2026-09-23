@@ -200,16 +200,29 @@ function buildCaptura(api: ApiResponse) {
   return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: cleanResultText(d.resultado) };
 }
 
-function buildImpuesto(api: ApiResponse) {
+function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
   const imp = api.impuesto_vehicular;
-  if (!imp) return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: 'No se ubicó registro de pago.' };
+  const resumen = api.resumen_situacion_legal?.find(r => r.concepto.toLowerCase().includes('impuesto vehicular'));
+  if (!imp) return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: resumen?.resultado || 'No se ubicó registro de pago.' };
+  if (imp.anios.length === 0 && api2?.sat_tributos?.contribuyentes?.length) {
+    const allPaid = api2.sat_tributos.contribuyentes.every(c =>
+      (c.tributos || []).every(t => (t.Estado || t.estado || '').toLowerCase().includes('pagado'))
+    );
+    return {
+      status: (allPaid ? 'OK' : 'WARNING') as FieldStatus,
+      badgeText: allPaid ? 'PAGADO' : 'PENDIENTE',
+      text: resumen?.resultado || (allPaid ? 'Pagos verificados vía SAT Lima (fuente secundaria).' : 'Cuotas pendientes detectadas vía SAT Lima.'),
+    };
+  }
+  const pagados = imp.anios.filter(a => a.semaforo === 'verde');
   const pendientes = imp.anios.filter(a => a.semaforo !== 'verde');
-  if (pendientes.length === 0) return { status: 'OK' as FieldStatus, badgeText: 'PAGADO', text: `${imp.anios.length} año${imp.anios.length > 1 ? 's' : ''} verificado${imp.anios.length > 1 ? 's' : ''}. Deuda S/ 0.00.` };
-  const allRed = pendientes.every(a => a.semaforo === 'rojo');
+  const fallbackText = resumen?.resultado || `${imp.anios.length} año${imp.anios.length > 1 ? 's' : ''} verificado${imp.anios.length > 1 ? 's' : ''}.`;
+  if (pendientes.length === 0) return { status: 'OK' as FieldStatus, badgeText: 'PAGADO', text: fallbackText };
+  const parcial = pagados.length > 0;
   return {
-    status: (allRed ? 'CRITICAL' : 'WARNING') as FieldStatus,
-    badgeText: allRed ? 'CON DEUDA' : 'PARCIAL',
-    text: `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${imp.criterio_aplicado || ''}`.trim(),
+    status: (parcial ? 'WARNING' : 'CRITICAL') as FieldStatus,
+    badgeText: parcial ? 'PARCIAL' : 'CON DEUDA',
+    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${imp.criterio_aplicado || ''}`.trim(),
   };
 }
 
@@ -569,7 +582,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const captura = buildCaptura(api);
   const soat = buildSoat(api);
   const citv = buildRevisionTecnica(api, api2?.citv?.certificado, api2);
-  const impuesto = buildImpuesto(api);
+  const impuesto = buildImpuesto(api, api2);
   const gnv = buildGnv(api);
   const satPap = buildPapeletas(api, 'sat_lima', 'papeletas SAT');
   const callaoPap = buildPapeletas(api, 'mun_callao', 'papeletas Callao');
@@ -681,30 +694,79 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       : boldKeyPhrases(api.gravamenes?.detalle || ''),
     liensSource: 'SUNARP · SIGM',
 
-    taxYears: (api.impuesto_vehicular?.anios || []).map(a => {
-      const st = semaforoToStatus(a.semaforo);
-      const estado = (a.estado || '').toLowerCase();
-      let statusText = 'PAGADO';
-      if (st === 'CRITICAL') statusText = 'PENDIENTE';
-      else if (st === 'WARNING') statusText = estado.includes('vencer') ? 'POR VENCER' : 'PENDIENTE';
-      else if (st === 'PENDING') statusText = estado.includes('no exigible') ? 'NO EXIGIBLE' : 'SIN REGISTRO';
-      let amount = a.monto || '';
-      let contributor = a.contribuyente || '';
-      if (api2?.sat_tributos?.contribuyentes) {
-        let yearSum = 0;
+    taxYears: (() => {
+      const anios = api.impuesto_vehicular?.anios || [];
+      if (anios.length === 0) {
+        if (!api2?.sat_tributos?.contribuyentes?.length) return [];
+        const yearMap = new Map<string, { paid: number; total: number; contributor: string }>();
         for (const c of api2.sat_tributos.contribuyentes) {
           for (const t of c.tributos || []) {
-            const tYear = t['Año'] || t.anio || '';
-            if (tYear === a.anio) {
-              if (!amount) yearSum += parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
-              if (!contributor) contributor = c.nombre || '';
-            }
+            const y = t['Año'] || t.anio || '';
+            if (!y) continue;
+            const entry = yearMap.get(y) || { paid: 0, total: 0, contributor: '' };
+            const pagado = parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
+            const deuda = parseFloat((t['Total Deuda 1/'] || t['Deuda Web/Bancos'] || '0').replace(/,/g, ''));
+            entry.paid += pagado;
+            entry.total++;
+            if (!entry.contributor) entry.contributor = c.nombre || '';
+            const estado = (t.Estado || t.estado || '').toLowerCase();
+            if (estado && !estado.includes('pagado')) entry.paid = -1;
+            yearMap.set(y, entry);
           }
         }
-        if (!amount && yearSum > 0) amount = `S/ ${yearSum.toFixed(2)}`;
+        return Array.from(yearMap.entries())
+          .sort(([a], [b]) => a.localeCompare(b))
+          .map(([year, info]) => {
+            const allPaid = info.paid > 0;
+            return {
+              year,
+              contributor: info.contributor,
+              amount: info.paid > 0 ? `S/ ${info.paid.toFixed(2)}` : '',
+              status: (allPaid ? 'OK' : 'WARNING') as FieldStatus,
+              statusText: allPaid ? 'PAGADO' : 'PENDIENTE',
+            };
+          });
       }
-      return { year: a.anio, contributor, amount, status: st, statusText };
-    }),
+      return anios.map(a => {
+        const estado = (a.estado || '').toLowerCase();
+        let status: FieldStatus = 'OK';
+        let statusText = 'PAGADO';
+        if (a.semaforo === 'verde' || estado.includes('pagado')) { status = 'OK'; statusText = 'PAGADO'; }
+        else if (estado.includes('no exigible')) { status = 'PENDING'; statusText = 'NO EXIGIBLE'; }
+        else if (estado.includes('vencer')) { status = 'WARNING'; statusText = 'POR VENCER'; }
+        else if (a.semaforo === 'gris' && !estado.includes('pendiente')) { status = 'PENDING'; statusText = 'SIN REGISTRO'; }
+        else { status = 'WARNING'; statusText = 'PENDIENTE'; }
+        let amount = a.monto || '';
+        let contributor = a.contribuyente || '';
+        if (api2?.sat_tributos?.contribuyentes) {
+          let yearSum = 0;
+          for (const c of api2.sat_tributos.contribuyentes) {
+            for (const t of c.tributos || []) {
+              const tYear = t['Año'] || t.anio || '';
+              if (tYear === a.anio) {
+                if (!amount) yearSum += parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
+                if (!contributor) contributor = c.nombre || '';
+              }
+            }
+          }
+          if (!amount && yearSum > 0) amount = `S/ ${yearSum.toFixed(2)}`;
+        }
+        return { year: a.anio, contributor, amount, status, statusText };
+      });
+    })(),
+    taxPendingSummary: (() => {
+      const anios = api.impuesto_vehicular?.anios || [];
+      const pendientes = anios.filter(a => a.semaforo !== 'verde' && a.semaforo !== 'gris');
+      if (pendientes.length === 0) return undefined;
+      const items = pendientes.map(a => {
+        const monto = a.monto || '';
+        return monto ? `${a.anio} (${monto})` : a.anio;
+      });
+      const montos = pendientes.map(a => parseFloat((a.monto || '0').replace(/[^0-9.,]/g, '').replace(',', '.')));
+      const total = montos.reduce((s, m) => s + m, 0);
+      const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
+      return `${items.join(', ')}.${totalStr}`;
+    })(),
     taxCriteria: api.impuesto_vehicular?.criterio_aplicado || '',
     taxReminder: api.impuesto_vehicular?.recordatorio || '**Requisito de transferencia:** el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
     taxSource: 'SAT — Lima',
