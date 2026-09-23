@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const FREE_CONSULTAR_URL = "http://161.132.38.122/free/consultar/placa";
-const TIMEOUT_MS = 30 * 1000;
-const MAX_RETRIES = 3;
+const TIMEOUT_MS = 15 * 1000;
+const MAX_RETRIES = 1;
 
 async function fetchWithRetry(
   url: string,
@@ -70,6 +70,12 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error en preview:", error);
-    return NextResponse.json({ error: "Error consultando la placa" }, { status: 500 });
+    const isTimeout = error instanceof DOMException && error.name === "AbortError";
+    return NextResponse.json(
+      { error: isTimeout
+          ? "El servicio de consulta está tardando demasiado. Intenta de nuevo en unos segundos."
+          : "Error consultando la placa" },
+      { status: isTimeout ? 504 : 500 }
+    );
   }
 }

@@ -146,14 +146,20 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ plate: cleanPlate }),
     })
-      .then(res => { if (!res.ok) throw new Error("Error"); return res.json(); })
+      .then(async res => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || "Error");
+        }
+        return res.json();
+      })
       .then(data => {
         setPreviewData(data);
         setProgress(100);
         setTimeout(() => setPhase("preview"), 400);
       })
-      .catch(() => {
-        setError("No se pudo consultar la placa. Verifica e intenta de nuevo.");
+      .catch((err) => {
+        setError(err.message || "No se pudo consultar la placa. Verifica e intenta de nuevo.");
         setPhase("error");
       })
       .finally(() => {
