@@ -74,7 +74,7 @@ export interface Api2Response {
       tributos?: Record<string, string>[];
     }[];
   };
-  citv?: { certificado?: string; [k: string]: any };
+  citv?: { certificado?: string; tipo_servicio?: string; resultado?: string; fecha_vcto?: string; [k: string]: any };
   siguelo?: { titulos?: Record<string, any>[] };
   sunarp?: { siguelo?: { titulos?: Record<string, any>[] } };
 }
@@ -275,7 +275,8 @@ function buildSoat(api: ApiResponse) {
     if (daysLeft === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
     else if (daysLeft <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
   }
-  return { status, badgeText, text: `${soat.compania}. Vigente del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${soat.nro_certificado}.`, expiryDate: hasta };
+  const usoPart = soat.uso ? ` Uso: ${soat.uso}.` : '';
+  return { status, badgeText, text: `${soat.compania}. Vigente del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${soat.nro_certificado}.${usoPart}`, expiryDate: hasta };
 }
 
 function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
@@ -291,7 +292,10 @@ function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | 
 function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null) {
   const srs = api.seguros_revision_siniestros;
   const citv = srs?.find(s => s.concepto === 'citv');
-  const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
+  const citvExtras: string[] = [];
+  if (citvCertificado) citvExtras.push(`Certificado: ${citvCertificado}`);
+  if (api2?.citv?.tipo_servicio) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+  const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
   if (citv) {
     let status = semaforoToStatus(citv.semaforo);
     const lower = citv.resultado.toLowerCase();
@@ -308,7 +312,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
-    return { status, badgeText, text: cleanResultText(citv.resultado) + certSuffix };
+    return { status, badgeText, text: cleanResultText(citv.resultado) + citvSuffix };
   }
   if (api.revision_tecnica) {
     const rt = api.revision_tecnica as { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
@@ -324,7 +328,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
-    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) + certSuffix };
+    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) + citvSuffix };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
 }
@@ -491,9 +495,16 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
         else if (daysLeft <= 30) { st = 'WARNING'; soatStatusText = 'VENCE PRONTO'; }
       }
     }
+    let soatResult = cleanResultText(soat.resultado);
+    if (soatDetail) {
+      const extras: string[] = [];
+      if (soatDetail.nro_certificado && !soatResult.includes(soatDetail.nro_certificado)) extras.push(`Certificado: ${soatDetail.nro_certificado}`);
+      if (soatDetail.uso) extras.push(`Uso: ${soatDetail.uso}`);
+      if (extras.length) soatResult += ` ${extras.join('. ')}.`;
+    }
     items.push({
       concept: 'SOAT', entity: soatDetail ? `APESEG / ${soatDetail.compania}` : 'APESEG',
-      result: cleanResultText(soat.resultado), status: st, statusText: soatStatusText,
+      result: soatResult, status: st, statusText: soatStatusText,
     });
   }
 
@@ -514,10 +525,13 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       if (days === 0) { st = 'CRITICAL'; citvText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { st = 'WARNING'; citvText = 'VENCE PRONTO'; }
     }
-    const certSuffix = citvCertificado ? ` Certificado: ${citvCertificado}.` : '';
+    const citvExtras: string[] = [];
+    if (citvCertificado) citvExtras.push(`Certificado: ${citvCertificado}`);
+    if (api2?.citv?.tipo_servicio) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     items.push({
       concept: 'Revision tecnica (CITV)', entity: 'MTC',
-      result: cleanResultText(citvEntry.resultado) + certSuffix, status: st, statusText: citvText,
+      result: cleanResultText(citvEntry.resultado) + citvSuffix, status: st, statusText: citvText,
     });
   }
 
