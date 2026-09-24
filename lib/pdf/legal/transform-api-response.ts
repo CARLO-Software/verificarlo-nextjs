@@ -75,6 +75,7 @@ export interface Api2Response {
     }[];
   };
   citv?: { certificado?: string; tipo_servicio?: string; resultado?: string; fecha_vcto?: string; [k: string]: any };
+  sutran?: { placa?: string; mensaje?: string; papeletas?: { numero?: string; fecha?: string; codigo?: string; calificacion?: string; infractor?: string; monto?: string; pronto_pago?: string; estado?: string; [k: string]: any }[]; [k: string]: any };
   siguelo?: { titulos?: Record<string, any>[] };
   sunarp?: { siguelo?: { titulos?: Record<string, any>[] } };
 }
@@ -418,7 +419,7 @@ function buildTransportes(api: ApiResponse) {
 
 // === TABLE BUILDERS (detail sections) ===
 
-function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
+function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null): TableEntry[] {
   const dmc = api.deudas_multas_capturas || [];
   const debts: TableEntry[] = [];
 
@@ -462,14 +463,55 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
     }
   }
 
+  // Row 1: Récord de infracciones (from API 1 sutran_record)
   const sutran = dmc.find(d => d.fuente === 'sutran_record');
   if (sutran) {
     if (isErrorResult(sutran.resultado)) {
-      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+      debts.push({ concept: 'Récord de infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
     } else {
       const st = semaforoToStatus(sutran.semaforo);
-      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: st, statusText: debtStatusText(st, sutran.resultado) });
+      const papeletas = api2?.sutran?.papeletas;
+      let recordText = cleanResultText(sutran.resultado);
+      if (papeletas && papeletas.length > 0) {
+        const parts = papeletas.map(p => {
+          const pieces: string[] = [];
+          if (p.numero) pieces.push(`papeleta de tránsito N.° ${p.numero}`);
+          if (p.fecha) pieces.push(`del ${p.fecha}`);
+          if (p.codigo) pieces.push(`código ${p.codigo}`);
+          if (p.calificacion) pieces.push(`calificación **${p.calificacion}**`);
+          return pieces.join(', ');
+        });
+        recordText = `Registra **${papeletas.length} documento${papeletas.length > 1 ? 's' : ''}**: ${parts.join('; ')}.`;
+      }
+      debts.push({ concept: 'Récord de infracciones', entity: 'SUTRAN', result: recordText, status: st, statusText: debtStatusText(st, sutran.resultado) });
     }
+  }
+
+  // Row 2: Verificación de la papeleta (from API 2 sutran.papeletas)
+  const sutranApi2 = api2?.sutran;
+  if (sutranApi2) {
+    const papeletas = sutranApi2.papeletas;
+    if (papeletas && papeletas.length > 0) {
+      const details = papeletas.map(p => {
+        const pieces: string[] = [];
+        if (p.numero) pieces.push(`Papeleta ${p.numero}`);
+        if (p.infractor) pieces.push(`infractor **${p.infractor}**`);
+        if (p.monto) pieces.push(`monto S/ ${p.monto}`);
+        if (p.pronto_pago) pieces.push(`pronto pago S/ ${p.pronto_pago}`);
+        if (p.estado) pieces.push(`ESTADO: **${p.estado.toUpperCase()}**`);
+        return pieces.join(', ');
+      });
+      const allPaid = papeletas.every(p => (p.estado || '').toLowerCase() === 'pagado');
+      const hasPending = papeletas.some(p => (p.estado || '').toLowerCase() !== 'pagado');
+      const verStatus: FieldStatus = allPaid ? 'OK' : hasPending ? 'WARNING' : 'OK';
+      const verBadge = allPaid ? 'PAGADO' : 'PENDIENTE';
+      debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: details.join('. ') + '.', status: verStatus, statusText: verBadge });
+    } else {
+      const msg = sutranApi2.mensaje || 'Sin papeletas registradas';
+      debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: msg + '.', status: 'OK', statusText: 'OK' });
+    }
+  } else if (sutran) {
+    debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: 'No se pudo verificar detalle de papeletas.', status: 'PENDING', statusText: 'NO CONSULTADO' });
   }
 
   return debts;
@@ -841,11 +883,30 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     taxReminder: api.impuesto_vehicular?.recordatorio || '**Requisito de transferencia:** el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.',
     taxSource: 'SAT — Lima',
 
-    debts: buildDebtsTable(api, now),
+    debts: buildDebtsTable(api, now, api2),
     debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
     insurance: buildInsuranceTable(api, api2?.citv?.certificado, api2),
+    soatBreakdown: (api.desglose_soat || []).map(d => {
+      const acc = parseInt(d.nro_accidentes, 10) || 0;
+      const vigente = (d.estado || '').toLowerCase().includes('vigente');
+      return {
+        compania: d.compania || '',
+        uso: d.uso || '',
+        vigencia: `${d.vigencia_desde} — ${d.vigencia_hasta}`,
+        certificado: d.nro_poliza || d.nro_certificado || '',
+        accidentes: acc,
+        estado: vigente ? 'VIGENTE' : 'VENCIDO',
+        status: (vigente ? 'OK' : 'PENDING') as FieldStatus,
+      };
+    }),
+    soatBreakdownNote: (() => {
+      const soats = api.desglose_soat || [];
+      if (soats.length === 0) return undefined;
+      const totalAcc = soats.reduce((s, d) => s + (parseInt(d.nro_accidentes, 10) || 0), 0);
+      return `Total de siniestros con cobertura SOAT: **${totalAcc}** en los últimos 5 años.`;
+    })(),
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emision; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 

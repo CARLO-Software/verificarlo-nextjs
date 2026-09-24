@@ -53,6 +53,8 @@ export interface LegalReportData {
   debtsNote?: string;
   debtsSource?: string;
   insurance?: TableEntry[];
+  soatBreakdown?: { compania: string; uso: string; vigencia: string; certificado: string; accidentes: number; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' }[];
+  soatBreakdownNote?: string;
   insuranceNote?: string;
   insuranceSource?: string;
   claims?: TableEntry[];
@@ -816,6 +818,49 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                     alt: i % 2 === 1,
                   }))}
                 />
+
+                {data.soatBreakdown && data.soatBreakdown.length > 0 && (
+                  <>
+                    <SectionBanner
+                      type="yellow"
+                      title="DESGLOSE DE PÓLIZAS SOAT"
+                      subtitle="Historial de certificados SOAT contratados en los últimos 5 años (APESEG / SBS)."
+                      icon="insurance"
+                      noTopMargin
+                    />
+                    <View style={s.actHeader}>
+                      <Text style={[s.actHeaderCell, { width: '5%' }]}>#</Text>
+                      <Text style={[s.actHeaderCell, { width: '20%' }]}>COMPAÑÍA</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%' }]}>USO</Text>
+                      <Text style={[s.actHeaderCell, { width: '27%' }]}>VIGENCIA</Text>
+                      <Text style={[s.actHeaderCell, { width: '20%' }]}>CERTIFICADO / PÓLIZA</Text>
+                      <Text style={[s.actHeaderCell, { width: '8%', textAlign: 'center' }]}>ACC.</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'right' }]}>ESTADO</Text>
+                    </View>
+                    {data.soatBreakdown.map((sb, i) => (
+                      <View key={i} style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}]} wrap={false}>
+                        <Text style={[s.t4CellBold, { width: '5%' }]}>{i + 1}</Text>
+                        <Text style={[s.t4Cell, { width: '20%' }]}>{sb.compania}</Text>
+                        <Text style={[s.t4Cell, { width: '10%' }]}>{sb.uso}</Text>
+                        <Text style={[s.t4Cell, { width: '27%' }]}>{sb.vigencia}</Text>
+                        <Text style={[s.t4Cell, { width: '20%' }]}>{sb.certificado}</Text>
+                        <Text style={[s.t4Cell, { width: '8%', textAlign: 'center' }]}>{sb.accidentes}</Text>
+                        <View style={{ width: '10%', alignItems: 'flex-end' }}>
+                          <StatusBadge status={sb.status} text={sb.estado} />
+                        </View>
+                      </View>
+                    ))}
+                    {data.soatBreakdownNote && (
+                      <Text style={s.note}>
+                        {data.soatBreakdownNote.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+                          part.startsWith('**')
+                            ? <Text key={i} style={{ fontFamily: 'Helvetica-Bold' }}>{part.slice(2, -2)}</Text>
+                            : part
+                        )}
+                      </Text>
+                    )}
+                  </>
+                )}
 
                 {data.insuranceNote && <Text style={s.note}>{data.insuranceNote}</Text>}
                 <SourceLine text={data.insuranceSource || ''} />
