@@ -199,13 +199,20 @@ function buildGravamenes(api: ApiResponse) {
   return { status, badgeText, text: g.detalle || g.estado };
 }
 
+function isErrorResult(text: string): boolean {
+  const lower = text.toLowerCase();
+  return lower.includes('no disponible') || lower.includes('error de navegación') || lower.includes('error de navegacion') || lower.includes('no respondió') || lower.includes('no respondio') || lower.includes('tiempo de espera agotado') || lower.includes('timeout') || lower.includes('no se pudo completar');
+}
+
 function buildCaptura(api: ApiResponse) {
   const d = findDeuda(api.deudas_multas_capturas, 'sat_captura') ?? findDeuda(api.deudas_multas_capturas, 'sat_lima');
   if (!d) {
     const captura = api.deudas_multas_capturas?.find(x => x.fuente.includes('captura'));
     if (!captura) return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'No presenta orden de captura.' };
+    if (isErrorResult(captura.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(captura.resultado) };
     return { status: semaforoToStatus(captura.semaforo), badgeText: captura.semaforo === 'verde' ? 'OK' : 'CON CAPTURA', text: cleanResultText(captura.resultado) };
   }
+  if (isErrorResult(d.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(d.resultado) };
   const status = semaforoToStatus(d.semaforo);
   return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: cleanResultText(d.resultado) };
 }
@@ -239,20 +246,17 @@ function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
 function buildPapeletas(api: ApiResponse, fuente: string, label: string) {
   const d = findDeuda(api.deudas_multas_capturas, fuente);
   if (!d) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: `No se pudo consultar ${label}.` };
+  if (isErrorResult(d.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(d.resultado) };
   const status = semaforoToStatus(d.semaforo);
-  let badgeText = 'OK';
-  if (status === 'CRITICAL') {
-    const match = d.resultado.match(/S\/\s*[\d,.]+/);
-    badgeText = match ? `${match[0]} PENDIENTE` : 'CON DEUDA';
-  } else if (status === 'WARNING') badgeText = 'REVISAR';
-  return { status, badgeText, text: cleanResultText(d.resultado) };
+  return { status, badgeText: debtStatusText(status, d.resultado), text: cleanResultText(d.resultado) };
 }
 
 function buildSutran(api: ApiResponse) {
   const d = findDeuda(api.deudas_multas_capturas, 'sutran_record') ?? findDeuda(api.deudas_multas_capturas, 'sutran');
   if (!d) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'No se pudo consultar SUTRAN.' };
+  if (isErrorResult(d.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(d.resultado) };
   const status = semaforoToStatus(d.semaforo);
-  return { status, badgeText: status === 'OK' ? 'OK' : status === 'WARNING' ? 'REVISAR' : 'PENDIENTES', text: cleanResultText(d.resultado) };
+  return { status, badgeText: debtStatusText(status, d.resultado), text: cleanResultText(d.resultado) };
 }
 
 function buildSoat(api: ApiResponse) {
@@ -325,20 +329,43 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
 }
 
+function extractCount(text: string): number {
+  const match = text.match(/(\d+)\s*(?:siniestro|accidente|activacion|activación)/i);
+  return match ? parseInt(match[1], 10) : 0;
+}
+
+function sumMontos(text: string): string | null {
+  const matches = [...text.matchAll(/S\/\s*([\d,.]+)/g)];
+  if (matches.length === 0) return null;
+  const total = matches.reduce((sum, m) => {
+    const num = parseFloat(m[1].replace(/,/g, ''));
+    return sum + (isNaN(num) ? 0 : num);
+  }, 0);
+  return `S/ ${total.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function debtStatusText(st: FieldStatus, text: string): string {
+  if (st === 'OK') return 'OK';
+  if (st === 'WARNING') return 'REVISAR';
+  const total = sumMontos(text);
+  return total ? `${total} PENDIENTE` : 'PENDIENTE';
+}
+
 function buildSiniestros(api: ApiResponse) {
   const srs = api.seguros_revision_siniestros;
   const sin = srs?.find(s => s.concepto === 'siniestros_soat');
   if (sin) {
-    const status = semaforoToStatus(sin.semaforo);
-    const match = sin.resultado.match(/(\d+)\s*(?:siniestro|accidente)/i);
-    const count = match ? parseInt(match[1], 10) : 0;
-    return { status, badgeText: status === 'OK' ? 'OK' : `${count} SINIESTRO${count !== 1 ? 'S' : ''}`, text: cleanResultText(sin.resultado) };
+    if (isErrorResult(sin.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(sin.resultado) };
+    const count = extractCount(sin.resultado);
+    const status: FieldStatus = count >= 3 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
+    return { status, badgeText: count === 0 ? 'OK' : `${count} SINIESTRO${count !== 1 ? 'S' : ''}`, text: cleanResultText(sin.resultado) };
   }
   const soat = api.desglose_soat?.[0];
   if (soat) {
     const acc = parseInt(soat.nro_accidentes, 10) || 0;
     if (acc === 0) return { status: 'OK' as FieldStatus, badgeText: 'OK', text: '0 siniestros SOAT registrados.' };
-    return { status: (acc >= 3 ? 'CRITICAL' : 'WARNING') as FieldStatus, badgeText: `${acc} SINIESTRO${acc > 1 ? 'S' : ''}`, text: `${acc} siniestro${acc > 1 ? 's' : ''} SOAT registrado${acc > 1 ? 's' : ''}.` };
+    const status: FieldStatus = acc >= 3 ? 'CRITICAL' : 'WARNING';
+    return { status, badgeText: `${acc} SINIESTRO${acc > 1 ? 'S' : ''}`, text: `${acc} siniestro${acc > 1 ? 's' : ''} SOAT registrado${acc > 1 ? 's' : ''}.` };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
@@ -347,12 +374,12 @@ function buildActivaciones(api: ApiResponse) {
   const srs = api.seguros_revision_siniestros;
   const act = srs?.find(s => s.concepto === 'accidentes_seguro_vehicular');
   if (act) {
-    const status = semaforoToStatus(act.semaforo);
-    const match = act.resultado.match(/(\d+)\s*activacion/i);
-    const count = match ? parseInt(match[1], 10) : 0;
-    return { status, badgeText: status === 'OK' ? 'OK' : status === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.`, text: cleanResultText(act.resultado) };
+    if (isErrorResult(act.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(act.resultado) };
+    const count = extractCount(act.resultado);
+    const status: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
+    return { status, badgeText: count === 0 ? 'OK' : `${count} ACTIV.`, text: cleanResultText(act.resultado) };
   }
-  return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: 'SBS no respondió.' };
+  return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
 
 function buildGnv(api: ApiResponse) {
@@ -391,50 +418,54 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   const dmc = api.deudas_multas_capturas || [];
   const debts: TableEntry[] = [];
 
-  const captura = dmc.find(d => d.fuente.includes('captura'));
-  let capturaResult = captura?.resultado;
-  if (!capturaResult) {
-    // Extract captura info from sat_lima combined result
-    const satEntry = dmc.find(d => d.fuente === 'sat_lima');
-    const capturaMatch = satEntry?.resultado.match(/Sin orden de captura[^.)]*/i);
-    capturaResult = capturaMatch ? capturaMatch[0] : `No tiene orden de captura en la provincia de Lima (al ${format(now, 'dd/MM/yyyy')}).`;
-  }
+  const capturaData = buildCaptura(api);
   debts.push({
     concept: 'Orden de captura',
     entity: 'SAT Lima',
-    result: cleanResultText(capturaResult),
-    status: captura ? semaforoToStatus(captura.semaforo) : 'OK',
-    statusText: captura && captura.semaforo !== 'verde' ? 'CON CAPTURA' : 'OK',
+    result: capturaData.text,
+    status: capturaData.status,
+    statusText: capturaData.badgeText,
   });
 
   const sat = dmc.find(d => d.fuente === 'sat_lima');
   if (sat) {
-    const st = semaforoToStatus(sat.semaforo);
-    const match = sat.resultado.match(/S\/\s*[\d,.]+/);
-    // Extract only the papeletas part if the result combines papeletas + captura
-    const papeletasPart = sat.resultado.split(/\.\s*Sin orden de captura/i)[0];
-    debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(papeletasPart), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+    if (isErrorResult(sat.resultado)) {
+      debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(sat.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const st = semaforoToStatus(sat.semaforo);
+      const papeletasPart = sat.resultado.split(/\.\s*Sin orden de captura/i)[0];
+      debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(papeletasPart), status: st, statusText: debtStatusText(st, sat.resultado) });
+    }
   }
 
   const callao = dmc.find(d => d.fuente === 'mun_callao');
   if (callao) {
-    const st = semaforoToStatus(callao.semaforo);
-    const match = callao.resultado.match(/S\/\s*[\d,.]+/);
-    debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+    if (isErrorResult(callao.resultado)) {
+      debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const st = semaforoToStatus(callao.semaforo);
+      debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: st, statusText: debtStatusText(st, callao.resultado) });
+    }
   }
 
   const atu = dmc.find(d => d.fuente === 'atu');
   if (atu) {
-    const st = semaforoToStatus(atu.semaforo);
-    const match = atu.resultado.match(/S\/\s*[\d,.]+/);
-    debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+    if (isErrorResult(atu.resultado)) {
+      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const st = semaforoToStatus(atu.semaforo);
+      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: debtStatusText(st, atu.resultado) });
+    }
   }
 
   const sutran = dmc.find(d => d.fuente === 'sutran_record');
   if (sutran) {
-    const st = semaforoToStatus(sutran.semaforo);
-    const match = sutran.resultado.match(/S\/\s*[\d,.]+/);
-    debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'WARNING' ? 'REVISAR' : match ? `${match[0]} PENDIENTE` : 'PENDIENTE' });
+    if (isErrorResult(sutran.resultado)) {
+      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const st = semaforoToStatus(sutran.semaforo);
+      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: st, statusText: debtStatusText(st, sutran.resultado) });
+    }
   }
 
   return debts;
@@ -499,16 +530,24 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
 
   const sin = srs.find(s => s.concepto === 'siniestros_soat');
   if (sin) {
-    const st = semaforoToStatus(sin.semaforo);
-    items.push({ concept: 'Siniestros con cobertura SOAT', entity: 'SBS', result: cleanResultText(sin.resultado), status: st, statusText: st === 'OK' ? 'OK' : 'SINIESTROS' });
+    if (isErrorResult(sin.resultado)) {
+      items.push({ concept: 'Siniestros con cobertura SOAT', entity: 'SBS', result: cleanResultText(sin.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const count = extractCount(sin.resultado);
+      const st: FieldStatus = count >= 3 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
+      items.push({ concept: 'Siniestros con cobertura SOAT', entity: 'SBS', result: cleanResultText(sin.resultado), status: st, statusText: count === 0 ? 'OK' : `${count} SINIESTRO${count !== 1 ? 'S' : ''}` });
+    }
   }
 
   const act = srs.find(s => s.concepto === 'accidentes_seguro_vehicular');
   if (act) {
-    const st = semaforoToStatus(act.semaforo);
-    const match = act.resultado.match(/(\d+)\s*activacion/i);
-    const count = match ? parseInt(match[1], 10) : 0;
-    items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: cleanResultText(act.resultado), status: st, statusText: st === 'OK' ? 'OK' : st === 'PENDING' ? 'SIN REGISTRO' : `${count} ACTIV.` });
+    if (isErrorResult(act.resultado)) {
+      items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: cleanResultText(act.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+    } else {
+      const count = extractCount(act.resultado);
+      const st: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
+      items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: cleanResultText(act.resultado), status: st, statusText: count === 0 ? 'OK' : `${count} ACTIV.` });
+    }
   }
 
   return items;
@@ -578,6 +617,16 @@ function buildRegistryNote(api: ApiResponse): { status: FieldStatus; title: stri
   return { status: 'OK', title: 'SIN PENDIENTES', detail: 'No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios.' };
 }
 
+const STATUS_SEVERITY: Record<FieldStatus, number> = { CRITICAL: 3, WARNING: 2, PENDING: 1, OK: 0 };
+
+function combinePapeletas(...sources: { status: FieldStatus; badgeText: string; text: string }[]) {
+  const valid = sources.filter(s => s.status !== 'PENDING');
+  if (valid.length === 0) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: sources[0].text };
+  const worst = valid.reduce((a, b) => STATUS_SEVERITY[b.status] > STATUS_SEVERITY[a.status] ? b : a);
+  const texts = valid.map(s => s.text).filter(Boolean);
+  return { status: worst.status, badgeText: worst.badgeText, text: texts.join(' ') };
+}
+
 export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api2Response | null): LegalReportData {
   const now = toZonedTime(new Date(), 'America/Lima');
   const v = api.vehiculo;
@@ -622,7 +671,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { key: 'sunarpLiens', label: 'Gravamenes SUNARP / SIGM', ...grav },
       { key: 'satCaptureOrder', label: 'Orden de captura SAT', ...captura },
       { key: 'vehicleTax', label: 'Impuesto vehicular', ...impuesto },
-      { key: 'satTickets', label: 'Papeletas SAT / Callao / ATU', ...satPap },
+      { key: 'satTickets', label: 'Papeletas SAT / Callao / ATU', ...combinePapeletas(satPap, callaoPap, atuPap) },
       { key: 'sutranTickets', label: 'Infracciones SUTRAN', ...sutran },
       { key: 'soat', label: 'SOAT', status: soat.status, badgeText: soat.badgeText, text: soat.text },
       { key: 'techReview', label: 'Revision tecnica (CITV)', status: citv.status, badgeText: citv.badgeText, text: citv.text },
@@ -736,7 +785,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         const estado = (a.estado || '').toLowerCase();
         let status: FieldStatus = 'OK';
         let statusText = 'PAGADO';
-        if (a.semaforo === 'verde' || estado.includes('pagado')) { status = 'OK'; statusText = 'PAGADO'; }
+        if (isErrorResult(a.estado || '')) { status = 'PENDING'; statusText = 'NO CONSULTADO'; }
+        else if (a.semaforo === 'verde' || estado.includes('pagado')) { status = 'OK'; statusText = 'PAGADO'; }
         else if (estado.includes('no exigible')) { status = 'PENDING'; statusText = 'NO EXIGIBLE'; }
         else if (estado.includes('vencer')) { status = 'WARNING'; statusText = 'POR VENCER'; }
         else if (a.semaforo === 'gris' && !estado.includes('pendiente')) { status = 'PENDING'; statusText = 'SIN REGISTRO'; }
@@ -746,6 +796,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         if (api2?.sat_tributos?.contribuyentes) {
           let yearSum = 0;
           for (const c of api2.sat_tributos.contribuyentes) {
+            if (!contributor) contributor = c.nombre || '';
             for (const t of c.tributos || []) {
               const tYear = t['Año'] || t.anio || '';
               if (tYear === a.anio) {
