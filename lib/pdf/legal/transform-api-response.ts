@@ -190,14 +190,32 @@ function buildGravamenes(api: ApiResponse) {
   const g = api.gravamenes;
   if (!g) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'No se pudo consultar gravámenes.' };
   const status = semaforoToStatus(g.semaforo);
-  let badgeText = 'LIBRE';
-  if (status === 'CRITICAL') {
-    const lower = g.estado.toLowerCase();
-    if (lower.includes('embargo')) badgeText = 'EMBARGO';
-    else if (lower.includes('medida') || lower.includes('cautelar')) badgeText = 'MEDIDA CAUTELAR';
-    else badgeText = 'CON GRAVAMEN';
-  } else if (status === 'WARNING') badgeText = 'CON CARGA';
-  return { status, badgeText, text: g.detalle || g.estado };
+  const detail = g.detalle || g.estado;
+  const lower = (g.estado || '').toLowerCase();
+
+  if (status === 'OK') {
+    const entries = api.asientos_registrales?.lista || [];
+    const historicalLiens = entries.filter(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
+    let text = 'SIGM sin registros y sin cargas vigentes en la partida.';
+    if (historicalLiens.length > 0) {
+      const resumen = historicalLiens.map(e => `${e.acto} (${e.fecha}, asiento ${e.asiento})`).join('; ');
+      text += ` Cargas históricas canceladas: ${resumen}.`;
+    }
+    return { status, badgeText: 'LIBRE', text };
+  }
+
+  if (status === 'WARNING') {
+    return { status, badgeText: 'CON CARGA', text: `${detail}. Verificar en SUNARP antes de cerrar.` };
+  }
+
+  // CRITICAL
+  if (lower.includes('embargo')) {
+    return { status, badgeText: 'EMBARGO', text: `${detail}. No transferible mientras esté vigente.` };
+  }
+  if (lower.includes('medida') || lower.includes('cautelar')) {
+    return { status, badgeText: 'MEDIDA CAUTELAR', text: `${detail}. Puede derivar en embargo.` };
+  }
+  return { status, badgeText: 'CON GRAVAMEN', text: `${detail}. Requiere levantamiento o autorización del acreedor.` };
 }
 
 function isErrorResult(text: string): boolean {
@@ -801,12 +819,16 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     registryNoteTitle: buildRegistryNote(api).title,
 
     liensStatus,
-    liensTitle: liensStatus === 'OK' || liensStatus === 'PENDING'
+    liensTitle: liensStatus === 'OK'
       ? 'NO REGISTRA AFECTACIONES VIGENTES'
-      : 'REGISTRA AFECTACIONES VIGENTES',
-    liensDetail: liensStatus === 'OK' || liensStatus === 'PENDING'
-      ? boldKeyPhrases((api.gravamenes?.detalle || '').toUpperCase())
-      : boldKeyPhrases(api.gravamenes?.detalle || ''),
+      : liensStatus === 'PENDING'
+        ? 'NO SE PUDO CONSULTAR'
+        : 'REGISTRA AFECTACIONES VIGENTES',
+    liensDetail: liensStatus === 'OK'
+      ? 'SUNARP y SIGM (Sistema Informativo de Garantías Mobiliarias) devuelve «No se han encontrado registros». Ninguno de los títulos inscritos en la partida corresponde a constitución de garantía, embargo u otra carga. El vehículo se encuentra libre para transferencia en este aspecto.'
+      : liensStatus === 'PENDING'
+        ? 'No se pudo completar la consulta a SUNARP / SIGM. Reintentar o verificar manualmente.'
+        : boldKeyPhrases(api.gravamenes?.detalle || ''),
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (() => {
