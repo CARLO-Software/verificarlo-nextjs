@@ -124,6 +124,18 @@ function parseDatosComplementarios(raw?: string): Record<string, string> {
   return result;
 }
 
+function shortenTime(raw: string): string {
+  if (!raw) return '';
+  const y = raw.match(/(\d+)\s*año/i);
+  const m = raw.match(/(\d+)\s*mes/i);
+  const d = raw.match(/(\d+)\s*d[ií]a/i);
+  const parts: string[] = [];
+  if (y) parts.push(`${y[1]} año${y[1] === '1' ? '' : 's'}`);
+  if (m) parts.push(`${m[1]} mes${m[1] === '1' ? '' : 'es'}`);
+  if (!y && !m && d) parts.push(`${d[1]} día${d[1] === '1' ? '' : 's'}`);
+  return parts.length > 0 ? parts.join(' ') : raw;
+}
+
 function parseDate(dateStr: string): Date | null {
   const parts = dateStr.split('/');
   if (parts.length !== 3) return null;
@@ -685,10 +697,18 @@ function buildRegistryNote(api: ApiResponse): { status: FieldStatus; title: stri
   const hasNonOrdinary = entries.some(e => NON_ORDINARY_ACTS.some(act => e.acto.toLowerCase().includes(act)));
   const hasHistoricalLien = entries.some(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
 
-  if (hasPending) return { status: 'WARNING', title: 'TÍTULO PENDIENTE', detail: pendientes };
-  if (hasNonOrdinary) return { status: 'WARNING', title: 'ACTO NO ORDINARIO', detail: 'Al menos un asiento es sucesión, anticipo de legítima, dación en pago, remate judicial o adjudicación. Puede requerir documentación adicional.' };
-  if (hasHistoricalLien) return { status: 'WARNING', title: 'CARGA HISTÓRICA', detail: 'Al menos un asiento registra constitución o levantamiento de garantía/embargo, ya resuelto (sin vigencia).' };
-  return { status: 'OK', title: 'SIN PENDIENTES', detail: 'No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios.' };
+  const countNote = entries.length > 0
+    ? `Se registran ${entries.length} asiento${entries.length > 1 ? 's' : ''} inscrito${entries.length > 1 ? 's' : ''}. `
+    : '';
+
+  if (hasPending) {
+    const pendingLines = pendientes.split(/[,;.]/).map(s => s.trim()).filter(Boolean);
+    const n = pendingLines.length || 1;
+    return { status: 'WARNING', title: 'TÍTULO PENDIENTE', detail: `${countNote}Hay ${n} título${n > 1 ? 's' : ''} presentado${n > 1 ? 's' : ''} y aún no inscrito${n > 1 ? 's' : ''} a la fecha de consulta. Confirmar naturaleza y resultado antes de cerrar.` };
+  }
+  if (hasNonOrdinary) return { status: 'WARNING', title: 'ACTO NO ORDINARIO', detail: `${countNote}Al menos un asiento es sucesión, anticipo de legítima, dación en pago, remate judicial o adjudicación. Puede requerir documentación adicional.` };
+  if (hasHistoricalLien) return { status: 'PENDING', title: 'CARGA HISTÓRICA', detail: `${countNote}Al menos un asiento registra constitución o levantamiento de garantía/embargo, ya resuelto (sin vigencia).` };
+  return { status: 'OK', title: 'SIN PENDIENTES', detail: `${countNote}No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios (1.ª inscripción + compraventas).` };
 }
 
 const STATUS_SEVERITY: Record<FieldStatus, number> = { CRITICAL: 3, WARNING: 2, PENDING: 1, OK: 0 };
@@ -786,17 +806,18 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     ] : undefined,
 
     owners: hist.map((h, i) => {
-      const isSociedad = /\bY\b/.test(h.nombre) && h.nombre.split(/\bY\b/).length === 2;
+      const isJuridica = /\b(S\.?A\.?C?\.?|E\.?I\.?R\.?L\.?|S\.?R\.?L\.?|S\.?A\.?|CORP|LLC|INC)\b/i.test(h.nombre);
+      const isSociedad = !isJuridica && /\bY\b/.test(h.nombre) && h.nombre.split(/\bY\b/).length === 2;
       return {
         number: i + 1,
         name: h.nombre,
-        document: `${h.tipo_documento} ${h.documento}`,
+        document: `${h.tipo_documento}\n${h.documento}`,
         acquisitionDate: h.fecha,
-        timeAsOwner: h.tiempo_como_propietario,
+        timeAsOwner: shortenTime(h.tiempo_como_propietario),
         price: h.precio,
         title: h.titulo,
         tags: [
-          i === 0 ? '1.ª inscripcion' : undefined,
+          i === 0 ? (isJuridica ? '1.ª inscripción · P. Jurídica' : '1.ª inscripción') : undefined,
           isSociedad ? 'Sociedad conyugal' : undefined,
           (h.estado === 'Titular vigente' || i === hist.length - 1) ? 'Titular vigente' : undefined,
         ].filter(Boolean) as string[],
@@ -804,18 +825,34 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     }),
     ownershipNote: api.titularidad?.nota_titular_vigente || '',
 
-    registryEntries: (api.asientos_registrales?.lista || []).map((a, i) => {
-      let act = a.acto;
-      const ownerMatch = hist.find(h => h.fecha === a.fecha);
-      if (ownerMatch && !/primera inscripci[oó]n/i.test(a.acto)) {
-        const parts = ownerMatch.nombre.split(/\s+/);
-        const apellidos = parts.slice(0, 2).join(' ');
-        if (apellidos) act = `${a.acto} (${apellidos})`;
+    registryEntries: (() => {
+      const apiEntries = (api.asientos_registrales?.lista || []).map(a => {
+        let act = a.acto;
+        const ownerMatch = hist.find(h => h.fecha === a.fecha);
+        if (ownerMatch && !/primera inscripci[oó]n/i.test(a.acto)) {
+          const parts = ownerMatch.nombre.split(/\s+/);
+          const apellidos = parts.slice(0, 2).join(' ');
+          if (apellidos) act = `${a.acto} (${apellidos})`;
+        }
+        return { date: a.fecha, act, title: a.titulo, asiento: a.asiento };
+      });
+      // Fill missing owners (media acta: same título, no matching asiento)
+      for (const h of hist) {
+        const hasEntry = apiEntries.some(e => e.title === h.titulo && e.date === h.fecha);
+        if (!hasEntry && h.titulo) {
+          const parts = h.nombre.split(/\s+/);
+          const apellidos = parts.slice(0, 2).join(' ');
+          // Insert after the entry with the same título
+          const idx = apiEntries.findIndex(e => e.title === h.titulo);
+          const entry = { date: h.fecha || apiEntries[idx]?.date || '', act: `Compraventa (${apellidos})`, title: h.titulo, asiento: apiEntries[idx]?.asiento || '' };
+          if (idx >= 0) apiEntries.splice(idx + 1, 0, entry);
+          else apiEntries.push(entry);
+        }
       }
-      return { number: i + 1, date: a.fecha, act, title: a.titulo };
-    }),
+      return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
+    })(),
     registryNote: boldKeyPhrases(buildRegistryNote(api).detail),
-    registryNoteStatus: buildRegistryNote(api).status as 'OK' | 'WARNING' | 'CRITICAL',
+    registryNoteStatus: buildRegistryNote(api).status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING',
     registryNoteTitle: buildRegistryNote(api).title,
 
     liensStatus,

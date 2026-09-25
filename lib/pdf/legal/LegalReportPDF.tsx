@@ -38,7 +38,7 @@ export interface LegalReportData {
   ownershipNote?: string;
   registryEntries?: { number: number; date: string; act: string; title: string }[];
   registryNote?: string;
-  registryNoteStatus?: 'OK' | 'WARNING' | 'CRITICAL';
+  registryNoteStatus?: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
   registryNoteTitle?: string;
   liensStatus?: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
   liensTitle?: string;
@@ -110,6 +110,9 @@ const C = {
   redBg: '#FEF2F2',
   redBorder: '#DC2626',
   grayBadge: '#6B7280',
+  gray: '#6B7280',
+  grayBg: '#F3F4F6',
+  grayBorder: '#D1D5DB',
 };
 
 function badgeColor(status: string): string {
@@ -404,11 +407,11 @@ function SourceLine({ text }: { text: string }) {
   return <Text style={s.source}>Fuente: {text}</Text>;
 }
 
-function CalloutBox({ status, title, detail }: { status: 'OK' | 'WARNING' | 'CRITICAL'; title: string; detail: string }) {
-  const bg = status === 'OK' ? C.greenBg : status === 'WARNING' ? C.amberBg : C.redBg;
-  const border = status === 'OK' ? C.greenBorder : status === 'WARNING' ? C.amberBorder : C.redBorder;
-  const iconBg = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : C.red;
-  const titleColor = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : C.red;
+function CalloutBox({ status, title, detail }: { status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; title: string; detail: string }) {
+  const bg = status === 'OK' ? C.greenBg : status === 'WARNING' ? C.amberBg : status === 'PENDING' ? C.grayBg : C.redBg;
+  const border = status === 'OK' ? C.greenBorder : status === 'WARNING' ? C.amberBorder : status === 'PENDING' ? C.grayBorder : C.redBorder;
+  const iconBg = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : status === 'PENDING' ? C.gray : C.red;
+  const titleColor = status === 'OK' ? C.green : status === 'WARNING' ? C.amber : status === 'PENDING' ? C.gray : C.red;
   return (
     <View style={[s.callout, { backgroundColor: bg, borderLeftColor: border }]} wrap={false}>
       <View style={[s.calloutIcon, { backgroundColor: iconBg }]}>
@@ -595,18 +598,15 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
               const isTitular = own.tags?.includes('Titular vigente') || isLast;
               return (
               <View key={i} style={[s.ownRow, i % 2 === 1 ? s.ownRowAlt : {}, isTitular ? s.ownRowTitular : {}]} wrap={false}>
-                <View style={s.ownNum}><Text style={s.ownNumText}>{own.number}</Text></View>
+                <View style={[s.ownNum, isTitular ? { backgroundColor: C.yellow } : {}]}><Text style={[s.ownNumText, isTitular ? { color: C.dark } : {}]}>{own.number}</Text></View>
                 <View style={{ width: '26%' }}>
                   <Text style={s.ownName}>{own.name}</Text>
-                  {own.tags?.map((tag, ti) => {
-                    const isOrange = tag === 'Titular vigente' || tag.toLowerCase().includes('sociedad conyugal');
-                    return (
+                  {own.tags?.map((tag, ti) => (
                     <View key={ti} style={{ flexDirection: 'row', alignItems: 'center', marginTop: 1 }}>
-                      {tag === 'Titular vigente' && <SvgStar size={6} color="#dc870f" />}
-                      <Text style={[s.ownTag, { color: isOrange ? '#dc870f' : C.amber }, tag === 'Titular vigente' ? { marginLeft: 2 } : {}]}>{tag}</Text>
+                      {tag === 'Titular vigente' && <SvgStar size={6} color="#8f833c" />}
+                      <Text style={[s.ownTag, { color: '#8f833c' }, tag === 'Titular vigente' ? { marginLeft: 2 } : {}]}>{tag}</Text>
                     </View>
-                    );
-                  })}
+                  ))}
                 </View>
                 <Text style={[s.ownCell, { width: '17%' }]}>{own.document}</Text>
                 <Text style={[s.ownCell, { width: '13%' }]}>{own.acquisitionDate}</Text>
@@ -633,7 +633,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                 <SectionBanner
                   type="dark"
                   title="LISTA DE ASIENTOS REGISTRALES"
-                  subtitle="Historial completo de actos inscritos en la partida N.º 53097286, en orden cronológico."
+                  subtitle={`Historial completo de actos inscritos en la partida${(() => { const p = data.vehicleComplementary?.find(v => v.label === 'N.° de partida')?.value; return p ? ` N.º ${p.replace(/\s*—.*/, '')}` : ''; })()}, en orden cronológico.`}
                   icon="document"
                 />
 
@@ -650,10 +650,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                       <Text style={s.regNumText}>{entry.number}</Text>
                     </View>
                     <Text style={[s.ownCell, { width: '18%' }]}>{entry.date.replace(/^.*?(\d{2}\/\d{2}\/\d{4}).*$/, '$1')}</Text>
-                    <Text style={[s.ownCellBold, { flex: 1 }]}>
-                      {entry.act.replace(/\s*\(.*\)$/, '')}
-                      {/\(.*\)$/.test(entry.act) && <Text style={s.ownCell}>{' '}{entry.act.match(/(\(.*\))$/)?.[1]}</Text>}
-                    </Text>
+                    <Text style={[s.ownCell, { flex: 1 }]}>{entry.act}</Text>
                     <Text style={[s.ownCell, { width: '20%' }]}>{entry.title}</Text>
                   </View>
                 ))}
