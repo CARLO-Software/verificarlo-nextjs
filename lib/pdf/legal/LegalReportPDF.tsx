@@ -227,9 +227,9 @@ const s = StyleSheet.create({
   fallbackText: { fontSize: 7, color: '#92400E', fontFamily: 'Helvetica-Bold', textAlign: 'center' } as const,
 
   // Main banner
-  banner: { backgroundColor: C.yellow, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 5, marginBottom: 0 },
+  banner: { backgroundColor: C.yellow, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 5, marginBottom: 6 },
   logo: { fontFamily: 'Helvetica-BoldOblique', fontSize: 26, color: '#000000', letterSpacing: 1 },
-  logoCarlo: { fontFamily: 'Helvetica-Bold' },
+  logoCarlo: { fontFamily: 'Helvetica-Oblique' },
   plateBox: { backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: '#000000', paddingHorizontal: 10, paddingVertical: 3, alignItems: 'center', borderRadius: 3 },
   plateTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   plateCountry: { fontSize: 5.5, color: C.textLight, letterSpacing: 1.5, fontFamily: 'Helvetica-Bold', marginLeft: 3 },

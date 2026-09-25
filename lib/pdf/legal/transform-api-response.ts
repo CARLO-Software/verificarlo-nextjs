@@ -755,7 +755,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
 
   return {
     plate: plate.toUpperCase(),
-    emissionDate: format(now, "dd/MM/yyyy") + ' — ' + format(now, "HH:mm 'h'"),
+    emissionDate: format(now, "dd/MM/yyyy") + ' — ' + format(now, "hh:mm a"),
     code,
     vehicleDescription,
 
@@ -783,7 +783,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { label: 'Marca', value: v.marca || '' },
       { label: 'Modelo', value: v.modelo || '' },
       { label: 'N.° version', value: comp['Nro. Versión'] || comp['Nro. Version'] || '' },
-      { label: 'Año modelo / fabricacion', value: [v.anio_modelo, v.anio_fabricacion].filter(Boolean).join(' / ') },
+      { label: 'Año de modelo', value: v.anio_modelo || '' },
+      { label: 'Año de fabricación', value: v.anio_fabricacion && v.anio_fabricacion !== v.anio_modelo ? v.anio_fabricacion : '' },
       { label: 'N.° de serie', value: v.nro_serie || '' },
       { label: 'N.° de VIN', value: v.nro_vin || '' },
       { label: 'N.° de motor', value: v.nro_motor || '' },
