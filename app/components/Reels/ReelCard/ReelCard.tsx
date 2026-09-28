@@ -68,7 +68,7 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
         {/* Overlay con play */}
         <div className={styles.overlay}>
           <div className={styles.playButton}>
-            <Play size={24} fill="white" />
+            <Play size={10} fill="#FBD307" stroke="#FBD307" />
           </div>
         </div>
 
@@ -77,22 +77,12 @@ export default function ReelCard({ reel, onClick, index }: ReelCardProps) {
           {categoryLabels[reel.category]}
         </span>
 
-        {/* Likes - estilo TikTok */}
-        <span
-          className={`${styles.likesOverlay} ${liked ? styles.liked : ""}`}
-          onClick={handleLike}
-          role="button"
-          aria-label="Dar like"
-        >
-          <Heart size={14} fill={liked ? "#ff2d55" : "white"} />
-          {likeCount.toLocaleString("es-PE")}
-        </span>
       </div>
 
       {/* Info */}
       <div className={styles.info}>
         <h3 className={styles.title}>{reel.title}</h3>
-        {reel.views > 0 && (
+        {false && reel.views > 0 && (
           <span className={styles.views}>
             {reel.views.toLocaleString("es-PE")} vistas
           </span>

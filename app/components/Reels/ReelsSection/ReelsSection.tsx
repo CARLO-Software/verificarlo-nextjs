@@ -94,11 +94,11 @@ export default function ReelsSection() {
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <div className={styles.badge}>
-              <Play size={14} />
-              <span>Tips en video</span>
-            </div>
-            <h2 className={styles.title}>Aprende a comprar seguro</h2>
+            <h2 className={styles.title}>
+              Que no te estafen con estos
+              <br />
+              <strong>casos comunes</strong>
+            </h2>
             <p className={styles.subtitle}>
               Tips de expertos para evitar fraudes en la compra de autos usados
             </p>
@@ -107,20 +107,20 @@ export default function ReelsSection() {
           {/* Controles de navegación (desktop) */}
           <div className={styles.navControls}>
             <button
-              className={`${styles.navButton} ${!canScrollLeft ? styles.navDisabled : ""}`}
+              className={`${styles.navButton} ${styles.navPrev} ${!canScrollLeft ? styles.navDisabled : ""}`}
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
               aria-label="Anterior"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={22} />
             </button>
             <button
-              className={`${styles.navButton} ${!canScrollRight ? styles.navDisabled : ""}`}
+              className={`${styles.navButton} ${styles.navNext} ${!canScrollRight ? styles.navDisabled : ""}`}
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
               aria-label="Siguiente"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={22} />
             </button>
           </div>
         </div>

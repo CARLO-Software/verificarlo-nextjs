@@ -112,20 +112,6 @@ export default function BlogSection() {
 
   return (
     <section className={styles.section} id="blog">
-      {/* Newsletter Banner */}
-      <div className={styles.newsletterBanner}>
-        <div className={styles.newsletterContent}>
-          <h2 className={styles.newsletterTitle}>
-            Recibe consejos para comprar tu auto usado
-          </h2>
-          <p className={styles.newsletterText}>
-            Suscríbete a nuestro newsletter y recibe tips, alertas y guías
-            directamente en tu correo.
-          </p>
-          <NewsletterForm />
-        </div>
-      </div>
-
       {/* Blog Posts Grid */}
       <div className={styles.container}>
         <div className={styles.header}>
