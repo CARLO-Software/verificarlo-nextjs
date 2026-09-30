@@ -76,6 +76,7 @@ export interface Api2Response {
   };
   citv?: { certificado?: string; tipo_servicio?: string; resultado?: string; fecha_vcto?: string; [k: string]: any };
   sutran?: { placa?: string; mensaje?: string; papeletas?: { numero?: string; fecha?: string; codigo?: string; calificacion?: string; infractor?: string; monto?: string; pronto_pago?: string; estado?: string; [k: string]: any }[]; [k: string]: any };
+  soat?: { historial?: { 'Compañía'?: string; Inicio?: string; Fin?: string; Certificado?: string; Estado?: string; Uso?: string; 'Fec. Anulación'?: string; [k: string]: any }[]; [k: string]: any };
   siguelo?: { titulos?: Record<string, any>[] };
   sunarp?: { siguelo?: { titulos?: Record<string, any>[] }; listaRes?: { titulos?: { acto?: string; num_titulo?: string }[] }[] };
 }
@@ -138,17 +139,42 @@ function formatDocument(tipo: string, doc: string): string {
   return `${tipo}\n${doc}`;
 }
 
-function cleanTimeAsOwner(raw: string): string {
-  if (!raw) return '';
-  let clean = raw
-    .replace(/\s*\(.*?\)/g, '')
-    .replace(/\s*—.*$/g, '')
-    .replace(/\bcopropiedad\b/gi, '')
-    .replace(/\bco-registrado\b/gi, '')
-    .replace(/\bdesde\s+/gi, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return shortenTime(clean);
+function cleanTimeAsOwner(raw: string, fecha?: string, nextFecha?: string): string {
+  if (!raw && !fecha) return '';
+  if (raw) {
+    let clean = raw
+      .replace(/\s*\(.*?\)/g, '')
+      .replace(/\s*—.*$/g, '')
+      .replace(/\bcopropiedad\b/gi, '')
+      .replace(/\bco-registrado\b/gi, '')
+      .replace(/\bdesde\s+/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const shortened = shortenTime(clean);
+    if (shortened !== clean) return shortened;
+  }
+  if (fecha) {
+    const dm = fecha.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (dm) {
+      const from = new Date(+dm[3], +dm[2] - 1, +dm[1]);
+      let to = new Date();
+      if (nextFecha) {
+        const dm2 = nextFecha.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+        if (dm2) to = new Date(+dm2[3], +dm2[2] - 1, +dm2[1]);
+      }
+      let totalMonths = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+      if (to.getDate() < from.getDate()) totalMonths--;
+      if (totalMonths < 0) totalMonths = 0;
+      const years = Math.floor(totalMonths / 12);
+      const months = totalMonths % 12;
+      const p: string[] = [];
+      if (years > 0) p.push(`${years} año${years === 1 ? '' : 's'}`);
+      if (months > 0) p.push(`${months} mes${months === 1 ? '' : 'es'}`);
+      if (p.length === 0) p.push('< 1 mes');
+      return p.join(' y ');
+    }
+  }
+  return raw || '';
 }
 
 const MONTH_MAP: Record<string, number> = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
@@ -325,7 +351,7 @@ function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
   return {
     status: (parcial ? 'WARNING' : 'CRITICAL') as FieldStatus,
     badgeText: parcial ? 'PARCIAL' : 'CON DEUDA',
-    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${imp.criterio_aplicado || ''}`.trim(),
+    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').trim()}`.trim(),
   };
 }
 
@@ -345,7 +371,7 @@ function buildSutran(api: ApiResponse) {
   return { status, badgeText: debtStatusText(status, d.resultado), text: cleanResultText(d.resultado) };
 }
 
-function buildSoat(api: ApiResponse) {
+function buildSoat(api: ApiResponse, api2?: Api2Response | null) {
   const soat = api.desglose_soat?.[0];
   if (!soat) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'APESEG no respondió.', expiryDate: undefined };
   const estadoLower = (soat.estado || '').toLowerCase();
@@ -366,9 +392,13 @@ function buildSoat(api: ApiResponse) {
     if (daysLeft === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
     else if (daysLeft <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
   }
+  let cert = soat.nro_poliza || soat.nro_certificado || '';
+  if ((!cert || /^\d{1,3}$/.test(cert)) && api2?.soat?.Certificado) {
+    cert = api2.soat.Certificado;
+  }
   const usoPart = soat.uso ? ` Uso: ${soat.uso}.` : '';
   const estadoPart = isAnulado ? `ANULADO. ` : '';
-  return { status, badgeText, text: `${estadoPart}${soat.compania}. Vigencia del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${soat.nro_certificado}.${usoPart}`, expiryDate: hasta };
+  return { status, badgeText, text: `${estadoPart}${soat.compania}. Vigencia del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${cert}.${usoPart}`, expiryDate: hasta };
 }
 
 function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
@@ -384,11 +414,12 @@ function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | 
 function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null) {
   const srs = api.seguros_revision_siniestros;
   const citv = srs?.find(s => s.concepto === 'citv');
-  const citvExtras: string[] = [];
-  if (citvCertificado) citvExtras.push(`Certificado: ${citvCertificado}`);
-  if (api2?.citv?.tipo_servicio) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
-  const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
   if (citv) {
+    const citvClean = cleanResultText(citv.resultado);
+    const citvExtras: string[] = [];
+    if (citvCertificado && !citvClean.includes(citvCertificado)) citvExtras.push(`Certificado: ${citvCertificado}`);
+    if (api2?.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     let status = semaforoToStatus(citv.semaforo);
     const lower = citv.resultado.toLowerCase();
     let badgeText = 'VIGENTE';
@@ -404,10 +435,15 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
-    return { status, badgeText, text: cleanResultText(citv.resultado) + citvSuffix };
+    return { status, badgeText, text: citvClean + citvSuffix };
   }
   if (api.revision_tecnica) {
     const rt = api.revision_tecnica as { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
+    const rtClean = cleanResultText(rt.detalle || rt.estado);
+    const rtExtras: string[] = [];
+    if (citvCertificado && !rtClean.includes(citvCertificado)) rtExtras.push(`Certificado: ${citvCertificado}`);
+    if (api2?.citv?.tipo_servicio && !rtClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) rtExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    const rtSuffix = rtExtras.length ? ` ${rtExtras.join('. ')}.` : '';
     let status = semaforoToStatus(rt.semaforo);
     const lower = (rt.detalle || rt.estado).toLowerCase();
     let badgeText = 'VIGENTE';
@@ -420,7 +456,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
-    return { status, badgeText, text: cleanResultText(rt.detalle || rt.estado) + citvSuffix };
+    return { status, badgeText, text: rtClean + rtSuffix };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Portal MTC no respondió.' };
 }
@@ -512,6 +548,64 @@ function buildTransportes(api: ApiResponse) {
   if (uso.includes('público') || uso.includes('servicio'))
     return { status: 'WARNING' as FieldStatus, badgeText: 'TRANSPORTE PUB.', text: `Registrado como ${v?.uso}.` };
   return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'Uso particular, sin pertenencia a transporte público.' };
+}
+
+function buildSoatBreakdown(api: ApiResponse, api2?: Api2Response | null) {
+  const fiveYearsAgo = new Date();
+  fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+  const desglose = api.desglose_soat || [];
+  const historial = api2?.soat?.historial;
+
+  if (historial && historial.length > 0) {
+    const accMap = new Map<string, number>();
+    for (const d of desglose) {
+      const cert = d.nro_poliza || d.nro_certificado || '';
+      if (cert) accMap.set(cert, parseInt(d.nro_accidentes, 10) || 0);
+    }
+    return historial
+      .filter(h => {
+        const inicio = parseDate(h.Inicio || '');
+        return inicio && inicio >= fiveYearsAgo;
+      })
+      .sort((a, b) => {
+        const da = parseDate(a.Inicio || '');
+        const db = parseDate(b.Inicio || '');
+        if (da && db) return db.getTime() - da.getTime();
+        return 0;
+      })
+      .map(h => {
+        const estadoLower = (h.Estado || '').toLowerCase();
+        const vigente = estadoLower.includes('vigente');
+        const anulado = /anulad[oa]/.test(estadoLower);
+        const cert = h.Certificado || '';
+        const acc = accMap.get(cert) || 0;
+        return {
+          compania: h['Compañía'] || '',
+          uso: h.Uso || '',
+          vigencia: `${h.Inicio || ''} — ${h.Fin || ''}`,
+          certificado: cert,
+          accidentes: acc,
+          estado: anulado ? 'ANULADO' : vigente ? 'VIGENTE' : 'VENCIDO',
+          status: (anulado ? 'CRITICAL' : vigente ? 'OK' : 'PENDING') as FieldStatus,
+        };
+      });
+  }
+
+  return desglose.map(d => {
+    const acc = parseInt(d.nro_accidentes, 10) || 0;
+    const estadoLower = (d.estado || '').toLowerCase();
+    const vigente = estadoLower.includes('vigente');
+    const anulado = /anulad[oa]/.test(estadoLower);
+    return {
+      compania: d.compania || '',
+      uso: d.uso || '',
+      vigencia: `${d.vigencia_desde} — ${d.vigencia_hasta}`,
+      certificado: d.nro_poliza || d.nro_certificado || '',
+      accidentes: acc,
+      estado: anulado ? 'ANULADO' : vigente ? 'VIGENTE' : 'VENCIDO',
+      status: (anulado ? 'CRITICAL' : vigente ? 'OK' : 'PENDING') as FieldStatus,
+    };
+  });
 }
 
 // === TABLE BUILDERS (detail sections) ===
@@ -637,13 +731,15 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       }
     }
     let soatResult: string;
+    let soatCert = soatDetail?.nro_poliza || soatDetail?.nro_certificado || '';
+    if ((!soatCert || /^\d{1,3}$/.test(soatCert)) && api2?.soat?.Certificado) soatCert = api2.soat.Certificado;
     if (soatAnulado && soatDetail) {
-      soatResult = `ANULADO — Póliza ${soatDetail.compania}, vigencia ${soatDetail.vigencia_desde} al ${soatDetail.vigencia_hasta}. El vehículo circula actualmente SIN SOAT vigente. Certificado: ${soatDetail.nro_certificado}.${soatDetail.uso ? ` Uso: ${soatDetail.uso}.` : ''}`;
+      soatResult = `ANULADO — Póliza ${soatDetail.compania}, vigencia ${soatDetail.vigencia_desde} al ${soatDetail.vigencia_hasta}. El vehículo circula actualmente SIN SOAT vigente. Certificado: ${soatCert}.${soatDetail.uso ? ` Uso: ${soatDetail.uso}.` : ''}`;
     } else {
       soatResult = cleanResultText(soat.resultado);
       if (soatDetail) {
         const extras: string[] = [];
-        if (soatDetail.nro_certificado && !soatResult.includes(soatDetail.nro_certificado)) extras.push(`Certificado: ${soatDetail.nro_certificado}`);
+        if (soatCert && !soatResult.includes(soatCert)) extras.push(`Certificado: ${soatCert}`);
         if (soatDetail.uso) extras.push(`Uso: ${soatDetail.uso}`);
         if (extras.length) soatResult += ` ${extras.join('. ')}.`;
       }
@@ -671,13 +767,14 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       if (days === 0) { st = 'CRITICAL'; citvText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { st = 'WARNING'; citvText = 'VENCE PRONTO'; }
     }
+    const citvClean = cleanResultText(citvEntry.resultado);
     const citvExtras: string[] = [];
-    if (citvCertificado) citvExtras.push(`Certificado: ${citvCertificado}`);
-    if (api2?.citv?.tipo_servicio) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    if (citvCertificado && !citvClean.includes(citvCertificado)) citvExtras.push(`Certificado: ${citvCertificado}`);
+    if (api2?.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
     const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     items.push({
       concept: 'Revision tecnica (CITV)', entity: 'MTC',
-      result: cleanResultText(citvEntry.resultado) + citvSuffix, status: st, statusText: citvText,
+      result: citvClean + citvSuffix, status: st, statusText: citvText,
     });
   }
 
@@ -829,7 +926,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const transfer = buildLastTransfer(api, api2);
   const grav = buildGravamenes(api);
   const captura = buildCaptura(api);
-  const soat = buildSoat(api);
+  const soat = buildSoat(api, api2);
   const citv = buildRevisionTecnica(api, api2?.citv?.certificado, api2);
   const impuesto = buildImpuesto(api, api2);
   const gnv = buildGnv(api);
@@ -903,21 +1000,27 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { label: 'N.° de partida', value: [comp['Partida'], comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') },
     ] : undefined,
 
-    owners: hist.map((h, i) => {
+    owners: [...hist].sort((a, b) => {
+      const da = parseDate((a.fecha || '').match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || '');
+      const db = parseDate((b.fecha || '').match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || '');
+      if (da && db) return da.getTime() - db.getTime();
+      return 0;
+    }).map((h, i, sorted) => {
       const isJuridica = /\b(S\.?A\.?C?\.?|E\.?I\.?R\.?L\.?|S\.?R\.?L\.?|S\.?A\.?|CORP|LLC|INC)\b/i.test(h.nombre);
       const isSociedad = !isJuridica && /\bY\b/.test(h.nombre) && h.nombre.split(/\bY\b/).length === 2;
+      const nextFecha = i < sorted.length - 1 ? sorted[i + 1]?.fecha : undefined;
       return {
         number: i + 1,
         name: h.nombre,
         document: formatDocument(h.tipo_documento, h.documento),
         acquisitionDate: h.fecha,
-        timeAsOwner: cleanTimeAsOwner(h.tiempo_como_propietario),
+        timeAsOwner: cleanTimeAsOwner(h.tiempo_como_propietario, h.fecha, nextFecha),
         price: h.precio,
         title: h.titulo,
         tags: [
           i === 0 ? (isJuridica ? '1.ª inscripción · P. Jurídica' : '1.ª inscripción') : undefined,
           isSociedad ? 'Sociedad conyugal' : undefined,
-          (h.estado === 'Titular vigente' || i === hist.length - 1) ? 'Titular vigente' : undefined,
+          (h.estado === 'Titular vigente' || i === sorted.length - 1) ? 'Titular vigente' : undefined,
         ].filter(Boolean) as string[],
       };
     }),
@@ -953,7 +1056,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         } else {
           const pair = apiEntries.find(e => e.title === h.titulo);
           if (!pair || /primera inscripci[oó]n/i.test(pair.act)) continue;
-          const entry = { date: extractDate(h.fecha), act: `Compraventa (${apellidos})`, title: pair.title, asiento: pair.asiento };
+          const entry = { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: pair.title, asiento: pair.asiento };
           const idx = apiEntries.indexOf(pair);
           apiEntries.splice(idx + 1, 0, entry);
         }
@@ -1051,7 +1154,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
       return `${items.join(', ')}.${totalStr}`;
     })(),
-    taxCriteria: api.impuesto_vehicular?.criterio_aplicado || '',
+    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim(),
     taxReminder: (() => {
       const anios = api.impuesto_vehicular?.anios || [];
       const allPaid = anios.length > 0 && anios.every(a => a.semaforo === 'verde');
@@ -1065,21 +1168,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
     insurance: buildInsuranceTable(api, api2?.citv?.certificado, api2),
-    soatBreakdown: (api.desglose_soat || []).map(d => {
-      const acc = parseInt(d.nro_accidentes, 10) || 0;
-      const estadoLower = (d.estado || '').toLowerCase();
-      const vigente = estadoLower.includes('vigente');
-      const anulado = /anulad[oa]/.test(estadoLower);
-      return {
-        compania: d.compania || '',
-        uso: d.uso || '',
-        vigencia: `${d.vigencia_desde} — ${d.vigencia_hasta}`,
-        certificado: d.nro_poliza || d.nro_certificado || '',
-        accidentes: acc,
-        estado: anulado ? 'ANULADO' : vigente ? 'VIGENTE' : 'VENCIDO',
-        status: (anulado ? 'CRITICAL' : vigente ? 'OK' : 'PENDING') as FieldStatus,
-      };
-    }),
+    soatBreakdown: buildSoatBreakdown(api, api2),
     soatBreakdownNote: (() => {
       const soats = api.desglose_soat || [];
       if (soats.length === 0) return undefined;
@@ -1140,7 +1229,9 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     gnvSource: 'InfoGas · FISE',
 
     conclusionText: boldConclusionText(
-      (api.conclusion?.texto || '').replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO'),
+      (api.conclusion?.texto || '')
+        .replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO')
+        .replace(/[^.]*\b(JNE|MTC[- ]?SCPPP)\b[^.]*\.\s*/gi, ''),
       code,
     ),
     disclaimer: `**Sobre este informe.** Documento elaborado por VERIFICARLO a partir de consultas a fuentes oficiales para el vehiculo de placa ${plate.toUpperCase()}, emitido el ${format(now, "dd/MM/yyyy 'a las' HH:mm 'h'")}. La informacion registral proviene de copia informativa de SUNARP, que solo tiene fines informativos y no constituye publicidad registral ni reemplaza un certificado vigente para tramites. Los resultados de deudas, infracciones y vigencias corresponden a la fecha de consulta y pueden variar.`,

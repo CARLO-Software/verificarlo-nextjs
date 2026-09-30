@@ -5,9 +5,12 @@ import {
   View,
   Text,
   StyleSheet,
+  Font,
   Svg,
   Path,
 } from '@react-pdf/renderer';
+
+Font.registerHyphenationCallback(w => [w]);
 
 // === TYPES ===
 
