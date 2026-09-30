@@ -56,15 +56,14 @@ export default function ServicesSection() {
                 Lo esencial para descartar fallas mecánicas graves rápidamente.
               </p>
             </div>
-            <span className={styles.planPrice}>S/299</span>
+            <em className={styles.planPrice}>S/299</em>
           </div>
 
           <div className={styles.legalBadge}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path d="M14 2v6h6" />
-            </svg>
-            <span>Reporte legal <strong>GRATIS</strong></span>
+            <span className={styles.legalIconWrap}>
+              <Image src="/assets/icons/document-2.png" alt="" width={13} height={15} />
+            </span>
+            <span><strong>Reporte legal</strong> <em>GRATIS</em></span>
             <span className={styles.legalSave}>Ahorra S/ 19.90</span>
           </div>
 
@@ -95,18 +94,17 @@ export default function ServicesSection() {
               </p>
             </div>
             <div className={styles.priceWrap}>
-              <span className={styles.planPrice}>S/349</span>
+              <em className={styles.planPrice}>S/349</em>
               <span className={styles.priceOld}>S/436</span>
               <span className={styles.priceDiscount}>-20%</span>
             </div>
           </div>
 
           <div className={styles.legalBadge}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-              <path d="M14 2v6h6" />
-            </svg>
-            <span>Reporte legal <strong>GRATIS</strong></span>
+            <span className={styles.legalIconWrap}>
+              <Image src="/assets/icons/document-2.png" alt="" width={13} height={15} />
+            </span>
+            <span><strong>Reporte legal</strong> <em>GRATIS</em></span>
             <span className={styles.legalSave}>Ahorra S/ 19.90</span>
           </div>
 
@@ -147,7 +145,7 @@ export default function ServicesSection() {
         </div>
         <div className={styles.legalBannerImgWrap}>
           <Image
-            src="/assets/images/imagen-plan-legal.png"
+            src="/assets/images/imagen-joven-celular.png"
             alt="Reporte legal VerifiCarlo"
             width={500}
             height={300}

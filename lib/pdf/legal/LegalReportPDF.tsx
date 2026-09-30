@@ -544,30 +544,42 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
               icon="car"
             />
             <View style={s.vehContainer}>
-              {/* Left table */}
-              <View style={s.vehTable}>
-                <View style={s.vehHeader}>
-                  <Text style={s.vehHeaderText}>DATOS DEL VEHICULO</Text>
-                </View>
-                {data.vehicleMain.filter(r => r.value).map((row, i) => (
-                  <View key={i} style={[s.vehRow, i % 2 === 1 ? s.vehRowAlt : {}]}>
-                    <Text style={s.vehLabel}>{row.label}</Text>
-                    <Text style={s.vehValue}>{row.value}</Text>
-                  </View>
-                ))}
-              </View>
-              {/* Right table */}
-              <View style={s.vehTable}>
-                <View style={s.vehHeader}>
-                  <Text style={s.vehHeaderText}>DATOS COMPLEMENTARIOS</Text>
-                </View>
-                {data.vehicleComplementary.filter(r => r.value).map((row, i) => (
-                  <View key={i} style={[s.vehRow, i % 2 === 1 ? s.vehRowAlt : {}]}>
-                    <Text style={s.vehLabel}>{row.label}</Text>
-                    <Text style={s.vehValue}>{row.value}</Text>
-                  </View>
-                ))}
-              </View>
+              {(() => {
+                const mainRows = data.vehicleMain.filter(r => r.value);
+                const compRows = data.vehicleComplementary.filter(r => r.value);
+                const maxRows = Math.max(mainRows.length, compRows.length);
+                const padded = (rows: typeof mainRows) => {
+                  const result = [...rows];
+                  while (result.length < maxRows) result.push({ label: '', value: '' });
+                  return result;
+                };
+                return (
+                  <>
+                    <View style={s.vehTable}>
+                      <View style={s.vehHeader}>
+                        <Text style={s.vehHeaderText}>DATOS DEL VEHICULO</Text>
+                      </View>
+                      {padded(mainRows).map((row, i) => (
+                        <View key={i} style={[s.vehRow, i % 2 === 1 ? s.vehRowAlt : {}]}>
+                          <Text style={s.vehLabel}>{row.label}</Text>
+                          <Text style={s.vehValue}>{row.value}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <View style={s.vehTable}>
+                      <View style={s.vehHeader}>
+                        <Text style={s.vehHeaderText}>DATOS COMPLEMENTARIOS</Text>
+                      </View>
+                      {padded(compRows).map((row, i) => (
+                        <View key={i} style={[s.vehRow, i % 2 === 1 ? s.vehRowAlt : {}]}>
+                          <Text style={s.vehLabel}>{row.label}</Text>
+                          <Text style={s.vehValue}>{row.value}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                );
+              })()}
             </View>
           </>
         )}
@@ -818,13 +830,15 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
                 {data.soatBreakdown && data.soatBreakdown.length > 0 && (
                   <>
-                    <SectionBanner
-                      type="yellow"
-                      title="DESGLOSE DE PÓLIZAS SOAT"
-                      subtitle="Historial de certificados SOAT contratados en los últimos 5 años (APESEG / SBS)."
-                      icon="insurance"
-                      noTopMargin
-                    />
+                    <View style={{ marginTop: 6 }}>
+                      <SectionBanner
+                        type="dark"
+                        title="DESGLOSE DE PÓLIZAS SOAT"
+                        subtitle="Historial de certificados SOAT contratados en los últimos 5 años (APESEG / SBS)."
+                        icon="insurance"
+                        noTopMargin
+                      />
+                    </View>
                     <View style={s.actHeader}>
                       <Text style={[s.actHeaderCell, { width: '5%' }]}>#</Text>
                       <Text style={[s.actHeaderCell, { width: '20%' }]}>COMPAÑÍA</Text>
@@ -868,7 +882,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
 
         {/* ===== PAGE 4: CLAIMS + GNV + CONCLUSION ===== */}
         {hasDetail && (
-          <View break>
+          <View>
             {/* CLAIMS */}
             {data.claims && data.claims.length > 0 && (
               <>
