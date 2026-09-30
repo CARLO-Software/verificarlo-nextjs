@@ -1156,8 +1156,10 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           const pair = apiEntries.find(e => e.title === hTitle);
           if (!pair) continue;
           if (apiEntries.some(e => e.act.includes(apellidos) && e.title === hTitle)) {
-            const existingIdx = apiEntries.findIndex(e => e.act.includes(apellidos) && e.title === hTitle);
-            apiEntries.splice(existingIdx + 1, 0, { date: extractDate(h.fecha), act: `Compra - Venta (asiento adicional mismo título) (${apellidos})`, title: hTitle, asiento: '' });
+            if (!apiEntries.some(e => /asiento adicional/i.test(e.act) && e.title === hTitle)) {
+              const existingIdx = apiEntries.findIndex(e => e.act.includes(apellidos) && e.title === hTitle);
+              apiEntries.splice(existingIdx + 1, 0, { date: extractDate(h.fecha), act: `Compra - Venta (asiento adicional mismo título) (${apellidos})`, title: hTitle, asiento: '' });
+            }
           } else {
             const idx = apiEntries.indexOf(pair);
             apiEntries.splice(idx, 0, { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: hTitle, asiento: '' });
