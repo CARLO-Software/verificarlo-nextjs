@@ -337,14 +337,24 @@ function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
   const imp = api.impuesto_vehicular;
   const resumen = api.resumen_situacion_legal?.find(r => r.concepto.toLowerCase().includes('impuesto vehicular'));
   if (!imp) return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: resumen?.resultado || 'No se ubicó registro de pago.' };
-  if (imp.anios.length === 0 && api2?.sat_tributos?.contribuyentes?.length) {
+  // api2 SAT is deterministic — use it as authority when available
+  if (api2?.sat_tributos?.contribuyentes?.length) {
     const allPaid = api2.sat_tributos.contribuyentes.every(c =>
       (c.tributos || []).every(t => (t.Estado || t.estado || '').toLowerCase().includes('pagado'))
     );
+    if (allPaid) {
+      return {
+        status: 'OK' as FieldStatus,
+        badgeText: 'PAGADO',
+        text: resumen?.resultado || 'Todos los años figuran pagados en SAT Lima.',
+      };
+    }
+  }
+  if (imp.anios.length === 0 && api2?.sat_tributos?.contribuyentes?.length) {
     return {
-      status: (allPaid ? 'OK' : 'WARNING') as FieldStatus,
-      badgeText: allPaid ? 'PAGADO' : 'PENDIENTE',
-      text: resumen?.resultado || (allPaid ? 'Pagos verificados vía SAT Lima (fuente secundaria).' : 'Cuotas pendientes detectadas vía SAT Lima.'),
+      status: 'WARNING' as FieldStatus,
+      badgeText: 'PENDIENTE',
+      text: resumen?.resultado || 'Cuotas pendientes detectadas vía SAT Lima.',
     };
   }
   const pagados = imp.anios.filter(a => a.semaforo === 'verde');
@@ -1240,9 +1250,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (() => {
-      const anios = api.impuesto_vehicular?.anios || [];
-      if (anios.length === 0) {
-        if (!api2?.sat_tributos?.contribuyentes?.length) return [];
+      // api2 SAT is deterministic — prefer it as primary source for contributor/amount
+      if (api2?.sat_tributos?.contribuyentes?.length) {
         const yearMap = new Map<string, { paid: number; unpaid: number; contributor: string }>();
         for (const c of api2.sat_tributos.contribuyentes) {
           for (const t of c.tributos || []) {
@@ -1267,6 +1276,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
             statusText: info.unpaid === 0 ? 'PAGADO' : 'PENDIENTE',
           }));
       }
+      const anios = api.impuesto_vehicular?.anios || [];
+      if (anios.length === 0) return [];
       return anios.map(a => {
         const estado = (a.estado || '').toLowerCase();
         let status: FieldStatus = 'OK';
@@ -1277,22 +1288,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         else if (estado.includes('vencer')) { status = 'WARNING'; statusText = 'POR VENCER'; }
         else if (a.semaforo === 'gris' && !estado.includes('pendiente')) { status = 'PENDING'; statusText = 'SIN REGISTRO'; }
         else { status = 'WARNING'; statusText = 'PENDIENTE'; }
-        let amount = a.monto || '';
-        let contributor = a.contribuyente || '';
-        if (api2?.sat_tributos?.contribuyentes) {
-          let yearSum = 0;
-          for (const c of api2.sat_tributos.contribuyentes) {
-            for (const t of c.tributos || []) {
-              const tYear = t['Año'] || t.anio || '';
-              if (tYear === a.anio) {
-                if (!amount) yearSum += parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
-                if (!contributor) contributor = c.nombre || '';
-              }
-            }
-          }
-          if (!amount && yearSum > 0) amount = `S/ ${yearSum.toFixed(2)}`;
-        }
-        return { year: a.anio, contributor, amount, status, statusText };
+        return { year: a.anio, contributor: a.contribuyente || '', amount: a.monto || '', status, statusText };
       });
     })(),
     taxPendingSummary: (() => {
@@ -1308,7 +1304,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
       return `${items.join(', ')}.${totalStr}`;
     })(),
-    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/,?\s*por lo que el resultado es \w+/gi, '').replace(/\.?\s*[Ee]l resultado es \w+/gi, '').replace(/\s{2,}/g, ' ').trim(),
+    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/[''`´']/g, '').replace(/,?\s*por lo que el resultado es \w+/gi, '').replace(/\.?\s*[Ee]l resultado es \w+/gi, '').replace(/\s{2,}/g, ' ').trim(),
     taxReminder: (() => {
       const anios = api.impuesto_vehicular?.anios || [];
       const allPaid = anios.length > 0 && anios.every(a => a.semaforo === 'verde');
