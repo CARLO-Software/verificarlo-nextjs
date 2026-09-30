@@ -1123,9 +1123,87 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         const cleaned = nombre.replace(/^\(?\s*sociedad\s+conyugal\s*\)?\s*[:|]?\s*/i, '').replace(/\|/g, ' ').trim();
         return cleaned.split(/\s+/).slice(0, 2).join(' ');
       };
-      // Strip "(asiento N)" suffix from hist títulos for matching
+      type Entry = { date: string; act: string; title: string };
+
+      // API2-primary path: deterministic entries from siguelo + listaRes
+      const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+      if (sigTitulos.length > 0) {
+        // Detect shared títulos from listaRes duplicates AND siguelo duplicates
+        const sharedTitles = new Set<string>();
+        const lrCounts = new Map<string, number>();
+        for (const t of (api2?.sunarp?.listaRes?.[0]?.titulos || [])) {
+          const num = t.num_titulo || '';
+          if (num) lrCounts.set(num, (lrCounts.get(num) || 0) + 1);
+        }
+        for (const [t, c] of lrCounts) { if (c > 1) sharedTitles.add(t); }
+        const sigCounts = new Map<string, number>();
+        for (const st of sigTitulos) {
+          const t = String((st as Record<string, unknown>).num_titulo || '');
+          if (t) sigCounts.set(t, (sigCounts.get(t) || 0) + 1);
+        }
+        for (const [t, c] of sigCounts) { if (c > 1) sharedTitles.add(t); }
+
+        // Group siguelo entries by título — store both dates
+        const sigByTitle = new Map<string, { apellidos: string; acto: string; fechaAsiento: string; fechaActo: string }[]>();
+        for (const st of sigTitulos) {
+          const rec = st as Record<string, unknown>;
+          const titulo = String(rec.num_titulo || '');
+          const nombre = String(rec.nombre || '');
+          const mainName = (nombre.split('|').map(s => s.trim())[1] || nombre).trim();
+          const apellidos = getApellidos(mainName);
+          const acto = String(rec.acto_registral || '').replace(/Ã³/g, 'ó');
+          const fechaAsiento = extractDate(String(rec.fecha_asiento || ''));
+          const fechaActo = extractDate(String(rec.fecha || ''));
+          if (!sigByTitle.has(titulo)) sigByTitle.set(titulo, []);
+          sigByTitle.get(titulo)!.push({ apellidos, acto, fechaAsiento, fechaActo });
+        }
+
+        const entries: Entry[] = [];
+        const processed = new Set<string>();
+
+        for (const st of sigTitulos) {
+          const titulo = String((st as Record<string, unknown>).num_titulo || '');
+          if (processed.has(titulo)) continue;
+          processed.add(titulo);
+          const group = sigByTitle.get(titulo) || [];
+
+          if (sharedTitles.has(titulo) && group.length >= 2) {
+            // For shared títulos, use fechaActo (notarial date) to differentiate
+            const sorted = [...group].sort((a, b) => {
+              const da = parseDate(a.fechaActo || a.fechaAsiento);
+              const db = parseDate(b.fechaActo || b.fechaAsiento);
+              if (da && db) return da.getTime() - db.getTime();
+              return 0;
+            });
+            for (let i = 0; i < sorted.length; i++) {
+              const s = sorted[i];
+              const date = s.fechaActo || s.fechaAsiento;
+              entries.push({ date, act: `${s.acto} (${s.apellidos})`, title: titulo });
+              if (i === sorted.length - 1) {
+                entries.push({ date, act: `${s.acto} (asiento adicional mismo título) (${s.apellidos})`, title: titulo });
+              }
+            }
+          } else {
+            const g = group[0];
+            const isPrimera = /primera\s*inscripci[oó]n/i.test(g.acto);
+            const date = g.fechaAsiento || g.fechaActo;
+            entries.push({ date, act: isPrimera ? g.acto : `${g.acto} (${g.apellidos})`, title: titulo });
+          }
+        }
+
+        entries.sort((a, b) => {
+          const da = parseDate(a.date);
+          const db = parseDate(b.date);
+          if (da && db) return da.getTime() - db.getTime();
+          return 0;
+        });
+        registryFinalCount = entries.length;
+        return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
+      }
+
+      // Fallback: api1-based logic (when api2 is unavailable)
       const baseTit = (t: string) => (t || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim();
-      const apiEntries = (api.asientos_registrales?.lista || []).map(a => {
+      const apiEntries: (Entry & { asiento: string })[] = (api.asientos_registrales?.lista || []).map(a => {
         let act = a.acto;
         const aDate = extractDate(a.fecha);
         const ownerMatch = hist.find(h => extractDate(h.fecha) === aDate);
@@ -1135,104 +1213,16 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         }
         return { date: aDate, act, title: a.titulo, asiento: a.asiento };
       });
-      // Build apellidos→título map from api2 siguelo (deterministic)
-      const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
-      const apellidosToTitle = new Map<string, string>();
-      for (const st of sigTitulos) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const nombre = String((st as any).nombre || '');
-        const mainName = (nombre.split('|').map((s: string) => s.trim())[1] || nombre).trim();
-        const apell = mainName.split(/\s+/).slice(0, 2).join(' ').toUpperCase();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const titulo = String((st as any).num_titulo || '');
-        if (apell && titulo) apellidosToTitle.set(apell, titulo);
-      }
-      // Detect shared titles from api2 listaRes (deterministic: duplicate num_titulo = media acta)
-      const listaResShared = new Set<string>();
-      const lrCounts = new Map<string, number>();
-      for (const t of (api2?.sunarp?.listaRes?.[0]?.titulos || [])) {
-        const num = t.num_titulo || '';
-        if (num) lrCounts.set(num, (lrCounts.get(num) || 0) + 1);
-      }
-      for (const [t, c] of lrCounts) { if (c > 1) listaResShared.add(t); }
-      // Count hist entries per base título
-      const titleCounts = new Map<string, number>();
-      for (const h of hist) {
-        let bt = baseTit(h.titulo);
-        if (!bt) bt = apellidosToTitle.get(getApellidos(h.nombre).toUpperCase()) || '';
-        if (bt) titleCounts.set(bt, (titleCounts.get(bt) || 0) + 1);
-      }
-      for (const h of hist) {
-        const apellidos = getApellidos(h.nombre);
-        if (!apellidos) continue;
-        let hTitle = baseTit(h.titulo);
-        if (!hTitle) hTitle = apellidosToTitle.get(apellidos.toUpperCase()) || '';
-        const isSharedTitle = (titleCounts.get(hTitle) || 0) > 1
-          || listaResShared.has(hTitle)
-          || /\(asiento\s*\d+\)/i.test(h.titulo || '')
-          || /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
-        if (isSharedTitle) {
-          const pair = apiEntries.find(e => e.title === hTitle);
-          if (!pair) continue;
-          if (apiEntries.some(e => e.act.includes(apellidos) && e.title === hTitle)) {
-            if (!apiEntries.some(e => /asiento adicional/i.test(e.act) && e.title === hTitle)) {
-              const existingIdx = apiEntries.findIndex(e => e.act.includes(apellidos) && e.title === hTitle);
-              apiEntries.splice(existingIdx + 1, 0, { date: extractDate(h.fecha), act: `Compra - Venta (asiento adicional mismo título) (${apellidos})`, title: hTitle, asiento: '' });
-            }
-          } else {
-            const idx = apiEntries.indexOf(pair);
-            apiEntries.splice(idx, 0, { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: hTitle, asiento: '' });
-          }
-        } else {
-          if (apiEntries.some(e => e.act.includes(apellidos))) continue;
-          const pair = apiEntries.find(e => e.title === hTitle);
-          if (!pair || /primera inscripci[oó]n/i.test(pair.act)) continue;
-          const entry = { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: pair.title, asiento: pair.asiento };
-          const idx = apiEntries.indexOf(pair);
-          apiEntries.splice(idx + 1, 0, entry);
-        }
-      }
-      // Catch-all: ensure every hist owner has at least one registry entry
       for (const h of hist) {
         const apellidos = getApellidos(h.nombre);
         if (!apellidos) continue;
         if (apiEntries.some(e => e.act.includes(apellidos))) continue;
-        let hTitle = baseTit(h.titulo);
-        if (!hTitle) hTitle = apellidosToTitle.get(apellidos.toUpperCase()) || '';
-        if (hTitle && apiEntries.some(e => e.title === hTitle)) continue;
-        // Never duplicate primera inscripción
-        if (hist.indexOf(h) === 0 && apiEntries.some(e => /primera inscripci/i.test(e.act))) continue;
-        apiEntries.push({
-          date: extractDate(h.fecha),
-          act: `Compra - Venta (${apellidos})`,
-          title: hTitle,
-          asiento: '',
-        });
-      }
-      // Supplement from api2 listaRes: handle duplicate títulos (shared titles = multiple asientos)
-      const listaResTitulos = api2?.sunarp?.listaRes?.[0]?.titulos || [];
-      for (let li = 0; li < listaResTitulos.length; li++) {
-        const lrt = listaResTitulos[li];
-        const tNum = lrt.num_titulo || '';
-        if (!tNum) continue;
-        const listaCountSoFar = listaResTitulos.slice(0, li + 1).filter(t => t.num_titulo === tNum).length;
-        const apiCount = apiEntries.filter(e => e.title === tNum).length;
-        if (apiCount >= listaCountSoFar) continue;
-        const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
-        const sigForTitle = sigTitulos.filter((t: Record<string, unknown>) => t.num_titulo === tNum);
-        const sigEntry = sigForTitle[listaCountSoFar - 1];
-        if (sigEntry) {
-          const nombre = ((sigEntry.nombre || '') as string).split('|').map((s: string) => s.trim())[1] || '';
-          const apell = nombre.split(/\s+/).slice(0, 2).join(' ');
-          apiEntries.push({
-            date: extractDate((sigEntry.fecha_asiento || sigEntry.fecha || '') as string),
-            act: `${((sigEntry.acto_registral || lrt.acto || 'Compra - Venta') as string).replace(/Ã³/g, 'ó')} (${apell})`,
-            title: tNum,
-            asiento: '',
-          });
-        } else {
-          apiEntries.push({ date: '', act: ((lrt.acto || '') as string).replace(/Ã³/g, 'ó'), title: tNum, asiento: '' });
-        }
+        const hTitle = baseTit(h.titulo);
+        if (!hTitle) continue;
+        const pair = apiEntries.find(e => e.title === hTitle);
+        if (!pair || /primera inscripci[oó]n/i.test(pair.act)) continue;
+        const idx = apiEntries.indexOf(pair);
+        apiEntries.splice(idx + 1, 0, { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: hTitle, asiento: '' });
       }
       apiEntries.sort((a, b) => {
         const da = parseDate(a.date);
