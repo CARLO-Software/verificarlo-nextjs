@@ -1168,20 +1168,15 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           const group = sigByTitle.get(titulo) || [];
 
           if (sharedTitles.has(titulo) && group.length >= 2) {
-            // For shared títulos, use fechaActo (notarial date) to differentiate
+            // Media acta: 2 asientos por título, usar fechaActo para diferenciar
             const sorted = [...group].sort((a, b) => {
               const da = parseDate(a.fechaActo || a.fechaAsiento);
               const db = parseDate(b.fechaActo || b.fechaAsiento);
               if (da && db) return da.getTime() - db.getTime();
               return 0;
             });
-            for (let i = 0; i < sorted.length; i++) {
-              const s = sorted[i];
-              const date = s.fechaActo || s.fechaAsiento;
-              entries.push({ date, act: `${s.acto} (${s.apellidos})`, title: titulo });
-              if (i === sorted.length - 1) {
-                entries.push({ date, act: `${s.acto} (asiento adicional mismo título) (${s.apellidos})`, title: titulo });
-              }
+            for (const s of sorted) {
+              entries.push({ date: s.fechaActo || s.fechaAsiento, act: `${s.acto} (${s.apellidos})`, title: titulo });
             }
           } else {
             const g = group[0];
