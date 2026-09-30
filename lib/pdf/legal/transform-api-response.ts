@@ -507,22 +507,46 @@ function buildSiniestros(api: ApiResponse) {
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
 
-function buildActivacionesText(api: ApiResponse): string {
+function buildActivacionesText(api: ApiResponse, api2?: Api2Response | null): string {
   const desglose = api.desglose_seguro_vehicular;
   if (desglose && desglose.length > 0) {
     const withAcc = desglose.filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0);
     const total = desglose.reduce((s, d) => s + (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0), 0);
     if (total === 0) return '0 activaciones de seguro vehicular registradas.';
+    // Build period map from api2 SBS data and desglose_soat as fallback sources
+    const periodMap = new Map<string, string>();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sbsRaw = (api2 as any)?.['sbs-vehicular'] || (api2 as any)?.sbs_vehicular || (api2 as any)?.sbs;
+    if (sbsRaw && Array.isArray(sbsRaw)) {
+      for (const entry of sbsRaw) {
+        const pol = entry.nro_poliza || entry.poliza || entry.numero_poliza || '';
+        const desde = entry.vigencia_inicio || entry.vigencia_desde || entry.inicio || entry.Inicio || '';
+        const hasta = entry.vigencia_fin || entry.vigencia_hasta || entry.fin || entry.Fin || '';
+        if (pol && desde && hasta) periodMap.set(pol, `${desde} — ${hasta}`);
+      }
+    }
+    for (const s of api.desglose_soat || []) {
+      const cert = s.nro_poliza || s.nro_certificado || '';
+      if (cert && !periodMap.has(cert) && s.vigencia_desde && s.vigencia_hasta) periodMap.set(cert, `${s.vigencia_desde} — ${s.vigencia_hasta}`);
+    }
     const parts = withAcc.map(d => {
       const n = parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0;
-      return `${n} en póliza ${d.nro_poliza || 'S/N'} (${d.periodo || 'periodo no disponible'})`;
+      const poliza = d.nro_poliza || 'S/N';
+      const periodo = d.periodo
+        || (d.vigencia_desde && d.vigencia_hasta ? `${d.vigencia_desde} — ${d.vigencia_hasta}` : '')
+        || d.vigencia
+        || (d.inicio && d.fin ? `${d.inicio} — ${d.fin}` : '')
+        || (d.fecha_inicio && d.fecha_fin ? `${d.fecha_inicio} — ${d.fecha_fin}` : '')
+        || periodMap.get(poliza)
+        || 'periodo no disponible';
+      return `${n} en póliza ${poliza} (${periodo})`;
     });
     return `${total} activacion${total !== 1 ? 'es' : ''} de seguro vehicular: ${parts.join(', ')}.`;
   }
   return '';
 }
 
-function buildActivaciones(api: ApiResponse) {
+function buildActivaciones(api: ApiResponse, api2?: Api2Response | null) {
   const srs = api.seguros_revision_siniestros;
   const act = srs?.find(s => s.concepto === 'accidentes_seguro_vehicular');
   if (act) {
@@ -533,7 +557,7 @@ function buildActivaciones(api: ApiResponse) {
     }
     if (count === 0) count = extractCount(act.resultado);
     const status: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-    const text = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+    const text = buildActivacionesText(api, api2) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
     return { status, badgeText: count === 0 ? 'OK' : `${count} ACTIV.`, text };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
@@ -800,7 +824,7 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
   return items;
 }
 
-function buildClaimsTable(api: ApiResponse): TableEntry[] {
+function buildClaimsTable(api: ApiResponse, api2?: Api2Response | null): TableEntry[] {
   const items: TableEntry[] = [];
   const srs = api.seguros_revision_siniestros || [];
 
@@ -826,7 +850,7 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
       }
       if (count === 0) count = extractCount(act.resultado);
       const st: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-      const actText = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+      const actText = buildActivacionesText(api, api2) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
       items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: actText, status: st, statusText: count === 0 ? 'OK' : `${count} ACTIV.` });
     }
   }
@@ -984,7 +1008,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const sutran = buildSutran(api);
   const transportes = buildTransportes(api);
   const siniestros = buildSiniestros(api);
-  const activaciones = buildActivaciones(api);
+  const activaciones = buildActivaciones(api, api2);
 
   const liensStatus = api.gravamenes ? semaforoToStatus(api.gravamenes.semaforo) : ('PENDING' as FieldStatus);
   let registryFinalCount = 0;
@@ -1076,7 +1100,10 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
 
     registryEntries: (() => {
       const extractDate = (d: string) => (d || '').match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || (d || '').trim();
-      const getApellidos = (nombre: string) => nombre.split(/\s+/).slice(0, 2).join(' ');
+      const getApellidos = (nombre: string) => {
+        const cleaned = nombre.replace(/^\(?\s*sociedad\s+conyugal\s*\)?\s*[:|]?\s*/i, '').replace(/\|/g, ' ').trim();
+        return cleaned.split(/\s+/).slice(0, 2).join(' ');
+      };
       // Strip "(asiento N)" suffix from hist títulos for matching
       const baseTit = (t: string) => (t || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim();
       const apiEntries = (api.asientos_registrales?.lista || []).map(a => {
@@ -1089,11 +1116,42 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         }
         return { date: aDate, act, title: a.titulo, asiento: a.asiento };
       });
+      // Build apellidos→título map from api2 siguelo (deterministic)
+      const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+      const apellidosToTitle = new Map<string, string>();
+      for (const st of sigTitulos) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const nombre = String((st as any).nombre || '');
+        const mainName = (nombre.split('|').map((s: string) => s.trim())[1] || nombre).trim();
+        const apell = mainName.split(/\s+/).slice(0, 2).join(' ').toUpperCase();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const titulo = String((st as any).num_titulo || '');
+        if (apell && titulo) apellidosToTitle.set(apell, titulo);
+      }
+      // Detect shared titles from api2 listaRes (deterministic: duplicate num_titulo = media acta)
+      const listaResShared = new Set<string>();
+      const lrCounts = new Map<string, number>();
+      for (const t of (api2?.sunarp?.listaRes?.[0]?.titulos || [])) {
+        const num = t.num_titulo || '';
+        if (num) lrCounts.set(num, (lrCounts.get(num) || 0) + 1);
+      }
+      for (const [t, c] of lrCounts) { if (c > 1) listaResShared.add(t); }
+      // Count hist entries per base título
+      const titleCounts = new Map<string, number>();
+      for (const h of hist) {
+        let bt = baseTit(h.titulo);
+        if (!bt) bt = apellidosToTitle.get(getApellidos(h.nombre).toUpperCase()) || '';
+        if (bt) titleCounts.set(bt, (titleCounts.get(bt) || 0) + 1);
+      }
       for (const h of hist) {
         const apellidos = getApellidos(h.nombre);
         if (!apellidos) continue;
-        const hTitle = baseTit(h.titulo);
-        const isSharedTitle = /\(asiento\s*\d+\)/i.test(h.titulo || '') || /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
+        let hTitle = baseTit(h.titulo);
+        if (!hTitle) hTitle = apellidosToTitle.get(apellidos.toUpperCase()) || '';
+        const isSharedTitle = (titleCounts.get(hTitle) || 0) > 1
+          || listaResShared.has(hTitle)
+          || /\(asiento\s*\d+\)/i.test(h.titulo || '')
+          || /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
         if (isSharedTitle) {
           const pair = apiEntries.find(e => e.title === hTitle);
           if (!pair) continue;
@@ -1118,12 +1176,14 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         const apellidos = getApellidos(h.nombre);
         if (!apellidos) continue;
         if (apiEntries.some(e => e.act.includes(apellidos))) continue;
-        const hTitle = baseTit(h.titulo);
+        let hTitle = baseTit(h.titulo);
+        if (!hTitle) hTitle = apellidosToTitle.get(apellidos.toUpperCase()) || '';
         if (hTitle && apiEntries.some(e => e.title === hTitle)) continue;
-        const isFirst = hist.indexOf(h) === 0;
+        // Never duplicate primera inscripción
+        if (hist.indexOf(h) === 0 && apiEntries.some(e => /primera inscripci/i.test(e.act))) continue;
         apiEntries.push({
           date: extractDate(h.fecha),
-          act: isFirst ? `Primera inscripción (${apellidos})` : `Compra - Venta (${apellidos})`,
+          act: `Compra - Venta (${apellidos})`,
           title: hTitle,
           asiento: '',
         });
@@ -1270,7 +1330,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emisión; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 
-    claims: buildClaimsTable(api),
+    claims: buildClaimsTable(api, api2),
     activationsTable: (api.desglose_seguro_vehicular || [])
       .filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0)
       .map(d => ({
@@ -1312,9 +1372,15 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         let txt = (api.conclusion?.texto || '')
           .replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO')
           .replace(/[^.]*\b(JNE|MTC[- ]?SCPPP)\b[^.]*\.\s*/gi, '');
-        const actText = buildActivacionesText(api);
+        const actText = buildActivacionesText(api, api2);
         if (actText) {
-          txt = txt.replace(/[^.]*\b(?:activacion|accidente)[^.]*(?:seguro vehicular|p[oó]liza)[^.]*\.\s*/gi, actText + ' ');
+          const m = actText.match(/^(\d+)\s+activacion/);
+          const total = m ? parseInt(m[1]) : 0;
+          const polCount = (actText.match(/póliza/g) || []).length;
+          const conclusionAct = total > 0
+            ? `Registra ${total} activacion${total !== 1 ? 'es' : ''} de seguro vehicular${polCount > 1 ? ` en ${polCount} pólizas` : ''}.`
+            : actText;
+          txt = txt.replace(/[^.]*\b(?:activacion|accidente)[^.]*(?:seguro vehicular|p[oó]liza)[^.]*\.\s*/gi, ' ' + conclusionAct + ' ');
         }
         return txt;
       })(),
