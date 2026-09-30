@@ -281,7 +281,7 @@ const s = StyleSheet.create({
 
   // Owner table
   ownHeader: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingLeft: 0, paddingRight: 6, marginTop: 6, alignItems: 'center' },
-  ownHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3 },
+  ownHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingRight: 4 },
   
   ownRow: { flexDirection: 'row', paddingVertical: 0, paddingLeft: 0, paddingRight: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'stretch', backgroundColor: C.darkGrayRow },
   ownRowAlt: { backgroundColor: C.lightGrayRow },
@@ -290,8 +290,8 @@ const s = StyleSheet.create({
   ownNumText: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: C.white, textAlign: 'center' },
   ownName: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingTop: 4 },
   ownTag: { fontSize: 5.5, color: C.amber, marginTop: 1 },
-  ownCell: { fontSize: 6.5, color: C.text, paddingVertical: 4 },
-  ownCellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingVertical: 4 },
+  ownCell: { fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 4 },
+  ownCellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 4 },
 
   // Registry table
   regHeader: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingLeft: 0, paddingRight: 6, alignItems: 'center', marginTop: 6 },
@@ -648,7 +648,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                 <SectionBanner
                   type="dark"
                   title="LISTA DE ASIENTOS REGISTRALES"
-                  subtitle={`Historial completo de actos inscritos en la partida${(() => { const p = data.vehicleComplementary?.find(v => v.label === 'N.° de partida')?.value; return p ? ` N.º ${p.replace(/\s*—.*/, '')}` : ''; })()}, en orden cronológico.`}
+                  subtitle={`Historial completo de actos inscritos en la partida${(() => { const p = data.vehicleComplementary?.find(v => v.label === 'N.° de partida')?.value?.replace(/\s*—.*/, '').replace(/^N\.?[°º]\s*/i, '').trim(); return p ? ` N.° ${p}` : ''; })()}, en orden cronológico.`}
                   icon="document"
                 />
 

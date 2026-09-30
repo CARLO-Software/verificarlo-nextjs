@@ -141,18 +141,6 @@ function formatDocument(tipo: string, doc: string): string {
 
 function cleanTimeAsOwner(raw: string, fecha?: string, nextFecha?: string): string {
   if (!raw && !fecha) return '';
-  if (raw) {
-    let clean = raw
-      .replace(/\s*\(.*?\)/g, '')
-      .replace(/\s*—.*$/g, '')
-      .replace(/\bcopropiedad\b/gi, '')
-      .replace(/\bco-registrado\b/gi, '')
-      .replace(/\bdesde\s+/gi, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    const shortened = shortenTime(clean);
-    if (shortened !== clean) return shortened;
-  }
   if (fecha) {
     const dm = fecha.match(/(\d{2})\/(\d{2})\/(\d{4})/);
     if (dm) {
@@ -173,6 +161,18 @@ function cleanTimeAsOwner(raw: string, fecha?: string, nextFecha?: string): stri
       if (p.length === 0) p.push('< 1 mes');
       return p.join(' y ');
     }
+  }
+  if (raw) {
+    let clean = raw
+      .replace(/\s*\(.*?\)/g, '')
+      .replace(/\s*—.*$/g, '')
+      .replace(/\bcopropiedad\b/gi, '')
+      .replace(/\bco-registrado\b/gi, '')
+      .replace(/\bdesde\s+/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const shortened = shortenTime(clean);
+    if (shortened !== clean) return shortened;
   }
   return raw || '';
 }
@@ -227,6 +227,10 @@ function findDeuda(deudas: ApiResponse['deudas_multas_capturas'], fuente: string
   return deudas?.find(d => d.fuente === fuente);
 }
 
+function cleanDate(d: string): string {
+  return (d || '').replace(/\s*-?\s*PRESENTACI[ÓO]N ELECTR[ÓO]NICA/gi, '').trim();
+}
+
 function cleanResultText(text: string): string {
   let clean = text
     .replace(/\s*\([^)]*:\s*\w+\)/g, '')
@@ -261,13 +265,13 @@ function buildLastTransfer(api: ApiResponse, api2?: Api2Response | null) {
   const hist = api.titularidad?.historial;
   if (!hist?.length) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Sin datos de transferencia.', extraInfo: undefined };
   const last = hist[hist.length - 1];
-  let fecha = last.fecha || '';
+  let fecha = cleanDate(last.fecha);
   let precio = last.precio;
   if (!fecha && api2) {
     const titulos = api2.siguelo?.titulos || api2.sunarp?.siguelo?.titulos || [];
     const lastTitulo = titulos.filter(t => t.fecha).pop();
     if (lastTitulo) {
-      fecha = lastTitulo.fecha;
+      fecha = cleanDate(lastTitulo.fecha);
       if ((!precio || precio === 'N/A') && lastTitulo.precio) precio = lastTitulo.precio;
     }
   }
@@ -351,7 +355,7 @@ function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
   return {
     status: (parcial ? 'WARNING' : 'CRITICAL') as FieldStatus,
     badgeText: parcial ? 'PARCIAL' : 'CON DEUDA',
-    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').trim()}`.trim(),
+    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/[^.]*resultado\s+es\s+\w+[^.]*\.?\s*/gi, '').trim()}`.trim(),
   };
 }
 
@@ -503,6 +507,21 @@ function buildSiniestros(api: ApiResponse) {
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
 
+function buildActivacionesText(api: ApiResponse): string {
+  const desglose = api.desglose_seguro_vehicular;
+  if (desglose && desglose.length > 0) {
+    const withAcc = desglose.filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0);
+    const total = desglose.reduce((s, d) => s + (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0), 0);
+    if (total === 0) return '0 activaciones de seguro vehicular registradas.';
+    const parts = withAcc.map(d => {
+      const n = parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0;
+      return `${n} en póliza ${d.nro_poliza || 'S/N'} (${d.periodo || 'periodo no disponible'})`;
+    });
+    return `${total} activacion${total !== 1 ? 'es' : ''} de seguro vehicular: ${parts.join(', ')}.`;
+  }
+  return '';
+}
+
 function buildActivaciones(api: ApiResponse) {
   const srs = api.seguros_revision_siniestros;
   const act = srs?.find(s => s.concepto === 'accidentes_seguro_vehicular');
@@ -514,7 +533,7 @@ function buildActivaciones(api: ApiResponse) {
     }
     if (count === 0) count = extractCount(act.resultado);
     const status: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-    const text = cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+    const text = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
     return { status, badgeText: count === 0 ? 'OK' : `${count} ACTIV.`, text };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
@@ -773,7 +792,7 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
     if (api2?.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
     const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     items.push({
-      concept: 'Revision tecnica (CITV)', entity: 'MTC',
+      concept: 'Revisión técnica (CITV)', entity: 'MTC',
       result: citvClean + citvSuffix, status: st, statusText: citvText,
     });
   }
@@ -807,7 +826,7 @@ function buildClaimsTable(api: ApiResponse): TableEntry[] {
       }
       if (count === 0) count = extractCount(act.resultado);
       const st: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-      const actText = cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+      const actText = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
       items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: actText, status: st, statusText: count === 0 ? 'OK' : `${count} ACTIV.` });
     }
   }
@@ -848,12 +867,21 @@ const CONCLUSION_BOLD = [
   'activaciones de seguro vehicular',
   'alta rotación de propietarios',
   'La decisión final es del cliente',
+  'SAT Lima',
+  'Mun. del Callao',
+  'ATU',
+  'SUTRAN',
+  'SUNARP',
+  'APESEG',
+  'MTC',
+  'SBS',
 ];
 
-function boldConclusionText(text: string, code: string): string {
+function boldConclusionText(text: string, code: string, plate?: string): string {
   if (!text) return text;
   const phrases = [...CONCLUSION_BOLD];
   if (code) phrases.push(code);
+  if (plate) phrases.push(plate.toUpperCase());
   const sorted = phrases.sort((a, b) => b.length - a.length);
   let result = text;
   for (const phrase of sorted) {
@@ -870,12 +898,32 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
   const entries = api.asientos_registrales?.lista || [];
   const pendientes = api.asientos_registrales?.nota_titulos_pendientes || '';
   const pendLower = pendientes.toLowerCase();
-  const hasPending = pendientes.length > 0
+  let hasPending = pendientes.length > 0
     && !pendLower.includes('no se identifican')
     && !pendLower.includes('no hay títulos pendientes')
     && !pendLower.includes('no hay titulos pendientes')
     && !pendLower.includes('sin títulos pendientes')
     && !pendLower.includes('sin titulos pendientes');
+
+  // Cross-reference: if all título numbers mentioned in nota_titulos_pendientes
+  // appear in inscribed entries, they're not actually pending
+  if (hasPending) {
+    const mentionedTitulos = pendientes.match(/\d{4}-\d{5,}/g) || [];
+    const inscribedTitulos = new Set<string>();
+    for (const e of entries) { if (e.titulo) inscribedTitulos.add(e.titulo); }
+    const listaResTitulos = api2?.sunarp?.listaRes?.[0]?.titulos || [];
+    for (const t of listaResTitulos) { if (t.num_titulo) inscribedTitulos.add(t.num_titulo); }
+    if (mentionedTitulos.length > 0 && mentionedTitulos.every(t => inscribedTitulos.has(t))) {
+      hasPending = false;
+    }
+    // Also: if api2 listaRes shows all titles accounted for, override
+    if (hasPending && listaResTitulos.length > 0) {
+      const histTitulos = (api.titularidad?.historial || []).map(h => h.titulo).filter(Boolean);
+      const allInscribed = histTitulos.every(t => inscribedTitulos.has(t));
+      if (allInscribed && listaResTitulos.length >= entries.length) hasPending = false;
+    }
+  }
+
   const hasNonOrdinary = entries.some(e => NON_ORDINARY_ACTS.some(act => e.acto.toLowerCase().includes(act)));
   const hasHistoricalLien = entries.some(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
 
@@ -901,7 +949,7 @@ function combinePapeletas(...sources: { status: FieldStatus; badgeText: string; 
   const valid = sources.filter(s => s.status !== 'PENDING');
   if (valid.length === 0) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: sources[0].text };
   const worst = valid.reduce((a, b) => STATUS_SEVERITY[b.status] > STATUS_SEVERITY[a.status] ? b : a);
-  if (worst.status === 'OK') return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'NO presenta papeletas pendientes de pago.' };
+  if (worst.status === 'OK') return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'No presenta papeletas pendientes de pago.' };
   const withIssues = valid.filter(s => s.status !== 'OK');
   const names = withIssues.map(s => {
     const t = s.text.toLowerCase();
@@ -955,28 +1003,28 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
 
     fields: [
       { key: 'ownerHistory', label: 'Historial de propietarios', ...owner },
-      { key: 'lastTransfer', label: 'Fecha ultima transferencia', ...transfer },
-      { key: 'sunarpLiens', label: 'Gravamenes SUNARP / SIGM', ...grav },
+      { key: 'lastTransfer', label: 'Fecha última transferencia', ...transfer },
+      { key: 'sunarpLiens', label: 'Gravámenes SUNARP / SIGM', ...grav },
       { key: 'satCaptureOrder', label: 'Orden de captura SAT', ...captura },
       { key: 'vehicleTax', label: 'Impuesto vehicular', ...impuesto },
       { key: 'satTickets', label: 'Papeletas SAT / Callao / ATU', ...combinePapeletas(satPap, callaoPap, atuPap) },
       { key: 'sutranTickets', label: 'Infracciones SUTRAN', ...sutran },
       { key: 'soat', label: 'SOAT', status: soat.status, badgeText: soat.badgeText, text: soat.text },
-      { key: 'techReview', label: 'Revision tecnica (CITV)', status: citv.status, badgeText: citv.badgeText, text: citv.text },
+      { key: 'techReview', label: 'Revisión técnica (CITV)', status: citv.status, badgeText: citv.badgeText, text: citv.text },
       { key: 'siniestroSoat', label: 'Siniestros con cobertura SOAT', ...siniestros },
       { key: 'accidentHistory', label: 'Activaciones de seguro vehicular', ...activaciones },
-      { key: 'gasConversion', label: 'Conversion a GNV', ...gnv },
+      { key: 'gasConversion', label: 'Conversión a GNV', ...gnv },
       { key: 'transportRegistry', label: 'Registro de transportes', ...transportes },
     ],
 
     vehicleMain: v ? [
       { label: 'Placa', value: plate.toUpperCase() },
       { label: 'Tipo de uso', value: v.uso || '' },
-      { label: 'Categoria', value: v.categoria || '' },
-      { label: 'Carroceria', value: comp['Tipo Carrocería'] || comp['Tipo Carroceria'] || t0?.tipo_carroceria || '' },
+      { label: 'Categoría', value: v.categoria || '' },
+      { label: 'Carrocería', value: comp['Tipo Carrocería'] || comp['Tipo Carroceria'] || t0?.tipo_carroceria || '' },
       { label: 'Marca', value: v.marca || '' },
       { label: 'Modelo', value: v.modelo || '' },
-      { label: 'N.° version', value: comp['Nro. Versión'] || comp['Nro. Version'] || t0?.nro_version || '' },
+      { label: 'N.° versión', value: comp['Nro. Versión'] || comp['Nro. Version'] || t0?.nro_version || '' },
       { label: 'Año de modelo', value: v.anio_modelo || '' },
       { label: 'Año de fabricación', value: v.anio_fabricacion && v.anio_fabricacion !== v.anio_modelo ? v.anio_fabricacion : '' },
       { label: 'N.° de serie', value: v.nro_serie || '' },
@@ -991,13 +1039,13 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { label: 'N.° de cilindros', value: t0?.nro_cilindros || comp['Nro. Cilindros'] || '' },
       { label: 'Cilindrada', value: t0?.cilindrada || comp['Cilindrada'] || '' },
       { label: 'N.° de asientos', value: t0?.nro_asientos || comp['Nro. Asientos'] || '' },
-      { label: 'Formula rodante', value: t0?.formula_rodante || comp['Fórmula Rodante'] || comp['Formula Rodante'] || '' },
+      { label: 'Fórmula rodante', value: t0?.formula_rodante || comp['Fórmula Rodante'] || comp['Formula Rodante'] || '' },
       { label: 'Peso neto / bruto', value: [t0?.peso_neto || comp['Peso Neto'], t0?.peso_bruto || comp['Peso Bruto']].filter(Boolean).join(' / ') },
-      { label: 'Carga util', value: t0?.carga_util || comp['Carga Util'] || '' },
+      { label: 'Carga útil', value: t0?.carga_util || comp['Carga Util'] || '' },
       { label: 'Long. / Ancho / Alto', value: [t0?.longitud || comp['Longitud'], t0?.ancho || comp['Ancho'], t0?.altura || comp['Altura']].filter(Boolean).join(' / ') },
-      { label: 'Inmatriculacion', value: (hist[0]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '').trim() },
-      { label: 'Adquisicion titular actual', value: (hist[hist.length - 1]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '').trim() },
-      { label: 'N.° de partida', value: [comp['Partida'], comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') },
+      { label: 'Inmatriculación', value: cleanDate((hist[0]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '')) },
+      { label: 'Adquisición titular actual', value: cleanDate((hist[hist.length - 1]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '')) },
+      { label: 'N.° de partida', value: [(comp['Partida'] || '').replace(/^N\.?[°º]\s*/i, ''), comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') },
     ] : undefined,
 
     owners: [...hist].sort((a, b) => {
@@ -1013,7 +1061,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         number: i + 1,
         name: h.nombre,
         document: formatDocument(h.tipo_documento, h.documento),
-        acquisitionDate: h.fecha,
+        acquisitionDate: cleanDate(h.fecha),
         timeAsOwner: cleanTimeAsOwner(h.tiempo_como_propietario, h.fecha, nextFecha),
         price: h.precio,
         title: h.titulo,
@@ -1045,7 +1093,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         const isDobleAsiento = /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
         if (!isDobleAsiento && apiEntries.some(e => e.act.includes(apellidos))) continue;
         if (isDobleAsiento) {
-          const pair = apiEntries.find(e => e.title === h.titulo && e.act.includes(apellidos));
+          const pair = apiEntries.find(e => e.title === h.titulo && e.act.includes(apellidos))
+            || apiEntries.find(e => e.title === h.titulo);
           if (!pair) continue;
           const partner = hist.find(hh => hh !== h && hh.titulo === h.titulo && !(/mismo t[ií]tulo|doble asiento/i.test(hh.estado || '')));
           const isSociedad = partner && /sociedad conyugal/i.test(partner.nombre);
@@ -1060,6 +1109,20 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           const idx = apiEntries.indexOf(pair);
           apiEntries.splice(idx + 1, 0, entry);
         }
+      }
+      // Catch-all: ensure every hist owner has at least one registry entry
+      for (const h of hist) {
+        const apellidos = getApellidos(h.nombre);
+        if (!apellidos) continue;
+        if (apiEntries.some(e => e.act.includes(apellidos))) continue;
+        const titulo = h.titulo || '';
+        const isFirst = hist.indexOf(h) === 0;
+        apiEntries.push({
+          date: extractDate(h.fecha),
+          act: isFirst ? `Primera inscripción (${apellidos})` : `Compra - Venta (${apellidos})`,
+          title: titulo,
+          asiento: '',
+        });
       }
       apiEntries.sort((a, b) => {
         const da = parseDate(a.date);
@@ -1154,7 +1217,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
       return `${items.join(', ')}.${totalStr}`;
     })(),
-    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/\s{2,}/g, ' ').trim(),
+    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/[^.]*resultado\s+es\s+\w+[^.]*\.?\s*/gi, '').replace(/\s{2,}/g, ' ').trim(),
     taxReminder: (() => {
       const anios = api.impuesto_vehicular?.anios || [];
       const allPaid = anios.length > 0 && anios.every(a => a.semaforo === 'verde');
@@ -1175,31 +1238,18 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const totalAcc = soats.reduce((s, d) => s + (parseInt(d.nro_accidentes, 10) || 0), 0);
       return `Total de siniestros con cobertura SOAT: **${totalAcc}** en los últimos 5 años.`;
     })(),
-    insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emision; el certificado CITV proviene del registro de la entidad certificadora.',
+    insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emisión; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 
     claims: buildClaimsTable(api),
-    activationsTable: (api.desglose_soat || [])
-      .filter(d => parseInt(d.nro_accidentes, 10) > 0)
-      .map(d => {
-        let period = '';
-        if (d.vigencia) {
-          const years = d.vigencia.match(/(\d{4})/g);
-          if (years && years.length >= 2) period = `${years[0]}–${years[1]}`;
-          else if (years) period = years[0];
-        } else {
-          const yFrom = d.vigencia_desde?.match(/(\d{4})/)?.[1];
-          const yTo = d.vigencia_hasta?.match(/(\d{4})/)?.[1];
-          if (yFrom && yTo) period = `${yFrom}–${yTo}`;
-          else if (yFrom) period = yFrom;
-        }
-        return {
-          insurer: d.compania || '',
-          policyNumber: d.nro_poliza || d.nro_certificado || '',
-          period,
-          count: parseInt(d.nro_accidentes, 10) || 0,
-        };
-      }),
+    activationsTable: (api.desglose_seguro_vehicular || [])
+      .filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0)
+      .map(d => ({
+        insurer: d.aseguradora || '',
+        policyNumber: d.nro_poliza || '',
+        period: d.periodo || '',
+        count: parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0,
+      })),
     claimsNote: 'Nota: se distingue entre siniestros con cobertura SOAT (lesiones a personas) y activaciones de seguro vehicular (daños materiales atendidos por la poliza, generalmente eventos menores).',
     claimsSource: 'SBS',
 
@@ -1219,7 +1269,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         }
       }
       return {
-        concept: g.concepto === 'infogas' ? 'Conversion a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
+        concept: g.concepto === 'infogas' ? 'Conversión a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
         entity: g.concepto === 'infogas' ? 'InfoGas' : g.concepto === 'fise' ? 'FISE' : g.concepto,
         result: cleanResultText(g.resultado),
         status: st,
@@ -1229,12 +1279,20 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     gnvSource: 'InfoGas · FISE',
 
     conclusionText: boldConclusionText(
-      (api.conclusion?.texto || '')
-        .replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO')
-        .replace(/[^.]*\b(JNE|MTC[- ]?SCPPP)\b[^.]*\.\s*/gi, ''),
+      (() => {
+        let txt = (api.conclusion?.texto || '')
+          .replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO')
+          .replace(/[^.]*\b(JNE|MTC[- ]?SCPPP)\b[^.]*\.\s*/gi, '');
+        const actText = buildActivacionesText(api);
+        if (actText) {
+          txt = txt.replace(/[^.]*\b(?:activacion|accidente)[^.]*(?:seguro vehicular|p[oó]liza)[^.]*\.\s*/gi, actText + ' ');
+        }
+        return txt;
+      })(),
       code,
+      plate,
     ),
-    disclaimer: `**Sobre este informe.** Documento elaborado por VERIFICARLO a partir de consultas a fuentes oficiales para el vehiculo de placa ${plate.toUpperCase()}, emitido el ${format(now, "dd/MM/yyyy 'a las' HH:mm 'h'")}. La informacion registral proviene de copia informativa de SUNARP, que solo tiene fines informativos y no constituye publicidad registral ni reemplaza un certificado vigente para tramites. Los resultados de deudas, infracciones y vigencias corresponden a la fecha de consulta y pueden variar.`,
+    disclaimer: `**Sobre este informe.** Documento elaborado por VERIFICARLO a partir de consultas a fuentes oficiales para el vehículo de placa ${plate.toUpperCase()}, emitido el ${format(now, "dd/MM/yyyy 'a las' HH:mm 'h'")}. La información registral proviene de copia informativa de SUNARP, que solo tiene fines informativos y no constituye publicidad registral ni reemplaza un certificado vigente para trámites. Los resultados de deudas, infracciones y vigencias corresponden a la fecha de consulta y pueden variar.`,
 
     // Backward compat
     inspectionId: 0,
