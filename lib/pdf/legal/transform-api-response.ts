@@ -1384,6 +1384,17 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
             : actText;
           txt = txt.replace(/[^.]*\b(?:activacion|accidente)[^.]*(?:seguro vehicular|p[oó]liza)[^.]*\.\s*/gi, ' ' + conclusionAct + ' ');
         }
+        const soatNote: Record<string, string> = {
+          ANULADO: 'Sin embargo, el último SOAT contratado fue anulado, por lo que el vehículo circula actualmente sin SOAT; debe regularizarse antes de cualquier uso o transferencia.',
+          VENCIDO: 'El SOAT se encuentra vencido; debe renovarse antes de cualquier uso o transferencia.',
+          'VENCE HOY': 'El SOAT vence hoy; debe renovarse de inmediato para mantener la cobertura.',
+          'VENCE PRONTO': `El SOAT se encuentra vigente pero próximo a vencer (${soat.expiryDate || ''}); se recomienda renovarlo con anticipación.`,
+          VIGENTE: 'El SOAT se encuentra vigente.',
+        };
+        const soatMsg = soatNote[soat.badgeText];
+        if (soatMsg) {
+          txt = txt.replace(/\s*$/, ' ') + soatMsg;
+        }
         return txt;
       })(),
       code,
