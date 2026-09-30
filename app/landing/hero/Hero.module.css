@@ -1,11 +1,21 @@
-.hero {
+/* NOTA: El diseño nuevo con input de placa está respaldado en Hero.consultar.module.css.bak */
+
+/* ============================================
+   Hero Section
+   ============================================ */
+.heroSection {
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
+  flex-direction: column;
+}
+
+@media screen and (min-width: 768px) {
+  .heroSection {
+    min-height: 110vh;
+    min-height: 110dvh;
+  }
 }
 
 /* ============================================
@@ -13,10 +23,13 @@
    ============================================ */
 .videoContainer {
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
   overflow: hidden;
-  background-color: #1c1d22;
+  background-color: #F5D849;
 }
 
 .videoBackground {
@@ -29,781 +42,404 @@
 
 .videoOverlay {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.3) 0%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.7) 100%
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.4) 50%,
+    rgba(0, 0, 0, 0.6) 100%
   );
 }
 
-/* ============================================
-   Content — two-column layout
-   ============================================ */
-.content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: 100px 20px 30px;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+/* Hero Container */
+.heroContainer {
   flex: 1;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding: 24px 20px;
+  padding-bottom: 12vh;
 }
 
-/* ---- Left column ---- */
-.left {
+/* Hero Content */
+.heroContent {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-}
-
-.title {
-  margin: 0;
-  font: 800 32px/1.12 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  color: #FFFFFF;
-  letter-spacing: -0.02em;
-}
-
-.title em {
-  font-style: italic;
-  font-weight: 800;
-}
-
-.subtitle {
-  margin: 14px 0 0;
-  font: 400 14px/1.6 'Inter', 'DM Sans', sans-serif;
-  color: rgba(255, 255, 255, 0.7);
-  max-width: 320px;
-}
-
-.ctaPlanes {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  height: 50px;
-  padding: 0 28px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-  background: transparent;
-  font: 600 14px 'DM Sans', sans-serif;
-  color: #FFFFFF;
-  text-decoration: none;
-  transition: all 0.3s ease;
-}
-
-.ctaPlanes:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.7);
-}
-
-/* ---- Right column / Plate card ---- */
-.right {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  max-width: 400px;
   width: 100%;
-  margin-top: 16px;
-  flex: 1;
 }
 
-.plateCard {
-  width: 100%;
-  max-width: 420px;
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  box-shadow: none;
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto;
+/* ============================================
+   Hero Title
+   ============================================ */
+.heroTitle {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.0;
 }
 
-.plateTitle {
-  display: none;
-}
-
-/* Plate input */
-.plateInput {
-  height: 56px;
-  background: #fff;
-  border: 1.5px solid #E4E4E4;
-  border-radius: 15px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 14px 0 12px;
-}
-
-.plateFlag {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 22px;
-}
-
-.plateFlagStripes {
-  display: flex;
-  width: 28px;
-  height: 18px;
-  border-radius: 3px;
-  overflow: hidden;
-  border: 1px solid rgba(26, 27, 31, 0.12);
-}
-
-.stripeRed {
-  flex: 1;
-  background: #D91023;
-}
-
-.stripeWhite {
-  flex: 1;
-  background: #fff;
-}
-
-.plateInputField {
-  flex: 1;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font: 600 17px 'DM Sans', sans-serif;
-  color: #16171b;
-  letter-spacing: 0.04em;
-  min-width: 0;
-}
-
-.plateInputField::placeholder {
-  color: rgba(26, 27, 31, 0.35);
+.titleLine1 {
+  display: block;
+  font-size: 32px;
   font-weight: 500;
-  letter-spacing: 0;
+  color: #FFFFFF;
 }
 
-.plateSearchIcon {
-  flex: none;
-}
-
-/* Yellow CTA button */
-.plateBtn {
-  cursor: pointer;
-  width: 100%;
-  height: 54px;
-  margin-top: 10px;
-  background: #ffe04d;
-  border-radius: 999px;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font: 700 16px 'DM Sans', sans-serif;
-  color: #16171b;
-  box-shadow: 0 8px 20px rgba(255, 224, 77, 0.3);
-  transition: all 0.3s ease;
-}
-
-.plateBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
-}
-
-.plateBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ---- Card Stats ---- */
-.cardStats {
-  margin-top: auto;
-  padding-top: 28px;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.cardStat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  flex: 1;
-  text-align: center;
-}
-
-.cardStatIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 4px;
-}
-
-.cardStatIcon svg {
-  stroke: #1c1d22;
-}
-
-.cardStatValue {
-  font: 800 18px 'DM Sans', sans-serif;
-  color: #fff;
-}
-
-.cardStatLabel {
-  font: 400 11px/1.35 'DM Sans', sans-serif;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-/* ============================================
-   Desktop (768px+)
-   ============================================ */
-@media screen and (min-width: 768px) {
-  .hero {
-    align-items: center;
-  }
-
-  .content {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 48px;
-    padding: 0 48px;
-  }
-
-  .left {
-    flex: 1;
-    max-width: 560px;
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .title {
-    font-size: 56px;
-    line-height: 1.06;
-    letter-spacing: -0.025em;
-  }
-
-  .subtitle {
-    margin-top: 22px;
-    font-size: 17px;
-    max-width: 480px;
-  }
-
-  .ctaPlanes {
-    display: inline-flex;
-    margin-top: 32px;
-    height: 54px;
-    padding: 0 32px;
-    font-size: 15px;
-  }
-
-  .right {
-    flex: none;
-    width: 420px;
-    margin-top: 0;
-  }
-
-  .plateCard {
-    background: #fff;
-    border-radius: 24px;
-    padding: 32px 28px 28px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-    display: block;
-  }
-
-  .plateTitle {
-    display: block;
-    font: 700 22px/1.3 'DM Sans', sans-serif;
-    color: #1c1d22;
-    text-align: center;
-    margin: 0 0 22px;
-  }
-
-  .plateInput {
-    height: 60px;
-    background: #F5F5F5;
-    border-color: #E4E4E4;
-  }
-
-  .plateInputField {
-    color: #16171b;
-  }
-
-  .plateInputField::placeholder {
-    color: rgba(26, 27, 31, 0.35);
-  }
-
-  .cardStatIcon {
-    width: 40px;
-    height: 40px;
-    background: #f0f0f0;
-  }
-
-  .cardStatIcon svg {
-    stroke: #1c1d22;
-  }
-
-  .cardStatValue {
-    color: #1c1d22;
-    font-size: 20px;
-  }
-
-  .cardStatLabel {
-    color: rgba(26, 27, 31, 0.55);
-    font-size: 11.5px;
-  }
-
-  .plateBtn {
-    height: 58px;
-    font-size: 17px;
-    margin-top: 12px;
-    background: linear-gradient(90deg, #FBD307, #FFE04D);
-    color: #16171b;
-    box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
-  }
-
-  .right {
-    flex-direction: row;
-  }
-
-  .cardStats {
-    margin-top: 20px;
-    padding-top: 0;
-  }
-
-  .cardStatValue {
-    font-size: 20px;
-  }
-
-  .cardStatLabel {
-    font-size: 11.5px;
-  }
-}
-
-/* ============================================
-   Large desktop (1024px+)
-   ============================================ */
-@media screen and (min-width: 1024px) {
-  .title {
-    font-size: 62px;
-  }
-
-  .content {
-    gap: 64px;
-    padding: 0 64px;
-  }
-}
-
-/* ============================================
-   Loading Overlay
-   ============================================ */
-.loadingOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.loadingBox {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 0 24px;
-}
-
-.spinner {
+.titleLine2 {
+  display: block;
   position: relative;
-  width: 80px;
-  height: 80px;
-  margin-bottom: 28px;
-}
-
-.spinnerCircle {
-  animation: spin 1.2s linear infinite;
-  transform-origin: 40px 40px;
-}
-
-.spinnerIcon {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #FBD307, #FFE04D);
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  margin: auto;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loadingTitle {
-  margin: 0;
-  font: 400 24px/1.3 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.loadingTitle strong {
+  font-size: 32px;
   font-weight: 800;
+  color: white;
   font-style: italic;
 }
 
-.loadingStepWrap {
+/* ============================================
+   Hero Description
+   ============================================ */
+.heroDescription {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgb(219 219 219 / 90%);
+  line-height: 1.5;
+  padding: 10px;
+}
+
+/* ============================================
+   CTA Button (Blanco)
+   ============================================ */
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px 28px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8F8F8 100%);
+  color: black;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  position: relative;
   overflow: hidden;
-  margin: 14px 0 0;
-  max-width: 420px;
 }
 
-.loadingStep {
-  margin: 0;
-  font: 400 14px/1.5 'Inter', 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.55);
-  text-align: center;
-  animation: slideUp 0.4s ease both;
+.ctaButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 80%;
+  height: 100%;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(255, 215, 0, 0.5) 45%,
+    rgba(255, 235, 100, 0.7) 50%,
+    rgba(255, 215, 0, 0.5) 55%,
+    transparent 70%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
+  animation: shineGold 3s ease-in-out infinite;
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(100%);
+@keyframes shineGold {
+  0% {
+    left: -100%;
   }
-  to {
-    opacity: 1;
+  50%, 100% {
+    left: 150%;
+  }
+}
+
+.ctaButton:hover::before {
+  animation: shineGoldFast 0.6s ease-out forwards;
+}
+
+@keyframes shineGoldFast {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.ctaButton:hover {
+  background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 10px 40px rgba(253, 181, 21, 0.4),
+    0 0 0 3px rgba(255, 225, 76, 0.2);
+}
+
+.ctaButton svg {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ctaButton:hover svg {
+  transform: translateX(6px);
+  animation: arrowPulse 1s ease-in-out infinite;
+}
+
+@keyframes arrowPulse {
+  0%, 100% {
+    transform: translateX(6px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+}
+
+.ctaButton:focus-visible {
+  outline: 2px solid #F5D849;
+  outline-offset: 3px;
+}
+
+.ctaButton:active {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 6px 25px rgba(253, 181, 21, 0.3);
+}
+
+/* ============================================
+   "¿Qué revisamos?" Section
+   ============================================ */
+.queRevisamosSection {
+  border-radius: 24px 24px 0 0;
+  padding: 0px 16px 20px;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap:8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.queRevisamosButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: #FFFFFF;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow:
+    0 4px 15px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.queRevisamosButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.queRevisamosButton:hover::before {
+  opacity: 1;
+}
+
+.queRevisamosButton:hover {
+  background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
+  transform: translateY(-4px) scale(1.02);
+  border-color: rgba(255, 225, 76, 0.3);
+  box-shadow:
+    0 12px 35px rgba(0, 0, 0, 0.4),
+    0 0 0 2px rgba(255, 225, 76, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.queRevisamosButton svg:first-child {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.queRevisamosButton:hover svg:first-child {
+  transform: translateX(3px) scale(1.1);
+  filter: drop-shadow(0 0 8px rgba(255, 225, 76, 0.5));
+}
+
+.queRevisamosButton:focus-visible {
+  outline: 2px solid #FFE14C;
+  outline-offset: 3px;
+}
+
+.queRevisamosButton:active {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.queRevisamosButton svg:last-child {
+  animation: bounceDown 2s ease-in-out infinite;
+}
+
+@keyframes bounceDown {
+  0%, 20%, 50%, 80%, 100% {
     transform: translateY(0);
   }
+  40% {
+    transform: translateY(4px);
+  }
+  60% {
+    transform: translateY(2px);
+  }
 }
 
 /* ============================================
-   Results Overlay
+   RESPONSIVE - Tablet (768px+)
    ============================================ */
-.resultsOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  background: #f5f5f5;
-  overflow-y: auto;
-}
-
-.resultsPage {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 20px 60px;
-}
-
-.backBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font: 500 14px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  padding: 8px 0;
-  margin-bottom: 20px;
-}
-
-.backBtn:hover {
-  opacity: 0.7;
-}
-
-/* Vehicle header card */
-.vehicleCard {
-  background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 16px;
-}
-
-.vehicleTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.vehiclePlate {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  border: 2px solid #1c1d22;
-  border-radius: 10px;
-  padding: 10px 20px;
-}
-
-.plateFlagSmall {
-  display: flex;
-  width: 24px;
-  height: 16px;
-  border-radius: 2px;
-  overflow: hidden;
-  border: 1px solid rgba(26, 27, 31, 0.12);
-}
-
-.vehiclePlateText {
-  font: 800 28px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  letter-spacing: 0.04em;
-}
-
-.vehicleMotor {
-  text-align: right;
-}
-
-.vehicleMotorLabel {
-  display: block;
-  font: 400 12px 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.5);
-}
-
-.vehicleMotorValue {
-  font: 700 14px 'DM Mono', 'DM Sans', monospace;
-  color: #1c1d22;
-}
-
-.vehicleSpecs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.vehicleSpecs span {
-  font: 400 13px 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.6);
-  background: #f5f5f5;
-  padding: 6px 12px;
-  border-radius: 8px;
-}
-
-.vehicleSpecs span strong {
-  font-weight: 700;
-  color: #1c1d22;
-}
-
-/* Green alert */
-.alertGreen {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: rgba(22, 163, 74, 0.08);
-  border: 1px solid rgba(22, 163, 74, 0.2);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 32px;
-}
-
-.alertGreen svg {
-  flex: none;
-  margin-top: 1px;
-}
-
-.alertGreen span {
-  font: 400 14px/1.5 'DM Sans', sans-serif;
-  color: #16a34a;
-}
-
-/* Results heading */
-.resultsHeading {
-  margin-bottom: 24px;
-}
-
-.resultsHeading h2 {
-  margin: 0;
-  font: 400 34px/1.15 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.resultsHeading h2 em {
-  font-weight: 800;
-  font-style: italic;
-}
-
-.resultsHeading p {
-  margin: 10px 0 0;
-  font: 400 15px/1.6 'Inter', 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.55);
-  max-width: 520px;
-}
-
-/* Result stat cards */
-.resultCards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.resultCard {
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 16px;
-  padding: 22px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.resultCardIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 8px;
-}
-
-.resultCardLabel {
-  font: 600 14px/1.3 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.resultCardValue {
-  font: 800 28px 'DM Sans', sans-serif;
-  font-style: italic;
-}
-
-.resultCardDesc {
-  font: 400 12px/1.45 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.45);
-  margin-top: 4px;
-}
-
-/* Yellow upsell banner */
-.upsellBanner {
-  background: #FBD307;
-  border-radius: 20px;
-  padding: 32px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.upsellLeft h3 {
-  margin: 0;
-  font: 700 22px/1.3 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.upsellLeft h3 em {
-  font-style: italic;
-}
-
-.upsellLeft p {
-  margin: 10px 0 0;
-  font: 400 14px/1.5 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.65);
-}
-
-.upsellActions {
-  margin-top: 18px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.upsellBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 48px;
-  padding: 0 24px;
-  border-radius: 999px;
-  background: #fff;
-  font: 600 14px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.upsellBtn:hover {
-  background: #f0f0f0;
-}
-
-.upsellLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font: 500 14px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.upsellRight {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-.upsellItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 500 13px 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.upsellItemIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-}
-
 @media screen and (min-width: 768px) {
-  .resultsPage {
-    padding: 32px 48px 80px;
+  .heroContainer {
+    padding: 40px 32px;
+    align-items: center;
   }
 
-  .vehiclePlateText {
+  .heroContent {
+    max-width: 500px;
+  }
+
+  .titleLine1 {
     font-size: 32px;
   }
 
-  .resultCards {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
+  .titleLine2 {
+    font-size: 38px;
   }
 
-  .upsellBanner {
+  .heroDescription {
+    font-size: 16px;
+  }
+
+  .ctaButton {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .queRevisamosSection {
+    border-radius: 32px 32px 0 0;
+  }
+
+  .queRevisamosButton {
+    gap: 10px;
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Desktop (1024px+)
+   ============================================ */
+@media screen and (min-width: 1024px) {
+  .heroContainer {
+    padding: 0px 48px 70px;
+  }
+
+  .heroContent {
+    max-width: 600px;
+  }
+
+  .titleLine1 {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+
+  .titleLine2 {
+    font-size: 48px;
+  }
+
+  .ctaButton {
+     padding: 18px 14px;
+    font-size: 14px;
+    gap: 12px;
+  }
+
+  .queRevisamosSection {
     flex-direction: row;
-    align-items: center;
-    padding: 40px 36px;
-    gap: 40px;
+    padding: 0px 100px 20px;
+  }
+  .queRevisamosButton {
+    width: 70%;
+    padding: 18px 14px;
   }
 
-  .upsellLeft {
-    flex: 1;
+  .queRevisamosButton svg:last-child {
+    animation: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .upsellLeft h3 {
-    font-size: 26px;
+  .queRevisamosButton:hover svg:last-child {
+    transform: translateY(3px);
   }
 
-  .upsellRight {
-    flex: none;
-    width: 260px;
+  .queRevisamosButton:hover svg:first-child {
+    animation: carDrive 0.6s ease-in-out;
+  }
+
+  @keyframes carDrive {
+    0% {
+      transform: translateX(0) scale(1);
+    }
+    50% {
+      transform: translateX(5px) scale(1.15);
+    }
+    100% {
+      transform: translateX(3px) scale(1.1);
+    }
+  }
+}
+
+/* ============================================
+   RESPONSIVE - Large Desktop (1280px+)
+   ============================================ */
+@media screen and (min-width: 1280px) {
+  .heroContent {
+    max-width: 700px;
+  }
+
+  .titleLine1 {
+    font-size: 62px;
+  }
+
+  .titleLine2 {
+    font-size: 62px;
   }
 }
 
@@ -811,15 +447,29 @@
    Reduced Motion
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
-  .plateBtn {
-    transition: none;
+  .queRevisamosButton svg:last-child,
+  .queRevisamosButton svg:first-child {
+    animation: none !important;
   }
 
-  .plateBtn:hover:not(:disabled) {
+  .ctaButton:hover,
+  .queRevisamosButton:hover {
     transform: none;
   }
 
-  .spinnerCircle {
-    animation: none;
+  .ctaButton,
+  .queRevisamosButton {
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .ctaButton::before,
+  .queRevisamosButton::before {
+    display: none;
+  }
+
+  .ctaButton svg,
+  .queRevisamosButton svg {
+    animation: none !important;
+    transition: none;
   }
 }

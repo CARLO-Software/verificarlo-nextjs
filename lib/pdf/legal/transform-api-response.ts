@@ -918,7 +918,7 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
     }
     // Also: if api2 listaRes shows all titles accounted for, override
     if (hasPending && listaResTitulos.length > 0) {
-      const histTitulos = (api.titularidad?.historial || []).map(h => h.titulo).filter(Boolean);
+      const histTitulos = (api.titularidad?.historial || []).map(h => (h.titulo || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim()).filter(Boolean);
       const allInscribed = histTitulos.every(t => inscribedTitulos.has(t));
       if (allInscribed && listaResTitulos.length >= entries.length) hasPending = false;
     }
@@ -1077,6 +1077,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     registryEntries: (() => {
       const extractDate = (d: string) => (d || '').match(/\d{2}\/\d{2}\/\d{4}/)?.[0] || (d || '').trim();
       const getApellidos = (nombre: string) => nombre.split(/\s+/).slice(0, 2).join(' ');
+      // Strip "(asiento N)" suffix from hist títulos for matching
+      const baseTit = (t: string) => (t || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim();
       const apiEntries = (api.asientos_registrales?.lista || []).map(a => {
         let act = a.acto;
         const aDate = extractDate(a.fecha);
@@ -1090,20 +1092,21 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       for (const h of hist) {
         const apellidos = getApellidos(h.nombre);
         if (!apellidos) continue;
-        const isDobleAsiento = /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
-        if (!isDobleAsiento && apiEntries.some(e => e.act.includes(apellidos))) continue;
-        if (isDobleAsiento) {
-          const pair = apiEntries.find(e => e.title === h.titulo && e.act.includes(apellidos))
-            || apiEntries.find(e => e.title === h.titulo);
+        const hTitle = baseTit(h.titulo);
+        const isSharedTitle = /\(asiento\s*\d+\)/i.test(h.titulo || '') || /mismo t[ií]tulo|doble asiento/i.test(h.estado || '');
+        if (isSharedTitle) {
+          const pair = apiEntries.find(e => e.title === hTitle);
           if (!pair) continue;
-          const partner = hist.find(hh => hh !== h && hh.titulo === h.titulo && !(/mismo t[ií]tulo|doble asiento/i.test(hh.estado || '')));
-          const isSociedad = partner && /sociedad conyugal/i.test(partner.nombre);
-          const annotation = isSociedad ? 'sociedad conyugal, mismo título' : 'segundo interviniente del mismo título';
-          const entry = { date: extractDate(h.fecha), act: `Compra - Venta (${annotation}) (${apellidos})`, title: pair.title, asiento: pair.asiento };
-          const idx = apiEntries.indexOf(pair);
-          apiEntries.splice(idx + 1, 0, entry);
+          if (apiEntries.some(e => e.act.includes(apellidos) && e.title === hTitle)) {
+            const existingIdx = apiEntries.findIndex(e => e.act.includes(apellidos) && e.title === hTitle);
+            apiEntries.splice(existingIdx + 1, 0, { date: extractDate(h.fecha), act: `Compra - Venta (asiento adicional mismo título) (${apellidos})`, title: hTitle, asiento: '' });
+          } else {
+            const idx = apiEntries.indexOf(pair);
+            apiEntries.splice(idx, 0, { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: hTitle, asiento: '' });
+          }
         } else {
-          const pair = apiEntries.find(e => e.title === h.titulo);
+          if (apiEntries.some(e => e.act.includes(apellidos))) continue;
+          const pair = apiEntries.find(e => e.title === hTitle);
           if (!pair || /primera inscripci[oó]n/i.test(pair.act)) continue;
           const entry = { date: extractDate(h.fecha), act: `Compra - Venta (${apellidos})`, title: pair.title, asiento: pair.asiento };
           const idx = apiEntries.indexOf(pair);
@@ -1115,22 +1118,40 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         const apellidos = getApellidos(h.nombre);
         if (!apellidos) continue;
         if (apiEntries.some(e => e.act.includes(apellidos))) continue;
-        const titulo = h.titulo || '';
+        const hTitle = baseTit(h.titulo);
+        if (hTitle && apiEntries.some(e => e.title === hTitle)) continue;
         const isFirst = hist.indexOf(h) === 0;
         apiEntries.push({
           date: extractDate(h.fecha),
           act: isFirst ? `Primera inscripción (${apellidos})` : `Compra - Venta (${apellidos})`,
-          title: titulo,
+          title: hTitle,
           asiento: '',
         });
       }
-      // Supplement from api2 listaRes: add entries whose título isn't already present
+      // Supplement from api2 listaRes: handle duplicate títulos (shared titles = multiple asientos)
       const listaResTitulos = api2?.sunarp?.listaRes?.[0]?.titulos || [];
-      for (const lrt of listaResTitulos) {
+      for (let li = 0; li < listaResTitulos.length; li++) {
+        const lrt = listaResTitulos[li];
         const tNum = lrt.num_titulo || '';
         if (!tNum) continue;
-        if (apiEntries.some(e => e.title === tNum)) continue;
-        apiEntries.push({ date: '', act: lrt.acto || '', title: tNum, asiento: '' });
+        const listaCountSoFar = listaResTitulos.slice(0, li + 1).filter(t => t.num_titulo === tNum).length;
+        const apiCount = apiEntries.filter(e => e.title === tNum).length;
+        if (apiCount >= listaCountSoFar) continue;
+        const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+        const sigForTitle = sigTitulos.filter((t: Record<string, unknown>) => t.num_titulo === tNum);
+        const sigEntry = sigForTitle[listaCountSoFar - 1];
+        if (sigEntry) {
+          const nombre = ((sigEntry.nombre || '') as string).split('|').map((s: string) => s.trim())[1] || '';
+          const apell = nombre.split(/\s+/).slice(0, 2).join(' ');
+          apiEntries.push({
+            date: extractDate((sigEntry.fecha_asiento || sigEntry.fecha || '') as string),
+            act: `${((sigEntry.acto_registral || lrt.acto || 'Compra - Venta') as string).replace(/Ã³/g, 'ó')} (${apell})`,
+            title: tNum,
+            asiento: '',
+          });
+        } else {
+          apiEntries.push({ date: '', act: ((lrt.acto || '') as string).replace(/Ã³/g, 'ó'), title: tNum, asiento: '' });
+        }
       }
       apiEntries.sort((a, b) => {
         const da = parseDate(a.date);

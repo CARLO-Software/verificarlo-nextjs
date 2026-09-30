@@ -1,158 +1,299 @@
 "use client";
 
-import Image from "next/image";
-import styles from "./ServicesSection.module.css";
+// NOTA: El diseño nuevo (banner legal + 2 planes) está respaldado en ServicesSection.consultar.tsx.bak
+// Cuando esté al 100%, restaurar desde ese archivo.
 
-const LOGOS = [
-  { src: "/assets/images/image-carrusel-1.png", alt: "SAT Lima" },
-  { src: "/assets/images/image-carrusel-2.png", alt: "APESEG" },
-  { src: "/assets/images/image-carrusel-3.png", alt: "SUTRAN" },
-  { src: "/assets/images/image-carrusel-4.png", alt: "MTC" },
-  { src: "/assets/images/image-carrusel-5.png", alt: "SBS" },
-  { src: "/assets/images/image-carrusel-6.png", alt: "SUNARP" },
+import { useState } from "react";
+import Image from "next/image";
+import styles from './ServicesSection.module.css';
+import { inspectionPlans, inspectionPlanItems } from "@/prisma/data/inspections";
+import { X, Play } from "lucide-react";
+
+type ModalData = {
+    title: string;
+    description: string;
+    price: number;
+    items: string[];
+    whatsappLink: string;
+    planIndex: number;
+    videoId: string | null;
+} | null;
+
+const PLAN_VIDEO_IDS: Record<number, string | null> = {
+    0: "qpFzaaocpPo",
+    1: "8PycK5S8CpM",
+    2: "z1favRdoTSY",
+};
+
+const PLAN_IMAGES = [
+    "/assets/images/modal-bg-png.webp",
+    "/assets/images/modal-bg-3.webp",
+    "/assets/images/modal-bg-2.webp",
 ];
 
+const PLAN_WHATSAPP_MESSAGES: Record<number, string> = {
+    0: "¡Hola! Quiero saber los antecedentes de un carro usado que quiero comprar.",
+    1: "¡Hola! Voy a comprar un carro usado y quiero agendar una cita para la Inspección Básica 🚘✅",
+    2: "¡Hola! Voy a comprar un carro usado y quiero agendar cita para una Inspección Premium 🚘✅",
+};
+
+const getWhatsAppLink = (planIndex: number) => {
+    const message = PLAN_WHATSAPP_MESSAGES[planIndex] || "";
+    return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
+};
+
 export default function ServicesSection() {
-  return (
-    <section className={styles.section} id="planes">
-      {/* Logo carousel */}
-      <div className={styles.carouselWrap}>
-        <div className={styles.carouselTrack}>
-          {[...LOGOS, ...LOGOS, ...LOGOS, ...LOGOS].map((logo, i) => (
-            <div className={styles.logoItem} key={i}>
-              <Image
-                src={logo.src}
-                alt={logo.alt}
-                width={140}
-                height={48}
-                className={styles.logoImg}
-              />
+    const [modalData, setModalData] = useState<ModalData>(null);
+    const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+
+    const openModal = (inspection: typeof inspectionPlans[0], items: string[], planIndex: number) => {
+        setModalData({
+            title: inspection.title,
+            description: inspection.landingDescription,
+            price: inspection.price,
+            items,
+            whatsappLink: getWhatsAppLink(planIndex),
+            planIndex,
+            videoId: PLAN_VIDEO_IDS[planIndex]
+        });
+        document.body.style.overflow = "hidden";
+    };
+
+    const closeModal = () => {
+        setModalData(null);
+        setIsPlayingVideo(false);
+        document.body.style.overflow = "";
+    };
+
+    const handlePlayVideo = () => {
+        setIsPlayingVideo(true);
+    };
+
+    return (
+        <section id="planes" className={`${styles["section-background"]} ${styles['services-section']}`} aria-labelledby="services-heading">
+            <div className={`w-layout-blockcontainer ${styles["container"]} ${styles['services-container']} w-container`}>
+                {/* Header con título */}
+                <div className={styles['services-header']}>
+                    <div className={styles['services-div']}>
+                        <h2 id="services-heading" className={styles['heading-2']}>
+                            El plan que eliges <span className={styles['negrita']}>define cuánto descubres.</span>
+                        </h2>
+                    </div>
+                </div>
+                {/* Versión Móvil - Cards en vertical */}
+                <div className={styles['mobile-plans']}>
+                    {inspectionPlans.map((inspection, inspectionIndex) => {
+                        const itemsForInspection = inspectionPlanItems.find(
+                            ii => ii.inspectionPlanId === inspectionIndex + 1
+                        );
+                        const isPremium = inspection.classType === "last";
+
+                        return (
+                            <article key={inspection.type} className={`${styles['services-card']} ${styles['services-card-' + inspection.classType]} ${isPremium ? styles['services-card-premium'] : ''}`}>
+                                {isPremium && (
+                                    <span className={styles['badge-top']} aria-label="9 de cada 10 eligen este plan">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
+                                        </svg>
+                                        <span>9 de cada 10 eligen este</span>
+                                    </span>
+                                )}
+                                <div className={styles['services-box']}>
+                                    <header className={styles['card-header']}>
+                                        <h3 className={styles['header-title']}>{inspection.title}</h3>
+                                        <p className={styles['card-description']}>
+                                            {inspection.landingDescription}
+                                        </p>
+                                    </header>
+                                    <div className="flex justify-between items-center w-full">
+                                        <p className={styles['card-price']} aria-label={`Precio ${inspection.price} soles`}>S/ {inspection.price}</p>
+                                    </div>
+                                </div>
+                                <div className={styles['mobile-buttons']}>
+                                    <a
+                                        href={`/agendar?plan=${inspection.type}`}
+                                        className={styles['btn-add-cart']}
+                                    >
+                                        Elegir plan
+                                    </a>
+                                    <button
+                                        type="button"
+                                        className={styles['btn-secondary']}
+                                        onClick={() => openModal(inspection, itemsForInspection?.label || [], inspectionIndex)}
+                                        aria-label={`Saber más sobre ${inspection.title}`}
+                                    >
+                                        Saber más
+                                    </button>
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+
+                {/* Versión PC - Grid con 3 planes (Premium al centro) */}
+                <div className={styles['desktop-plans']}>
+                    {[0, 2, 1].map((originalIndex) => {
+                        const inspection = inspectionPlans[originalIndex];
+                        const itemsForInspection = inspectionPlanItems.find(
+                            ii => ii.inspectionPlanId === originalIndex + 1
+                        );
+
+                        const isPremium = originalIndex === 2;
+
+                        return (
+                            <div
+                                key={inspection.type}
+                                className={`${styles['desktop-plan-card']} ${isPremium ? styles['desktop-plan-featured'] : ''}`}
+                            >
+                                {isPremium && (
+                                    <div className={styles['premium-badge-top']}>
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(212, 175, 115, 0.3)" stroke="#D4AF73"/>
+                                        </svg>
+                                        <span>MÁS POPULAR</span>
+                                    </div>
+                                )}
+
+                                <img
+                                    src={PLAN_IMAGES[originalIndex]}
+                                    alt={`Imagen de ${inspection.title}`}
+                                    className={styles['carousel-image']}
+                                />
+                                <div className={styles['carousel-gradient']} />
+
+                                <div className={styles['carousel-content']}>
+                                    <div className={styles['carousel-header']}>
+                                        <div className={styles['carousel-title-row']}>
+                                            <h3 className={styles['carousel-title']}>{inspection.title}</h3>
+                                        </div>
+                                        <p className={styles['carousel-description']}>
+                                            {inspection.landingDescription}
+                                        </p>
+                                        <p className={styles['carousel-price-large']}>S/{inspection.price}</p>
+                                    </div>
+
+                                    <ul className={styles['carousel-items-list']}>
+                                        {itemsForInspection?.label.map((item, itemIndex) => (
+                                            <li key={itemIndex} className={styles['carousel-item']}>
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
+                                                    <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                                </svg>
+                                                <span>{item}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+
+                                    <div className={styles['carousel-buttons']}>
+                                        <a
+                                            href={`/agendar?plan=${inspection.type}`}
+                                            className={styles['carousel-cta']}
+                                        >
+                                            Elegir plan
+                                        </a>
+                                        <button
+                                            type="button"
+                                            className={styles['carousel-btn-secondary']}
+                                            onClick={() => {
+                                                openModal(inspection, itemsForInspection?.label || [], originalIndex);
+                                                setIsPlayingVideo(true);
+                                            }}
+                                        >
+                                            <Play size={18} />
+                                            <span>Ver video</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Heading */}
-      <div className={styles.heading}>
-        <h2 className={styles.title}>
-          <em>Inspección mecánica a domicilio</em>,
-          <br />
-          hecha por expertos
-        </h2>
-        <p className={styles.desc}>
-          Todas las inspecciones mecánicas incluyen el Reporte Legal Completo.
-          Tú eliges el plan que se adapta mejor a lo que necesitas.
-        </p>
-      </div>
+            {/* Modal "Saber más" */}
+            {modalData && (
+                <div className={styles['modal-overlay']} onClick={closeModal}>
+                    <div className={styles['modal-wrapper']} onClick={(e) => e.stopPropagation()}>
+                        <button
+                            className={styles['modal-close']}
+                            onClick={closeModal}
+                            aria-label="Cerrar modal"
+                        >
+                            <X size={20} />
+                        </button>
 
-      {/* Plan cards */}
-      <div className={styles.plans}>
-        {/* Básica */}
-        <div className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div>
-              <h3 className={styles.planName}>Inspección Básica</h3>
-              <p className={styles.planDesc}>
-                Lo esencial para descartar fallas mecánicas graves rápidamente.
-              </p>
-            </div>
-            <em className={styles.planPrice}>S/299</em>
-          </div>
+                        <div className={styles['modal-content']}>
+                            <div className={`${styles['modal-background']} ${isPlayingVideo ? styles['modal-background-video'] : ''}`}>
+                                {isPlayingVideo && modalData.videoId ? (
+                                    <iframe
+                                        src={`https://www.youtube.com/embed/${modalData.videoId}?autoplay=1&rel=0`}
+                                        title="Video del plan"
+                                        className={styles['modal-video']}
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                ) : (
+                                    <>
+                                        <Image
+                                            src={PLAN_IMAGES[modalData.planIndex]}
+                                            alt={`Imagen de ${modalData.title}`}
+                                            className={styles['modal-bg-image']}
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, 600px"
+                                            quality={75}
+                                        />
+                                        <div className={styles['modal-bg-overlay']} />
+                                    </>
+                                )}
+                            </div>
 
-          <div className={styles.legalBadge}>
-            <span className={styles.legalIconWrap}>
-              <Image src="/assets/icons/document-2.png" alt="" width={13} height={15} />
-            </span>
-            <span><strong>Reporte legal</strong> <em>GRATIS</em></span>
-            <span className={styles.legalSave}>Ahorra S/ 19.90</span>
-          </div>
+                            {!isPlayingVideo && (
+                                <button
+                                    type="button"
+                                    onClick={handlePlayVideo}
+                                    className={`${styles['btn-view-report']} ${styles['btn-play-circle']} ${styles['ripple-animation']}`}
+                                    aria-label="Ver video"
+                                >
+                                    <Play size={16} color="black" fill="black" />
+                                </button>
+                            )}
 
-          <div className={styles.features}>
-            <p className={styles.featuresTitle}>Todo lo del plan Exprés, más:</p>
-            <ul className={styles.featureList}>
-              <li>Revisión integral de +200 puntos clave.</li>
-              <li>Escaneo electrónico de fallas ocultas.</li>
-            </ul>
-          </div>
+                        <div className={`${styles['modal-body']} ${isPlayingVideo ? styles['modal-body-video'] : ''}`}>
+                            <div className={styles['modal-header']}>
+                                <h3 className={styles['modal-title']}>{modalData.title}</h3>
+                                <p className={styles['modal-description']}>
+                                    {modalData.description}
+                                    <span className={styles['modal-price-inline']}> por S/{modalData.price}.</span>
+                                </p>
+                                <p className={styles['modal-price-desktop']}>S/{modalData.price}</p>
+                            </div>
 
-          <a href="/agendar" className={styles.ctaDark}>
-            Quiero el plan Básico
-          </a>
-          <a href="#" className={styles.ctaLink}>Saber más</a>
-        </div>
+                            <ul className={styles['modal-items-list']}>
+                                {modalData.items.map((item, index) => (
+                                    <li key={index} className={styles['modal-item']}>
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={styles['check-icon']}>
+                                            <path d="M5 12l5 5 9-9" stroke="#5cbf26" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                                        </svg>
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
 
-        {/* Premium */}
-        <div className={`${styles.card} ${styles.cardPremium}`}>
-          <span className={styles.badge}>RECOMENDADO</span>
-
-          <div className={styles.cardHeader}>
-            <div>
-              <h3 className={styles.planName}>Inspección Premium</h3>
-              <p className={styles.planDesc}>
-                Nuestro diagnóstico mecánico más completo para una decisión
-                inteligente.
-              </p>
-            </div>
-            <div className={styles.priceWrap}>
-              <em className={styles.planPrice}>S/349</em>
-              <span className={styles.priceOld}>S/436</span>
-              <span className={styles.priceDiscount}>-20%</span>
-            </div>
-          </div>
-
-          <div className={styles.legalBadge}>
-            <span className={styles.legalIconWrap}>
-              <Image src="/assets/icons/document-2.png" alt="" width={13} height={15} />
-            </span>
-            <span><strong>Reporte legal</strong> <em>GRATIS</em></span>
-            <span className={styles.legalSave}>Ahorra S/ 19.90</span>
-          </div>
-
-          <div className={styles.features}>
-            <p className={styles.featuresTitle}>
-              Todo lo del plan Básico, más:
-            </p>
-            <ul className={styles.featureList}>
-              <li>Videoscopía (diagnóstico interno del motor).</li>
-              <li>Presupuesto de reparación.</li>
-            </ul>
-          </div>
-
-          <a href="/agendar" className={styles.ctaYellow}>
-            Quiero el plan Premium
-          </a>
-          <a href="#" className={styles.ctaLink}>Saber más</a>
-        </div>
-      </div>
-
-      {/* Legal report banner */}
-      <div className={styles.legalBanner}>
-        <div className={styles.legalBannerContent}>
-          <h3 className={styles.legalBannerTitle}>
-            Obtén tu <strong>reporte legal por S/19.90</strong>
-          </h3>
-          <p className={styles.legalBannerDesc}>
-            Siniestros, gravámenes, papeletas e historial de propietarios en
-            minutos.
-          </p>
-          <a href="/consultar" className={styles.legalBannerBtn}>
-            Solicitar reporte
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12h15" />
-              <path d="M13 6l6 6-6 6" />
-            </svg>
-          </a>
-        </div>
-        <div className={styles.legalBannerImgWrap}>
-          <Image
-            src="/assets/images/imagen-joven-celular.png"
-            alt="Reporte legal VerifiCarlo"
-            width={500}
-            height={300}
-            className={styles.legalBannerImg}
-          />
-        </div>
-      </div>
-    </section>
-  );
+                            <a
+                                href={`/agendar?plan=${inspectionPlans[modalData.planIndex]?.type}`}
+                                className={styles['modal-cta']}
+                                onClick={closeModal}
+                            >
+                                <span>Elegir este plan</span>
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12" />
+                                    <polyline points="12 5 19 12 12 19" />
+                                </svg>
+                            </a>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </section >
+    );
 }
