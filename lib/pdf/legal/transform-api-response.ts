@@ -355,7 +355,7 @@ function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
   return {
     status: (parcial ? 'WARNING' : 'CRITICAL') as FieldStatus,
     badgeText: parcial ? 'PARCIAL' : 'CON DEUDA',
-    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/[^.]*resultado\s+es\s+\w+[^.]*\.?\s*/gi, '').trim()}`.trim(),
+    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/,?\s*por lo que el resultado es \w+/gi, '').replace(/\.?\s*[Ee]l resultado es \w+/gi, '').replace(/\s{2,}/g, ' ').trim()}`.trim(),
   };
 }
 
@@ -1124,6 +1124,14 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           asiento: '',
         });
       }
+      // Supplement from api2 listaRes: add entries whose título isn't already present
+      const listaResTitulos = api2?.sunarp?.listaRes?.[0]?.titulos || [];
+      for (const lrt of listaResTitulos) {
+        const tNum = lrt.num_titulo || '';
+        if (!tNum) continue;
+        if (apiEntries.some(e => e.title === tNum)) continue;
+        apiEntries.push({ date: '', act: lrt.acto || '', title: tNum, asiento: '' });
+      }
       apiEntries.sort((a, b) => {
         const da = parseDate(a.date);
         const db = parseDate(b.date);
@@ -1217,7 +1225,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
       return `${items.join(', ')}.${totalStr}`;
     })(),
-    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/[^.]*resultado\s+es\s+\w+[^.]*\.?\s*/gi, '').replace(/\s{2,}/g, ' ').trim(),
+    taxCriteria: (api.impuesto_vehicular?.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/,?\s*por lo que el resultado es \w+/gi, '').replace(/\.?\s*[Ee]l resultado es \w+/gi, '').replace(/\s{2,}/g, ' ').trim(),
     taxReminder: (() => {
       const anios = api.impuesto_vehicular?.anios || [];
       const allPaid = anios.length > 0 && anios.every(a => a.semaforo === 'verde');

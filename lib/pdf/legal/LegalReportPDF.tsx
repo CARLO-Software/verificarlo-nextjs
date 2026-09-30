@@ -281,7 +281,7 @@ const s = StyleSheet.create({
 
   // Owner table
   ownHeader: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingLeft: 0, paddingRight: 6, marginTop: 6, alignItems: 'center' },
-  ownHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingRight: 4 },
+  ownHeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingRight: 6, paddingLeft: 2 },
   
   ownRow: { flexDirection: 'row', paddingVertical: 0, paddingLeft: 0, paddingRight: 6, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'stretch', backgroundColor: C.darkGrayRow },
   ownRowAlt: { backgroundColor: C.lightGrayRow },
@@ -290,8 +290,8 @@ const s = StyleSheet.create({
   ownNumText: { fontFamily: 'Helvetica-Bold', fontSize: 8, color: C.white, textAlign: 'center' },
   ownName: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingTop: 4 },
   ownTag: { fontSize: 5.5, color: C.amber, marginTop: 1 },
-  ownCell: { fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 4 },
-  ownCellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 4 },
+  ownCell: { fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 6, paddingLeft: 2 },
+  ownCellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingVertical: 4, paddingRight: 6, paddingLeft: 2 },
 
   // Registry table
   regHeader: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingLeft: 0, paddingRight: 6, alignItems: 'center', marginTop: 6 },
@@ -906,27 +906,6 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                     alt: i % 2 === 1,
                   }))}
                 />
-
-                {/* Activations sub-table */}
-                {data.activationsTable && data.activationsTable.length > 0 && (
-                  <>
-                    <Text style={s.actLabel}>Registro de activaciones de seguro vehicular</Text>
-                    <View style={s.actHeader}>
-                      <Text style={[s.actHeaderCell, { width: '30%' }]}>ASEGURADORA</Text>
-                      <Text style={[s.actHeaderCell, { width: '25%' }]}>N.° DE POLIZA</Text>
-                      <Text style={[s.actHeaderCell, { width: '25%' }]}>PERIODO</Text>
-                      <Text style={[s.actHeaderCell, { width: '20%', textAlign: 'right' }]}>CANTIDAD</Text>
-                    </View>
-                    {data.activationsTable.map((act, i) => (
-                      <View key={i} style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}]}>
-                        <Text style={[s.t4Cell, { width: '30%' }]}>{act.insurer}</Text>
-                        <Text style={[s.t4Cell, { width: '25%' }]}>{act.policyNumber}</Text>
-                        <Text style={[s.t4Cell, { width: '25%' }]}>{act.period}</Text>
-                        <Text style={[s.t4CellBold, { width: '20%', textAlign: 'right' }]}>{act.count}</Text>
-                      </View>
-                    ))}
-                  </>
-                )}
 
                 {data.claimsNote && <Text style={s.note}>{data.claimsNote}</Text>}
                 <SourceLine text={data.claimsSource || ''} />
