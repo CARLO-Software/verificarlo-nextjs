@@ -257,7 +257,16 @@ function buildOwnerHistory(api: ApiResponse) {
   const count = hist.length;
   const status: FieldStatus = count <= 3 ? 'OK' : count <= 14 ? 'WARNING' : 'CRITICAL';
   const badgeText = count === 1 ? '1 TITULAR' : `${count} TITULARES`;
-  const nota = api.titularidad?.nota_titular_vigente || '';
+  let nota = api.titularidad?.nota_titular_vigente || '';
+  // Replace misleading "cadena inusualmente larga/corta" with data-driven observation
+  if (count > 3 && /cadena\s+(inusualmente\s+)?(larga|corta)|lapso\s+corto/i.test(nota)) {
+    const dates = hist.map(h => parseDate(h.fecha)).filter(Boolean) as Date[];
+    const sorted = dates.sort((a, b) => a.getTime() - b.getTime());
+    const firstYear = sorted[0]?.getFullYear();
+    const lastYear = sorted[sorted.length - 1]?.getFullYear();
+    const recentCount = sorted.filter(d => d.getFullYear() >= lastYear - 1).length;
+    nota = `${count} titulares desde ${firstYear}${recentCount >= 3 ? `, con varias transferencias de muy corta duración entre ${lastYear - 1} y ${lastYear}` : ''}.`;
+  }
   return { status, badgeText, text: `${count} propietario${count > 1 ? 's' : ''} registrado${count > 1 ? 's' : ''}. ${nota}`.trim() };
 }
 
