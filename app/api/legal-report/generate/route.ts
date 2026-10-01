@@ -38,6 +38,14 @@ async function notifyAdminsApiError(plate: string, error: LegalReportError) {
     PDF_ERROR: `Error al generar el PDF: ${error.message}`,
   };
 
+  const actions: Record<ApiErrorCode, string> = {
+    API_KEY_MISSING: "Configurar la variable INFORME_API_KEY en el servidor.",
+    API_DOWN: "Verificar que el servidor de la API (161.132.38.122) este encendido y que el servicio Python este corriendo detras de nginx.",
+    API_TIMEOUT: "La API tardo mas de 5 minutos en responder. Revisar si el servidor esta sobrecargado o si la consulta se quedo colgada.",
+    API_ERROR: "La API respondio pero con un error. Revisar los logs del servidor Python y verificar que tenga creditos/saldo disponible para consultas.",
+    PDF_ERROR: "Los datos se obtuvieron correctamente pero fallo la generacion del PDF. Revisar los logs de la aplicacion Next.js.",
+  };
+
   await sendEmail({
     to: ADMIN_EMAIL,
     subject: `[ALERTA] Fallo en reporte legal - Placa ${plate}`,
@@ -47,7 +55,8 @@ async function notifyAdminsApiError(plate: string, error: LegalReportError) {
       <p><b>Error:</b> ${messages[error.code]}</p>
       <p><b>Codigo:</b> ${error.code}</p>
       <p><b>Fecha:</b> ${timestamp} (Lima)</p>
-      <p>Un cliente intento generar su reporte legal y no se pudo completar. Revisar creditos y estado de la API.</p>
+      <hr/>
+      <p><b>Accion sugerida:</b> ${actions[error.code]}</p>
     `,
   }).catch((emailErr) => {
     console.error("No se pudo enviar alerta a admins:", emailErr);
