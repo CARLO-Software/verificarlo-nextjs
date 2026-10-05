@@ -446,7 +446,7 @@ function buildSoat(api: ApiResponse, api2?: Api2Response | null) {
 }
 
 function isCitvNotRequired(text: string): boolean {
-  return /no exigible|no obligat|no está obligad|no esta obligad|exento|no requiere|no aplica|aún no.{0,20}obligad/i.test(text);
+  return /no\s+(?:es\s+)?exigible|no obligat|no está obligad|no esta obligad|exento|no requiere|no aplica|aún no.{0,20}obligad/i.test(text);
 }
 
 function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
@@ -499,7 +499,10 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (lower.includes('sin registro')) { status = 'WARNING'; badgeText = 'SIN REGISTRO'; }
       else badgeText = 'VENCIDO';
     } else if (status === 'WARNING') badgeText = lower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
-    else if (status === 'OK') {
+    else if (status === 'PENDING') {
+      if (isCitvNotRequired(lower)) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
+      else badgeText = 'NO CONSULTADO';
+    } else if (status === 'OK') {
       const days = citvExpiryDays(api, api2);
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
@@ -940,7 +943,6 @@ const CONCLUSION_BOLD = [
   'impuesto vehicular al día',
   'sin papeletas ni orden de captura',
   'siniestros con cobertura SOAT',
-  'SOAT no se encuentra vigente',
   'activaciones de seguro vehicular',
   'alta rotación de propietarios',
   'La decisión final es del cliente',
@@ -1036,7 +1038,10 @@ function combinePapeletas(...sources: { status: FieldStatus; badgeText: string; 
     return '';
   }).filter(Boolean);
   const label = names.length ? ` (${names.join(', ')})` : '';
-  return { status: worst.status, badgeText: worst.badgeText, text: `Presenta papeletas pendientes de pago${label}. Ver detalle en sección Deudas.` };
+  const allTexts = withIssues.map(s => s.text).join(' ');
+  const total = sumMontos(allTexts);
+  const badgeText = total ? `${total} PENDIENTE` : worst.badgeText;
+  return { status: worst.status, badgeText, text: `Presenta papeletas pendientes de pago${label}. Ver detalle en sección Deudas.` };
 }
 
 export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api2Response | null): LegalReportData {
@@ -1415,17 +1420,6 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
             ? `Registra ${total} activacion${total !== 1 ? 'es' : ''} de seguro vehicular${polCount > 1 ? ` en ${polCount} pólizas` : ''}.`
             : actText;
           txt = txt.replace(/[^.]*\b(?:activacion|accidente)[^.]*(?:seguro vehicular|p[oó]liza)[^.]*\.\s*/gi, ' ' + conclusionAct + ' ');
-        }
-        const soatNote: Record<string, string> = {
-          ANULADO: 'Sin embargo, el último SOAT contratado fue anulado, por lo que el vehículo circula actualmente sin SOAT; debe regularizarse antes de cualquier uso o transferencia.',
-          VENCIDO: 'El SOAT se encuentra vencido; debe renovarse antes de cualquier uso o transferencia.',
-          'VENCE HOY': 'El SOAT vence hoy; debe renovarse de inmediato para mantener la cobertura.',
-          'VENCE PRONTO': `El SOAT se encuentra vigente pero próximo a vencer (${soat.expiryDate || ''}); se recomienda renovarlo con anticipación.`,
-          VIGENTE: 'El SOAT se encuentra vigente.',
-        };
-        const soatMsg = soatNote[soat.badgeText];
-        if (soatMsg) {
-          txt = txt.replace(/\s*$/, ' ') + soatMsg;
         }
         return txt;
       })(),
