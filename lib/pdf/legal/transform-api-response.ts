@@ -607,15 +607,20 @@ function buildActivaciones(api: ApiResponse, api2?: Api2Response | null) {
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
 
+function isGnvNoResult(text: string): boolean {
+  return /sin resultados|no se encontr[óo] informaci[óo]n|no registra conversi[óo]n/i.test(text);
+}
+
 function buildGnv(api: ApiResponse) {
   const arr = api.conversion_gnv;
   if (arr && arr.length > 0) {
     const allGray = arr.every(g => g.semaforo === 'gris');
-    if (allGray) return { status: 'OK' as FieldStatus, badgeText: 'NO APLICA', text: 'Sin registro de conversión a GNV.' };
+    const allNoResult = arr.every(g => g.semaforo === 'gris' || (isGnvNoResult(g.resultado) && !isErrorResult(g.resultado)));
+    if (allGray || allNoResult) return { status: 'OK' as FieldStatus, badgeText: 'NO APLICA', text: 'Sin registro de conversión a GNV.' };
     const infogas = arr.find(g => g.concepto === 'infogas');
     const fise = arr.find(g => g.concepto === 'fise');
-    const hasRed = arr.some(g => g.semaforo === 'rojo');
-    const hasYellow = arr.some(g => g.semaforo === 'amarillo' || g.semaforo === 'ambar');
+    const hasRed = arr.some(g => g.semaforo === 'rojo' && !isGnvNoResult(g.resultado));
+    const hasYellow = arr.some(g => (g.semaforo === 'amarillo' || g.semaforo === 'ambar') && !isGnvNoResult(g.resultado));
     if (hasRed) return { status: 'CRITICAL' as FieldStatus, badgeText: 'REVISAR GNV', text: arr.map(g => g.resultado).join('. ') };
     if (hasYellow) return { status: 'WARNING' as FieldStatus, badgeText: 'REVISAR GNV', text: arr.map(g => g.resultado).join('. ') };
     if (infogas?.semaforo === 'verde') return { status: 'OK' as FieldStatus, badgeText: 'HABILITADO', text: arr.map(g => g.resultado).join('. ') };
