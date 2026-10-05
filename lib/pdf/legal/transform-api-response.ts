@@ -270,6 +270,26 @@ function buildOwnerHistory(api: ApiResponse) {
   return { status, badgeText, text: `${count} propietario${count > 1 ? 's' : ''} registrado${count > 1 ? 's' : ''}. ${nota}`.trim() };
 }
 
+function resolveActLabel(api: ApiResponse, titulo?: string, isFirst?: boolean): string {
+  if (isFirst) return 'Primera inscripción';
+  if (titulo) {
+    const clean = titulo.replace(/\s*\(asiento\s*\d+\)/gi, '').trim();
+    const entry = api.asientos_registrales?.lista?.find(a => a.titulo === clean);
+    if (entry?.acto) {
+      const lower = entry.acto.toLowerCase();
+      if (lower.includes('compraventa')) return 'Compraventa';
+      if (lower.includes('sucesión') || lower.includes('sucesion')) return 'Sucesión intestada';
+      if (lower.includes('anticipo')) return 'Anticipo de legítima';
+      if (lower.includes('dación') || lower.includes('dacion')) return 'Dación en pago';
+      if (lower.includes('donación') || lower.includes('donacion')) return 'Donación';
+      if (lower.includes('remate')) return 'Remate judicial';
+      if (lower.includes('adjudicación') || lower.includes('adjudicacion')) return 'Adjudicación';
+      return entry.acto.charAt(0).toUpperCase() + entry.acto.slice(1).toLowerCase();
+    }
+  }
+  return 'Transferencia';
+}
+
 function buildLastTransfer(api: ApiResponse, api2?: Api2Response | null) {
   const hist = api.titularidad?.historial;
   if (!hist?.length) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Sin datos de transferencia.', extraInfo: undefined };
@@ -284,10 +304,11 @@ function buildLastTransfer(api: ApiResponse, api2?: Api2Response | null) {
       if ((!precio || precio === 'N/A') && lastTitulo.precio) precio = lastTitulo.precio;
     }
   }
+  const acto = resolveActLabel(api, last.titulo, hist.length === 1);
   return {
     status: 'OK' as FieldStatus,
     badgeText: 'SIN OBSERVACIONES',
-    text: fecha ? `Compraventa registrada el ${fecha}.` : 'Compraventa registrada (fecha no disponible).',
+    text: fecha ? `${acto} registrada el ${fecha}.` : `${acto} registrada (fecha no disponible).`,
     extraInfo: precio && precio !== 'N/A' ? `Monto: ${precio}` : undefined,
   };
 }
