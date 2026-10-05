@@ -642,10 +642,17 @@ function buildGnv(api: ApiResponse) {
 function buildTransportes(api: ApiResponse) {
   const v = api.vehiculo;
   const uso = v?.uso?.toLowerCase() || '';
-  if (uso.includes('particular'))
-    return { status: 'OK' as FieldStatus, badgeText: 'OK', text: `No pertenece a transporte público; uso particular (${v?.categoria || 'Cat. M'}).` };
   if (uso.includes('público') || uso.includes('servicio'))
     return { status: 'WARNING' as FieldStatus, badgeText: 'TRANSPORTE PUB.', text: `Registrado como ${v?.uso}.` };
+  const cat = v?.categoria || 'Cat. M';
+  const atu = api.deudas_multas_capturas?.find(d => d.fuente === 'atu');
+  if (atu && !isErrorResult(atu.resultado) && semaforoToStatus(atu.semaforo) !== 'OK') {
+    const svcMatch = atu.resultado.match(/por\s+(Servicio\s+de\s+\S+)/i);
+    const svc = svcMatch ? svcMatch[1] : 'servicio de transporte';
+    return { status: 'WARNING' as FieldStatus, badgeText: 'CON PAPELETA ATU', text: `Uso particular (${cat}), pero registra infracción ATU por ${svc}. Ver detalle en sección Deudas.` };
+  }
+  if (uso.includes('particular'))
+    return { status: 'OK' as FieldStatus, badgeText: 'OK', text: `No pertenece a transporte público; uso particular (${cat}).` };
   return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'Uso particular, sin pertenencia a transporte público.' };
 }
 
@@ -1048,7 +1055,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const now = toZonedTime(new Date(), 'America/Lima');
   const v = api.vehiculo;
   const comp = parseDatosComplementarios(v?.datos_complementarios_partida);
-  const t0 = api2?.siguelo?.titulos?.[0] || api2?.sunarp?.siguelo?.titulos?.[0];
+  const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+  const t0 = sigTitulos.find((t: any) => t.idx === 0 || /inscripci[oó]n.*dominio/i.test(t.tipo_doc || '') || /inscripci[oó]n.*dominio/i.test(t.acto_registral || '')) || sigTitulos[0];
   const vehicleDescription = v ? `${v.marca} ${v.modelo} ${v.anio_modelo}` : plate;
   const hist = api.titularidad?.historial || [];
 
