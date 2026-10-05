@@ -445,6 +445,10 @@ function buildSoat(api: ApiResponse, api2?: Api2Response | null) {
   return { status, badgeText, text: `${estadoPart}${soat.compania}. Vigencia del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${cert}.${usoPart}`, expiryDate: hasta };
 }
 
+function isCitvNotRequired(text: string): boolean {
+  return /no exigible|no obligat|no está obligad|no esta obligad|exento|no requiere|no aplica|aún no.{0,20}obligad/i.test(text);
+}
+
 function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
   const hasta = api.revision_tecnica?.vigencia_hasta || api2?.citv?.fecha_vcto;
   if (!hasta) return null;
@@ -472,7 +476,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       else badgeText = 'VENCIDO';
     } else if (status === 'WARNING') badgeText = lower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
     else if (status === 'PENDING') {
-      if (lower.includes('no exigible')) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
+      if (isCitvNotRequired(lower)) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
       else badgeText = 'NO CONSULTADO';
     } else if (status === 'OK') {
       const days = citvExpiryDays(api, api2);
@@ -843,7 +847,7 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       else citvText = 'VENCIDO';
     } else if (st === 'WARNING') citvText = citvLower.includes('observ') ? 'CON OBSERV.' : 'VENCE PRONTO';
     else if (st === 'PENDING') {
-      if (citvLower.includes('no exigible')) { st = 'OK'; citvText = 'NO EXIGIBLE'; }
+      if (isCitvNotRequired(citvLower)) { st = 'OK'; citvText = 'NO EXIGIBLE'; }
       else citvText = 'NO CONSULTADO';
     } else if (st === 'OK') {
       const days = citvExpiryDays(api, api2);
