@@ -1378,7 +1378,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     gnvItems: (api.conversion_gnv || []).map(g => {
       const st = semaforoToStatus(g.semaforo);
       let statusText = 'NO APLICA';
-      if (g.semaforo !== 'gris') {
+      const noResult = isGnvNoResult(g.resultado) && !isErrorResult(g.resultado);
+      if (g.semaforo !== 'gris' && !noResult) {
         if (g.concepto === 'infogas') {
           statusText = st === 'OK' ? 'HABILITADO' : st === 'WARNING' ? 'REVISAR GNV' : st === 'CRITICAL' ? 'REVISAR GNV' : 'NO CONSULTADO';
         } else if (g.concepto === 'fise') {
@@ -1393,8 +1394,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       return {
         concept: g.concepto === 'infogas' ? 'Conversión a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
         entity: g.concepto === 'infogas' ? 'InfoGas' : g.concepto === 'fise' ? 'FISE' : g.concepto,
-        result: cleanResultText(g.resultado),
-        status: st,
+        result: noResult ? 'No registra conversión a GNV.' : cleanResultText(g.resultado),
+        status: noResult ? 'OK' : st,
         statusText,
       };
     }),
