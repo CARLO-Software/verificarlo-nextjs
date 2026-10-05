@@ -134,7 +134,7 @@ function formatDocument(tipo: string, doc: string): string {
     if (tipoL.includes('dni')) return 'N.° de DNI no consignado';
     if (tipoL.includes('carné') || tipoL.includes('carne') || tipoL.includes('c.e')) return 'N.° de C.E. no consignado';
     if (tipoL.includes('partida')) return tipo;
-    return '';
+    return '—';
   }
   return `${tipo}\n${doc}`;
 }
@@ -527,8 +527,12 @@ function sumMontos(text: string): string | null {
 
 function debtStatusText(st: FieldStatus, text: string): string {
   if (st === 'OK') return 'OK';
-  if (st === 'WARNING') return 'REVISAR';
   const total = sumMontos(text);
+  if (st === 'WARNING') {
+    if (total) return `${total} PENDIENTE`;
+    if (/papeleta|infracción|infracci[oó]n|pendiente/i.test(text)) return 'PENDIENTE';
+    return 'REVISAR';
+  }
   return total ? `${total} PENDIENTE` : 'PENDIENTE';
 }
 
@@ -1137,7 +1141,14 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         acquisitionDate: cleanDate(h.fecha),
         timeAsOwner: cleanTimeAsOwner(h.tiempo_como_propietario, h.fecha, nextFecha),
         price: h.precio,
-        title: h.titulo,
+        title: (() => {
+          const raw = h.titulo || '';
+          if (/\d{4}-\d{4,}/.test(raw)) return raw;
+          const entry = api.asientos_registrales?.lista?.find(a =>
+            a.acto.toLowerCase().includes('inscripci') && a.titulo && /\d{4}-\d{4,}/.test(a.titulo)
+          );
+          return entry?.titulo || raw;
+        })(),
         tags: [
           i === 0 ? (isJuridica ? '1.ª inscripción · P. Jurídica' : '1.ª inscripción') : undefined,
           isSociedad ? 'Sociedad conyugal' : undefined,
