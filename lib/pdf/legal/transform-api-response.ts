@@ -1198,6 +1198,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         for (const [t, c] of sigCounts) { if (c > 1) sharedTitles.add(t); }
 
         // Group siguelo entries by título — store both dates
+        // Build lookup from api1 asientos for richer act names and correct dates
+        const api1Asientos = api.asientos_registrales?.lista || [];
         const sigByTitle = new Map<string, { apellidos: string; acto: string; fechaAsiento: string; fechaActo: string }[]>();
         for (const st of sigTitulos) {
           const rec = st as Record<string, unknown>;
@@ -1205,7 +1207,8 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           const nombre = String(rec.nombre || '');
           const mainName = (nombre.split('|').map(s => s.trim())[1] || nombre).trim();
           const apellidos = getApellidos(mainName);
-          const acto = String(rec.acto_registral || '').replace(/Ã³/g, 'ó');
+          let acto = String(rec.acto_registral || '').replace(/Ã³/g, 'ó');
+          if (!acto) acto = String(rec.tipo_doc || '').replace(/\s+y\s+Otros\s+Actos$/i, '').replace(/Ã³/g, 'ó');
           const fechaAsiento = extractDate(String(rec.fecha_asiento || ''));
           const fechaActo = extractDate(String(rec.fecha || ''));
           if (!sigByTitle.has(titulo)) sigByTitle.set(titulo, []);
@@ -1222,15 +1225,28 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
           const group = sigByTitle.get(titulo) || [];
 
           if (sharedTitles.has(titulo) && group.length >= 2) {
-            // Media acta: 2 asientos por título, usar fechaActo para diferenciar
-            const sorted = [...group].sort((a, b) => {
-              const da = parseDate(a.fechaActo || a.fechaAsiento);
-              const db = parseDate(b.fechaActo || b.fechaAsiento);
-              if (da && db) return da.getTime() - db.getTime();
-              return 0;
-            });
-            for (const s of sorted) {
-              entries.push({ date: s.fechaActo || s.fechaAsiento, act: `${s.acto} (${s.apellidos})`, title: titulo });
+            // Multiple asientos per título — prefer api1 entries which have full act descriptions
+            const api1ForTitle = api1Asientos.filter(a => a.titulo === titulo);
+            if (api1ForTitle.length >= group.length) {
+              for (const a of api1ForTitle) {
+                const actClean = a.acto
+                  .replace(/\s*—\s*titular:.*$/i, '')
+                  .replace(/,?\s*forma de pago.*$/i, '')
+                  .replace(/\.?\s*Deudor\/constituyente:.*$/i, '')
+                  .trim();
+                entries.push({ date: extractDate(a.fecha), act: actClean, title: titulo });
+              }
+            } else {
+              const sorted = [...group].sort((a, b) => {
+                const da = parseDate(a.fechaActo || a.fechaAsiento);
+                const db = parseDate(b.fechaActo || b.fechaAsiento);
+                if (da && db) return da.getTime() - db.getTime();
+                return 0;
+              });
+              for (const s of sorted) {
+                const date = s.fechaAsiento || s.fechaActo;
+                entries.push({ date, act: `${s.acto} (${s.apellidos})`, title: titulo });
+              }
             }
           } else {
             const g = group[0];
