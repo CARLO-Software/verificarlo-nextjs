@@ -1025,7 +1025,13 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
     return { status: 'WARNING', title: 'TÍTULO PENDIENTE', detail: `${countNote}Hay ${n} título${n > 1 ? 's' : ''} presentado${n > 1 ? 's' : ''} y aún no inscrito${n > 1 ? 's' : ''} a la fecha de consulta. Confirmar naturaleza y resultado antes de cerrar.` };
   }
   if (hasNonOrdinary) return { status: 'WARNING', title: 'ACTO NO ORDINARIO', detail: `${countNote}Al menos un asiento es sucesión, anticipo de legítima, dación en pago, remate judicial o adjudicación. Puede requerir documentación adicional.` };
-  if (hasHistoricalLien) return { status: 'PENDING', title: 'CARGA HISTÓRICA', detail: `${countNote}Al menos un asiento registra constitución o levantamiento de garantía/embargo, ya resuelto (sin vigencia).` };
+  if (hasHistoricalLien) {
+    const gravStatus = api.gravamenes ? semaforoToStatus(api.gravamenes.semaforo) : 'PENDING';
+    if (gravStatus === 'CRITICAL' || gravStatus === 'WARNING') {
+      return { status: 'WARNING', title: 'CARGA VIGENTE', detail: `${countNote}Al menos un asiento registra constitución de garantía/embargo con afectación vigente. Ver sección Gravámenes.` };
+    }
+    return { status: 'PENDING', title: 'CARGA HISTÓRICA', detail: `${countNote}Al menos un asiento registra constitución o levantamiento de garantía/embargo, ya resuelto (sin vigencia).` };
+  }
   return { status: 'OK', title: 'SIN PENDIENTES', detail: `${countNote}No hay títulos pendientes de inscripción y todos los asientos son actos ordinarios (1.ª inscripción + compraventas).` };
 }
 
@@ -1310,7 +1316,20 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       ? 'SUNARP y SIGM (Sistema Informativo de Garantías Mobiliarias) devuelve «No se han encontrado registros». Ninguno de los títulos inscritos en la partida corresponde a constitución de garantía, embargo u otra carga. El vehículo se encuentra libre para transferencia en este aspecto.'
       : liensStatus === 'PENDING'
         ? 'No se pudo completar la consulta a SUNARP / SIGM. Reintentar o verificar manualmente.'
-        : boldKeyPhrases(api.gravamenes?.detalle || ''),
+        : (() => {
+          let detail = api.gravamenes?.detalle || '';
+          for (const st of sigTitulos) {
+            const rec = st as Record<string, unknown>;
+            const bien = String(rec.bien_descripcion || '');
+            const series = bien.match(/Serie:\s*(\S+)/gi) || [];
+            const uniqueSeries = new Set(series.map(s => s.replace(/Serie:\s*/i, '').trim()));
+            if (uniqueSeries.size > 1) {
+              detail += '\n\n**Nota VerifiCARLO:** Una de las garantías incluye otro vehículo dentro de la misma constitución; el monto total del gravamen se distribuye entre ambos bienes, por lo que la carga real sobre este vehículo es menor al monto total declarado.';
+              break;
+            }
+          }
+          return boldKeyPhrases(detail);
+        })(),
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (() => {
