@@ -134,7 +134,7 @@ function formatDocument(tipo: string, doc: string): string {
     if (tipoL.includes('dni')) return 'N.° de DNI no consignado';
     if (tipoL.includes('carné') || tipoL.includes('carne') || tipoL.includes('c.e')) return 'N.° de C.E. no consignado';
     if (tipoL.includes('partida')) return tipo;
-    return '—';
+    return 'DNI no consignado';
   }
   return `${tipo}\n${doc}`;
 }
@@ -1442,7 +1442,9 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       return {
         concept: g.concepto === 'infogas' ? 'Conversión a GNV' : g.concepto === 'fise' ? 'Subsidio FISE' : g.concepto,
         entity: g.concepto === 'infogas' ? 'InfoGas' : g.concepto === 'fise' ? 'FISE' : g.concepto,
-        result: noResult ? 'No registra conversión a GNV.' : cleanResultText(g.resultado),
+        result: noResult
+          ? (g.concepto === 'fise' ? 'Sin información de subsidio FISE.' : 'No registra conversión a GNV.')
+          : cleanResultText(g.resultado),
         status: noResult ? 'OK' : st,
         statusText,
       };
