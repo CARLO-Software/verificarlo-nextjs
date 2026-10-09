@@ -58,6 +58,8 @@ export interface LegalReportData {
   insurance?: TableEntry[];
   soatBreakdown?: { compania: string; uso: string; vigencia: string; certificado: string; accidentes: number; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' }[];
   soatBreakdownNote?: string;
+  citvBreakdown?: { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; alertaKm?: boolean }[];
+  citvBreakdownNote?: string;
   insuranceNote?: string;
   insuranceSource?: string;
   claims?: TableEntry[];
@@ -872,6 +874,46 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                             : part
                         )}
                       </Text>
+                    )}
+                  </>
+                )}
+
+                {data.citvBreakdown && data.citvBreakdown.length > 0 && (
+                  <>
+                    <SectionBanner
+                      type="dark"
+                      title="DESGLOSE DE REVISIÓN CITV"
+                      subtitle="Últimas revisiones técnicas vehiculares registradas (MTC)."
+                      icon="insurance"
+                    />
+                    <View style={s.actHeader}>
+                      <Text style={[s.actHeaderCell, { width: '4%' }]}>#</Text>
+                      <Text style={[s.actHeaderCell, { width: '26%' }]}>EMPRESA</Text>
+                      <Text style={[s.actHeaderCell, { width: '18%' }]}>CERTIFICADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '11%' }]}>EMISIÓN</Text>
+                      <Text style={[s.actHeaderCell, { width: '11%' }]}>VCTO.</Text>
+                      <Text style={[s.actHeaderCell, { width: '12%' }]}>RESULTADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'right' }]}>ESTADO</Text>
+                    </View>
+                    {data.citvBreakdown.map((cb, i) => (
+                      <View key={i} style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}, cb.alertaKm ? { backgroundColor: '#FEF9E7' } : {}]} wrap={false}>
+                        <Text style={[s.t4CellBold, { width: '4%' }]}>{i + 1}</Text>
+                        <Text style={[s.t4Cell, { width: '26%' }]}>{cb.empresa}</Text>
+                        <Text style={[s.t4Cell, { width: '18%' }]}>{cb.certificado}</Text>
+                        <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaEmision}</Text>
+                        <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaVcto}</Text>
+                        <Text style={[s.t4Cell, { width: '12%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
+                        <View style={{ width: '10%', alignItems: 'flex-end' }}>
+                          <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.estado} />
+                        </View>
+                      </View>
+                    ))}
+                    {data.citvBreakdownNote && (
+                      <CalloutBox
+                        status="WARNING"
+                        title="Alerta de revisión anticipada"
+                        detail={data.citvBreakdownNote.replace(/^\*\*[^*]+\*\*\s*—\s*/, '')}
+                      />
                     )}
                   </>
                 )}

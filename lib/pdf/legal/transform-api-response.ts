@@ -59,6 +59,7 @@ interface ApiResponse {
   }[];
   desglose_seguro_vehicular?: { aseguradora?: string; nro_poliza?: string; periodo?: string; cantidad?: number; nro_accidentes?: string; [k: string]: any }[];
   revision_tecnica?: { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
+  desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string }[];
   conversion_gnv?: { concepto: string; resultado: string; semaforo: string }[];
   observaciones_analista?: (string | { severidad: string; texto: string })[];
   conclusion?: { etiqueta: string; texto: string };
@@ -321,14 +322,8 @@ function buildGravamenes(api: ApiResponse) {
   const lower = (g.estado || '').toLowerCase();
 
   if (status === 'OK') {
-    const entries = api.asientos_registrales?.lista || [];
-    const historicalLiens = entries.filter(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
-    let text = 'SIGM sin registros y sin cargas vigentes en la partida.';
-    if (historicalLiens.length > 0) {
-      const resumen = historicalLiens.map(e => `${e.acto} (${e.fecha}, asiento ${e.asiento})`).join('; ');
-      text += ` Cargas históricas canceladas: ${resumen}.`;
-    }
-    return { status, badgeText: 'LIBRE', text };
+    const resumen = api.resumen_situacion_legal?.find(r => r.concepto.toLowerCase().includes('gravám') || r.concepto.toLowerCase().includes('gravam'));
+    return { status, badgeText: 'LIBRE', text: resumen?.resultado || g.estado || 'Sin cargas vigentes en la partida.' };
   }
 
   if (status === 'WARNING') {
@@ -712,6 +707,59 @@ function buildSoatBreakdown(api: ApiResponse, api2?: Api2Response | null) {
       status: (anulado ? 'CRITICAL' : vigente ? 'OK' : 'PENDING') as FieldStatus,
     };
   });
+}
+
+function buildCitvBreakdown(api: ApiResponse) {
+  const desglose = api.desglose_citv;
+  if (!desglose || desglose.length === 0) return { entries: [] as { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; status: FieldStatus; alertaKm: boolean }[], alertCount: 0, note: undefined as string | undefined };
+
+  const sorted = [...desglose].sort((a, b) => {
+    const da = parseDate(a.fecha_emision);
+    const db = parseDate(b.fecha_emision);
+    if (da && db) return da.getTime() - db.getTime();
+    return 0;
+  });
+
+  let alertCount = 0;
+  const analyzed = sorted.map((item, i) => {
+    const estadoLower = (item.estado || '').toLowerCase();
+    const vigente = estadoLower.includes('vigente');
+    const status: FieldStatus = vigente ? 'OK' : 'PENDING';
+
+    let alertaKm = false;
+    if (i > 0) {
+      const prevVcto = parseDate(sorted[i - 1].fecha_vcto);
+      const thisEmision = parseDate(item.fecha_emision);
+      if (prevVcto && thisEmision && thisEmision < prevVcto) {
+        const daysBeforeExpiry = Math.ceil((prevVcto.getTime() - thisEmision.getTime()) / 86400000);
+        if (daysBeforeExpiry > 30) {
+          alertaKm = true;
+          alertCount++;
+        }
+      }
+    }
+
+    return {
+      empresa: item.empresa,
+      certificado: item.certificado,
+      fechaEmision: item.fecha_emision,
+      fechaVcto: item.fecha_vcto,
+      resultado: item.resultado,
+      estado: item.estado,
+      status,
+      alertaKm,
+    };
+  });
+
+  // Newest first for display
+  const entries = analyzed.reverse();
+
+  let note: string | undefined;
+  if (alertCount > 0) {
+    note = `**(${alertCount}) Revisar Km** — Se detectó ${alertCount === 1 ? 'una renovación anticipada inusual' : `${alertCount} renovaciones anticipadas inusuales`}. Una nueva revisión técnica realizada varios meses antes del vencimiento de la anterior puede ser indicio de posible alteración del kilometraje. Se recomienda: verificar el kilometraje mediante escáner y/o diagnóstico electrónico, realizar una revisión mecánica detallada, y contrastar el kilometraje con mantenimientos y revisiones técnicas anteriores. Esta alerta no confirma adulteración; también puede deberse a la pérdida del certificado anterior.`;
+  }
+
+  return { entries, alertCount, note };
 }
 
 // === TABLE BUILDERS (detail sections) ===
@@ -1251,14 +1299,24 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
               });
               for (const s of sorted) {
                 const date = s.fechaAsiento || s.fechaActo;
-                entries.push({ date, act: `${s.acto} (${s.apellidos})`, title: titulo });
+                const act = s.apellidos ? `${s.acto} (${s.apellidos})` : (api1Asientos.find(a => a.titulo === titulo)?.acto || s.acto);
+                entries.push({ date, act, title: titulo });
               }
             }
           } else {
             const g = group[0];
             const isPrimera = /primera\s*inscripci[oó]n/i.test(g.acto);
             const date = g.fechaAsiento || g.fechaActo;
-            entries.push({ date, act: isPrimera ? g.acto : `${g.acto} (${g.apellidos})`, title: titulo });
+            let act = g.acto;
+            if (!isPrimera) {
+              if (g.apellidos) {
+                act = `${g.acto} (${g.apellidos})`;
+              } else {
+                const api1Match = api1Asientos.find(a => a.titulo === titulo);
+                if (api1Match) act = api1Match.acto;
+              }
+            }
+            entries.push({ date, act, title: titulo });
           }
         }
 
@@ -1313,7 +1371,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         ? 'NO SE PUDO CONSULTAR'
         : 'REGISTRA AFECTACIONES VIGENTES',
     liensDetail: liensStatus === 'OK'
-      ? 'SUNARP y SIGM (Sistema Informativo de Garantías Mobiliarias) devuelve «No se han encontrado registros». Ninguno de los títulos inscritos en la partida corresponde a constitución de garantía, embargo u otra carga. El vehículo se encuentra libre para transferencia en este aspecto.'
+      ? boldKeyPhrases(api.gravamenes?.detalle || api.gravamenes?.estado || 'Sin cargas vigentes en la partida.')
       : liensStatus === 'PENDING'
         ? 'No se pudo completar la consulta a SUNARP / SIGM. Reintentar o verificar manualmente.'
         : (() => {
@@ -1407,6 +1465,13 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       if (soats.length === 0) return undefined;
       const totalAcc = soats.reduce((s, d) => s + (parseInt(d.nro_accidentes, 10) || 0), 0);
       return `Total de siniestros con cobertura SOAT: **${totalAcc}** en los últimos 5 años.`;
+    })(),
+    ...(() => {
+      const citvResult = buildCitvBreakdown(api);
+      return {
+        citvBreakdown: citvResult.entries.length > 0 ? citvResult.entries : undefined,
+        citvBreakdownNote: citvResult.note,
+      };
     })(),
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emisión; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
