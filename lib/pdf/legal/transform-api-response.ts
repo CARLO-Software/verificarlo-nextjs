@@ -59,7 +59,7 @@ interface ApiResponse {
   }[];
   desglose_seguro_vehicular?: { aseguradora?: string; nro_poliza?: string; periodo?: string; cantidad?: number; nro_accidentes?: string; [k: string]: any }[];
   revision_tecnica?: { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
-  desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string }[];
+  desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string; observacion?: string }[];
   conversion_gnv?: { concepto: string; resultado: string; semaforo: string }[];
   observaciones_analista?: (string | { severidad: string; texto: string })[];
   conclusion?: { etiqueta: string; texto: string };
@@ -711,7 +711,7 @@ function buildSoatBreakdown(api: ApiResponse, api2?: Api2Response | null) {
 
 function buildCitvBreakdown(api: ApiResponse) {
   const desglose = api.desglose_citv;
-  if (!desglose || desglose.length === 0) return { entries: [] as { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; status: FieldStatus; alertaKm: boolean }[], alertCount: 0, note: undefined as string | undefined };
+  if (!desglose || desglose.length === 0) return { entries: [] as { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; observacion?: string; status: FieldStatus; alertaKm: boolean }[], alertCount: 0, note: undefined as string | undefined };
 
   const sorted = [...desglose].sort((a, b) => {
     const da = parseDate(a.fecha_emision);
@@ -746,6 +746,7 @@ function buildCitvBreakdown(api: ApiResponse) {
       fechaVcto: item.fecha_vcto,
       resultado: item.resultado,
       estado: item.estado,
+      observacion: item.observacion,
       status,
       alertaKm,
     };

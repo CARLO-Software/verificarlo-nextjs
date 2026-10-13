@@ -58,7 +58,7 @@ export interface LegalReportData {
   insurance?: TableEntry[];
   soatBreakdown?: { compania: string; uso: string; vigencia: string; certificado: string; accidentes: number; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' }[];
   soatBreakdownNote?: string;
-  citvBreakdown?: { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; alertaKm?: boolean }[];
+  citvBreakdown?: { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; observacion?: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; alertaKm?: boolean }[];
   citvBreakdownNote?: string;
   insuranceNote?: string;
   insuranceSource?: string;
@@ -896,16 +896,25 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                       <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'right' }]}>ESTADO</Text>
                     </View>
                     {data.citvBreakdown.map((cb, i) => (
-                      <View key={i} style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}, cb.alertaKm ? { backgroundColor: '#FEF9E7' } : {}]} wrap={false}>
-                        <Text style={[s.t4CellBold, { width: '4%' }]}>{i + 1}</Text>
-                        <Text style={[s.t4Cell, { width: '26%' }]}>{cb.empresa}</Text>
-                        <Text style={[s.t4Cell, { width: '18%' }]}>{cb.certificado}</Text>
-                        <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaEmision}</Text>
-                        <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaVcto}</Text>
-                        <Text style={[s.t4Cell, { width: '12%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
-                        <View style={{ width: '10%', alignItems: 'flex-end' }}>
-                          <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.estado} />
+                      <View key={i} wrap={false}>
+                        <View style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}, cb.alertaKm ? { backgroundColor: '#FEF9E7' } : {}]}>
+                          <Text style={[s.t4CellBold, { width: '4%' }]}>{i + 1}</Text>
+                          <Text style={[s.t4Cell, { width: '26%' }]}>{cb.empresa}</Text>
+                          <Text style={[s.t4Cell, { width: '18%' }]}>{cb.certificado}</Text>
+                          <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaEmision}</Text>
+                          <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaVcto}</Text>
+                          <Text style={[s.t4Cell, { width: '12%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
+                          <View style={{ width: '10%', alignItems: 'flex-end' }}>
+                            <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.estado} />
+                          </View>
                         </View>
+                        {cb.observacion && (
+                          <View style={[s.actRow, { backgroundColor: i % 2 === 1 ? '#F8F9FA' : '#FFFFFF', paddingLeft: 8 }]}>
+                            <Text style={[s.t4Cell, { width: '100%', fontStyle: 'italic', color: '#555' }]}>
+                              Obs: {cb.observacion}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     ))}
                     {data.citvBreakdownNote && (
