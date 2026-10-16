@@ -893,7 +893,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                       <Text style={[s.actHeaderCell, { width: '11%' }]}>EMISIÓN</Text>
                       <Text style={[s.actHeaderCell, { width: '11%' }]}>VCTO.</Text>
                       <Text style={[s.actHeaderCell, { width: '12%' }]}>RESULTADO</Text>
-                      <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'right' }]}>ESTADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'center' }]}>ESTADO</Text>
                     </View>
                     {data.citvBreakdown.map((cb, i) => (
                       <View key={i} wrap={false}>
@@ -904,7 +904,7 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
                           <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaEmision}</Text>
                           <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaVcto}</Text>
                           <Text style={[s.t4Cell, { width: '12%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
-                          <View style={{ width: '10%', alignItems: 'flex-end' }}>
+                          <View style={{ width: '10%', alignItems: 'center', paddingLeft: 2 }}>
                             <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.estado} />
                           </View>
                         </View>
