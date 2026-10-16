@@ -15,7 +15,7 @@ interface ApiHistorialEntry {
 }
 
 interface ApiResponse {
-  resumen_situacion_legal?: { concepto: string; resultado: string; semaforo: string }[];
+  resumen_situacion_legal?: { concepto: string; resultado: string; semaforo: string; monto?: string }[];
   vehiculo?: {
     marca: string;
     modelo: string;
@@ -805,7 +805,9 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
       debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
     } else {
       const st = semaforoToStatus(atu.semaforo);
-      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: debtStatusText(st, atu.resultado) });
+      const atuMonto = api.resumen_situacion_legal?.find(r => /papeleta|infracci/i.test(r.concepto))?.monto;
+      const atuBadge = st === 'OK' ? 'OK' : atuMonto ? `${atuMonto} PENDIENTE` : debtStatusText(st, atu.resultado);
+      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: atuBadge });
     }
   }
 
@@ -1086,7 +1088,7 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
 
 const STATUS_SEVERITY: Record<FieldStatus, number> = { CRITICAL: 3, WARNING: 2, PENDING: 1, OK: 0 };
 
-function combinePapeletas(...sources: { status: FieldStatus; badgeText: string; text: string }[]) {
+function combinePapeletas(sources: { status: FieldStatus; badgeText: string; text: string }[], monto?: string) {
   const valid = sources.filter(s => s.status !== 'PENDING');
   if (valid.length === 0) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: sources[0].text };
   const worst = valid.reduce((a, b) => STATUS_SEVERITY[b.status] > STATUS_SEVERITY[a.status] ? b : a);
@@ -1100,9 +1102,7 @@ function combinePapeletas(...sources: { status: FieldStatus; badgeText: string; 
     return '';
   }).filter(Boolean);
   const label = names.length ? ` (${names.join(', ')})` : '';
-  const allTexts = withIssues.map(s => s.text).join(' ');
-  const total = sumMontos(allTexts);
-  const badgeText = total ? `${total} PENDIENTE` : worst.badgeText;
+  const badgeText = monto ? `${monto} PENDIENTE` : worst.badgeText;
   return { status: worst.status, badgeText, text: `Presenta papeletas pendientes de pago${label}. Ver detalle en sección Deudas.` };
 }
 
@@ -1152,7 +1152,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { key: 'sunarpLiens', label: 'Gravámenes SUNARP / SIGM', ...grav },
       { key: 'satCaptureOrder', label: 'Orden de captura SAT', ...captura },
       { key: 'vehicleTax', label: 'Impuesto vehicular', ...impuesto },
-      { key: 'satTickets', label: 'Papeletas SAT / Callao / ATU', ...combinePapeletas(satPap, callaoPap, atuPap) },
+      { key: 'satTickets', label: 'Papeletas SAT / Callao / ATU', ...combinePapeletas([satPap, callaoPap, atuPap], api.resumen_situacion_legal?.find(r => /papeleta|infracci/i.test(r.concepto))?.monto) },
       { key: 'sutranTickets', label: 'Infracciones SUTRAN', ...sutran },
       { key: 'soat', label: 'SOAT', status: soat.status, badgeText: soat.badgeText, text: soat.text },
       { key: 'techReview', label: 'Revisión técnica (CITV)', status: citv.status, badgeText: citv.badgeText, text: citv.text },
