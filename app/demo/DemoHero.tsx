@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import styles from "./DemoHero.module.css";
 
 function formatPlate(raw: string): string {
   const clean = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
@@ -12,6 +14,15 @@ function formatPlate(raw: string): string {
 function cleanPlate(formatted: string): string {
   return formatted.replace(/-/g, "");
 }
+
+const LOGOS = [
+  { src: "/assets/images/image-carrusel-1.png", alt: "SAT Lima" },
+  { src: "/assets/images/image-carrusel-2.png", alt: "APESEG" },
+  { src: "/assets/images/image-carrusel-3.png", alt: "SUTRAN" },
+  { src: "/assets/images/image-carrusel-4.png", alt: "MTC" },
+  { src: "/assets/images/image-carrusel-5.png", alt: "SBS" },
+  { src: "/assets/images/image-carrusel-6.png", alt: "SUNARP" },
+];
 
 export default function DemoHero() {
   const [plate, setPlate] = useState("");
@@ -37,162 +48,204 @@ export default function DemoHero() {
   const isReady = cleanPlate(plate).length >= 6;
 
   return (
-    <div style={{
-      position: "relative",
-      minHeight: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    }}>
-      {/* Video background */}
-      <video
-        autoPlay muted loop playsInline
-        poster="/assets/images/frame-hero.webp"
-        style={{
-          position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
-          objectFit: "cover", zIndex: 0,
-        }}
-      >
-        <source src="/assets/videos/hero-video-2.mp4" type="video/mp4" />
-      </video>
-      <div style={{
-        position: "absolute", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1,
-        background: "linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.75) 100%)",
-      }} />
-
-      {/* Content */}
-      <div style={{
-        position: "relative", zIndex: 2,
-        display: "flex", flexDirection: "column", alignItems: "center",
-        textAlign: "center", padding: "0 20px", maxWidth: 520, width: "100%",
-      }}>
-        {/* Logo */}
-        <div style={{ marginBottom: 24 }}>
-          <span style={{ fontWeight: 800, fontSize: 28, fontFamily: "Inter, system-ui, sans-serif" }}>
-            <span style={{ color: "#fff" }}>VERIFI</span>
-            <span style={{ color: "#BFFF00" }}>CARLO</span>
-          </span>
-          <span style={{
-            background: "#7C3AED", color: "#fff", fontSize: 11, fontWeight: 700,
-            padding: "3px 8px", borderRadius: 4, marginLeft: 10, verticalAlign: "middle",
-          }}>DEMO</span>
-        </div>
-
-        <h1 style={{
-          fontFamily: "Inter, system-ui, sans-serif",
-          fontSize: "clamp(28px, 6vw, 48px)",
-          fontWeight: 800,
-          color: "#fff",
-          lineHeight: 1.05,
-          margin: "0 0 8px",
-        }}>
-          ¿Vas a comprar<br />un auto usado?
-        </h1>
-
-        <p style={{
-          color: "rgba(219,219,219,0.9)",
-          fontSize: "clamp(14px, 3vw, 16px)",
-          fontWeight: 300,
-          margin: "0 0 28px",
-          fontFamily: "Inter, system-ui, sans-serif",
-        }}>
-          Verifica gratis cualquier placa antes de comprar
-        </p>
-
-        {/* Plate input box */}
-        <div style={{
-          background: "rgba(255,255,255,0.08)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.15)",
-          borderRadius: 16,
-          padding: 6,
-          width: "100%",
-          maxWidth: 420,
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-        }}>
-          <div style={{
-            display: "flex", alignItems: "center",
-            background: "#fff", borderRadius: 12, padding: "0 4px",
-            height: 52,
-          }}>
-            {/* Flag */}
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: "0 10px", gap: 2,
-            }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: "#1a1a1a", lineHeight: 1 }}>PE</span>
-              <div style={{ display: "flex", gap: 1 }}>
-                <div style={{ width: 14, height: 3, background: "#D91023", borderRadius: 1 }} />
-                <div style={{ width: 14, height: 3, background: "#fff", border: "1px solid #ddd", borderRadius: 1 }} />
-                <div style={{ width: 14, height: 3, background: "#D91023", borderRadius: 1 }} />
-              </div>
-            </div>
-            <div style={{ width: 1, height: 28, background: "#e5e7eb" }} />
-            {/* Search icon */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8A8A8F" strokeWidth="2.1" strokeLinecap="round" style={{ margin: "0 8px", flexShrink: 0 }}>
-              <circle cx="11" cy="11" r="7" />
-              <path d="M16.5 16.5L21 21" />
-            </svg>
-            <input
-              type="text"
-              value={plate}
-              onChange={handlePlateChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Ingresa tu placa"
-              maxLength={7}
-              autoFocus
-              style={{
-                flex: 1, border: "none", outline: "none", background: "transparent",
-                fontSize: 16, fontWeight: 600, color: "#111", fontFamily: "Inter, system-ui, sans-serif",
-                letterSpacing: 1,
-              }}
-              aria-label="Numero de placa del vehiculo"
-            />
-          </div>
-          <button
-            onClick={handleConsultar}
-            disabled={!isReady}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              width: "100%", padding: "14px 0", borderRadius: 12,
-              border: "none", cursor: isReady ? "pointer" : "default",
-              background: isReady ? "#BFFF00" : "rgba(191,255,0,0.3)",
-              color: isReady ? "#111" : "rgba(17,17,17,0.5)",
-              fontWeight: 700, fontSize: 15, fontFamily: "Inter, system-ui, sans-serif",
-              transition: "all 0.2s ease",
-            }}
+    <>
+      {/* Hero */}
+      <div className={styles.hero}>
+        <div className={styles.videoContainer}>
+          <video
+            autoPlay muted loop playsInline
+            className={styles.video}
+            poster="/assets/images/frame-hero.webp"
           >
-            Consultar
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 12h15" /><path d="M13 6l6 6-6 6" />
-            </svg>
-          </button>
+            <source src="/assets/videos/hero-video-2.mp4" type="video/mp4" />
+          </video>
+          <div className={styles.overlay} aria-hidden="true" />
         </div>
 
-        {/* Stats */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          gap: 20, marginTop: 32, flexWrap: "wrap",
-        }}>
-          {[
-            { value: "+500", label: "inspecciones" },
-            { value: "S/8,500", label: "ahorro promedio" },
-            { value: "5.0 ★", label: "Google Reviews" },
-          ].map((s, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 20 }}>
-              {i > 0 && <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.2)" }} />}
-              <div style={{ textAlign: "center" }}>
-                <div style={{ color: "#BFFF00", fontWeight: 800, fontSize: 18 }}>{s.value}</div>
-                <div style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 400 }}>{s.label}</div>
+        <div className={styles.content}>
+          {/* Left — title & subtitle */}
+          <div className={styles.left}>
+            <h1 className={styles.title}>
+              Compra tu próximo auto
+              <br />
+              usado <em>con total
+              <br />
+              seguridad</em>
+            </h1>
+            <p className={styles.subtitle}>
+              Empieza verificando gratis la placa antes de comprar y evita
+              sorpresas con tu inversión.
+            </p>
+            <a href="#planes" className={styles.ctaPlanes}>
+              Conoce nuestros planes
+            </a>
+          </div>
+
+          {/* Right — plate card */}
+          <div className={styles.right}>
+            <div className={styles.plateCard}>
+              <h2 className={styles.plateTitle}>Consulta la placa gratis aquí</h2>
+
+              <div className={styles.plateInputRow}>
+                <div className={styles.flagSection}>
+                  <Image src="/assets/images/icons/bandera-peru.png" alt="PE" width={28} height={18} />
+                </div>
+                <div className={styles.divider} />
+                <input
+                  type="text"
+                  value={plate}
+                  onChange={handlePlateChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder="ABC-123"
+                  maxLength={7}
+                  autoFocus
+                  className={styles.plateInput}
+                  aria-label="Número de placa del vehículo"
+                />
+                <Image src="/assets/images/icons/car.png" alt="" width={22} height={22} className={styles.carIcon} />
+              </div>
+
+              <button
+                onClick={handleConsultar}
+                disabled={!isReady}
+                className={`${styles.ctaButton} ${isReady ? styles.ctaReady : styles.ctaDisabled}`}
+              >
+                Ver historial gratis
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+                </svg>
+              </button>
+
+              {/* Stats */}
+              <div className={styles.stats}>
+                <div className={styles.stat}>
+                  <div className={styles.statIcon}>
+                    <Image src="/assets/images/icons/no-perfecto.png" alt="" width={20} height={20} />
+                  </div>
+                  <span className={styles.statValue}>82%</span>
+                  <span className={styles.statLabel}>Autos &quot;perfectos&quot; que ocultaban fallas</span>
+                </div>
+                <div className={styles.stat}>
+                  <div className={styles.statIcon}>
+                    <Image src="/assets/images/icons/mecanico.png" alt="" width={20} height={20} />
+                  </div>
+                  <span className={styles.statValue}>+500</span>
+                  <span className={styles.statLabel}>Inspecciones realizadas</span>
+                </div>
+                <div className={styles.stat}>
+                  <div className={styles.statIcon}>
+                    <Image src="/assets/images/icons/alcancia.png" alt="" width={20} height={20} />
+                  </div>
+                  <span className={styles.statValue}>S/8,500</span>
+                  <span className={styles.statLabel}>Ahorro promedio por cliente</span>
+                </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Services section */}
+      <section className={styles.servicesSection} id="planes">
+        {/* Logo carousel */}
+        <div className={styles.carouselWrap}>
+          <div className={styles.carouselTrack}>
+            {[...LOGOS, ...LOGOS, ...LOGOS, ...LOGOS].map((logo, i) => (
+              <div className={styles.logoItem} key={i}>
+                <Image src={logo.src} alt={logo.alt} width={140} height={48} className={styles.logoImg} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Heading */}
+        <div className={styles.sectionHeading}>
+          <h2 className={styles.sectionTitle}>
+            <em>Inspección mecánica a domicilio</em>,
+            <br />
+            hecha por expertos
+          </h2>
+          <p className={styles.sectionDesc}>
+            Todas las inspecciones mecánicas incluyen el Reporte Legal Completo.
+            Tú eliges el plan que se adapta mejor a lo que necesitas.
+          </p>
+        </div>
+
+        {/* Plan cards */}
+        <div className={styles.plans}>
+          {/* Básica */}
+          <div className={styles.planCard}>
+            <div className={styles.planCardHeader}>
+              <div>
+                <h3 className={styles.planName}>Inspección Básica</h3>
+                <p className={styles.planDesc}>
+                  Lo esencial para descartar fallas mecánicas graves rápidamente.
+                </p>
+              </div>
+              <span className={styles.planPrice}>S/299</span>
+            </div>
+
+            <div className={styles.legalBadge}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              <span>Reporte legal <strong>GRATIS</strong></span>
+              <span className={styles.legalSave}>Ahorra S/ 19.90</span>
+            </div>
+
+            <div className={styles.features}>
+              <p className={styles.featuresTitle}>Incluye:</p>
+              <ul className={styles.featureList}>
+                <li>Revisión integral de +200 puntos clave.</li>
+                <li>Escaneo electrónico de fallas ocultas.</li>
+              </ul>
+            </div>
+
+            <a href="/agendar" className={styles.ctaDark}>Quiero el plan Básico</a>
+            <a href="/agendar?plan=BASIC" className={styles.ctaLink}>Saber más</a>
+          </div>
+
+          {/* Premium */}
+          <div className={`${styles.planCard} ${styles.planCardPremium}`}>
+            <span className={styles.planBadge}>RECOMENDADO</span>
+
+            <div className={styles.planCardHeader}>
+              <div>
+                <h3 className={styles.planName}>Inspección Premium</h3>
+                <p className={styles.planDesc}>
+                  Nuestro diagnóstico mecánico más completo para una decisión inteligente.
+                </p>
+              </div>
+              <div className={styles.priceWrap}>
+                <span className={styles.planPrice}>S/349</span>
+                <span className={styles.priceOld}>S/436</span>
+                <span className={styles.priceDiscount}>-20%</span>
+              </div>
+            </div>
+
+            <div className={styles.legalBadge}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                <path d="M14 2v6h6" />
+              </svg>
+              <span>Reporte legal <strong>GRATIS</strong></span>
+              <span className={styles.legalSave}>Ahorra S/ 19.90</span>
+            </div>
+
+            <div className={styles.features}>
+              <p className={styles.featuresTitle}>Todo lo del plan Básico, más:</p>
+              <ul className={styles.featureList}>
+                <li>Videoscopía (diagnóstico interno del motor).</li>
+                <li>Presupuesto de reparación.</li>
+              </ul>
+            </div>
+
+            <a href="/agendar?plan=PREMIUM" className={styles.ctaYellow}>Quiero el plan Premium</a>
+            <a href="/agendar?plan=PREMIUM" className={styles.ctaLink}>Saber más</a>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
