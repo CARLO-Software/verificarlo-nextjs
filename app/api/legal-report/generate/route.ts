@@ -147,6 +147,8 @@ function getMockLegalData(plate: string): LegalReportData {
     vehicleDescription: "SUZUKI SWIFT 2014",
     clientName: "Consulta Express",
     date: format(now, "dd 'de' MMMM 'de' yyyy 'a las' HH:mm 'hrs'", { locale: es }),
+    emissionDate: format(now, "dd/MM/yyyy HH:mm", { locale: es }),
+    code: `RL-DEMO-${plate.toUpperCase().replace(/-/g, "")}`,
     fields: [
       { key: "ownerHistory", label: "Historial de Propietarios", status: "OK", badgeText: "3 TITULARES", text: "3 propietarios registrados. Propietario actual desde 2022 (persona natural)." },
       { key: "lastTransfer", label: "Última Transferencia", status: "OK", badgeText: "SIN PROBLEMAS", text: "Compraventa registrada el 14 de marzo de 2022 en sede Lima." },
@@ -164,13 +166,102 @@ function getMockLegalData(plate: string): LegalReportData {
       { key: "siniestroSoat", label: "Siniestros SOAT", status: "CRITICAL", badgeText: "2 SINIESTROS", text: "2 siniestros SOAT registrados (2021, 2023)." },
       { key: "accidentHistory", label: "Activaciones de Seguro", status: "OK", badgeText: "OK", text: "Sin reclamos registrados en aseguradoras." },
     ],
+    vehicleMain: [
+      { label: "Placa", value: plate.toUpperCase() },
+      { label: "Marca", value: "SUZUKI" },
+      { label: "Modelo", value: "SWIFT 1.2" },
+      { label: "Año Fabricación", value: "2014" },
+      { label: "Categoría", value: "M1" },
+      { label: "Color", value: "BLANCO" },
+      { label: "Combustible", value: "GASOLINA" },
+      { label: "Uso", value: "PARTICULAR" },
+    ],
+    vehicleComplementary: [
+      { label: "Nº Motor", value: "K12BN4******" },
+      { label: "Nº Serie", value: "MALAN41S0E******" },
+      { label: "Nº VIN", value: "MALAN41S0EK******" },
+      { label: "Partida Registral", value: "N° 70XXXXXX" },
+      { label: "Zona Registral", value: "IX - SEDE LIMA" },
+      { label: "Oficina Registral", value: "LIMA" },
+      { label: "Cilindrada", value: "1242 cc" },
+      { label: "Ejes / Ruedas", value: "2 / 4" },
+    ],
+    owners: [
+      { number: 1, name: "GARCÍA LÓPEZ, JUAN CARLOS", document: "DNI 4XXXXXXX", acquisitionDate: "15/03/2014", timeAsOwner: "3 años 8 meses", price: "US$ 12,500", title: "Título 2014-XXXXXXX", tags: [] },
+      { number: 2, name: "MENDOZA RÍOS, MARÍA ELENA", document: "DNI 7XXXXXXX", acquisitionDate: "20/11/2017", timeAsOwner: "4 años 4 meses", price: "S/ 32,000", title: "Título 2017-XXXXXXX", tags: [] },
+      { number: 3, name: "TORRES VEGA, PEDRO ANTONIO", document: "DNI 4XXXXXXX", acquisitionDate: "14/03/2022", timeAsOwner: "Titular actual", price: "S/ 28,500", title: "Título 2022-XXXXXXX", tags: ["TITULAR VIGENTE"] },
+    ],
+    ownershipNote: "El vehículo ha tenido 3 propietarios. El titular actual (persona natural) adquirió el vehículo por compraventa en marzo de 2022.",
+    registryEntries: [
+      { number: 1, date: "15/03/2014", act: "PRIMERA INSCRIPCIÓN DE DOMINIO", title: "Título 2014-XXXXXXX" },
+      { number: 2, date: "20/11/2017", act: "COMPRAVENTA", title: "Título 2017-XXXXXXX" },
+      { number: 3, date: "10/06/2019", act: "CONSTITUCIÓN DE GARANTÍA MOBILIARIA", title: "Título 2019-XXXXXXX" },
+      { number: 4, date: "14/03/2022", act: "COMPRAVENTA", title: "Título 2022-XXXXXXX" },
+    ],
+    registryNote: "Se detectó una garantía mobiliaria inscrita. Es importante verificar si fue levantada.",
+    registryNoteStatus: "WARNING",
+    registryNoteTitle: "Atención",
+    liensStatus: "WARNING",
+    liensTitle: "Gravamen vigente",
+    liensDetail: "Se encontró 1 gravamen vehicular vigente. Entidad acreedora: BANCO DE CRÉDITO DEL PERÚ. Constituido el 10/06/2019. Mientras el gravamen no se levante, la transferencia podría verse afectada.",
+    liensSource: "Fuente: SUNARP — Partida Registral",
+    taxYears: [
+      { year: "2024", contributor: "TORRES VEGA, PEDRO A.", amount: "S/ 0.00", status: "OK", statusText: "PAGADO" },
+      { year: "2023", contributor: "TORRES VEGA, PEDRO A.", amount: "S/ 0.00", status: "OK", statusText: "PAGADO" },
+      { year: "2022", contributor: "TORRES VEGA, PEDRO A.", amount: "S/ 0.00", status: "OK", statusText: "PAGADO" },
+    ],
+    taxPendingSummary: "Sin deuda de impuesto vehicular pendiente.",
+    taxCriteria: "El Impuesto Vehicular grava la propiedad de vehículos con antigüedad no mayor a 3 años. Al ser un vehículo del año 2014, ya no está afecto a este tributo.",
+    taxReminder: "Sin deuda pendiente.",
+    taxSource: "Fuente: SAT Lima",
+    debts: [
+      { concept: "Papeletas SAT Lima", entity: "SAT", result: "1 papeleta pendiente — S/ 462.00", status: "CRITICAL", statusText: "PENDIENTE" },
+      { concept: "Orden de Captura SAT", entity: "SAT", result: "Sin órdenes vigentes", status: "OK", statusText: "OK" },
+      { concept: "Papeletas Callao", entity: "MPC", result: "Sin papeletas", status: "OK", statusText: "OK" },
+      { concept: "Infracciones ATU", entity: "ATU", result: "Sin infracciones", status: "OK", statusText: "OK" },
+      { concept: "Infracciones SUTRAN", entity: "SUTRAN", result: "Sin infracciones", status: "OK", statusText: "OK" },
+    ],
+    debtsNote: "**Resumen:** El vehículo registra 1 papeleta pendiente en SAT Lima por S/ 462.00 (infracción L09 — estacionamiento prohibido). Las papeletas y multas pendientes se transfieren al nuevo propietario.",
+    debtsSource: "Fuente: SAT Lima, Municipalidad del Callao, ATU, SUTRAN",
+    insurance: [
+      { concept: "SOAT", entity: "APESEG", result: "Vigente hasta 15/12/2026", status: "OK", statusText: "VIGENTE" },
+      { concept: "Revisión Técnica (CITV)", entity: "MTC", result: "Vencida desde 10/03/2025", status: "WARNING", statusText: "VENCIDO" },
+    ],
+    soatBreakdown: [
+      { compania: "LA POSITIVA SEGUROS", uso: "PARTICULAR", vigencia: "16/12/2025 — 15/12/2026", certificado: "N° 00XXXXXXXX", accidentes: 0, estado: "Vigente", status: "OK" },
+      { compania: "RÍMAC SEGUROS", uso: "PARTICULAR", vigencia: "16/12/2024 — 15/12/2025", certificado: "N° 00XXXXXXXX", accidentes: 1, estado: "Vencido", status: "WARNING" },
+    ],
+    soatBreakdownNote: "El SOAT actual está vigente. Se registra 1 accidente reportado bajo la póliza anterior (Rímac Seguros).",
+    citvBreakdown: [
+      { empresa: "REVISIONES TÉCNICAS DEL PERÚ S.A.C.", certificado: "CITV-XXXXXXXX", fechaEmision: "10/03/2024", fechaVcto: "10/03/2025", resultado: "APROBADO", estado: "Vencido", status: "WARNING" },
+    ],
+    citvBreakdownNote: "**Revisión técnica vencida** — La última revisión técnica venció el 10/03/2025. Se debe renovar antes de circular.",
+    insuranceNote: "Se recomienda verificar que el SOAT esté vigente al momento de la transferencia y renovar la revisión técnica.",
+    insuranceSource: "Fuente: APESEG, MTC, SBS",
+    claims: [
+      { concept: "Siniestros SOAT (SBS)", entity: "SBS/APESEG", result: "2 siniestros registrados", status: "CRITICAL", statusText: "2 SINIESTROS" },
+      { concept: "Activaciones de seguro", entity: "APESEG", result: "Sin reclamos adicionales", status: "OK", statusText: "OK" },
+    ],
+    activationsTable: [
+      { insurer: "RÍMAC SEGUROS", policyNumber: "00XXXXXXXX", period: "2024-2025", count: 1 },
+      { insurer: "LA POSITIVA SEGUROS", policyNumber: "00XXXXXXXX", period: "2021-2022", count: 1 },
+    ],
+    claimsNote: "El vehículo registra 2 siniestros SOAT. Se recomienda solicitar el detalle de los siniestros a la aseguradora para conocer la gravedad de los incidentes.",
+    claimsSource: "Fuente: SBS, APESEG",
+    gnvItems: [
+      { concept: "Conversión a GNV", entity: "OSINERGMIN", result: "No registra conversión", status: "OK", statusText: "NO APLICA" },
+      { concept: "Subsidio FISE", entity: "OSINERGMIN", result: "No registra beneficio", status: "OK", statusText: "NO APLICA" },
+    ],
+    gnvSource: "Fuente: OSINERGMIN",
+    conclusionText: "El vehículo SUZUKI SWIFT 2014 presenta un historial mixto. Se identificaron puntos de atención: 1 gravamen vigente a favor de entidad financiera (BCP), 1 papeleta pendiente en SAT Lima por S/ 462.00, revisión técnica vencida y 2 siniestros SOAT registrados. Se recomienda: (1) Verificar y negociar el levantamiento del gravamen antes de la compra, (2) Solicitar el descargo de la papeleta pendiente, (3) Renovar la revisión técnica vehicular, (4) Solicitar detalle de los siniestros a la aseguradora.",
+    disclaimer: "Este reporte fue generado de forma automatizada consultando fuentes oficiales. La información puede variar según actualizaciones de las entidades. VerifiCARLO no se hace responsable por cambios posteriores a la fecha de emisión.",
     otherObservations: "Vehículo con historial mixto. Se recomienda verificar el gravamen vigente antes de proceder con la compra y regularizar la revisión técnica.",
     screenshots: [],
     inspectorName: "Sistema Automatizado",
-    totalPages: 3,
+    totalPages: 5,
     soatExpiryDate: "15/12/2026",
     techReviewExpiryDate: "10/03/2025",
-    lastTransferPrice: null,
+    lastTransferPrice: "S/ 28,500",
   };
 }
 
@@ -178,7 +269,7 @@ export async function POST(req: NextRequest) {
   let cleanPlate = "???";
   try {
     const body = await req.json();
-    const { plate, useMock, apiData: cachedApiData } = body;
+    const { plate, useMock, isExample, apiData: cachedApiData } = body;
 
     if (!plate || typeof plate !== "string" || plate.replace(/-/g, "").length !== 6) {
       return NextResponse.json({ error: "Placa inválida" }, { status: 400 });
@@ -197,7 +288,7 @@ export async function POST(req: NextRequest) {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfElement = React.createElement(LegalReportPDF, { data }) as any;
+    const pdfElement = React.createElement(LegalReportPDF, { data, isExample: !!isExample }) as any;
     const buffer = await renderToBuffer(pdfElement);
 
     return new NextResponse(new Uint8Array(buffer), {

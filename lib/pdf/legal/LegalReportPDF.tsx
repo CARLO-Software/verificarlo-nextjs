@@ -231,6 +231,13 @@ const s = StyleSheet.create({
   fallbackBanner: { backgroundColor: '#FEF3C7', borderRadius: 4, padding: 6, marginBottom: 6, borderWidth: 1, borderColor: '#F59E0B' } as const,
   fallbackText: { fontSize: 7, color: '#92400E', fontFamily: 'Helvetica-Bold', textAlign: 'center' } as const,
 
+  exampleBanner: { backgroundColor: '#FFF8E1', borderRadius: 6, padding: 10, marginBottom: 8, borderWidth: 1.5, borderColor: '#fad307', flexDirection: 'row', alignItems: 'center' } as const,
+  exampleIcon: { fontSize: 14, marginRight: 8 } as const,
+  exampleContent: { flex: 1 } as const,
+  exampleTitle: { fontSize: 9, color: '#1c1d21', fontFamily: 'Helvetica-Bold', marginBottom: 2 } as const,
+  exampleUrl: { fontSize: 7.5, color: '#6B7280' } as const,
+  exampleUrlBold: { fontFamily: 'Helvetica-Bold', color: '#1c1d21' } as const,
+
   // Main banner
   banner: { backgroundColor: C.yellow, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 18, paddingVertical: 5, marginBottom: 6 },
   logo: { fontFamily: 'Helvetica-BoldOblique', fontSize: 26, color: '#000000', letterSpacing: 1 },
@@ -470,7 +477,7 @@ function FourColTable({ headers, widths, rows }: {
 
 // === MAIN COMPONENT ===
 
-export default function LegalReportPDF({ data }: { data: LegalReportData }) {
+export default function LegalReportPDF({ data, isExample }: { data: LegalReportData; isExample?: boolean }) {
   const hasDetail = !!data.owners;
   const plate = formatPlate(data.plate);
 
@@ -494,6 +501,16 @@ export default function LegalReportPDF({ data }: { data: LegalReportData }) {
             <Text style={s.fallbackText}>
               Informe generado con datos crudos — el análisis IA no estuvo disponible al momento de la consulta.
             </Text>
+          </View>
+        )}
+
+        {isExample && (
+          <View style={s.exampleBanner}>
+            <Text style={s.exampleIcon}>⚠</Text>
+            <View style={s.exampleContent}>
+              <Text style={s.exampleTitle}>REPORTE DE EJEMPLO CON DATOS FICTICIOS</Text>
+              <Text style={s.exampleUrl}>Genera el reporte real de tu placa en <Text style={s.exampleUrlBold}>verificarlo.com/consultar</Text></Text>
+            </View>
           </View>
         )}
 

@@ -186,10 +186,7 @@ export default function DemoHero() {
             </div>
 
             <div className={styles.legalBadge}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <path d="M14 2v6h6" />
-              </svg>
+              <span className={styles.legalIcon}><Image src="/assets/images/icons/documento.png" alt="" width={14} height={14} /></span>
               <span>Reporte legal <strong>GRATIS</strong></span>
               <span className={styles.legalSave}>Ahorra S/ 19.90</span>
             </div>
@@ -225,10 +222,7 @@ export default function DemoHero() {
             </div>
 
             <div className={styles.legalBadge}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8A6A00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-                <path d="M14 2v6h6" />
-              </svg>
+              <span className={styles.legalIcon}><Image src="/assets/images/icons/documento.png" alt="" width={14} height={14} /></span>
               <span>Reporte legal <strong>GRATIS</strong></span>
               <span className={styles.legalSave}>Ahorra S/ 19.90</span>
             </div>
@@ -243,6 +237,35 @@ export default function DemoHero() {
 
             <a href="/agendar?plan=PREMIUM" className={styles.ctaYellow}>Quiero el plan Premium</a>
             <a href="/agendar?plan=PREMIUM" className={styles.ctaLink}>Saber más</a>
+          </div>
+        </div>
+      </section>
+
+      {/* Legal report CTA — mobile */}
+      <section className={styles.legalCta}>
+        <div className={styles.legalCtaInner}>
+          <div className={styles.legalCtaText}>
+            <h2 className={styles.legalCtaTitle}>
+              Obtén tu <strong>reporte legal por S/19.90</strong>
+            </h2>
+            <p className={styles.legalCtaDesc}>
+              Siniestros, gravámenes, papeletas e historial de propietarios en minutos.
+            </p>
+            <a href="/consultar" className={styles.legalCtaBtn}>
+              Solicitar reporte
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+              </svg>
+            </a>
+          </div>
+          <div className={styles.legalCtaImg}>
+            <Image
+              src="/assets/images/imagen-joven-celular.png"
+              alt="Joven consultando reporte en su celular"
+              width={200}
+              height={280}
+              className={styles.legalCtaPhoto}
+            />
           </div>
         </div>
       </section>
