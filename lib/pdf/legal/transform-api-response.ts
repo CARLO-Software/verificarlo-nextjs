@@ -1399,43 +1399,12 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (() => {
-      // api2 SAT is deterministic — prefer it as primary source for contributor/amount
-      if (api2?.sat_tributos?.contribuyentes?.length) {
-        const yearMap = new Map<string, { paid: number; unpaid: number; contributor: string }>();
-        for (const c of api2.sat_tributos.contribuyentes) {
-          const seen = new Set<string>();
-          const uniqueTributos = (c.tributos || []).filter(t => {
-            const key = t['Documento Cód. de pago'] || `${t['Año']}-${t['Cuota']}-${t['Vencimiento']}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          for (const t of uniqueTributos) {
-            const y = t['Año'] || t.anio || '';
-            if (!y) continue;
-            const entry = yearMap.get(y) || { paid: 0, unpaid: 0, contributor: '' };
-            const pagado = parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
-            entry.paid += pagado;
-            if (!entry.contributor) entry.contributor = c.nombre || '';
-            const estado = (t.Estado || t.estado || '').toLowerCase();
-            if (estado && !estado.includes('pagado')) entry.unpaid++;
-            yearMap.set(y, entry);
-          }
-        }
-        return Array.from(yearMap.entries())
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([year, info]) => ({
-            year,
-            contributor: info.contributor,
-            amount: info.paid > 0 ? `S/ ${info.paid.toFixed(2)}` : '',
-            status: (info.unpaid === 0 ? 'OK' : 'WARNING') as FieldStatus,
-            statusText: info.unpaid === 0 ? 'PAGADO' : 'PENDIENTE',
-          }));
-      }
       const anios = api.impuesto_vehicular?.anios || [];
       if (anios.length === 0) return [];
       return anios.map(a => {
         const estado = (a.estado || '').toLowerCase();
+        const montoMatch = a.estado?.match(/S\/\s*([\d,.]+)/);
+        const monto = a.monto || (montoMatch ? `S/ ${montoMatch[1]}` : '');
         let status: FieldStatus = 'OK';
         let statusText = 'PAGADO';
         if (isErrorResult(a.estado || '')) { status = 'PENDING'; statusText = 'NO CONSULTADO'; }
@@ -1444,7 +1413,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         else if (estado.includes('vencer')) { status = 'WARNING'; statusText = 'POR VENCER'; }
         else if (a.semaforo === 'gris' && !estado.includes('pendiente')) { status = 'PENDING'; statusText = 'SIN REGISTRO'; }
         else { status = 'WARNING'; statusText = 'PENDIENTE'; }
-        return { year: a.anio, contributor: a.contribuyente || '', amount: a.monto || '', status, statusText };
+        return { year: a.anio, contributor: a.contribuyente || '', amount: monto, status, statusText };
       });
     })(),
     taxPendingSummary: (() => {
