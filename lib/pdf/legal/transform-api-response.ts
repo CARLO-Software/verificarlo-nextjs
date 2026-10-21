@@ -838,8 +838,15 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
   // Row 2: Verificación de la papeleta (from API 2 sutran.papeletas)
   const sutranApi2 = api2?.sutran;
   if (sutranApi2) {
-    const papeletas = sutranApi2.papeletas;
-    if (papeletas && papeletas.length > 0) {
+    const rawPapeletas = sutranApi2.papeletas;
+    if (rawPapeletas && rawPapeletas.length > 0) {
+      const papeletas = rawPapeletas.map(p => ({
+        numero: p.numero || p['Nº de Papeleta'] || '',
+        infractor: p.infractor || p['Nombre / Razón social'] || p['Nombre / Razon social'] || '',
+        monto: (p.monto || '').replace(/^S\/\s*/, ''),
+        pronto_pago: p.pronto_pago || '',
+        estado: p.estado || p.Estado || '',
+      }));
       const details = papeletas.map(p => {
         const pieces: string[] = [];
         if (p.numero) pieces.push(`Papeleta ${p.numero}`);
@@ -849,8 +856,8 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
         if (p.estado) pieces.push(`ESTADO: **${p.estado.toUpperCase()}**`);
         return pieces.join(', ');
       });
-      const allPaid = papeletas.every(p => (p.estado || '').toLowerCase() === 'pagado');
-      const hasPending = papeletas.some(p => (p.estado || '').toLowerCase() !== 'pagado');
+      const allPaid = papeletas.every(p => p.estado.toLowerCase() === 'pagado');
+      const hasPending = papeletas.some(p => p.estado.toLowerCase() !== 'pagado');
       const verStatus: FieldStatus = allPaid ? 'OK' : hasPending ? 'WARNING' : 'OK';
       const verBadge = allPaid ? 'PAGADO' : 'PENDIENTE';
       debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: details.join('. ') + '.', status: verStatus, statusText: verBadge });
@@ -1396,7 +1403,14 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       if (api2?.sat_tributos?.contribuyentes?.length) {
         const yearMap = new Map<string, { paid: number; unpaid: number; contributor: string }>();
         for (const c of api2.sat_tributos.contribuyentes) {
-          for (const t of c.tributos || []) {
+          const seen = new Set<string>();
+          const uniqueTributos = (c.tributos || []).filter(t => {
+            const key = t['Documento Cód. de pago'] || `${t['Año']}-${t['Cuota']}-${t['Vencimiento']}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          for (const t of uniqueTributos) {
             const y = t['Año'] || t.anio || '';
             if (!y) continue;
             const entry = yearMap.get(y) || { paid: 0, unpaid: 0, contributor: '' };
