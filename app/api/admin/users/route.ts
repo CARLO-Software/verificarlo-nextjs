@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generar contraseña segura automáticamente
-    const generatedPassword = generateSecurePassword(16);
+    const generatedPassword = generateSecurePassword();
 
     const bcrypt = (await import("bcryptjs")).default;
     const hashedPassword = await bcrypt.hash(generatedPassword, 12);
@@ -290,7 +290,7 @@ export async function PATCH(req: NextRequest) {
       }
 
       // Generar nueva contraseña segura
-      const newPassword = generateSecurePassword(16);
+      const newPassword = generateSecurePassword();
 
       const bcrypt = (await import("bcryptjs")).default;
       const hashedPassword = await bcrypt.hash(newPassword, 12);

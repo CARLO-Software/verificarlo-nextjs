@@ -27,7 +27,6 @@ export function ChangePasswordSection({ hasPassword }: ChangePasswordSectionProp
     uppercase: /[A-Z]/.test(newPassword),
     lowercase: /[a-z]/.test(newPassword),
     number: /[0-9]/.test(newPassword),
-    special: /[!@#$%&*]/.test(newPassword),
     match: newPassword === confirmPassword && confirmPassword.length > 0,
   };
 
@@ -192,7 +191,6 @@ export function ChangePasswordSection({ hasPassword }: ChangePasswordSectionProp
               <PasswordCheck label="Al menos una mayúscula" passed={passwordChecks.uppercase} />
               <PasswordCheck label="Al menos una minúscula" passed={passwordChecks.lowercase} />
               <PasswordCheck label="Al menos un número" passed={passwordChecks.number} />
-              <PasswordCheck label="Al menos un caracter especial (!@#$%&*)" passed={passwordChecks.special} />
             </div>
           )}
 
