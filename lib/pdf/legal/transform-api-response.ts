@@ -73,6 +73,8 @@ interface ApiResponse {
   desglose_seguro_vehicular?: { aseguradora?: string; nro_poliza?: string; periodo?: string; cantidad?: number; nro_accidentes?: string; [k: string]: any }[];
   revision_tecnica?: { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
   desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string; observacion?: string }[];
+  citv?: { certificado?: string; tipo_servicio?: string; fecha_vcto?: string };
+  sbs_vehicular?: { nro_poliza?: string; vigencia_inicio?: string; vigencia_fin?: string; [k: string]: any }[];
   conversion_gnv?: { concepto: string; resultado: string; semaforo: string }[];
   observaciones_analista?: (string | { severidad: string; texto: string })[];
   conclusion?: { etiqueta: string; texto: string };
@@ -304,20 +306,12 @@ function resolveActLabel(api: ApiResponse, titulo?: string, isFirst?: boolean): 
   return 'Transferencia';
 }
 
-function buildLastTransfer(api: ApiResponse, api2?: Api2Response | null) {
+function buildLastTransfer(api: ApiResponse) {
   const hist = api.titularidad?.historial;
   if (!hist?.length) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'Sin datos de transferencia.', extraInfo: undefined };
   const last = hist[hist.length - 1];
-  let fecha = cleanDate(last.fecha);
-  let precio = last.precio;
-  if (!fecha && api2) {
-    const titulos = api2.siguelo?.titulos || api2.sunarp?.siguelo?.titulos || [];
-    const lastTitulo = titulos.filter(t => t.fecha).pop();
-    if (lastTitulo) {
-      fecha = cleanDate(lastTitulo.fecha);
-      if ((!precio || precio === 'N/A') && lastTitulo.precio) precio = lastTitulo.precio;
-    }
-  }
+  const fecha = cleanDate(last.fecha);
+  const precio = last.precio;
   const acto = resolveActLabel(api, last.titulo, hist.length === 1);
   return {
     status: 'OK' as FieldStatus,
@@ -371,39 +365,48 @@ function buildCaptura(api: ApiResponse) {
   return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: status === 'OK' ? 'No presenta orden de captura.' : cleanResultText(d.resultado) };
 }
 
-function buildImpuesto(api: ApiResponse, api2?: Api2Response | null) {
+function buildImpuesto(api: ApiResponse) {
   const imp = api.impuesto_vehicular;
-  const resumen = api.resumen_situacion_legal?.find(r => r.concepto.toLowerCase().includes('impuesto vehicular'));
-  if (!imp) return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: resumen?.resultado || 'No se ubicó registro de pago.' };
-  // api2 SAT is deterministic — use it as authority when available
-  if (api2?.sat_tributos?.contribuyentes?.length) {
-    const allPaid = api2.sat_tributos.contribuyentes.every(c =>
-      (c.tributos || []).every(t => (t.Estado || t.estado || '').toLowerCase().includes('pagado'))
+  if (!imp || imp.anios.length === 0) {
+    return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: 'No se ubicó registro de pago.' };
+  }
+
+  const byYear = new Map<string, { paid: number; total: number }>();
+  for (const a of imp.anios) {
+    const entry = byYear.get(a.anio) || { paid: 0, total: 0 };
+    entry.total++;
+    if (a.semaforo === 'verde') entry.paid++;
+    byYear.set(a.anio, entry);
+  }
+
+  const years = Array.from(byYear.entries()).sort(([a], [b]) => a.localeCompare(b));
+  const allPaid = years.every(([, v]) => v.paid === v.total);
+
+  if (allPaid) {
+    const parts = years.map(([y, v]) =>
+      v.total === 1 ? `Año ${y} pagado` : `Año ${y} con las ${v.total} cuotas pagadas`
     );
-    if (allPaid) {
-      return {
-        status: 'OK' as FieldStatus,
-        badgeText: 'PAGADO',
-        text: resumen?.resultado || 'Todos los años figuran pagados en SAT Lima.',
-      };
-    }
+    return { status: 'OK' as FieldStatus, badgeText: 'PAGADO', text: parts.join('. ') + '.' };
   }
-  if (imp.anios.length === 0 && api2?.sat_tributos?.contribuyentes?.length) {
-    return {
-      status: 'WARNING' as FieldStatus,
-      badgeText: 'PENDIENTE',
-      text: resumen?.resultado || 'Cuotas pendientes detectadas vía SAT Lima.',
-    };
+
+  const paidYears = years.filter(([, v]) => v.paid === v.total);
+  const pendingYears = years.filter(([, v]) => v.paid < v.total);
+
+  const parts: string[] = [];
+  for (const [y, v] of paidYears) {
+    parts.push(v.total === 1 ? `Año ${y} pagado` : `Año ${y} con las ${v.total} cuotas pagadas`);
   }
-  const pagados = imp.anios.filter(a => a.semaforo === 'verde');
-  const pendientes = imp.anios.filter(a => a.semaforo !== 'verde');
-  const fallbackText = resumen?.resultado || `${imp.anios.length} año${imp.anios.length > 1 ? 's' : ''} verificado${imp.anios.length > 1 ? 's' : ''}.`;
-  if (pendientes.length === 0) return { status: 'OK' as FieldStatus, badgeText: 'PAGADO', text: fallbackText };
-  const parcial = pagados.length > 0;
+  for (const [y, v] of pendingYears) {
+    const unpaid = v.total - v.paid;
+    if (v.total === 1) parts.push(`Año ${y} pendiente`);
+    else if (v.paid === 0) parts.push(`Año ${y} con las ${v.total} cuotas pendientes`);
+    else parts.push(`Año ${y} con ${unpaid} de ${v.total} cuotas pendientes`);
+  }
+
   return {
-    status: (parcial ? 'WARNING' : 'CRITICAL') as FieldStatus,
-    badgeText: parcial ? 'PARCIAL' : 'CON DEUDA',
-    text: resumen?.resultado || `${pendientes.length} año${pendientes.length > 1 ? 's' : ''} con deuda pendiente. ${(imp.criterio_aplicado || '').replace(/\s*\bJSON\b\s*/gi, ' ').replace(/'\s*/g, '').replace(/,?\s*por lo que el resultado es \w+/gi, '').replace(/\.?\s*[Ee]l resultado es \w+/gi, '').replace(/\s{2,}/g, ' ').trim()}`.trim(),
+    status: (paidYears.length > 0 ? 'WARNING' : 'CRITICAL') as FieldStatus,
+    badgeText: paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA',
+    text: parts.join('. ') + '.',
   };
 }
 
@@ -423,7 +426,7 @@ function buildSutran(api: ApiResponse) {
   return { status, badgeText: debtStatusText(status, d.resultado), text: cleanResultText(d.resultado) };
 }
 
-function buildSoat(api: ApiResponse, api2?: Api2Response | null) {
+function buildSoat(api: ApiResponse) {
   const soat = api.desglose_soat?.[0];
   if (!soat) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'APESEG no respondió.', expiryDate: undefined };
   const estadoLower = (soat.estado || '').toLowerCase();
@@ -444,10 +447,7 @@ function buildSoat(api: ApiResponse, api2?: Api2Response | null) {
     if (daysLeft === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
     else if (daysLeft <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
   }
-  let cert = soat.nro_poliza || soat.nro_certificado || '';
-  if ((!cert || /^\d{1,3}$/.test(cert)) && api2?.soat?.Certificado) {
-    cert = api2.soat.Certificado;
-  }
+  const cert = soat.nro_poliza || soat.nro_certificado || '';
   const usoPart = soat.uso ? ` Uso: ${soat.uso}.` : '';
   const estadoPart = isAnulado ? `ANULADO. ` : '';
   return { status, badgeText, text: `${estadoPart}${soat.compania}. Vigencia del ${soat.vigencia_desde} al ${soat.vigencia_hasta}. Certificado: ${cert}.${usoPart}`, expiryDate: hasta };
@@ -457,8 +457,8 @@ function isCitvNotRequired(text: string): boolean {
   return /no\s+(?:es\s+)?exigible|no obligat|no está obligad|no esta obligad|exento|no requiere|no aplica|aún no.{0,20}obligad/i.test(text);
 }
 
-function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | null {
-  const hasta = api.revision_tecnica?.vigencia_hasta || api2?.citv?.fecha_vcto;
+function citvExpiryDays(api: ApiResponse): number | null {
+  const hasta = api.revision_tecnica?.vigencia_hasta || api.citv?.fecha_vcto;
   if (!hasta) return null;
   const expiry = parseDate(hasta);
   if (!expiry) return null;
@@ -467,14 +467,15 @@ function citvExpiryDays(api: ApiResponse, api2?: Api2Response | null): number | 
   return Math.ceil((expiry.getTime() - now.getTime()) / 86400000);
 }
 
-function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null) {
+function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string) {
   const srs = api.seguros_revision_siniestros;
+  const citvData = api.citv;
   const citv = srs?.find(s => s.concepto === 'citv');
   if (citv) {
     const citvClean = cleanResultText(citv.resultado);
     const citvExtras: string[] = [];
     if (citvCertificado && !citvClean.includes(citvCertificado)) citvExtras.push(`Certificado: ${citvCertificado}`);
-    if (api2?.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    if (citvData?.tipo_servicio && !citvClean.toLowerCase().includes(citvData.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${citvData.tipo_servicio}`);
     const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     let status = semaforoToStatus(citv.semaforo);
     const lower = citv.resultado.toLowerCase();
@@ -487,7 +488,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (isCitvNotRequired(lower)) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
       else badgeText = 'NO CONSULTADO';
     } else if (status === 'OK') {
-      const days = citvExpiryDays(api, api2);
+      const days = citvExpiryDays(api);
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
@@ -498,7 +499,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
     const rtClean = cleanResultText(rt.detalle || rt.estado);
     const rtExtras: string[] = [];
     if (citvCertificado && !rtClean.includes(citvCertificado)) rtExtras.push(`Certificado: ${citvCertificado}`);
-    if (api2?.citv?.tipo_servicio && !rtClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) rtExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    if (citvData?.tipo_servicio && !rtClean.toLowerCase().includes(citvData.tipo_servicio.toLowerCase())) rtExtras.push(`Uso: ${citvData.tipo_servicio}`);
     const rtSuffix = rtExtras.length ? ` ${rtExtras.join('. ')}.` : '';
     let status = semaforoToStatus(rt.semaforo);
     const lower = (rt.detalle || rt.estado).toLowerCase();
@@ -511,7 +512,7 @@ function buildRevisionTecnica(api: ApiResponse, citvCertificado?: string, api2?:
       if (isCitvNotRequired(lower)) { status = 'OK'; badgeText = 'NO EXIGIBLE'; }
       else badgeText = 'NO CONSULTADO';
     } else if (status === 'OK') {
-      const days = citvExpiryDays(api, api2);
+      const days = citvExpiryDays(api);
       if (days === 0) { status = 'CRITICAL'; badgeText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { status = 'WARNING'; badgeText = 'VENCE PRONTO'; }
     }
@@ -566,21 +567,19 @@ function buildSiniestros(api: ApiResponse) {
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
 }
 
-function buildActivacionesText(api: ApiResponse, api2?: Api2Response | null): string {
+function buildActivacionesText(api: ApiResponse): string {
   const desglose = api.desglose_seguro_vehicular;
   if (desglose && desglose.length > 0) {
     const withAcc = desglose.filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0);
     const total = desglose.reduce((s, d) => s + (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0), 0);
     if (total === 0) return '0 activaciones de seguro vehicular registradas.';
-    // Build period map from api2 SBS data and desglose_soat as fallback sources
     const periodMap = new Map<string, string>();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sbsRaw = (api2 as any)?.['sbs-vehicular'] || (api2 as any)?.sbs_vehicular || (api2 as any)?.sbs;
+    const sbsRaw = api.sbs_vehicular;
     if (sbsRaw && Array.isArray(sbsRaw)) {
       for (const entry of sbsRaw) {
-        const pol = entry.nro_poliza || entry.poliza || entry.numero_poliza || '';
-        const desde = entry.vigencia_inicio || entry.vigencia_desde || entry.inicio || entry.Inicio || '';
-        const hasta = entry.vigencia_fin || entry.vigencia_hasta || entry.fin || entry.Fin || '';
+        const pol = entry.nro_poliza || '';
+        const desde = entry.vigencia_inicio || '';
+        const hasta = entry.vigencia_fin || '';
         if (pol && desde && hasta) periodMap.set(pol, `${desde} — ${hasta}`);
       }
     }
@@ -605,7 +604,7 @@ function buildActivacionesText(api: ApiResponse, api2?: Api2Response | null): st
   return '';
 }
 
-function buildActivaciones(api: ApiResponse, api2?: Api2Response | null) {
+function buildActivaciones(api: ApiResponse) {
   const srs = api.seguros_revision_siniestros;
   const act = srs?.find(s => s.concepto === 'accidentes_seguro_vehicular');
   if (act) {
@@ -616,7 +615,7 @@ function buildActivaciones(api: ApiResponse, api2?: Api2Response | null) {
     }
     if (count === 0) count = extractCount(act.resultado);
     const status: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-    const text = buildActivacionesText(api, api2) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+    const text = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
     return { status, badgeText: count === 0 ? 'OK' : `${count} ACTIV.`, text };
   }
   return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'SBS no respondió.' };
@@ -885,7 +884,7 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
   return debts;
 }
 
-function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: Api2Response | null): TableEntry[] {
+function buildInsuranceTable(api: ApiResponse, citvCertificado?: string): TableEntry[] {
   const items: TableEntry[] = [];
   const srs = api.seguros_revision_siniestros || [];
   const soatDetail = api.desglose_soat?.[0];
@@ -908,8 +907,7 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       }
     }
     let soatResult: string;
-    let soatCert = soatDetail?.nro_poliza || soatDetail?.nro_certificado || '';
-    if ((!soatCert || /^\d{1,3}$/.test(soatCert)) && api2?.soat?.Certificado) soatCert = api2.soat.Certificado;
+    const soatCert = soatDetail?.nro_poliza || soatDetail?.nro_certificado || '';
     if (soatAnulado && soatDetail) {
       soatResult = `ANULADO — Póliza ${soatDetail.compania}, vigencia ${soatDetail.vigencia_desde} al ${soatDetail.vigencia_hasta}. El vehículo circula actualmente SIN SOAT vigente. Certificado: ${soatCert}.${soatDetail.uso ? ` Uso: ${soatDetail.uso}.` : ''}`;
     } else {
@@ -940,14 +938,14 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
       if (isCitvNotRequired(citvLower)) { st = 'OK'; citvText = 'NO EXIGIBLE'; }
       else citvText = 'NO CONSULTADO';
     } else if (st === 'OK') {
-      const days = citvExpiryDays(api, api2);
+      const days = citvExpiryDays(api);
       if (days === 0) { st = 'CRITICAL'; citvText = 'VENCE HOY'; }
       else if (days !== null && days <= 30) { st = 'WARNING'; citvText = 'VENCE PRONTO'; }
     }
     const citvClean = cleanResultText(citvEntry.resultado);
     const citvExtras: string[] = [];
     if (citvCertificado && !citvClean.includes(citvCertificado)) citvExtras.push(`Certificado: ${citvCertificado}`);
-    if (api2?.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api2.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api2.citv.tipo_servicio}`);
+    if (api.citv?.tipo_servicio && !citvClean.toLowerCase().includes(api.citv.tipo_servicio.toLowerCase())) citvExtras.push(`Uso: ${api.citv.tipo_servicio}`);
     const citvSuffix = citvExtras.length ? ` ${citvExtras.join('. ')}.` : '';
     items.push({
       concept: 'Revisión técnica (CITV)', entity: 'MTC',
@@ -958,7 +956,7 @@ function buildInsuranceTable(api: ApiResponse, citvCertificado?: string, api2?: 
   return items;
 }
 
-function buildClaimsTable(api: ApiResponse, api2?: Api2Response | null): TableEntry[] {
+function buildClaimsTable(api: ApiResponse): TableEntry[] {
   const items: TableEntry[] = [];
   const srs = api.seguros_revision_siniestros || [];
 
@@ -984,7 +982,7 @@ function buildClaimsTable(api: ApiResponse, api2?: Api2Response | null): TableEn
       }
       if (count === 0) count = extractCount(act.resultado);
       const st: FieldStatus = count >= 5 ? 'CRITICAL' : count >= 1 ? 'WARNING' : 'OK';
-      const actText = buildActivacionesText(api, api2) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
+      const actText = buildActivacionesText(api) || cleanResultText(act.resultado).replace(/\bvigente teórica\b/gi, 'vigente');
       items.push({ concept: 'Activaciones de seguro vehicular', entity: 'SBS', result: actText, status: st, statusText: count === 0 ? 'OK' : `${count} ACTIV.` });
     }
   }
@@ -1136,12 +1134,12 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const hist = api.titularidad?.historial || [];
 
   const owner = buildOwnerHistory(api);
-  const transfer = buildLastTransfer(api, api2);
+  const transfer = buildLastTransfer(api);
   const grav = buildGravamenes(api);
   const captura = buildCaptura(api);
-  const soat = buildSoat(api, api2);
-  const citv = buildRevisionTecnica(api, api2?.citv?.certificado, api2);
-  const impuesto = buildImpuesto(api, api2);
+  const soat = buildSoat(api);
+  const citv = buildRevisionTecnica(api, api.citv?.certificado);
+  const impuesto = buildImpuesto(api);
   const gnv = buildGnv(api);
   const satPap = buildPapeletas(api, 'sat_lima', 'papeletas SAT');
   const callaoPap = buildPapeletas(api, 'mun_callao', 'papeletas Callao');
@@ -1149,7 +1147,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
   const sutran = buildSutran(api);
   const transportes = buildTransportes(api);
   const siniestros = buildSiniestros(api);
-  const activaciones = buildActivaciones(api, api2);
+  const activaciones = buildActivaciones(api);
 
   const liensStatus = api.gravamenes ? semaforoToStatus(api.gravamenes.semaforo) : ('PENDING' as FieldStatus);
   let registryFinalCount = 0;
@@ -1455,7 +1453,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
-    insurance: buildInsuranceTable(api, api2?.citv?.certificado, api2),
+    insurance: buildInsuranceTable(api, api.citv?.certificado),
     soatBreakdown: buildSoatBreakdown(api, api2),
     soatBreakdownNote: (() => {
       const soats = api.desglose_soat || [];
@@ -1473,7 +1471,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     insuranceNote: 'La consulta APESEG refleja el estado del SOAT a la fecha de emisión; el certificado CITV proviene del registro de la entidad certificadora.',
     insuranceSource: 'APESEG · MTC — CITV',
 
-    claims: buildClaimsTable(api, api2),
+    claims: buildClaimsTable(api),
     activationsTable: (api.desglose_seguro_vehicular || [])
       .filter(d => (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0) > 0)
       .map(d => ({
@@ -1518,7 +1516,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         let txt = (api.conclusion?.texto || '')
           .replace(/\bANULADO\s+el\s+\d{1,2}\/\d{1,2}\/\d{4}/gi, 'ANULADO')
           .replace(/[^.]*\b(JNE|MTC[- ]?SCPPP)\b[^.]*\.\s*/gi, '');
-        const actText = buildActivacionesText(api, api2);
+        const actText = buildActivacionesText(api);
         if (actText) {
           const m = actText.match(/^(\d+)\s+activacion/);
           const total = m ? parseInt(m[1]) : 0;
