@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
 import LegalReportPDF, { type LegalReportData } from "@/lib/pdf/legal/LegalReportPDF";
-import { transformApiResponse, type Api2Response } from "@/lib/pdf/legal/transform-api-response";
+import { transformApiResponse } from "@/lib/pdf/legal/transform-api-response";
 import { format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { es } from "date-fns/locale";
 import { sendEmail } from "@/lib/email/resend";
 
 const INFORME_API_URL = "http://161.132.38.122/informe/placa";
-const CONSULTAR_API_URL = "http://161.132.38.122/consultar/placa";
 const API_TIMEOUT_MS = 5 * 60 * 1000;
-const API2_TIMEOUT_MS = 15 * 1000;
 const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || "contacto@carlo.pe";
 
 type ApiErrorCode = "API_KEY_MISSING" | "API_DOWN" | "API_TIMEOUT" | "API_ERROR" | "PDF_ERROR";
@@ -63,32 +61,10 @@ async function notifyAdminsApiError(plate: string, error: LegalReportError) {
   });
 }
 
-async function fetchConsultarApi(plate: string): Promise<Api2Response | null> {
-  const apiKey = process.env.INFORME_API_KEY;
-  if (!apiKey) return null;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), API2_TIMEOUT_MS);
-  try {
-    const res = await fetch(CONSULTAR_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
-      body: JSON.stringify({ placa: plate }),
-      signal: controller.signal,
-    });
-    if (!res.ok) return null;
-    return await res.json();
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function fetchInformeFromApi(plate: string): Promise<LegalReportData> {
   const apiKey = process.env.INFORME_API_KEY;
   if (!apiKey) throw new LegalReportError("API_KEY_MISSING", "INFORME_API_KEY no configurada", 500);
 
-  const api2Promise = fetchConsultarApi(plate);
   const MAX_RETRIES = 3;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -118,11 +94,10 @@ async function fetchInformeFromApi(plate: string): Promise<LegalReportData> {
       }
 
       const apiData = await res.json();
-      const api2 = await api2Promise;
       if (apiData.error) {
         throw new LegalReportError("API_ERROR", apiData.error);
       }
-      return transformApiResponse(apiData, plate, api2);
+      return transformApiResponse(apiData, plate);
     } catch (err) {
       clearTimeout(timeout);
       if (err instanceof LegalReportError) throw err;
@@ -279,8 +254,7 @@ export async function POST(req: NextRequest) {
 
     let data: LegalReportData;
     if (cachedApiData) {
-      const api2 = await fetchConsultarApi(cleanPlate);
-      data = transformApiResponse(cachedApiData, cleanPlate, api2);
+      data = transformApiResponse(cachedApiData, cleanPlate);
     } else if (useMock) {
       data = getMockLegalData(cleanPlate);
     } else {

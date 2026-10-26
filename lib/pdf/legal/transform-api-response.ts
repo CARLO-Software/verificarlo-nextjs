@@ -74,29 +74,26 @@ interface ApiResponse {
   revision_tecnica?: { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
   desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string; observacion?: string }[];
   citv?: { certificado?: string; tipo_servicio?: string; fecha_vcto?: string };
-  sbs_vehicular?: { nro_poliza?: string; vigencia_inicio?: string; vigencia_fin?: string; [k: string]: any }[];
+  datos_crudos?: {
+    sat_tributos?: {
+      contribuyentes?: {
+        nombre?: string;
+        tributos?: Record<string, string>[];
+      }[];
+    };
+    sutran?: { placa?: string; mensaje?: string; papeletas?: { numero?: string; fecha?: string; codigo?: string; calificacion?: string; infractor?: string; monto?: string; pronto_pago?: string; estado?: string; [k: string]: any }[]; [k: string]: any };
+    soat?: { historial?: { 'Compañía'?: string; Inicio?: string; Fin?: string; Certificado?: string; Estado?: string; Uso?: string; 'Fec. Anulación'?: string; [k: string]: any }[]; [k: string]: any };
+    siguelo?: { titulos?: Record<string, any>[] };
+    sunarp?: { siguelo?: { titulos?: Record<string, any>[] }; listaRes?: { titulos?: { acto?: string; num_titulo?: string }[] }[] };
+    sbs_vehicular?: { nro_poliza?: string; vigencia_inicio?: string; vigencia_fin?: string; [k: string]: any }[];
+    [k: string]: any;
+  };
   conversion_gnv?: { concepto: string; resultado: string; semaforo: string }[];
   observaciones_analista?: (string | { severidad: string; texto: string })[];
   conclusion?: { etiqueta: string; texto: string };
   fuentes_consultadas?: string[];
   reglas_condicionales_aplicadas?: string[];
 }
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export interface Api2Response {
-  sat_tributos?: {
-    contribuyentes?: {
-      nombre?: string;
-      tributos?: Record<string, string>[];
-    }[];
-  };
-  citv?: { certificado?: string; tipo_servicio?: string; resultado?: string; fecha_vcto?: string; [k: string]: any };
-  sutran?: { placa?: string; mensaje?: string; papeletas?: { numero?: string; fecha?: string; codigo?: string; calificacion?: string; infractor?: string; monto?: string; pronto_pago?: string; estado?: string; [k: string]: any }[]; [k: string]: any };
-  soat?: { historial?: { 'Compañía'?: string; Inicio?: string; Fin?: string; Certificado?: string; Estado?: string; Uso?: string; 'Fec. Anulación'?: string; [k: string]: any }[]; [k: string]: any };
-  siguelo?: { titulos?: Record<string, any>[] };
-  sunarp?: { siguelo?: { titulos?: Record<string, any>[] }; listaRes?: { titulos?: { acto?: string; num_titulo?: string }[] }[] };
-}
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 type FieldStatus = 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
 
@@ -574,7 +571,7 @@ function buildActivacionesText(api: ApiResponse): string {
     const total = desglose.reduce((s, d) => s + (parseInt(d.nro_accidentes || String(d.cantidad ?? '0'), 10) || 0), 0);
     if (total === 0) return '0 activaciones de seguro vehicular registradas.';
     const periodMap = new Map<string, string>();
-    const sbsRaw = api.sbs_vehicular;
+    const sbsRaw = api.datos_crudos?.sbs_vehicular;
     if (sbsRaw && Array.isArray(sbsRaw)) {
       for (const entry of sbsRaw) {
         const pol = entry.nro_poliza || '';
@@ -663,11 +660,11 @@ function buildTransportes(api: ApiResponse) {
   return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'Uso particular, sin pertenencia a transporte público.' };
 }
 
-function buildSoatBreakdown(api: ApiResponse, api2?: Api2Response | null) {
+function buildSoatBreakdown(api: ApiResponse) {
   const fiveYearsAgo = new Date();
   fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
   const desglose = api.desglose_soat || [];
-  const historial = api2?.soat?.historial;
+  const historial = api.datos_crudos?.soat?.historial;
 
   if (historial && historial.length > 0) {
     const accMap = new Map<string, number>();
@@ -777,7 +774,7 @@ function buildCitvBreakdown(api: ApiResponse) {
 
 // === TABLE BUILDERS (detail sections) ===
 
-function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null): TableEntry[] {
+function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   const dmc = api.deudas_multas_capturas || [];
   const debts: TableEntry[] = [];
 
@@ -830,7 +827,7 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
       debts.push({ concept: 'Récord de infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
     } else {
       const st = semaforoToStatus(sutran.semaforo);
-      const papeletas = api2?.sutran?.papeletas;
+      const papeletas = api.datos_crudos?.sutran?.papeletas;
       let recordText = cleanResultText(sutran.resultado);
       if (papeletas && papeletas.length > 0) {
         const parts = papeletas.map(p => {
@@ -847,10 +844,10 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
     }
   }
 
-  // Row 2: Verificación de la papeleta (from API 2 sutran.papeletas)
-  const sutranApi2 = api2?.sutran;
-  if (sutranApi2) {
-    const rawPapeletas = sutranApi2.papeletas;
+  // Row 2: Verificación de la papeleta (from API 1 sutran.papeletas)
+  const sutranData = api.datos_crudos?.sutran;
+  if (sutranData) {
+    const rawPapeletas = sutranData.papeletas;
     if (rawPapeletas && rawPapeletas.length > 0) {
       const papeletas = rawPapeletas.map(p => ({
         numero: p.numero || p['Nº de Papeleta'] || '',
@@ -874,7 +871,7 @@ function buildDebtsTable(api: ApiResponse, now: Date, api2?: Api2Response | null
       const verBadge = allPaid ? 'PAGADO' : 'PENDIENTE';
       debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: details.join('. ') + '.', status: verStatus, statusText: verBadge });
     } else {
-      const msg = sutranApi2.mensaje || 'Sin papeletas registradas';
+      const msg = sutranData.mensaje || 'Sin papeletas registradas';
       debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: msg + '.', status: 'OK', statusText: 'OK' });
     }
   } else if (sutran) {
@@ -1049,7 +1046,7 @@ function boldConclusionText(text: string, code: string, plate?: string): string 
 const NON_ORDINARY_ACTS = ['sucesión', 'sucesion', 'anticipo de legítima', 'anticipo de legitima', 'dación en pago', 'dacion en pago', 'remate judicial', 'adjudicación', 'adjudicacion'];
 const LIEN_ACTS = ['constitución de garantía', 'constitucion de garantia', 'levantamiento de garantía', 'levantamiento de garantia', 'embargo', 'levantamiento de embargo'];
 
-function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCount?: number): { status: FieldStatus; title: string; detail: string } {
+function buildRegistryNote(api: ApiResponse, finalCount?: number): { status: FieldStatus; title: string; detail: string } {
   const entries = api.asientos_registrales?.lista || [];
   const pendientes = api.asientos_registrales?.nota_titulos_pendientes || '';
   const pendLower = pendientes.toLowerCase();
@@ -1066,12 +1063,11 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
     const mentionedTitulos = pendientes.match(/\d{4}-\d{5,}/g) || [];
     const inscribedTitulos = new Set<string>();
     for (const e of entries) { if (e.titulo) inscribedTitulos.add(e.titulo); }
-    const listaResTitulos = api2?.sunarp?.listaRes?.[0]?.titulos || [];
+    const listaResTitulos = api.datos_crudos?.sunarp?.listaRes?.[0]?.titulos || [];
     for (const t of listaResTitulos) { if (t.num_titulo) inscribedTitulos.add(t.num_titulo); }
     if (mentionedTitulos.length > 0 && mentionedTitulos.every(t => inscribedTitulos.has(t))) {
       hasPending = false;
     }
-    // Also: if api2 listaRes shows all titles accounted for, override
     if (hasPending && listaResTitulos.length > 0) {
       const histTitulos = (api.titularidad?.historial || []).map(h => (h.titulo || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim()).filter(Boolean);
       const allInscribed = histTitulos.every(t => inscribedTitulos.has(t));
@@ -1082,7 +1078,7 @@ function buildRegistryNote(api: ApiResponse, api2?: Api2Response | null, finalCo
   const hasNonOrdinary = entries.some(e => NON_ORDINARY_ACTS.some(act => e.acto.toLowerCase().includes(act)));
   const hasHistoricalLien = entries.some(e => LIEN_ACTS.some(act => e.acto.toLowerCase().includes(act)));
 
-  const sunarpCount = api2?.sunarp?.listaRes?.[0]?.titulos?.length || 0;
+  const sunarpCount = api.datos_crudos?.sunarp?.listaRes?.[0]?.titulos?.length || 0;
   const totalEntries = Math.max(finalCount || 0, sunarpCount, entries.length);
   const countNote = totalEntries > 0
     ? `Se registran ${totalEntries} asiento${totalEntries > 1 ? 's' : ''} inscrito${totalEntries > 1 ? 's' : ''}. `
@@ -1124,11 +1120,11 @@ function combinePapeletas(sources: { status: FieldStatus; badgeText: string; tex
   return { status: worst.status, badgeText, text: `Presenta papeletas pendientes de pago${label}. Ver detalle en sección Deudas.` };
 }
 
-export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api2Response | null): LegalReportData {
+export function transformApiResponse(api: ApiResponse, plate: string): LegalReportData {
   const now = toZonedTime(new Date(), 'America/Lima');
   const v = api.vehiculo;
   const comp = parseDatosComplementarios(v?.datos_complementarios_partida);
-  const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+  const sigTitulos = api.datos_crudos?.siguelo?.titulos || api.datos_crudos?.sunarp?.siguelo?.titulos || [];
   const t0 = sigTitulos.find((t: any) => t.idx === 0 || /inscripci[oó]n.*dominio/i.test(t.tipo_doc || '') || /inscripci[oó]n.*dominio/i.test(t.acto_registral || '')) || sigTitulos[0];
   const vehicleDescription = v ? `${v.marca} ${v.modelo} ${v.anio_modelo}` : plate;
   const hist = api.titularidad?.historial || [];
@@ -1253,12 +1249,12 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       type Entry = { date: string; act: string; title: string };
 
       // API2-primary path: deterministic entries from siguelo + listaRes
-      const sigTitulos = api2?.siguelo?.titulos || api2?.sunarp?.siguelo?.titulos || [];
+      const sigTitulos = api.datos_crudos?.siguelo?.titulos || api.datos_crudos?.sunarp?.siguelo?.titulos || [];
       if (sigTitulos.length > 0) {
         // Detect shared títulos from listaRes duplicates AND siguelo duplicates
         const sharedTitles = new Set<string>();
         const lrCounts = new Map<string, number>();
-        for (const t of (api2?.sunarp?.listaRes?.[0]?.titulos || [])) {
+        for (const t of (api.datos_crudos?.sunarp?.listaRes?.[0]?.titulos || [])) {
           const num = t.num_titulo || '';
           if (num) lrCounts.set(num, (lrCounts.get(num) || 0) + 1);
         }
@@ -1349,7 +1345,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
         return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
       }
 
-      // Fallback: api1-based logic (when api2 is unavailable)
+      // Fallback: asientos_registrales-based logic (when siguelo is unavailable)
       const baseTit = (t: string) => (t || '').replace(/\s*\(asiento\s*\d+\)/gi, '').trim();
       const apiEntries: (Entry & { asiento: string })[] = (api.asientos_registrales?.lista || []).map(a => {
         let act = a.acto;
@@ -1381,7 +1377,7 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       registryFinalCount = apiEntries.length;
       return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
     })(),
-    ...(() => { const r = buildRegistryNote(api, api2, registryFinalCount); return { registryNote: boldKeyPhrases(r.detail), registryNoteStatus: r.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING', registryNoteTitle: r.title }; })(),
+    ...(() => { const r = buildRegistryNote(api, registryFinalCount); return { registryNote: boldKeyPhrases(r.detail), registryNoteStatus: r.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING', registryNoteTitle: r.title }; })(),
 
     liensStatus,
     liensTitle: liensStatus === 'OK'
@@ -1410,6 +1406,34 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     liensSource: 'SUNARP · SIGM',
 
     taxYears: (() => {
+      if (api.datos_crudos?.sat_tributos?.contribuyentes?.length) {
+        const yearMap = new Map<string, { paid: number; unpaid: number; contributor: string; amount: number }>();
+        for (const c of api.datos_crudos.sat_tributos.contribuyentes) {
+          for (const t of c.tributos || []) {
+            const y = t['Año'] || t.anio || '';
+            if (!y) continue;
+            const entry = yearMap.get(y) || { paid: 0, unpaid: 0, contributor: '', amount: 0 };
+            const pagado = parseFloat((t.Pagado || t.pagado || '0').replace(/,/g, ''));
+            entry.amount += pagado;
+            if (!entry.contributor) entry.contributor = c.nombre || '';
+            const estado = (t.Estado || t.estado || '').toLowerCase();
+            if (estado && !estado.includes('pagado')) entry.unpaid++;
+            else entry.paid++;
+            yearMap.set(y, entry);
+          }
+        }
+        if (yearMap.size > 0) {
+          return Array.from(yearMap.entries())
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([year, info]) => ({
+              year,
+              contributor: info.contributor,
+              amount: info.amount > 0 ? `S/ ${info.amount.toFixed(2)}` : '',
+              status: (info.unpaid === 0 ? 'OK' : 'WARNING') as FieldStatus,
+              statusText: info.unpaid === 0 ? 'PAGADO' : 'PENDIENTE',
+            }));
+        }
+      }
       const anios = api.impuesto_vehicular?.anios || [];
       if (anios.length === 0) return [];
       return anios.map(a => {
@@ -1449,12 +1473,12 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
     })(),
     taxSource: 'SAT — Lima',
 
-    debts: buildDebtsTable(api, now, api2),
+    debts: buildDebtsTable(api, now),
     debtsNote: 'Para cada papeleta se recomienda solicitar el **detalle por infracción**: código de falta (p. ej. M16, M10, G47), fecha, importe, gastos y **monto con descuento por pronto pago**. La consulta rápida suele entregar solo el total; el detalle se obtiene en el portal del SAT o de la municipalidad correspondiente.',
     debtsSource: 'SAT — Lima · Mun. del Callao · ATU · SUTRAN',
 
     insurance: buildInsuranceTable(api, api.citv?.certificado),
-    soatBreakdown: buildSoatBreakdown(api, api2),
+    soatBreakdown: buildSoatBreakdown(api),
     soatBreakdownNote: (() => {
       const soats = api.desglose_soat || [];
       if (soats.length === 0) return undefined;
