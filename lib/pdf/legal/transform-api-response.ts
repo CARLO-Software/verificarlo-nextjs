@@ -29,6 +29,19 @@ interface ApiResponse {
     nro_vin: string;
     uso: string;
     datos_complementarios_partida?: string;
+    tipo_carroceria?: string;
+    nro_version?: string;
+    potencia_motor?: string;
+    nro_cilindros?: string;
+    cilindrada?: string;
+    nro_asientos?: string;
+    formula_rodante?: string;
+    peso_neto?: string;
+    peso_bruto?: string;
+    carga_util?: string;
+    longitud?: string;
+    ancho?: string;
+    alto?: string;
   };
   titularidad?: {
     historial: ApiHistorialEntry[];
@@ -1173,10 +1186,10 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
       { label: 'Placa', value: plate.toUpperCase() },
       { label: 'Tipo de uso', value: v.uso || '—' },
       { label: 'Categoría', value: v.categoria || '—' },
-      { label: 'Carrocería', value: comp['Tipo Carrocería'] || comp['Tipo Carroceria'] || t0?.tipo_carroceria || '—' },
+      { label: 'Carrocería', value: v.tipo_carroceria || comp['Tipo Carrocería'] || comp['Tipo Carroceria'] || '—' },
       { label: 'Marca', value: v.marca || '—' },
       { label: 'Modelo', value: v.modelo || '—' },
-      { label: 'N.° versión', value: comp['Nro. Versión'] || comp['Nro. Version'] || t0?.nro_version || '—' },
+      { label: 'N.° versión', value: v.nro_version || comp['Nro. Versión'] || comp['Nro. Version'] || '—' },
       { label: 'Año de modelo', value: v.anio_modelo || '—' },
       { label: 'Año de fabricación', value: v.anio_fabricacion && v.anio_fabricacion !== v.anio_modelo ? v.anio_fabricacion : '' },
       { label: 'N.° de serie', value: v.nro_serie || '—' },
@@ -1187,14 +1200,14 @@ export function transformApiResponse(api: ApiResponse, plate: string, api2?: Api
 
     vehicleComplementary: v ? [
       { label: 'Combustible', value: v.combustible || '—' },
-      { label: 'Potencia motor', value: t0?.potencia_motor || comp['Potencia Motor'] || '—' },
-      { label: 'N.° de cilindros', value: t0?.nro_cilindros || comp['Nro. Cilindros'] || '—' },
-      { label: 'Cilindrada', value: t0?.cilindrada || comp['Cilindrada'] || '—' },
-      { label: 'N.° de asientos', value: t0?.nro_asientos || comp['Nro. Asientos'] || '—' },
-      { label: 'Fórmula rodante', value: t0?.formula_rodante || comp['Fórmula Rodante'] || comp['Formula Rodante'] || '—' },
-      { label: 'Peso neto / bruto', value: [t0?.peso_neto || comp['Peso Neto'], t0?.peso_bruto || comp['Peso Bruto']].filter(Boolean).join(' / ') || '—' },
-      { label: 'Carga útil', value: t0?.carga_util || comp['Carga Util'] || '—' },
-      { label: 'Long. / Ancho / Alto', value: [t0?.longitud || comp['Longitud'], t0?.ancho || comp['Ancho'], t0?.altura || comp['Altura']].filter(Boolean).join(' / ') || '—' },
+      { label: 'Potencia motor', value: v.potencia_motor || comp['Potencia Motor'] || '—' },
+      { label: 'N.° de cilindros', value: v.nro_cilindros || comp['Nro. Cilindros'] || '—' },
+      { label: 'Cilindrada', value: v.cilindrada || comp['Cilindrada'] || '—' },
+      { label: 'N.° de asientos', value: v.nro_asientos || comp['Nro. Asientos'] || '—' },
+      { label: 'Fórmula rodante', value: v.formula_rodante || comp['Fórmula Rodante'] || comp['Formula Rodante'] || '—' },
+      { label: 'Peso neto / bruto', value: [v.peso_neto || comp['Peso Neto'], v.peso_bruto || comp['Peso Bruto']].filter(Boolean).join(' / ') || '—' },
+      { label: 'Carga útil', value: v.carga_util || comp['Carga Util'] || '—' },
+      { label: 'Long. / Ancho / Alto', value: [v.longitud || comp['Longitud'], v.ancho || comp['Ancho'], v.alto || comp['Altura']].filter(Boolean).join(' / ') || '—' },
       { label: 'Inmatriculación', value: cleanDate((hist[0]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '')) || '—' },
       { label: 'Adquisición titular actual', value: cleanDate((hist[hist.length - 1]?.fecha || '').replace(/\s*[—\-][\s\S]*/, '')) || '—' },
       { label: 'N.° de partida', value: [(comp['Partida'] || '').replace(/^N\.?[°º]\s*/i, ''), comp['Oficina Registral'] ? `— Of. ${comp['Oficina Registral']}` : ''].filter(Boolean).join(' ') || '—' },
