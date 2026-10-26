@@ -416,7 +416,7 @@ function buildPapeletas(api: ApiResponse, fuente: string, label: string) {
 }
 
 function buildSutran(api: ApiResponse) {
-  const d = findDeuda(api.deudas_multas_capturas, 'sutran_record') ?? findDeuda(api.deudas_multas_capturas, 'sutran');
+  const d = findDeuda(api.deudas_multas_capturas, 'sutran_cinemometro') ?? findDeuda(api.deudas_multas_capturas, 'sutran_record') ?? findDeuda(api.deudas_multas_capturas, 'sutran');
   if (!d) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: 'No se pudo consultar SUTRAN.' };
   if (isErrorResult(d.resultado)) return { status: 'PENDING' as FieldStatus, badgeText: 'NO CONSULTADO', text: cleanResultText(d.resultado) };
   const status = semaforoToStatus(d.semaforo);
@@ -535,8 +535,11 @@ function sumMontos(text: string): string | null {
 }
 
 function debtStatusText(st: FieldStatus, text: string): string {
-  if (st === 'OK') return 'OK';
   const total = sumMontos(text);
+  if (st === 'OK') {
+    if (total && /pagad[oa]/i.test(text)) return `${total} PAGADO`;
+    return 'OK';
+  }
   if (st === 'WARNING') {
     if (total) return `${total} PENDIENTE`;
     if (/papeleta|infracción|infracci[oó]n|pendiente/i.test(text)) return 'PENDIENTE';
@@ -820,27 +823,33 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
     }
   }
 
-  // Row 1: Récord de infracciones (from API 1 sutran_record)
-  const sutran = dmc.find(d => d.fuente === 'sutran_record');
+  // Row 1: Infracciones SUTRAN (prefer cinemómetro which has payment status)
+  const sutranCine = dmc.find(d => d.fuente === 'sutran_cinemometro');
+  const sutranRec = dmc.find(d => d.fuente === 'sutran_record');
+  const sutran = sutranCine ?? sutranRec;
   if (sutran) {
     if (isErrorResult(sutran.resultado)) {
-      debts.push({ concept: 'Récord de infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
+      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: cleanResultText(sutran.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
     } else {
       const st = semaforoToStatus(sutran.semaforo);
-      const papeletas = api.datos_crudos?.sutran?.papeletas;
+      const rawPapeletas = api.datos_crudos?.sutran?.papeletas;
       let recordText = cleanResultText(sutran.resultado);
-      if (papeletas && papeletas.length > 0) {
-        const parts = papeletas.map(p => {
+      if (rawPapeletas && rawPapeletas.length > 0) {
+        const parts = rawPapeletas.map((p: any) => {
           const pieces: string[] = [];
-          if (p.numero) pieces.push(`papeleta de tránsito N.° ${p.numero}`);
-          if (p.fecha) pieces.push(`del ${p.fecha}`);
-          if (p.codigo) pieces.push(`código ${p.codigo}`);
-          if (p.calificacion) pieces.push(`calificación **${p.calificacion}**`);
+          const num = p.numero || p['Nº de Papeleta'] || '';
+          const fecha = p.fecha || p['F. Infracción'] || '';
+          const codigo = p.codigo || p['Código Infraccion'] || p['Código de Infracción'] || '';
+          const calif = p.calificacion || p['Calificación'] || '';
+          if (num) pieces.push(`papeleta de tránsito N.° ${num}`);
+          if (fecha) pieces.push(`del ${fecha}`);
+          if (codigo) pieces.push(`código ${codigo}`);
+          if (calif) pieces.push(`calificación **${calif}**`);
           return pieces.join(', ');
         });
-        recordText = `Registra **${papeletas.length} documento${papeletas.length > 1 ? 's' : ''}**: ${parts.join('; ')}.`;
+        recordText = `Registra **${rawPapeletas.length} documento${rawPapeletas.length > 1 ? 's' : ''}**: ${parts.join('; ')}.`;
       }
-      debts.push({ concept: 'Récord de infracciones', entity: 'SUTRAN', result: recordText, status: st, statusText: debtStatusText(st, sutran.resultado) });
+      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: recordText, status: st, statusText: debtStatusText(st, sutran.resultado) });
     }
   }
 

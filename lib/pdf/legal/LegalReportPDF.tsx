@@ -319,10 +319,10 @@ const s = StyleSheet.create({
 
   // 4-col table
   t4Header: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingHorizontal: 6, alignItems: 'center'},
-  t4HeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3 },
+  t4HeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingRight: 4 },
   t4Row: { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 4, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'center', backgroundColor: C.darkGrayRow },
   t4RowAlt: { backgroundColor: C.lightGrayRow },
-  t4Cell: { fontSize: 6.5, color: C.text },
+  t4Cell: { fontSize: 6.5, color: C.text, paddingRight: 4 },
   t4CellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text },
 
   // Tax section side-by-side
