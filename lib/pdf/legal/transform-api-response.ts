@@ -369,15 +369,23 @@ function buildImpuesto(api: ApiResponse) {
     return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: 'No se ubicó registro de pago.' };
   }
 
-  const byYear = new Map<string, { paid: number; total: number }>();
+  const byYear = new Map<string, { paid: number; total: number; unknown: number }>();
   for (const a of imp.anios) {
-    const entry = byYear.get(a.anio) || { paid: 0, total: 0 };
+    const entry = byYear.get(a.anio) || { paid: 0, total: 0, unknown: 0 };
     entry.total++;
     if (a.semaforo === 'verde') entry.paid++;
+    else if (a.semaforo === 'gris') entry.unknown++;
     byYear.set(a.anio, entry);
   }
 
   const years = Array.from(byYear.entries()).sort(([a], [b]) => a.localeCompare(b));
+
+  const allUnknown = years.every(([, v]) => v.unknown === v.total);
+  if (allUnknown) {
+    const yearList = years.map(([y]) => y).join(', ');
+    return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: `SAT Lima no reporta información de tributos para los años exigibles (${yearList}). Se recomienda verificar directamente con SAT.` };
+  }
+
   const allPaid = years.every(([, v]) => v.paid === v.total);
 
   const multas = imp.multas_tributarias || [];
@@ -391,14 +399,18 @@ function buildImpuesto(api: ApiResponse) {
   }
 
   const paidYears = years.filter(([, v]) => v.paid === v.total);
-  const pendingYears = years.filter(([, v]) => v.paid < v.total);
+  const unknownYears = years.filter(([, v]) => v.paid < v.total && v.unknown === v.total);
+  const pendingYears = years.filter(([, v]) => v.paid < v.total && v.unknown < v.total);
 
   const parts: string[] = [];
   for (const [y, v] of paidYears) {
     parts.push(v.total === 1 ? `Año ${y} pagado` : `Año ${y} con las ${v.total} cuotas pagadas`);
   }
+  for (const [y] of unknownYears) {
+    parts.push(`Año ${y} sin registro en SAT`);
+  }
   for (const [y, v] of pendingYears) {
-    const unpaid = v.total - v.paid;
+    const unpaid = v.total - v.paid - v.unknown;
     if (v.total === 1) parts.push(`Año ${y} pendiente`);
     else if (v.paid === 0) parts.push(`Año ${y} con las ${v.total} cuotas pendientes`);
     else parts.push(`Año ${y} con ${unpaid} de ${v.total} cuotas pendientes`);
@@ -408,11 +420,22 @@ function buildImpuesto(api: ApiResponse) {
   }
 
   const hasDebt = pendingYears.length > 0 || hasFines;
-  return {
-    status: (hasDebt ? (paidYears.length > 0 && pendingYears.length > 0 ? 'WARNING' : 'CRITICAL') : (hasFines ? 'WARNING' : 'OK')) as FieldStatus,
-    badgeText: !hasDebt && !hasFines ? 'PAGADO' : (pendingYears.length === 0 && hasFines ? 'CON MULTA' : (paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA')),
-    text: parts.join('. ') + '.',
-  };
+  const hasUnknown = unknownYears.length > 0;
+  let status: FieldStatus;
+  let badgeText: string;
+
+  if (!hasDebt && !hasFines && hasUnknown) {
+    status = 'PENDING';
+    badgeText = paidYears.length > 0 ? 'PARCIAL' : 'SIN REGISTRO';
+  } else if (!hasDebt && !hasFines) {
+    status = 'OK';
+    badgeText = 'PAGADO';
+  } else {
+    status = paidYears.length > 0 && pendingYears.length > 0 ? 'WARNING' : 'CRITICAL';
+    badgeText = pendingYears.length === 0 && hasFines ? 'CON MULTA' : (paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA');
+  }
+
+  return { status, badgeText, text: parts.join('. ') + '.' };
 }
 
 function buildPapeletas(api: ApiResponse, fuente: string, label: string) {
