@@ -73,7 +73,7 @@ interface ApiResponse {
   }[];
   desglose_seguro_vehicular?: { aseguradora?: string; nro_poliza?: string; periodo?: string; cantidad?: number; nro_accidentes?: string; [k: string]: any }[];
   revision_tecnica?: { estado: string; semaforo: string; detalle?: string; vigencia_hasta?: string };
-  desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string; observacion?: string }[];
+  desglose_citv?: { empresa: string; certificado: string; fecha_emision: string; fecha_vcto: string; resultado: string; estado: string; observacion?: string; tipo_servicio?: string }[];
   citv?: { certificado?: string; tipo_servicio?: string; fecha_vcto?: string };
   datos_crudos?: {
     sat_tributos?: {
@@ -241,6 +241,14 @@ function findDeuda(deudas: ApiResponse['deudas_multas_capturas'], fuente: string
   return deudas?.find(d => d.fuente === fuente);
 }
 
+function extraDetail(detalle: string | undefined, resultado: string): string | undefined {
+  if (!detalle) return undefined;
+  const d = detalle.trim();
+  const r = resultado.trim();
+  if (!d || d === r || d.toLowerCase() === r.toLowerCase()) return undefined;
+  return d;
+}
+
 function cleanDate(d: string): string {
   return (d || '').replace(/\s*-?\s*PRESENTACI[ÓO]N ELECTR[ÓO]NICA/gi, '').trim();
 }
@@ -382,6 +390,10 @@ function buildImpuesto(api: ApiResponse) {
 
   const allUnknown = years.every(([, v]) => v.unknown === v.total);
   if (allUnknown) {
+    const allBefore2016 = years.every(([y]) => parseInt(y, 10) < 2016);
+    if (allBefore2016) {
+      return { status: 'PENDING' as FieldStatus, badgeText: 'NO APLICA', text: 'No se encontró registros del pago del impuesto vehicular, debido a su antigüedad. Posiblemente no sea necesario para el acto de la compra/venta, desde el 2016.' };
+    }
     const yearList = years.map(([y]) => y).join(', ');
     return { status: 'PENDING' as FieldStatus, badgeText: 'SIN REGISTRO', text: `SAT Lima no reporta información de tributos para los años exigibles (${yearList}). Se recomienda verificar directamente con SAT.` };
   }
@@ -782,6 +794,8 @@ function buildCitvBreakdown(api: ApiResponse) {
       }
     }
 
+    const alertaObs = /desaprobad/i.test(item.resultado);
+
     return {
       empresa: item.empresa,
       certificado: item.certificado,
@@ -790,8 +804,10 @@ function buildCitvBreakdown(api: ApiResponse) {
       resultado: item.resultado,
       estado: item.estado,
       observacion: item.observacion,
+      tipoServicio: item.tipo_servicio,
       status,
       alertaKm,
+      alertaObs,
     };
   });
 
@@ -812,6 +828,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
   const dmc = api.deudas_multas_capturas || [];
   const debts: TableEntry[] = [];
 
+  const capturaEntry = dmc.find(d => d.fuente === 'sat_captura');
   const capturaData = buildCaptura(api);
   debts.push({
     concept: 'Orden de captura',
@@ -819,6 +836,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
     result: capturaData.text,
     status: capturaData.status,
     statusText: capturaData.badgeText,
+    detail: extraDetail(capturaEntry?.detalle, capturaData.text),
   });
 
   const sat = dmc.find(d => d.fuente === 'sat_lima');
@@ -828,7 +846,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
     } else {
       const st = semaforoToStatus(sat.semaforo);
       const papeletasPart = sat.resultado.split(/\.\s*Sin orden de captura/i)[0];
-      debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(papeletasPart), status: st, statusText: debtStatusText(st, sat.resultado) });
+      debts.push({ concept: 'Papeletas', entity: 'SAT Lima', result: cleanResultText(papeletasPart), status: st, statusText: debtStatusText(st, sat.resultado), detail: extraDetail(sat.detalle, sat.resultado) });
     }
   }
 
@@ -838,7 +856,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
       debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: 'PENDING', statusText: 'NO CONSULTADO' });
     } else {
       const st = semaforoToStatus(callao.semaforo);
-      debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: st, statusText: debtStatusText(st, callao.resultado) });
+      debts.push({ concept: 'Papeletas', entity: 'Mun. del Callao', result: cleanResultText(callao.resultado), status: st, statusText: debtStatusText(st, callao.resultado), detail: extraDetail(callao.detalle, callao.resultado) });
     }
   }
 
@@ -850,7 +868,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
       const st = semaforoToStatus(atu.semaforo);
       const atuMonto = api.resumen_situacion_legal?.find(r => /papeleta|infracci/i.test(r.concepto))?.monto;
       const atuBadge = st === 'OK' ? 'OK' : atuMonto ? `${atuMonto} PENDIENTE` : debtStatusText(st, atu.resultado);
-      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: atuBadge });
+      debts.push({ concept: 'Infracciones', entity: 'ATU', result: cleanResultText(atu.resultado), status: st, statusText: atuBadge, detail: extraDetail(atu.detalle, atu.resultado) });
     }
   }
 
@@ -880,7 +898,7 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
         });
         recordText = `Registra **${rawPapeletas.length} documento${rawPapeletas.length > 1 ? 's' : ''}**: ${parts.join('; ')}.`;
       }
-      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: recordText, status: st, statusText: debtStatusText(st, sutran.resultado) });
+      debts.push({ concept: 'Infracciones', entity: 'SUTRAN', result: recordText, status: st, statusText: debtStatusText(st, sutran.resultado), detail: extraDetail(sutran.detalle, sutran.resultado) });
     }
   }
 
@@ -1286,7 +1304,21 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
         const cleaned = nombre.replace(/^\(?\s*sociedad\s+conyugal\s*\)?\s*[:|]?\s*/i, '').replace(/\|/g, ' ').trim();
         return cleaned.split(/\s+/).slice(0, 2).join(' ');
       };
-      type Entry = { date: string; act: string; title: string };
+      type Entry = { date: string; act: string; title: string; detail?: string };
+
+      const sigTitulosByNum = new Map<string, Record<string, unknown>>();
+      for (const st of (api.datos_crudos?.siguelo?.titulos || api.datos_crudos?.sunarp?.siguelo?.titulos || [])) {
+        const rec = st as Record<string, unknown>;
+        const num = String(rec.num_titulo || '');
+        if (num && !sigTitulosByNum.has(num)) sigTitulosByNum.set(num, rec);
+      }
+
+      const buildEntryDetail = (titulo: string): string | undefined => {
+        const rec = sigTitulosByNum.get(titulo);
+        if (!rec) return undefined;
+        const tipoUso = String(rec.tipo_uso || '').trim();
+        return tipoUso ? `Uso: ${tipoUso}` : undefined;
+      };
 
       // API2-primary path: deterministic entries from siguelo + listaRes
       const sigTitulos = api.datos_crudos?.siguelo?.titulos || api.datos_crudos?.sunarp?.siguelo?.titulos || [];
@@ -1343,7 +1375,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
                   .replace(/,?\s*forma de pago.*$/i, '')
                   .replace(/\.?\s*Deudor\/constituyente:.*$/i, '')
                   .trim();
-                entries.push({ date: extractDate(a.fecha), act: actClean, title: titulo });
+                entries.push({ date: extractDate(a.fecha), act: actClean, title: titulo, detail: buildEntryDetail(titulo) });
               }
             } else {
               const sorted = [...group].sort((a, b) => {
@@ -1355,7 +1387,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
               for (const s of sorted) {
                 const date = s.fechaAsiento || s.fechaActo;
                 const act = s.apellidos ? `${s.acto} (${s.apellidos})` : (api1Asientos.find(a => a.titulo === titulo)?.acto || s.acto);
-                entries.push({ date, act, title: titulo });
+                entries.push({ date, act, title: titulo, detail: buildEntryDetail(titulo) });
               }
             }
           } else {
@@ -1371,7 +1403,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
                 if (api1Match) act = api1Match.acto;
               }
             }
-            entries.push({ date, act, title: titulo });
+            entries.push({ date, act, title: titulo, detail: buildEntryDetail(titulo) });
           }
         }
 
@@ -1382,7 +1414,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
           return 0;
         });
         registryFinalCount = entries.length;
-        return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
+        return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: e.detail }));
       }
 
       // Fallback: asientos_registrales-based logic (when siguelo is unavailable)
@@ -1415,7 +1447,7 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
         return 0;
       });
       registryFinalCount = apiEntries.length;
-      return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title }));
+      return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: buildEntryDetail(e.title) }));
     })(),
     ...(() => { const r = buildRegistryNote(api, registryFinalCount); return { registryNote: boldKeyPhrases(r.detail), registryNoteStatus: r.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING', registryNoteTitle: r.title }; })(),
 

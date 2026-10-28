@@ -20,6 +20,7 @@ export interface TableEntry {
   result: string;
   status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
   statusText: string;
+  detail?: string;
 }
 
 export interface LegalReportData {
@@ -39,7 +40,7 @@ export interface LegalReportData {
   vehicleComplementary?: { label: string; value: string }[];
   owners?: { number: number; name: string; document: string; acquisitionDate: string; timeAsOwner: string; price: string; title: string; tags?: string[] }[];
   ownershipNote?: string;
-  registryEntries?: { number: number; date: string; act: string; title: string }[];
+  registryEntries?: { number: number; date: string; act: string; title: string; detail?: string }[];
   registryNote?: string;
   registryNoteStatus?: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING';
   registryNoteTitle?: string;
@@ -59,7 +60,7 @@ export interface LegalReportData {
   insurance?: TableEntry[];
   soatBreakdown?: { compania: string; uso: string; vigencia: string; certificado: string; accidentes: number; estado: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING' }[];
   soatBreakdownNote?: string;
-  citvBreakdown?: { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; observacion?: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; alertaKm?: boolean }[];
+  citvBreakdown?: { empresa: string; certificado: string; fechaEmision: string; fechaVcto: string; resultado: string; estado: string; observacion?: string; tipoServicio?: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; alertaKm?: boolean; alertaObs?: boolean }[];
   citvBreakdownNote?: string;
   insuranceNote?: string;
   insuranceSource?: string;
@@ -447,7 +448,7 @@ function CalloutBox({ status, title, detail }: { status: 'OK' | 'WARNING' | 'CRI
 function FourColTable({ headers, widths, rows }: {
   headers: string[];
   widths: number[];
-  rows: { cells: string[]; status?: string; statusText?: string; alt: boolean }[];
+  rows: { cells: string[]; status?: string; statusText?: string; alt: boolean; detail?: string }[];
 }) {
   return (
     <View style={{ marginTop: 6 }}>
@@ -457,19 +458,26 @@ function FourColTable({ headers, widths, rows }: {
         ))}
       </View>
       {rows.map((row, ri) => (
-        <View key={ri} style={[s.t4Row, row.alt ? s.t4RowAlt : {}]} wrap={false}>
-          {row.cells.map((cell, ci) => (
-            ci < row.cells.length - 1 ? (
-              <Text key={ci} style={[s.t4Cell, { width: `${widths[ci]}%` }]}>{cell}</Text>
-            ) : null
-          ))}
-          <View style={{ flex: 1, alignItems: 'flex-end' }}>
-            {row.status && row.statusText ? (
-              <StatusBadge status={row.status} text={row.statusText} />
-            ) : (
-              <Text style={s.t4Cell}>{row.cells[row.cells.length - 1]}</Text>
-            )}
+        <View key={ri} wrap={false}>
+          <View style={[s.t4Row, row.alt ? s.t4RowAlt : {}]}>
+            {row.cells.map((cell, ci) => (
+              ci < row.cells.length - 1 ? (
+                <Text key={ci} style={[s.t4Cell, { width: `${widths[ci]}%` }]}>{cell}</Text>
+              ) : null
+            ))}
+            <View style={{ flex: 1, alignItems: 'flex-end' }}>
+              {row.status && row.statusText ? (
+                <StatusBadge status={row.status} text={row.statusText} />
+              ) : (
+                <Text style={s.t4Cell}>{row.cells[row.cells.length - 1]}</Text>
+              )}
+            </View>
           </View>
+          {row.detail && (
+            <View style={[s.t4Row, row.alt ? s.t4RowAlt : {}, { paddingTop: 0 }]}>
+              <Text style={[s.t4Cell, { width: '100%', color: '#4B5563', fontSize: 6.5 }]}>{row.detail}</Text>
+            </View>
+          )}
         </View>
       ))}
     </View>
@@ -680,13 +688,20 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                 </View>
 
                 {data.registryEntries.map((entry, i) => (
-                  <View key={i} style={[s.regRow, i % 2 === 1 ? s.regRowAlt : {}]} wrap={false}>
-                    <View style={s.regNum}>
-                      <Text style={s.regNumText}>{entry.number}</Text>
+                  <View key={i} wrap={false}>
+                    <View style={[s.regRow, i % 2 === 1 ? s.regRowAlt : {}]}>
+                      <View style={s.regNum}>
+                        <Text style={s.regNumText}>{entry.number}</Text>
+                      </View>
+                      <Text style={[s.ownCell, { width: '18%' }]}>{entry.date.replace(/^.*?(\d{2}\/\d{2}\/\d{4}).*$/, '$1')}</Text>
+                      <Text style={[s.ownCell, { flex: 1 }]}>{entry.act}</Text>
+                      <Text style={[s.ownCell, { width: '20%' }]}>{entry.title}</Text>
                     </View>
-                    <Text style={[s.ownCell, { width: '18%' }]}>{entry.date.replace(/^.*?(\d{2}\/\d{2}\/\d{4}).*$/, '$1')}</Text>
-                    <Text style={[s.ownCell, { flex: 1 }]}>{entry.act}</Text>
-                    <Text style={[s.ownCell, { width: '20%' }]}>{entry.title}</Text>
+                    {entry.detail && (
+                      <View style={[s.regRow, i % 2 === 1 ? s.regRowAlt : {}, { paddingTop: 0, paddingLeft: 48 }]}>
+                        <Text style={[s.ownCell, { color: '#4B5563', fontSize: 6.5 }]}>{entry.detail}</Text>
+                      </View>
+                    )}
                   </View>
                 ))}
               </>
@@ -828,6 +843,7 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                     status: d.status,
                     statusText: d.statusText,
                     alt: i % 2 === 1,
+                    detail: d.detail,
                   }))}
                 />
 
@@ -919,25 +935,27 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                       icon="insurance"
                     />
                     <View style={s.actHeader}>
-                      <Text style={[s.actHeaderCell, { width: '4%' }]}>#</Text>
-                      <Text style={[s.actHeaderCell, { width: '26%' }]}>EMPRESA</Text>
-                      <Text style={[s.actHeaderCell, { width: '18%' }]}>CERTIFICADO</Text>
-                      <Text style={[s.actHeaderCell, { width: '11%' }]}>EMISIÓN</Text>
-                      <Text style={[s.actHeaderCell, { width: '11%' }]}>VCTO.</Text>
-                      <Text style={[s.actHeaderCell, { width: '12%' }]}>RESULTADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '3%' }]}>#</Text>
+                      <Text style={[s.actHeaderCell, { width: '22%' }]}>EMPRESA</Text>
+                      <Text style={[s.actHeaderCell, { width: '16%' }]}>CERTIFICADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%' }]}>EMISIÓN</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%' }]}>VCTO.</Text>
+                      <Text style={[s.actHeaderCell, { width: '10%' }]}>RESULTADO</Text>
+                      <Text style={[s.actHeaderCell, { width: '19%' }]}>SERVICIO</Text>
                       <Text style={[s.actHeaderCell, { width: '10%', textAlign: 'center' }]}>ESTADO</Text>
                     </View>
                     {data.citvBreakdown.map((cb, i) => (
                       <View key={i} wrap={false}>
                         <View style={[s.actRow, i % 2 === 1 ? s.actRowAlt : {}, cb.alertaKm ? { backgroundColor: '#FEF9E7' } : {}]}>
-                          <Text style={[s.t4CellBold, { width: '4%' }]}>{i + 1}</Text>
-                          <Text style={[s.t4Cell, { width: '26%' }]}>{cb.empresa}</Text>
-                          <Text style={[s.t4Cell, { width: '18%' }]}>{cb.certificado}</Text>
-                          <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaEmision}</Text>
-                          <Text style={[s.t4Cell, { width: '11%' }]}>{cb.fechaVcto}</Text>
-                          <Text style={[s.t4Cell, { width: '12%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
+                          <Text style={[s.t4CellBold, { width: '3%' }]}>{i + 1}</Text>
+                          <Text style={[s.t4Cell, { width: '22%' }]}>{cb.empresa}</Text>
+                          <Text style={[s.t4Cell, { width: '16%' }]}>{cb.certificado}</Text>
+                          <Text style={[s.t4Cell, { width: '10%' }]}>{cb.fechaEmision}</Text>
+                          <Text style={[s.t4Cell, { width: '10%' }]}>{cb.fechaVcto}</Text>
+                          <Text style={[s.t4Cell, { width: '10%' }]}>{cb.resultado}{cb.alertaKm ? ' (!)' : ''}</Text>
+                          <Text style={[s.t4Cell, { width: '19%' }]}>{cb.tipoServicio || '—'}</Text>
                           <View style={{ width: '10%', alignItems: 'center', paddingLeft: 2 }}>
-                            <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.estado} />
+                            <StatusBadge status={cb.alertaKm ? 'WARNING' : cb.alertaObs ? 'CRITICAL' : cb.status} text={cb.alertaKm ? 'REVISAR KM' : cb.alertaObs ? 'REVISAR OBS' : cb.estado} />
                           </View>
                         </View>
                         {cb.observacion && (
