@@ -764,32 +764,6 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                     )}
                   </View>
 
-                  {data.taxFines && data.taxFines.length > 0 && (
-                    <View style={s.taxCriteria}>
-                      <View style={{ ...s.taxCriteriaBox, borderLeftColor: C.red }}>
-                        <Text style={{ ...s.taxCriteriaTitle, color: C.red }}>Multas tributarias ({data.taxFines.length})</Text>
-                        {data.taxFines.map((f, i) => (
-                          <View key={i} style={{ marginTop: i > 0 ? 4 : 2 }}>
-                            <Text style={{ ...s.taxCriteriaText, fontFamily: 'Helvetica-Bold' }}>
-                              Año {f.year} — {f.amount} — {f.statusText}
-                            </Text>
-                            <Text style={s.taxCriteriaText}>{f.detail}</Text>
-                            <Text style={{ ...s.taxCriteriaText, color: '#888' }}>{f.contributor}</Text>
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-
-                  {data.taxPendingSummary && (
-                    <View style={s.taxCriteria}>
-                      <View style={{ ...s.taxCriteriaBox, borderLeftColor: C.red }}>
-                        <Text style={{ ...s.taxCriteriaTitle, color: C.red }}>Cuotas pendientes.</Text>
-                        <Text style={s.taxCriteriaText}>{data.taxPendingSummary}</Text>
-                      </View>
-                    </View>
-                  )}
-
                   {data.taxCriteria && (
                     <View style={s.taxCriteria}>
                       <View style={s.taxCriteriaBox}>
@@ -799,6 +773,29 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                     </View>
                   )}
                 </View>
+
+                {data.taxFines && data.taxFines.length > 0 && (
+                  <View style={{ marginTop: 6 }}>
+                    <View style={s.t4Header}>
+                      <Text style={[s.t4HeaderCell, { width: '10%' }]}>AÑO</Text>
+                      <Text style={[s.t4HeaderCell, { width: '22%' }]}>CONTRIBUYENTE</Text>
+                      <Text style={[s.t4HeaderCell, { width: '13%' }]}>MONTO</Text>
+                      <Text style={[s.t4HeaderCell, { flex: 1 }]}>DETALLE DE MULTA TRIBUTARIA</Text>
+                      <Text style={[s.t4HeaderCell, { width: '12%', textAlign: 'right' }]}>ESTADO</Text>
+                    </View>
+                    {data.taxFines.map((f, i) => (
+                      <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
+                        <Text style={[s.t4CellBold, { width: '10%' }]}>{f.year}</Text>
+                        <Text style={[s.t4Cell, { width: '22%' }]}>{f.contributor || '—'}</Text>
+                        <Text style={[s.t4Cell, { width: '13%' }]}>{f.amount || '—'}</Text>
+                        <Text style={[s.t4Cell, { flex: 1 }]}>{f.detail}</Text>
+                        <View style={{ width: '12%', alignItems: 'flex-end' }}>
+                          <StatusBadge status={f.status} text={f.statusText} />
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
 
                 {/* Tax reminder callout */}
                 {data.taxReminder && (
