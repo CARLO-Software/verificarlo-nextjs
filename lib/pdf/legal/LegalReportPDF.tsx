@@ -445,11 +445,27 @@ function CalloutBox({ status, title, detail }: { status: 'OK' | 'WARNING' | 'CRI
   );
 }
 
-function FourColTable({ headers, widths, rows }: {
+function RichText({ text, style }: { text: string; style: any }) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/);
+  if (parts.length === 1) return <Text style={style}>{text}</Text>;
+  return (
+    <Text style={style}>
+      {parts.map((p, i) =>
+        p.startsWith('**') && p.endsWith('**')
+          ? <Text key={i} style={{ fontFamily: 'Helvetica-Bold' }}>{p.slice(2, -2)}</Text>
+          : p
+      )}
+    </Text>
+  );
+}
+
+function FourColTable({ headers, widths, rows, resultCol }: {
   headers: string[];
   widths: number[];
   rows: { cells: string[]; status?: string; statusText?: string; alt: boolean; detail?: string }[];
+  resultCol?: number;
 }) {
+  const rCol = resultCol ?? -1;
   return (
     <View style={{ marginTop: 6 }}>
       <View style={s.t4Header}>
@@ -462,7 +478,16 @@ function FourColTable({ headers, widths, rows }: {
           <View style={[s.t4Row, row.alt ? s.t4RowAlt : {}]}>
             {row.cells.map((cell, ci) => (
               ci < row.cells.length - 1 ? (
-                <Text key={ci} style={[s.t4Cell, { width: `${widths[ci]}%` }]}>{cell}</Text>
+                ci === rCol ? (
+                  <View key={ci} style={{ width: `${widths[ci]}%` }}>
+                    <RichText text={cell} style={s.t4Cell} />
+                    {row.detail && (
+                      <RichText text={row.detail} style={[s.t4Cell, { color: '#4B5563', fontSize: 6.5, marginTop: 2 }]} />
+                    )}
+                  </View>
+                ) : (
+                  <Text key={ci} style={[s.t4Cell, { width: `${widths[ci]}%` }]}>{cell}</Text>
+                )
               ) : null
             ))}
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -473,7 +498,7 @@ function FourColTable({ headers, widths, rows }: {
               )}
             </View>
           </View>
-          {row.detail && (
+          {row.detail && rCol < 0 && (
             <View style={[s.t4Row, row.alt ? s.t4RowAlt : {}, { paddingTop: 0 }]}>
               <Text style={[s.t4Cell, { width: '100%', color: '#4B5563', fontSize: 6.5 }]}>{row.detail}</Text>
             </View>
@@ -838,6 +863,7 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                 <FourColTable
                   headers={['CONCEPTO', 'ENTIDAD', 'RESULTADO', 'ESTADO']}
                   widths={[15, 15, 52, 18]}
+                  resultCol={2}
                   rows={data.debts.map((d, i) => ({
                     cells: [d.concept, d.entity, d.result, ''],
                     status: d.status,

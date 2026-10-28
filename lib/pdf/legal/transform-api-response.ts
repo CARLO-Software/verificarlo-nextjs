@@ -271,6 +271,10 @@ function cleanResultText(text: string): string {
   return clean;
 }
 
+function boldMontos(text: string): string {
+  return text.replace(/S\/\.?\s*[\d,.]+/g, m => `**${m}**`);
+}
+
 // === CONCEPT BUILDERS (summary badges) ===
 
 function buildOwnerHistory(api: ApiResponse) {
@@ -936,6 +940,12 @@ function buildDebtsTable(api: ApiResponse, now: Date): TableEntry[] {
     debts.push({ concept: 'Verificación de la papeleta', entity: 'SUTRAN', result: 'No se pudo verificar detalle de papeletas.', status: 'PENDING', statusText: 'NO CONSULTADO' });
   }
 
+  for (const d of debts) {
+    if (d.status === 'WARNING' || d.status === 'CRITICAL') {
+      d.result = boldMontos(d.result);
+      if (d.detail) d.detail = boldMontos(d.detail);
+    }
+  }
   return debts;
 }
 
@@ -1414,7 +1424,9 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
           return 0;
         });
         registryFinalCount = entries.length;
-        return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: e.detail }));
+        // Show "Uso" only on the first entry
+        const usoDetail = entries.length > 0 ? entries[0].detail : undefined;
+        return entries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: i === 0 ? usoDetail : undefined }));
       }
 
       // Fallback: asientos_registrales-based logic (when siguelo is unavailable)
@@ -1447,7 +1459,8 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
         return 0;
       });
       registryFinalCount = apiEntries.length;
-      return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: buildEntryDetail(e.title) }));
+      const fallbackUso = apiEntries.length > 0 ? buildEntryDetail(apiEntries[0].title) : undefined;
+      return apiEntries.map((e, i) => ({ number: i + 1, date: e.date, act: e.act, title: e.title, detail: i === 0 ? fallbackUso : undefined }));
     })(),
     ...(() => { const r = buildRegistryNote(api, registryFinalCount); return { registryNote: boldKeyPhrases(r.detail), registryNoteStatus: r.status as 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING', registryNoteTitle: r.title }; })(),
 
