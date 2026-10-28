@@ -96,35 +96,9 @@
   color: var(--shark--700);
 }
 
-/* Hamburger en modo servicios */
-.navbarServices .hamburger-line {
-  background-color: var(--shark--950);
-}
-
 /* Cambiar colores de texto cuando es transparente (solo en Hero, sin scroll ni solid) */
 .navbar:not(.navbarScrolled):not(.navbarSolid) .navbar-text {
   color: var(--basics--white);
-}
-
-.navbar:not(.navbarScrolled):not(.navbarSolid) .icon {
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.navbar:not(.navbarScrolled):not(.navbarSolid) .icon img {
-  filter: brightness(0) invert(1);
-}
-
-.navbar:not(.navbarScrolled):not(.navbarSolid) .hamburger-line {
-  background-color: black;
-}
-
-.navbar:not(.navbarScrolled):not(.navbarSolid) .login-button {
-  color: var(--basics--white);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.navbar:not(.navbarScrolled):not(.navbarSolid) .login-button:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 /* ============================================
@@ -140,43 +114,6 @@
   height: 26px;
   width: auto;
   object-fit: contain;
-}
-
-.logo-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  display: flex;
-}
-
-/* VERIFI - color crema */
-.logo-verifi {
-  color: #FFE14C;
-  transition: color 0.4s ease;
-  font-size: 28px;
-  font-weight: 700;
-  font-style: italic;
-}
-
-/* CARLO - color blanco */
-.logo-carlo {
-  color: #FFFFFF;
-  transition: color 0.4s ease;
-  font-size: 28px;
-  font-weight: 500;
-  font-style: italic;
-}
-
-/* Logo en modo con scroll o sólido (colores oscuros) */
-.navbarScrolled .logo-verifi,
-.navbarSolid .logo-verifi {
-  color: #C9A86C;
-}
-
-.navbarScrolled .logo-carlo,
-.navbarSolid .logo-carlo {
-  color: #1F2937;
 }
 
 /* User button en modo transparente (solo en Hero) */
@@ -280,43 +217,6 @@
   font-weight: 500;
   line-height: 110%;
   text-decoration: none;
-}
-
-.icon {
-  grid-column-gap: 8px;
-  border: .5px solid var(--shark--700);
-  border-radius: 100px;
-  flex: 0 auto;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 8px;
-  text-decoration: none;
-  display: flex;
-}
-
-/* CTA Principal - Agendar inspección */
-.primary-cta {
-  grid-column-gap: 10px;
-  background-color: var(--bright-sun--400, #FACC15);
-  color: var(--shark--950);
-  text-align: center;
-  letter-spacing: -.03px;
-  border-radius: 100px;
-  flex: 0 auto;
-  justify-content: center;
-  align-items: center;
-  padding: 12px 20px;
-  font-family: Inter, sans-serif;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 100%;
-  text-decoration: none;
-  align-content: center;
-  border: none;
-}
-
-.primary-cta:hover {
-  background-color: var(--bright-sun--500, #EAB308);
 }
 
 /* CTA Secundario - Registrarse (con animaciones premium) */
@@ -464,28 +364,6 @@
 /* ============================================
    AUTH SECTION STYLES
    ============================================ */
-.auth-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-}
-
-.loading-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--shark--200);
-  border-top-color: var(--shark--950);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* User Menu */
 .user-menu {
   position: relative;
@@ -655,28 +533,6 @@
   background: #fef2f2;
 }
 
-/* Auth Buttons */
-.auth-button {
-  padding: 10px 20px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 100px;
-  transition: all 0.2s ease;
-}
-
-.login-button {
-  color: var(--shark--950);
-  background: transparent;
-  border: 1px solid var(--shark--300);
-}
-
-.login-button:hover {
-  background: var(--shark--50);
-  border-color: var(--shark--400);
-}
-
 /* ============================================
    HAMBURGER BUTTON (oculto en PC)
    ============================================ */
@@ -695,28 +551,6 @@
   cursor: pointer;
   padding: 10px;
   z-index: 1001;
-}
-
-.hamburger-line {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background-color: var(--shark--950);
-  border-radius: 2px;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-/* Animación X cuando está abierto */
-.line-1-active {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.line-2-active {
-  opacity: 0;
-}
-
-.line-3-active {
-  transform: translateY(-7px) rotate(-45deg);
 }
 
 /* ============================================
@@ -1063,22 +897,8 @@
     color: var(--bright-sun--600) !important;
   }
 
-  /* Botones CTA ocupan todo el ancho */
-  .primary-cta,
+  /* Botón CTA ocupa todo el ancho */
   .secondary-cta {
-    width: 100%;
-    text-align: center;
-  }
-
-  /* Auth buttons en columna */
-  .navbar-box>div.flex {
-    flex-direction: column;
-    width: 100%;
-    gap: 12px;
-  }
-
-  .auth-button,
-  .login-button {
     width: 100%;
     text-align: center;
   }

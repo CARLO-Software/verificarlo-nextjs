@@ -396,23 +396,6 @@
   letter-spacing: 0.06em;
 }
 
-.docBigValue {
-  display: flex;
-  align-items: baseline;
-  gap: 9px;
-}
-
-.bigNum {
-  font: 800 32px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  letter-spacing: -0.03em;
-}
-
-.bigLabel {
-  font: 500 14px 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.7);
-}
-
 .docRows {
   display: flex;
   flex-direction: column;
@@ -869,27 +852,11 @@
   color: #1c1d22;
 }
 
-.summaryRows {
-  padding: 0 18px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .summaryRow {
   display: flex;
   justify-content: space-between;
   font: 400 13px 'DM Sans', sans-serif;
   color: rgba(26, 27, 31, 0.7);
-}
-
-.summaryRowHighlight {
-  color: #8A6A00;
-}
-
-.summaryDivider {
-  height: 1px;
-  background: rgba(26, 27, 31, 0.08);
 }
 
 .summaryTotal {
@@ -979,126 +946,6 @@
 .scheduleLabel {
   font: 500 11px 'DM Sans', sans-serif;
   color: rgba(26, 27, 31, 0.6);
-}
-
-/* Payment methods */
-.paymentSection {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.paymentTitle {
-  font: 700 14px 'DM Sans', sans-serif;
-  color: #1c1d22;
-  padding: 2px 0;
-}
-
-.payOption {
-  cursor: pointer;
-  border-radius: 13px;
-  background: #fff;
-  border: 1.5px solid rgba(26, 27, 31, 0.15);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  width: 100%;
-  text-align: left;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.payOptionActive {
-  border-color: #16171b;
-  background: rgba(26, 27, 31, 0.03);
-}
-
-.payRadio {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid rgba(26, 27, 31, 0.25);
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.payRadioActive {
-  border-color: #16171b;
-}
-
-.payRadioDot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #16171b;
-}
-
-.payBrandYape {
-  flex: none;
-  width: 38px;
-  height: 28px;
-  border-radius: 7px;
-  background: #742284;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 800 10.5px 'DM Sans', sans-serif;
-  color: #fff;
-}
-
-.payBrandPlin {
-  flex: none;
-  width: 34px;
-  height: 28px;
-  border-radius: 7px;
-  background: #0FB8B0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 800 10.5px 'DM Sans', sans-serif;
-  color: #fff;
-}
-
-.payBrandBcp {
-  flex: none;
-  width: 38px;
-  height: 28px;
-  border-radius: 7px;
-  background: #00427A;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font: 800 10.5px 'DM Sans', sans-serif;
-  color: #fff;
-}
-
-.payOptionInfo {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.payOptionName {
-  font: 700 13.5px 'DM Sans', sans-serif;
-  color: #1c1d22;
-}
-
-.payOptionDesc {
-  font: 400 11.5px 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.68);
-}
-
-.paySecure {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font: 400 12px 'DM Sans', sans-serif;
-  color: rgba(26, 27, 31, 0.68);
-  padding-bottom: 8px;
 }
 
 /* ============================================
@@ -1417,10 +1264,6 @@
     font-size: 18px;
   }
 
-  .bigNum {
-    font-size: 40px;
-  }
-
   .docRow {
     font-size: 14px;
   }
@@ -1659,13 +1502,6 @@
   border: 1px solid rgba(26, 27, 31, 0.08);
   border-radius: 12px;
   margin: 16px 0;
-}
-
-.checkoutError {
-  color: #dc2626;
-  font-size: 13px;
-  text-align: center;
-  margin-top: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {

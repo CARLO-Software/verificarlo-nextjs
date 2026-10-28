@@ -82,7 +82,6 @@ const nextConfig = {
       'lucide-react',
       '@phosphor-icons/react',
       'date-fns',
-      'framer-motion',
       'zod',
     ],
   },
