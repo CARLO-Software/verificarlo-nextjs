@@ -49,6 +49,7 @@ export interface LegalReportData {
   liensSource?: string;
   taxYears?: { year: string; contributor: string; amount: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; statusText: string }[];
   taxPendingSummary?: string;
+  taxFines?: { year: string; contributor: string; amount: string; detail: string; status: 'OK' | 'WARNING' | 'CRITICAL' | 'PENDING'; statusText: string }[];
   taxCriteria?: string;
   taxReminder?: string;
   taxSource?: string;
@@ -319,11 +320,11 @@ const s = StyleSheet.create({
 
   // 4-col table
   t4Header: { flexDirection: 'row', backgroundColor: C.yellow, paddingVertical: 4, paddingHorizontal: 6, alignItems: 'center'},
-  t4HeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingRight: 4 },
+  t4HeaderCell: { fontFamily: 'Helvetica-Bold', fontSize: 6, color: C.dark, letterSpacing: 0.3, paddingHorizontal: 6 },
   t4Row: { flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 4, borderBottomWidth: 0.5, borderBottomColor: C.border, alignItems: 'center', backgroundColor: C.darkGrayRow },
   t4RowAlt: { backgroundColor: C.lightGrayRow },
-  t4Cell: { fontSize: 6.5, color: C.text, paddingRight: 4 },
-  t4CellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text },
+  t4Cell: { fontSize: 6.5, color: C.text, paddingHorizontal: 6 },
+  t4CellBold: { fontFamily: 'Helvetica-Bold', fontSize: 6.5, color: C.text, paddingHorizontal: 6 },
 
   // Tax section side-by-side
   taxContainer: { flexDirection: 'row', marginTop: 4/* gap:0 not supported */ },
@@ -726,7 +727,7 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
             <SourceLine text={data.liensSource || 'SUNARP · SIGM'} />
 
             {/* TAX */}
-            {(data.taxYears || data.taxCriteria || data.taxReminder) && (
+            {(data.taxYears || data.taxFines?.length || data.taxCriteria || data.taxReminder) && (
               <>
                 <SectionBanner
                   type="dark"
@@ -748,8 +749,8 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                         {data.taxYears.map((ty, i) => (
                           <View key={i} style={[s.t4Row, i % 2 === 1 ? s.t4RowAlt : {}]} wrap={false}>
                             <Text style={[s.t4CellBold, { width: '15%' }]}>{ty.year}</Text>
-                            <Text style={[s.t4Cell, { width: '35%' }]}>{ty.contributor}</Text>
-                            <Text style={[s.t4Cell, { width: '20%' }]}>{ty.amount}</Text>
+                            <Text style={[s.t4Cell, { width: '35%' }]}>{ty.contributor || '—'}</Text>
+                            <Text style={[s.t4Cell, { width: '20%' }]}>{ty.amount || '—'}</Text>
                             <View style={{ flex: 1, alignItems: 'flex-end' }}>
                               <StatusBadge status={ty.status} text={ty.statusText} />
                             </View>
@@ -762,6 +763,23 @@ export default function LegalReportPDF({ data, isExample }: { data: LegalReportD
                       </View>
                     )}
                   </View>
+
+                  {data.taxFines && data.taxFines.length > 0 && (
+                    <View style={s.taxCriteria}>
+                      <View style={{ ...s.taxCriteriaBox, borderLeftColor: C.red }}>
+                        <Text style={{ ...s.taxCriteriaTitle, color: C.red }}>Multas tributarias ({data.taxFines.length})</Text>
+                        {data.taxFines.map((f, i) => (
+                          <View key={i} style={{ marginTop: i > 0 ? 4 : 2 }}>
+                            <Text style={{ ...s.taxCriteriaText, fontFamily: 'Helvetica-Bold' }}>
+                              Año {f.year} — {f.amount} — {f.statusText}
+                            </Text>
+                            <Text style={s.taxCriteriaText}>{f.detail}</Text>
+                            <Text style={{ ...s.taxCriteriaText, color: '#888' }}>{f.contributor}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </View>
+                  )}
 
                   {data.taxPendingSummary && (
                     <View style={s.taxCriteria}>

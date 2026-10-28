@@ -56,6 +56,7 @@ interface ApiResponse {
     anios: { anio: string; estado: string; semaforo: string; contribuyente?: string; monto?: string }[];
     criterio_aplicado?: string;
     recordatorio?: string;
+    multas_tributarias?: { anio: string; monto: string; estado: string; detalle: string; contribuyente: string }[];
   };
   deudas_multas_capturas?: { fuente: string; resultado: string; semaforo: string; detalle?: string }[];
   seguros_revision_siniestros?: { concepto: string; resultado: string; semaforo: string }[];
@@ -379,7 +380,10 @@ function buildImpuesto(api: ApiResponse) {
   const years = Array.from(byYear.entries()).sort(([a], [b]) => a.localeCompare(b));
   const allPaid = years.every(([, v]) => v.paid === v.total);
 
-  if (allPaid) {
+  const multas = imp.multas_tributarias || [];
+  const hasFines = multas.length > 0;
+
+  if (allPaid && !hasFines) {
     const parts = years.map(([y, v]) =>
       v.total === 1 ? `Año ${y} pagado` : `Año ${y} con las ${v.total} cuotas pagadas`
     );
@@ -399,10 +403,14 @@ function buildImpuesto(api: ApiResponse) {
     else if (v.paid === 0) parts.push(`Año ${y} con las ${v.total} cuotas pendientes`);
     else parts.push(`Año ${y} con ${unpaid} de ${v.total} cuotas pendientes`);
   }
+  if (hasFines) {
+    parts.push(`Además, ${multas.length} multa${multas.length !== 1 ? 's' : ''} tributaria${multas.length !== 1 ? 's' : ''} pendiente${multas.length !== 1 ? 's' : ''}`);
+  }
 
+  const hasDebt = pendingYears.length > 0 || hasFines;
   return {
-    status: (paidYears.length > 0 ? 'WARNING' : 'CRITICAL') as FieldStatus,
-    badgeText: paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA',
+    status: (hasDebt ? (paidYears.length > 0 && pendingYears.length > 0 ? 'WARNING' : 'CRITICAL') : (hasFines ? 'WARNING' : 'OK')) as FieldStatus,
+    badgeText: !hasDebt && !hasFines ? 'PAGADO' : (pendingYears.length === 0 && hasFines ? 'CON MULTA' : (paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA')),
     text: parts.join('. ') + '.',
   };
 }
@@ -1480,6 +1488,14 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
       if (allPaid) return '';
       return api.impuesto_vehicular?.recordatorio || '**Requisito de transferencia:** el pago del impuesto vehicular es un requisito para la transferencia vehicular notarial. Cualquier deuda pendiente debe regularizarse antes de realizar la transferencia.';
     })(),
+    taxFines: (api.impuesto_vehicular?.multas_tributarias || []).map(m => ({
+      year: m.anio,
+      contributor: m.contribuyente,
+      amount: m.monto,
+      detail: m.detalle,
+      status: ((m.estado || '').toLowerCase().includes('pendiente') ? 'WARNING' : 'OK') as FieldStatus,
+      statusText: (m.estado || '').toUpperCase(),
+    })),
     taxSource: 'SAT — Lima',
 
     debts: buildDebtsTable(api, now),
