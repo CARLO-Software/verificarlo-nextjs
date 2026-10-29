@@ -705,6 +705,16 @@ function buildTransportes(api: ApiResponse) {
     const svc = svcMatch ? svcMatch[1] : 'servicio de transporte';
     return { status: 'WARNING' as FieldStatus, badgeText: 'CON PAPELETA ATU', text: `Uso particular (${cat}), pero registra infracción ATU por ${svc}. Ver detalle en sección Deudas.` };
   }
+  const sigTitulos = api.datos_crudos?.siguelo?.titulos || api.datos_crudos?.sunarp?.siguelo?.titulos || [];
+  const usoPublicoKeywords = ['taxi', 'colectivo', 'transporte', 'servicio público', 'urbano', 'interurbano'];
+  const asientoConUsoPublico = sigTitulos.find(t => {
+    const tipoUso = String(t.tipo_uso || '').toLowerCase();
+    return tipoUso && usoPublicoKeywords.some(k => tipoUso.includes(k));
+  });
+  if (asientoConUsoPublico) {
+    const tipoUso = String(asientoConUsoPublico.tipo_uso).trim();
+    return { status: 'WARNING' as FieldStatus, badgeText: 'INCONSISTENCIA', text: `Tarjeta de propiedad indica uso ${v?.uso || 'particular'} (${cat}), pero un asiento registral indica "${tipoUso}". Verificar uso real del vehículo antes de la compra.` };
+  }
   if (uso.includes('particular'))
     return { status: 'OK' as FieldStatus, badgeText: 'OK', text: `No pertenece a transporte público; uso particular (${cat}).` };
   return { status: 'OK' as FieldStatus, badgeText: 'OK', text: 'Uso particular, sin pertenencia a transporte público.' };
