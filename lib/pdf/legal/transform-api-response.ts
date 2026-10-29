@@ -713,7 +713,7 @@ function buildTransportes(api: ApiResponse) {
   });
   if (asientoConUsoPublico) {
     const tipoUso = String(asientoConUsoPublico.tipo_uso).trim();
-    return { status: 'WARNING' as FieldStatus, badgeText: 'INCONSISTENCIA', text: `El vehículo está registrado en SUNARP como uso de ${tipoUso}.` };
+    return { status: 'WARNING' as FieldStatus, badgeText: 'TAXI', text: `El vehículo está registrado en SUNARP como uso de ${tipoUso}.` };
   }
   if (uso.includes('particular'))
     return { status: 'OK' as FieldStatus, badgeText: 'OK', text: `No pertenece a transporte público; uso particular (${cat}).` };
