@@ -1532,15 +1532,20 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
           }
         }
         if (yearMap.size > 0) {
+          const aniosLookup = new Map((api.impuesto_vehicular?.anios || []).map(a => [a.anio, a]));
           return Array.from(yearMap.entries())
             .sort(([a], [b]) => a.localeCompare(b))
-            .map(([year, info]) => ({
-              year,
-              contributor: info.contributor,
-              amount: info.amount > 0 ? `S/ ${info.amount.toFixed(2)}` : '',
-              status: (info.unpaid === 0 ? 'OK' : 'WARNING') as FieldStatus,
-              statusText: info.unpaid === 0 ? 'PAGADO' : 'PENDIENTE',
-            }));
+            .map(([year, info]) => {
+              const anio = aniosLookup.get(year);
+              const debt = anio ? sumPendingDebt(anio.cuotas) : 0;
+              return {
+                year,
+                contributor: info.contributor,
+                amount: info.amount > 0 ? `S/ ${info.amount.toFixed(2)}` : '',
+                status: (info.unpaid === 0 ? 'OK' : 'WARNING') as FieldStatus,
+                statusText: info.unpaid === 0 ? 'PAGADO' : (debt > 0 ? `DEUDA S/ ${debt.toFixed(2)}` : 'PENDIENTE'),
+              };
+            });
         }
       }
       const anios = api.impuesto_vehicular?.anios || [];
