@@ -412,7 +412,8 @@ function buildImpuesto(api: ApiResponse) {
   const allPaid = years.every(([, v]) => v.paid === v.total);
 
   const multas = imp.multas_tributarias || [];
-  const hasFines = multas.length > 0;
+  const multasPendientes = multas.filter(m => !/pagado/i.test(m.estado));
+  const hasFines = multasPendientes.length > 0;
 
   if (allPaid && !hasFines) {
     const parts = years.map(([y, v]) =>
@@ -439,7 +440,7 @@ function buildImpuesto(api: ApiResponse) {
     else parts.push(`Año ${y} con ${unpaid} de ${v.total} cuotas pendientes`);
   }
   if (hasFines) {
-    parts.push(`Además, ${multas.length} multa${multas.length !== 1 ? 's' : ''} tributaria${multas.length !== 1 ? 's' : ''} pendiente${multas.length !== 1 ? 's' : ''}`);
+    parts.push(`Además, ${multasPendientes.length} multa${multasPendientes.length !== 1 ? 's' : ''} tributaria${multasPendientes.length !== 1 ? 's' : ''} pendiente${multasPendientes.length !== 1 ? 's' : ''}`);
   }
 
   const hasDebt = pendingYears.length > 0 || hasFines;
