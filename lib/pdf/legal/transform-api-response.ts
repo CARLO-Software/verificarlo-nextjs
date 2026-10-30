@@ -53,7 +53,7 @@ interface ApiResponse {
   };
   gravamenes?: { estado: string; semaforo: string; detalle: string };
   impuesto_vehicular?: {
-    anios: { anio: string; estado: string; semaforo: string; contribuyente?: string; monto?: string }[];
+    anios: { anio: string; estado: string; semaforo: string; contribuyente?: string; monto?: string; cuotas?: { cuota: string; monto: string; pagado: string; deuda: string; estado: string; pendiente: boolean; vencimiento: string }[] }[];
     criterio_aplicado?: string;
     recordatorio?: string;
     multas_tributarias?: { anio: string; monto: string; estado: string; detalle: string; contribuyente: string }[];
@@ -375,6 +375,13 @@ function buildCaptura(api: ApiResponse) {
   return { status, badgeText: status === 'OK' ? 'OK' : 'CON CAPTURA', text: status === 'OK' ? 'No presenta orden de captura.' : cleanResultText(d.resultado) };
 }
 
+function sumPendingDebt(cuotas?: { deuda: string; pendiente: boolean }[]): number {
+  if (!cuotas || cuotas.length === 0) return 0;
+  return cuotas
+    .filter(c => c.pendiente)
+    .reduce((sum, c) => sum + parseFloat((c.deuda || '0').replace(/[^0-9.,]/g, '').replace(',', '.')), 0);
+}
+
 function buildImpuesto(api: ApiResponse) {
   const imp = api.impuesto_vehicular;
   if (!imp || imp.anios.length === 0) {
@@ -448,7 +455,14 @@ function buildImpuesto(api: ApiResponse) {
     badgeText = 'PAGADO';
   } else {
     status = paidYears.length > 0 && pendingYears.length > 0 ? 'WARNING' : 'CRITICAL';
-    badgeText = pendingYears.length === 0 && hasFines ? 'CON MULTA' : (paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA');
+    if (pendingYears.length === 0 && hasFines) {
+      badgeText = 'CON MULTA';
+    } else {
+      const totalDebt = imp.anios.reduce((s, a) => s + sumPendingDebt(a.cuotas), 0);
+      badgeText = totalDebt > 0
+        ? `DEUDA S/ ${totalDebt.toFixed(2)}`
+        : (paidYears.length > 0 ? 'PARCIAL' : 'CON DEUDA');
+    }
   }
 
   return { status, badgeText, text: parts.join('. ') + '.' };
@@ -1542,7 +1556,11 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
         else if (estado.includes('no exigible')) { status = 'PENDING'; statusText = 'NO EXIGIBLE'; }
         else if (estado.includes('vencer')) { status = 'WARNING'; statusText = 'POR VENCER'; }
         else if (a.semaforo === 'gris' && !estado.includes('pendiente')) { status = 'PENDING'; statusText = 'SIN REGISTRO'; }
-        else { status = 'WARNING'; statusText = 'PENDIENTE'; }
+        else {
+          status = 'WARNING';
+          const debt = sumPendingDebt(a.cuotas);
+          statusText = debt > 0 ? `DEUDA S/ ${debt.toFixed(2)}` : 'PENDIENTE';
+        }
         return { year: a.anio, contributor: a.contribuyente || '', amount: monto, status, statusText };
       });
     })(),
@@ -1551,11 +1569,11 @@ export function transformApiResponse(api: ApiResponse, plate: string): LegalRepo
       const pendientes = anios.filter(a => a.semaforo !== 'verde' && a.semaforo !== 'gris');
       if (pendientes.length === 0) return undefined;
       const items = pendientes.map(a => {
-        const monto = a.monto || '';
-        return monto ? `${a.anio} (${monto})` : a.anio;
+        const debt = sumPendingDebt(a.cuotas);
+        const debtStr = debt > 0 ? `S/ ${debt.toFixed(2)}` : (a.monto || '');
+        return debtStr ? `${a.anio} (${debtStr})` : a.anio;
       });
-      const montos = pendientes.map(a => parseFloat((a.monto || '0').replace(/[^0-9.,]/g, '').replace(',', '.')));
-      const total = montos.reduce((s, m) => s + m, 0);
+      const total = pendientes.reduce((s, a) => s + sumPendingDebt(a.cuotas), 0);
       const totalStr = total > 0 ? ` Total adeudado: S/ ${total.toFixed(2)}.` : '';
       return `${items.join(', ')}.${totalStr}`;
     })(),
