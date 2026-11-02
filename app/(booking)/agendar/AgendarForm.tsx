@@ -454,14 +454,6 @@ export default function AgendarForm({
           =================================================================== */}
       <main className={styles.formContainer}>
         <div className={styles.formContent}>
-          {/* Header */}
-          <div className={styles.formHeader}>
-            <h1 className={styles.formTitle}>Agenda tu inspección</h1>
-            <p className={styles.formSubtitle}>
-              Completa los siguientes pasos para reservar tu cita
-            </p>
-          </div>
-
           {/* Línea de tiempo */}
           <StepTimeline currentStep={currentStep} />
 

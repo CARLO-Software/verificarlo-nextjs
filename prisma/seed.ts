@@ -24,10 +24,10 @@ async function seedBrands(): Promise<Map<string, number>> {
   for (const brandName of uniqueBrands) {
     await prisma.brand.upsert({
       where: { name: brandName },
-      update: { logo: `/assets/icons/${brandName.toLowerCase()}.svg` },
+      update: { logo: `/assets/icons/marcas/${brandName.toLowerCase()}.svg` },
       create: {
         name: brandName,
-        logo: `/assets/icons/${brandName.toLowerCase()}.svg`,
+        logo: `/assets/icons/marcas/${brandName.toLowerCase()}.svg`,
       },
     });
   }

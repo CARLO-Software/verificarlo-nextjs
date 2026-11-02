@@ -276,8 +276,7 @@ export default function VehicleLocationForm({
     <div className={styles.container}>
       <h2 className={styles.title}>¿Qué auto revisamos y dónde?</h2>
       <p className={styles.subtitle}>
-        Ingresa los datos del vehículo y la dirección donde realizaremos la
-        inspección
+        Necesitamos los datos para asignar al perito más cercano a la ubicación del vehículo.
       </p>
 
       {/* =================================================================
@@ -287,11 +286,8 @@ export default function VehicleLocationForm({
         <h3 className={styles.sectionTitle}>Datos del vehículo</h3>
 
         <div className={styles.formGrid}>
-          {/* MARCA */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              Marca <span className={styles.required}>*</span>
-            </label>
+          {/* MARCA (full width) */}
+          <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
             <div className={styles.dropdownContainer}>
               <input
                 type="text"
@@ -302,8 +298,8 @@ export default function VehicleLocationForm({
                 }}
                 onFocus={() => setShowBrands(true)}
                 onBlur={() => setTimeout(() => setShowBrands(false), 200)}
-                placeholder="Buscar marca..."
-                className={styles.input}
+                placeholder="Marca *"
+                className={styles.inputWithArrow}
                 aria-required="true"
               />
               {showBrands && filteredBrands.length > 0 && (
@@ -327,106 +323,110 @@ export default function VehicleLocationForm({
             </div>
           </div>
 
-          {/* MODELO */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              Modelo <span className={styles.required}>*</span>
-            </label>
-            <div className={styles.dropdownContainer}>
-              <input
-                type="text"
-                value={modelQuery}
-                onChange={(e) => {
-                  setModelQuery(e.target.value);
-                  setShowModels(true);
-                }}
-                onFocus={() => setShowModels(true)}
-                onBlur={() => setTimeout(() => setShowModels(false), 200)}
-                placeholder={loadingModels ? "Cargando..." : "Buscar modelo..."}
-                disabled={!vehicleData.brandId || loadingModels}
-                className={styles.input}
-                aria-required="true"
-              />
-              {showModels && filteredModels.length > 0 && (
-                <div className={styles.dropdown}>
-                  {filteredModels.map((model) => (
-                    <div
-                      key={model.id}
-                      onClick={() => handleModelSelect(model)}
-                      className={styles.dropdownItem}
-                    >
-                      <span>{model.name}</span>
-                    </div>
+          {/* MODELO + AÑO en 2 columnas */}
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <div className={styles.dropdownContainer}>
+                <input
+                  type="text"
+                  value={modelQuery}
+                  onChange={(e) => {
+                    setModelQuery(e.target.value);
+                    setShowModels(true);
+                  }}
+                  onFocus={() => setShowModels(true)}
+                  onBlur={() => setTimeout(() => setShowModels(false), 200)}
+                  placeholder={loadingModels ? "Cargando..." : "Modelo *"}
+                  disabled={!vehicleData.brandId || loadingModels}
+                  className={styles.input}
+                  aria-required="true"
+                />
+                {showModels && filteredModels.length > 0 && (
+                  <div className={styles.dropdown}>
+                    {filteredModels.map((model) => (
+                      <div
+                        key={model.id}
+                        onClick={() => handleModelSelect(model)}
+                        className={styles.dropdownItem}
+                      >
+                        <span>{model.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.formGroup}>
+              {isOtherYear ? (
+                <>
+                  <input
+                    type="text"
+                    value={manualYearInput}
+                    onChange={(e) => handleManualYearInput(e.target.value)}
+                    placeholder="Año *"
+                    maxLength={4}
+                    className={styles.input}
+                    aria-required="true"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOtherYear(false);
+                      setManualYearInput("");
+                      onVehicleChange({ ...vehicleData, year: null });
+                    }}
+                    className={styles.linkButton}
+                  >
+                    ← Volver a la lista
+                  </button>
+                </>
+              ) : (
+                <select
+                  value={vehicleData.year || ""}
+                  onChange={(e) => handleYearChange(e.target.value)}
+                  disabled={!vehicleData.modelId}
+                  className={styles.select}
+                  aria-required="true"
+                >
+                  <option value="">Año *</option>
+                  {getAvailableYears().map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
                   ))}
-                </div>
+                  <option value="other">Otro (escribir manualmente)</option>
+                </select>
               )}
             </div>
           </div>
 
-          {/* AÑO */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>
-              Año <span className={styles.required}>*</span>
-            </label>
-            {isOtherYear ? (
-              <>
-                <input
-                  type="text"
-                  value={manualYearInput}
-                  onChange={(e) => handleManualYearInput(e.target.value)}
-                  placeholder="Escribe el año (ej. 2018)"
-                  maxLength={4}
-                  className={styles.input}
-                  aria-required="true"
-                  autoFocus
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOtherYear(false);
-                    setManualYearInput("");
-                    onVehicleChange({ ...vehicleData, year: null });
-                  }}
-                  className={styles.linkButton}
-                >
-                  ← Volver a la lista
-                </button>
-              </>
-            ) : (
-              <select
-                value={vehicleData.year || ""}
-                onChange={(e) => handleYearChange(e.target.value)}
-                disabled={!vehicleData.modelId}
-                className={styles.select}
-                aria-required="true"
-              >
-                <option value="">Seleccionar año</option>
-                {getAvailableYears().map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-                <option value="other">Otro (escribir manualmente)</option>
-              </select>
-            )}
-          </div>
+          {/* PLACA + KILOMETRAJE en 2 columnas */}
+          <div className={styles.formRow}>
+            <div className={styles.formGroup}>
+              <input
+                type="text"
+                value={vehicleData.plate}
+                onChange={(e) =>
+                  onVehicleChange({
+                    ...vehicleData,
+                    plate: formatPlate(e.target.value),
+                  })
+                }
+                placeholder="Placa del vehículo"
+                maxLength={7}
+                className={styles.input}
+              />
+            </div>
 
-          {/* PLACA (opcional) */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Placa (opcional)</label>
-            <input
-              type="text"
-              value={vehicleData.plate}
-              onChange={(e) =>
-                onVehicleChange({
-                  ...vehicleData,
-                  plate: formatPlate(e.target.value),
-                })
-              }
-              placeholder="ABC-123"
-              maxLength={7}
-              className={styles.input}
-            />
+            <div className={styles.formGroup}>
+              <input
+                type="text"
+                placeholder="Kilometraje"
+                className={styles.input}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -440,9 +440,6 @@ export default function VehicleLocationForm({
         <div className={styles.formGrid}>
           {/* DISTRITO */}
           <div className={styles.formGroup}>
-            <label className={styles.label}>
-              Distrito <span className={styles.required}>*</span>
-            </label>
             <div className={styles.dropdownContainer}>
               <input
                 type="text"
@@ -453,7 +450,7 @@ export default function VehicleLocationForm({
                 }}
                 onFocus={() => setShowDistricts(true)}
                 onBlur={() => setTimeout(() => setShowDistricts(false), 200)}
-                placeholder="Selecciona o busca un distrito..."
+                placeholder="Distrito de visita *"
                 className={styles.input}
                 aria-required="true"
               />
@@ -482,9 +479,6 @@ export default function VehicleLocationForm({
 
           {/* DIRECCIÓN EXACTA - Google Places Autocomplete */}
           <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-            <label className={styles.label}>
-              Dirección exacta <span className={styles.required}>*</span>
-            </label>
             <AddressAutocomplete
               value={addressInput}
               onChange={(value) => {
@@ -495,7 +489,7 @@ export default function VehicleLocationForm({
                 });
               }}
               onPlaceSelect={handlePlaceSelect}
-              placeholder="Busca tu dirección..."
+              placeholder="Dirección exacta *"
               disabled={!locationData.districtId}
               required
             />
