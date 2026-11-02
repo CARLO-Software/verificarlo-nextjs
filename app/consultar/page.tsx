@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import ConsultarClient from "./ConsultarClient";
+import ResultClient from "./ResultClient";
 
 export default async function ConsultarPage({
   searchParams,
@@ -9,5 +9,5 @@ export default async function ConsultarPage({
   const { placa } = await searchParams;
   if (!placa) redirect("/");
 
-  return <ConsultarClient placa={placa.toUpperCase()} />;
+  return <ResultClient initialPlaca={placa.toUpperCase()} />;
 }

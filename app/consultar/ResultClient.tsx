@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import styles from "../consultar/Consultar.module.css";
-import demo from "./DemoHero.module.css";
+import styles from "./Consultar.module.css";
+import demo from "./Result.module.css";
 
 const STEPS = [
   "Consultando SUNARP...",
@@ -76,29 +76,29 @@ function isExpired(fechaVcto: string | undefined): boolean {
   return new Date(`${y}-${m}-${d}T23:59:59`) < new Date();
 }
 
-function buildFindings(consultar: any): { icon: string; label: string; danger: boolean }[] {
-  const findings: { icon: string; label: string; danger: boolean }[] = [];
+function buildFindings(consultar: any): { icon: string; label: string; variant: "danger" | "green" | "yellow" }[] {
+  const findings: { icon: string; label: string; variant: "danger" | "green" | "yellow" }[] = [];
 
   const soat = consultar?.sbs_soat;
   if (soat) {
     const expired = isExpired(soat.vencimiento);
-    findings.push({ icon: "⊘", label: expired ? "SOAT Vencido" : "SOAT Vigente", danger: expired });
+    findings.push({ icon: expired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg", label: expired ? "SOAT Vencido" : "SOAT Vigente", variant: expired ? "danger" : "green" });
   }
 
   const siniestros = consultar?.siniestros_soat || consultar?.sbs_siniestros;
   if (siniestros && !siniestros.sin_resultados) {
     const count = siniestros.cantidad || siniestros.siniestros?.length || 1;
-    findings.push({ icon: "🚗", label: `${count} siniestro${count > 1 ? "s" : ""} registrado${count > 1 ? "s" : ""}`, danger: true });
+    findings.push({ icon: "/assets/icons/vista-previa-reporte-legal/Shield.svg", label: `${count} siniestro${count > 1 ? "s" : ""} registrado${count > 1 ? "s" : ""}`, variant: "danger" });
   }
 
   const nOwners = countOwners(consultar);
   if (nOwners > 0) {
-    findings.push({ icon: "👤", label: `${nOwners} propietario${nOwners > 1 ? "s" : ""}`, danger: false });
+    findings.push({ icon: "/assets/icons/vista-previa-reporte-legal/propietarios.svg", label: `${nOwners} propietario${nOwners > 1 ? "s" : ""}`, variant: "yellow" });
   }
 
   const gar = consultar?.sunarp_garantias;
   if (gar && !gar.sin_resultados) {
-    findings.push({ icon: "⚠", label: "Con gravámenes", danger: true });
+    findings.push({ icon: "/assets/icons/vista-previa-reporte-legal/Shield.svg", label: "Con gravámenes", variant: "danger" });
   }
 
   return findings;
@@ -186,7 +186,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
   };
 
   const reset = () => {
-    window.location.href = "/demo";
+    window.location.href = "/";
   };
 
   const handleDownloadExample = async () => {
@@ -278,7 +278,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
     const siniestros = previewData.consultar?.siniestros_soat || previewData.consultar?.sbs_siniestros;
     const nSiniestros = siniestros?.cantidad || siniestros?.siniestros?.length || (siniestros && !siniestros.sin_resultados ? 1 : 0);
     return (
-      <div style={{ minHeight: "100vh", background: "#f5f5f3", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
         {/* Banner */}
         <div className={demo.promoBanner}>
           🔥 <em>20% de descuento en Inspección Premium</em>
@@ -306,7 +306,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                     <span className={demo.vehicleYear}>{vehicle.anio}</span>
                   </div>
                   <div className={demo.plateBadge}>
-                    <Image src="/assets/images/icons/bandera-peru.png" alt="PE" width={22} height={14} />
+                    <Image src="/assets/icons/vista-previa-reporte-legal/twemoji_flag-peru.svg" alt="PE" width={22} height={14} />
                     <span>{formatPlateDisplay(cleanPlate)}</span>
                   </div>
                 </div>
@@ -353,8 +353,8 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
                 <div className={demo.findingsBadges}>
                   {findings.map((f, i) => (
-                    <span key={i} className={`${demo.findingBadge} ${f.danger ? demo.findingDanger : demo.findingYellow}`}>
-                      {f.icon} {f.label}
+                    <span key={i} className={`${demo.findingBadge} ${f.variant === "danger" ? demo.findingDanger : f.variant === "green" ? demo.findingGreen : demo.findingYellow}`}>
+                      <Image src={f.icon} alt="" width={16} height={16} /> {f.label}
                     </span>
                   ))}
                 </div>
@@ -377,7 +377,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>👥</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/propietarios.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>Historial de propietarios</h3>
                   </div>
 
@@ -394,13 +394,13 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     {Array.from({ length: Math.min(nOwners || 3, 3) }).map((_, i) => (
                       <div key={i} className={demo.lockedRow}>
-                        <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                         <div className={demo.lockedInfo}>
                           <span className={demo.lockedLabel}>PROPIETARIO ACTUAL</span>
-                          <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                          <span className={demo.lockedValue}>Juan Pérez García</span>
                         </div>
                         <span className={demo.lockedArrow}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                          <Image src="/assets/icons/vista-previa-reporte-legal/Up Right.svg" alt="" width={14} height={14} />
                         </span>
                       </div>
                     ))}
@@ -410,7 +410,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 {/* SOAT y revisión técnica */}
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>🚗</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/siniestros.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>SOAT y revisión técnica</h3>
                   </div>
 
@@ -421,7 +421,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                         <span className={demo.soatDate}>VIGENCIA HASTA {soat.vencimiento || "—"}</span>
                       </div>
                       <span className={`${demo.statusBadge} ${soatExpired ? demo.statusDanger : demo.statusOk}`}>
-                        {soatExpired ? "⊘ Vencido" : "✓ Al día"}
+                        <Image src={soatExpired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {soatExpired ? "Vencido" : "Al día"}
                       </span>
                     </div>
                   )}
@@ -433,7 +433,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                         <span className={demo.soatDate}>{citvExpired ? "VENCIDA" : "APROBADA Y VIGENTE"}</span>
                       </div>
                       <span className={`${demo.statusBadge} ${citvExpired ? demo.statusDanger : demo.statusOk}`}>
-                        {citvExpired ? "⊘ Vencido" : "✓ Al día"}
+                        <Image src={citvExpired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {citvExpired ? "Vencido" : "Al día"}
                       </span>
                     </div>
                   )}
@@ -445,10 +445,10 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.lockedSection}>
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     <div className={demo.lockedRow}>
-                      <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                       <div className={demo.lockedInfo}>
                         <span className={demo.lockedLabel}>PAPELETAS PENDIENTES A HOY</span>
-                        <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                        <span className={demo.lockedValue}>3 papeletas · S/ 1,240</span>
                       </div>
                       <span className={demo.lockedArrow}>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
@@ -460,7 +460,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 {/* Historial de siniestros */}
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>🚗</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/siniestros.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>Historial de siniestros</h3>
                   </div>
 
@@ -476,18 +476,18 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.lockedSection}>
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     {[
-                      "TIPO DE IMPACTO Y FECHA",
-                      "DENUNCIA POLICIAL Y HERIDOS",
-                      "DAÑOS REGISTRADOS",
-                    ].map((label, i) => (
+                      { label: "TIPO DE IMPACTO Y FECHA", value: "Choque frontal · 15/03/2023" },
+                      { label: "DENUNCIA POLICIAL Y HERIDOS", value: "Sin heridos registrados" },
+                      { label: "DAÑOS REGISTRADOS", value: "Parachoque, faro derecho" },
+                    ].map((item, i) => (
                       <div key={i} className={demo.lockedRow}>
-                        <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                         <div className={demo.lockedInfo}>
-                          <span className={demo.lockedLabel}>{label}</span>
-                          <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                          <span className={demo.lockedLabel}>{item.label}</span>
+                          <span className={demo.lockedValue}>{item.value}</span>
                         </div>
                         <span className={demo.lockedArrow}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                          <Image src="/assets/icons/vista-previa-reporte-legal/Up Right.svg" alt="" width={14} height={14} />
                         </span>
                       </div>
                     ))}
@@ -497,7 +497,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 {/* Gravámenes y embargos */}
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>🚙</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/alcancia.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>Gravámenes y embargos</h3>
                   </div>
 
@@ -508,18 +508,18 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.lockedSection}>
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     {[
-                      "GRAVÁMENES VIGENTES (SUNARP)",
-                      "EMBARGOS",
-                      "PRENDA VEHICULAR O LEASING",
-                    ].map((label, i) => (
+                      { label: "GRAVÁMENES VIGENTES (SUNARP)", value: "Prenda a favor de BCP" },
+                      { label: "EMBARGOS", value: "Sin embargos activos" },
+                      { label: "PRENDA VEHICULAR O LEASING", value: "Leasing vigente hasta 2025" },
+                    ].map((item, i) => (
                       <div key={i} className={demo.lockedRow}>
-                        <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                         <div className={demo.lockedInfo}>
-                          <span className={demo.lockedLabel}>{label}</span>
-                          <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                          <span className={demo.lockedLabel}>{item.label}</span>
+                          <span className={demo.lockedValue}>{item.value}</span>
                         </div>
                         <span className={demo.lockedArrow}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                          <Image src="/assets/icons/vista-previa-reporte-legal/Up Right.svg" alt="" width={14} height={14} />
                         </span>
                       </div>
                     ))}
@@ -529,7 +529,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 {/* Papeletas y deudas SAT */}
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>📋</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>Papeletas y deudas SAT</h3>
                   </div>
 
@@ -540,18 +540,18 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.lockedSection}>
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     {[
-                      "PAPELETAS PENDIENTES (DETALLE Y MONTO)",
-                      "IMPUESTO VEHICULAR PENDIENTE",
-                      "DEUDA TOTAL CON EL SAT",
-                    ].map((label, i) => (
+                      { label: "PAPELETAS PENDIENTES (DETALLE Y MONTO)", value: "2 papeletas · S/ 860" },
+                      { label: "IMPUESTO VEHICULAR PENDIENTE", value: "S/ 320 (2024)" },
+                      { label: "DEUDA TOTAL CON EL SAT", value: "S/ 1,180 acumulado" },
+                    ].map((item, i) => (
                       <div key={i} className={demo.lockedRow}>
-                        <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                         <div className={demo.lockedInfo}>
-                          <span className={demo.lockedLabel}>{label}</span>
-                          <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                          <span className={demo.lockedLabel}>{item.label}</span>
+                          <span className={demo.lockedValue}>{item.value}</span>
                         </div>
                         <span className={demo.lockedArrow}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                          <Image src="/assets/icons/vista-previa-reporte-legal/Up Right.svg" alt="" width={14} height={14} />
                         </span>
                       </div>
                     ))}
@@ -561,7 +561,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 {/* Último precio de compra */}
                 <div className={demo.ownerCard}>
                   <div className={demo.ownerCardHeader}>
-                    <div className={demo.ownerIcon}><span className={demo.emojiBlack}>💰</span></div>
+                    <div className={demo.ownerIcon}><Image src="/assets/icons/vista-previa-reporte-legal/Wallet.svg" alt="" width={18} height={18} /></div>
                     <h3 className={demo.ownerCardTitle}>Último precio de compra</h3>
                   </div>
 
@@ -572,17 +572,17 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.lockedSection}>
                     <p className={demo.lockedTitle}>EN EL REPORTE COMPLETO</p>
                     {[
-                      "PRECIO DE LA ÚLTIMA TRANSFERENCIA",
-                      "FECHA DE ESA COMPRA",
-                    ].map((label, i) => (
+                      { label: "PRECIO DE LA ÚLTIMA TRANSFERENCIA", value: "US$ 12,500" },
+                      { label: "FECHA DE ESA COMPRA", value: "08/11/2022" },
+                    ].map((item, i) => (
                       <div key={i} className={demo.lockedRow}>
-                        <svg className={demo.lockedLock} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                        <Image src="/assets/icons/vista-previa-reporte-legal/Lock.svg" alt="" width={18} height={18} className={demo.lockedLock} />
                         <div className={demo.lockedInfo}>
-                          <span className={demo.lockedLabel}>{label}</span>
-                          <span className={demo.lockedValue}>BLANCO BLANCO BLANCO</span>
+                          <span className={demo.lockedLabel}>{item.label}</span>
+                          <span className={demo.lockedValue}>{item.value}</span>
                         </div>
                         <span className={demo.lockedArrow}>
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1d22" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                          <Image src="/assets/icons/vista-previa-reporte-legal/Up Right.svg" alt="" width={14} height={14} />
                         </span>
                       </div>
                     ))}
@@ -591,26 +591,26 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
               {/* CTA final */}
               <div className={demo.ctaCard}>
                 <h2 className={demo.ctaCardTitle}>
-                  Obtén el Reporte Legal Completo en minutos <em>por solo S/ 0.00.</em>
+                  Obtén el Reporte Legal Completo en minutos <em>por solo S/ 19.90.</em>
                 </h2>
                 <p className={demo.ctaCardDesc}>
                   Desbloquea para ver el resto de información legal del carro usado que vas a comprar. Toma de 3 a 5 minutos.
                 </p>
 
                 <div className={demo.ctaCardList}>
-                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><span className={demo.emojiBlack}>🚗</span></span> Historial de siniestros</div>
-                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><span className={demo.emojiBlack}>🚙</span></span> Gravámenes y embargos</div>
-                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><span className={demo.emojiBlack}>💰</span></span> Último precio de compra</div>
-                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><span className={demo.emojiBlack}>📋</span></span> Papeletas, deudas SAT y otros</div>
+                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/siniestros.svg" alt="" width={16} height={16} /></span> Historial de siniestros</div>
+                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/alcancia.svg" alt="" width={16} height={16} /></span> Gravámenes y embargos</div>
+                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/Wallet.svg" alt="" width={16} height={16} /></span> Último precio de compra</div>
+                  <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={16} height={16} /></span> Papeletas, deudas SAT y otros</div>
                 </div>
 
                 <button className={demo.ctaCardBtn} onClick={handleGenerarPdf}>
-                  Desbloquear todo por S/ 0.00
+                  Desbloquear todo por S/ 19.90
                 </button>
 
                 <button onClick={handleDownloadExample} className={demo.ctaCardLink}>
                   Ver ejemplo del Reporte Legal
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+                  <Image src="/assets/icons/vista-previa-reporte-legal/descargar.svg" alt="" width={22} height={22} />
                 </button>
               </div>
               </div>
@@ -682,7 +682,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
   if (phase === "done" && pdfUrl) {
     return (
-      <div style={{ minHeight: "100vh", background: "#f5f5f3", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+      <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "48px 20px", textAlign: "center" }}>
           <div className={demo.doneIcon}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>

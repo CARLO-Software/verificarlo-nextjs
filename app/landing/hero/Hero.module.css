@@ -1,38 +1,23 @@
-/* NOTA: El diseño nuevo con input de placa está respaldado en Hero.consultar.module.css.bak */
-
-/* ============================================
-   Hero Section
-   ============================================ */
-.heroSection {
+.hero {
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
 }
 
-@media screen and (min-width: 768px) {
-  .heroSection {
-    min-height: 110vh;
-    min-height: 110dvh;
-  }
-}
-
-/* ============================================
-   Video Background
-   ============================================ */
+/* Video Background */
 .videoContainer {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
+  inset: 0;
+  z-index: 0;
   overflow: hidden;
-  background-color: #F5D849;
+  background-color: #1c1d22;
 }
 
-.videoBackground {
+.video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -40,107 +25,182 @@
   background: url('/assets/images/frame-hero.webp') center/cover no-repeat;
 }
 
-.videoOverlay {
+.overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.4) 50%,
-    rgba(0, 0, 0, 0.6) 100%
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.7) 100%
   );
 }
 
-/* Hero Container */
-.heroContainer {
-  flex: 1;
+/* Content — mobile: single column, bottom-aligned */
+.content {
+  position: relative;
+  z-index: 1;
   display: flex;
-  align-items: end;
-  justify-content: center;
-  padding: 24px 20px;
-  padding-bottom: 12vh;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 20px 30px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  flex: 1;
 }
 
-/* Hero Content */
-.heroContent {
+/* Left column */
+.left {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  max-width: 400px;
-  width: 100%;
 }
 
-/* ============================================
-   Hero Title
-   ============================================ */
-.heroTitle {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  line-height: 1.0;
+.title {
+  margin: 0;
+  font: 800 32px/1.12 'DM Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #fff;
+  letter-spacing: -0.02em;
 }
 
-.titleLine1 {
-  display: block;
-  font-size: 32px;
-  font-weight: 500;
-  color: #FFFFFF;
-}
-
-.titleLine2 {
-  display: block;
-  position: relative;
-  font-size: 32px;
-  font-weight: 800;
-  color: white;
+.title em {
   font-style: italic;
+  font-weight: 800;
 }
 
-/* ============================================
-   Hero Description
-   ============================================ */
-.heroDescription {
+.subtitle {
+  margin: 14px 0 0;
+  font: 400 14px/1.6 'Inter', 'DM Sans', sans-serif;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 320px;
+}
+
+.ctaPlanes {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: transparent;
+  font: 600 14px 'DM Sans', 'Inter', sans-serif;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.ctaPlanes:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Right column / Plate card */
+.right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+  flex: 1;
+}
+
+.plateCard {
+  width: 100%;
+  max-width: 420px;
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+.plateTitle {
+  display: none;
+}
+
+/* Plate input */
+.plateInputRow {
+  height: 56px;
+  background: #fff;
+  border: 1.5px solid #E4E4E4;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 12px;
+}
+
+.flagSection {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 300;
-  color: rgb(219 219 219 / 90%);
-  line-height: 1.5;
-  padding: 10px;
+  padding: 0 4px;
 }
 
-/* ============================================
-   CTA Button (Blanco)
-   ============================================ */
+.divider {
+  width: 1px;
+  height: 28px;
+  background: #e0e0e0;
+  flex-shrink: 0;
+}
+
+.plateInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: 600 17px 'DM Sans', 'Inter', sans-serif;
+  color: #16171b;
+  letter-spacing: 0.04em;
+  min-width: 0;
+}
+
+.plateInput::placeholder {
+  color: rgba(26, 27, 31, 0.35);
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.carIcon {
+  flex-shrink: 0;
+}
+
+/* CTA button */
 .ctaButton {
-  display: inline-flex;
+  cursor: pointer;
+  width: 100%;
+  height: 54px;
+  margin-top: 10px;
+  border-radius: 999px;
+  border: none;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 16px 28px;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8F8F8 100%);
-  color: black;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 100px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 100%;
+  gap: 8px;
+  font: 700 16px 'DM Sans', 'Inter', sans-serif;
+  color: #16171b;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 }
 
-.ctaButton::before {
+.ctaReady {
+  background: #ffe04d;
+  box-shadow: 0 8px 20px rgba(255, 224, 77, 0.3);
+}
+
+.ctaReady:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
+}
+
+.ctaReady::before {
   content: '';
   position: absolute;
   top: 0;
@@ -151,325 +211,667 @@
     120deg,
     transparent 0%,
     transparent 30%,
-    rgba(255, 215, 0, 0.5) 45%,
-    rgba(255, 235, 100, 0.7) 50%,
-    rgba(255, 215, 0, 0.5) 55%,
+    rgba(255, 255, 255, 0.4) 45%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.4) 55%,
     transparent 70%,
     transparent 100%
   );
   transform: skewX(-25deg);
-  animation: shineGold 3s ease-in-out infinite;
+  animation: shine 3s ease-in-out infinite;
 }
 
-@keyframes shineGold {
-  0% {
-    left: -100%;
-  }
-  50%, 100% {
-    left: 150%;
-  }
+@keyframes shine {
+  0% { left: -100%; }
+  50%, 100% { left: 150%; }
 }
 
-.ctaButton:hover::before {
-  animation: shineGoldFast 0.6s ease-out forwards;
+.ctaDisabled {
+  background: rgba(255, 224, 77, 0.25);
+  color: rgba(17, 17, 17, 0.4);
+  cursor: default;
 }
 
-@keyframes shineGoldFast {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 150%;
-  }
+/* Stats row */
+.stats {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.ctaButton:hover {
-  background: linear-gradient(135deg, #FFE14C 0%, #FDB515 100%);
-  transform: translateY(-4px) scale(1.02);
-  box-shadow:
-    0 10px 40px rgba(253, 181, 21, 0.4),
-    0 0 0 3px rgba(255, 225, 76, 0.2);
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  text-align: center;
 }
 
-.ctaButton svg {
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.statIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
 }
 
-.ctaButton:hover svg {
-  transform: translateX(6px);
-  animation: arrowPulse 1s ease-in-out infinite;
+.statValue {
+  font: 800 18px 'DM Sans', 'Inter', sans-serif;
+  color: #fff;
 }
 
-@keyframes arrowPulse {
-  0%, 100% {
-    transform: translateX(6px);
-  }
-  50% {
-    transform: translateX(10px);
-  }
-}
-
-.ctaButton:focus-visible {
-  outline: 2px solid #F5D849;
-  outline-offset: 3px;
-}
-
-.ctaButton:active {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 6px 25px rgba(253, 181, 21, 0.3);
+.statLabel {
+  font: 400 13px/1.35 'DM Sans', 'Inter', sans-serif;
+  color: rgba(255, 255, 255, 0.6);
+  max-width: 100px;
 }
 
 /* ============================================
-   "¿Qué revisamos?" Section
+   Desktop (768px+) — two columns
    ============================================ */
-.queRevisamosSection {
-  border-radius: 24px 24px 0 0;
-  padding: 0px 16px 20px;
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  gap:8px;
-  justify-content: center;
-  width: 100%;
+@media screen and (min-width: 768px) {
+  .hero {
+    align-items: center;
+  }
+
+  .content {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 48px;
+    padding: 0 48px;
+  }
+
+  .left {
+    flex: 1;
+    max-width: 560px;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .title {
+    font-size: 56px;
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+  }
+
+  .subtitle {
+    margin-top: 22px;
+    font-size: 17px;
+    max-width: 480px;
+  }
+
+  .ctaPlanes {
+    display: inline-flex;
+    margin-top: 32px;
+    height: 54px;
+    padding: 0 32px;
+    font-size: 15px;
+  }
+
+  .right {
+    flex: none;
+    width: 420px;
+    margin-top: 0;
+  }
+
+  .plateCard {
+    background: #fff;
+    border-radius: 24px;
+    padding: 32px 28px 28px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    display: block;
+  }
+
+  .plateTitle {
+    display: block;
+    font: 700 22px/1.3 'DM Sans', 'Inter', sans-serif;
+    color: #1c1d22;
+    text-align: center;
+    margin: 0 0 22px;
+  }
+
+  .plateInputRow {
+    height: 60px;
+    background: #F5F5F5;
+    border-color: #E4E4E4;
+  }
+
+  .plateInput {
+    color: #16171b;
+  }
+
+  .ctaButton {
+    height: 58px;
+    font-size: 17px;
+    margin-top: 12px;
+  }
+
+  .ctaReady {
+    background: linear-gradient(90deg, #FBD307, #FFE04D);
+    box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+  }
+
+  .statIcon {
+    width: 40px;
+    height: 40px;
+    background: #f0f0f0;
+  }
+
+  .statValue {
+    color: #1c1d22;
+    font-size: 20px;
+  }
+
+  .statLabel {
+    color: rgba(26, 27, 31, 0.55);
+    font-size: 11.5px;
+  }
+
+  .stats {
+    margin-top: 20px;
+    padding-top: 0;
+  }
 }
 
-.queRevisamosButton {
+@media screen and (min-width: 1024px) {
+  .title {
+    font-size: 62px;
+  }
+
+  .content {
+    gap: 64px;
+    padding: 0 64px;
+  }
+}
+
+/* ============================================
+   Services section (below hero)
+   ============================================ */
+.servicesSection {
+  position: relative;
+  z-index: 1;
+  background: #fff;
+  border-top-left-radius: 30px;
+  border-top-right-radius: 30px;
+  margin-top: 20px;
+  padding: 40px 20px 60px;
+}
+
+/* Infinite Logo Carousel */
+.carouselWrap {
+  overflow: hidden;
+  width: 100%;
+  padding: 20px 0;
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  margin-bottom: 48px;
+}
+
+.carouselTrack {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  width: max-content;
+  animation: scroll 20s linear infinite;
+}
+
+.logoItem {
+  flex: none;
+}
+
+.logoImg {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-25%); }
+}
+
+/* Heading */
+.sectionHeading {
+  max-width: 1100px;
+  margin: 0 auto 40px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font: 400 32px/1.15 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+  letter-spacing: -0.02em;
+}
+
+.sectionTitle em {
+  font-weight: 700;
+  font-style: italic;
+}
+
+.sectionDesc {
+  margin: 16px 0 0;
+  font: 400 15px/1.6 'Inter', 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+  max-width: 580px;
+}
+
+/* Plan Cards */
+.plans {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.planCard {
+  position: relative;
+  border: 1.5px solid #e5e5e5;
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.planCardPremium {
+  border-color: #FBD307;
+  border-width: 2px;
+}
+
+.planBadge {
+  position: absolute;
+  top: -13px;
+  left: 24px;
+  background: #FBD307;
+  color: #1c1d22;
+  font: 700 11px 'DM Sans', 'Inter', sans-serif;
+  letter-spacing: 0.08em;
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+
+.planCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.planName {
+  margin: 0;
+  font: 700 20px/1.2 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+}
+
+.planDesc {
+  margin: 6px 0 0;
+  font: 400 14px/1.5 'Inter', 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.6);
+  max-width: 380px;
+}
+
+.planPrice {
+  font: 800 32px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+  white-space: nowrap;
+}
+
+.priceWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.priceOld {
+  font: 500 14px 'DM Sans', 'Inter', sans-serif;
+  color: rgba(26, 27, 31, 0.4);
+  text-decoration: line-through;
+}
+
+.priceDiscount {
+  background: #D91023;
+  color: #fff;
+  font: 700 11px 'DM Sans', 'Inter', sans-serif;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* Legal badge inside plan cards */
+.legalBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(251, 211, 7, 0.12);
+  border: 1px solid rgba(251, 211, 7, 0.35);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font: 400 14px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+}
+
+.legalIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #ffe04d;
+  flex-shrink: 0;
+}
+
+.legalBadge strong {
+  font-weight: 800;
+  font-style: italic;
+}
+
+.legalSave {
+  margin-left: auto;
+  font: 500 12px 'DM Sans', 'Inter', sans-serif;
+  color: rgba(26, 27, 31, 0.5);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* Features list */
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.featuresTitle {
+  margin: 0;
+  font: 600 14px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+}
+
+.featureList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.featureList li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 400 14px/1.5 'DM Sans', 'Inter', sans-serif;
+  color: rgba(26, 27, 31, 0.75);
+}
+
+.featureList li::before {
+  content: '';
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+/* Plan CTAs */
+.ctaDark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 14px;
+  background: #1c1d22;
+  font: 600 15px 'DM Sans', 'Inter', sans-serif;
+  color: #fff;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.ctaDark:hover {
+  background: #2c2d32;
+  transform: translateY(-2px);
+}
+
+.ctaYellow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #FBD307, #FFE04D);
+  font: 600 15px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgba(251, 211, 7, 0.3);
+  transition: all 0.3s ease;
+}
+
+.ctaYellow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(251, 211, 7, 0.4);
+}
+
+.ctaLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 14px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+  text-decoration: none;
+  padding: 4px 0;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.ctaLink:hover {
+  opacity: 1;
+}
+
+/* Desktop services */
+@media screen and (min-width: 768px) {
+  .servicesSection {
+    padding: 48px 48px 80px;
+  }
+
+  .carouselTrack {
+    gap: 64px;
+  }
+
+  .logoImg {
+    height: 44px;
+  }
+
+  .sectionTitle {
+    font-size: 46px;
+  }
+
+  .sectionDesc {
+    font-size: 16px;
+    margin-top: 18px;
+  }
+
+  .plans {
+    flex-direction: row;
+    gap: 28px;
+  }
+
+  .planCard {
+    flex: 1;
+    padding: 32px 28px 28px;
+  }
+
+  .planName {
+    font-size: 22px;
+  }
+
+  .planPrice {
+    font-size: 36px;
+  }
+}
+
+/* Mobile-only plan card tweaks */
+@media (max-width: 767px) {
+  .sectionTitle br {
+    display: none;
+  }
+
+  .planName {
+    font-size: 21px;
+  }
+
+  .planPrice {
+    font-size: 24px;
+    font-style: italic;
+  }
+
+  .legalBadge {
+    font-weight: 700;
+    margin-top: -10px;
+  }
+
+  .featuresTitle {
+    display: none;
+  }
+
+  .planCardPremium {
+    background: #fffef8;
+  }
+}
+
+/* Legal report CTA */
+.legalCta {
+  background: #fff;
+  padding: 0 20px 48px;
+}
+
+.legalCtaInner {
+  position: relative;
+  background: #ffe04d;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  min-height: 260px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.legalCtaText {
+  flex: 1;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  z-index: 1;
+}
+
+.legalCtaTitle {
+  margin: 0;
+  font: 400 24px/1.25 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+}
+
+.legalCtaTitle strong {
+  font-weight: 800;
+}
+
+.legalCtaDesc {
+  margin: 0;
+  font: 400 13px/1.5 'Inter', 'DM Sans', sans-serif;
+  color: rgba(26, 27, 31, 0.7);
+  max-width: 260px;
+}
+
+.legalCtaBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-  color: #FFFFFF;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  font-weight: 500;
-  font-size: 14px;
+  align-self: flex-start;
+  margin-top: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 25px;
+  background: #fff;
+  font: 600 14px 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
   text-decoration: none;
-  border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow:
-    0 4px 15px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  width: 100%;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.legalCtaBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.legalCtaImg {
   position: relative;
-  overflow: hidden;
+  flex: none;
+  width: 45%;
+  clip-path: polygon(20% 0, 100% 0, 100% 100%, 0% 100%);
 }
 
-.queRevisamosButton::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(255, 255, 255, 0.1) 0%,
-    transparent 70%
-  );
-  opacity: 0;
-  transition: opacity 0.4s ease;
+.legalCtaPhoto {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
-.queRevisamosButton:hover::before {
-  opacity: 1;
-}
-
-.queRevisamosButton:hover {
-  background: linear-gradient(135deg, #2d2d2d 0%, #404040 100%);
-  transform: translateY(-4px) scale(1.02);
-  border-color: rgba(255, 225, 76, 0.3);
-  box-shadow:
-    0 12px 35px rgba(0, 0, 0, 0.4),
-    0 0 0 2px rgba(255, 225, 76, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-}
-
-.queRevisamosButton svg:first-child {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.queRevisamosButton:hover svg:first-child {
-  transform: translateX(3px) scale(1.1);
-  filter: drop-shadow(0 0 8px rgba(255, 225, 76, 0.5));
-}
-
-.queRevisamosButton:focus-visible {
-  outline: 2px solid #FFE14C;
-  outline-offset: 3px;
-}
-
-.queRevisamosButton:active {
-  transform: translateY(-2px) scale(1.01);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-}
-
-.queRevisamosButton svg:last-child {
-  animation: bounceDown 2s ease-in-out infinite;
-}
-
-@keyframes bounceDown {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(4px);
-  }
-  60% {
-    transform: translateY(2px);
-  }
-}
-
-/* ============================================
-   RESPONSIVE - Tablet (768px+)
-   ============================================ */
 @media screen and (min-width: 768px) {
-  .heroContainer {
-    padding: 40px 32px;
-    align-items: center;
+  .legalCta {
+    padding: 0 48px 80px;
   }
 
-  .heroContent {
-    max-width: 500px;
+  .legalCtaInner {
+    min-height: 260px;
   }
 
-  .titleLine1 {
+  .legalCtaText {
+    padding: 40px 48px;
+    gap: 14px;
+  }
+
+  .legalCtaTitle {
     font-size: 32px;
   }
 
-  .titleLine2 {
-    font-size: 38px;
+  .legalCtaDesc {
+    font-size: 15px;
+    max-width: 380px;
   }
 
-  .heroDescription {
-    font-size: 16px;
+  .legalCtaBtn {
+    height: 48px;
+    padding: 0 28px;
+    font-size: 15px;
   }
 
-  .ctaButton {
-    padding: 14px;
-    font-size: 16px;
-  }
-
-  .queRevisamosSection {
-    border-radius: 32px 32px 0 0;
-  }
-
-  .queRevisamosButton {
-    gap: 10px;
+  .legalCtaImg {
+    width: 40%;
   }
 }
 
-/* ============================================
-   RESPONSIVE - Desktop (1024px+)
-   ============================================ */
-@media screen and (min-width: 1024px) {
-  .heroContainer {
-    padding: 0px 48px 70px;
-  }
-
-  .heroContent {
-    max-width: 600px;
-  }
-
-  .titleLine1 {
-    font-size: 48px;
-    margin-bottom: 8px;
-  }
-
-  .titleLine2 {
-    font-size: 48px;
-  }
-
-  .ctaButton {
-     padding: 18px 14px;
-    font-size: 14px;
-    gap: 12px;
-  }
-
-  .queRevisamosSection {
-    flex-direction: row;
-    padding: 0px 100px 20px;
-  }
-  .queRevisamosButton {
-    width: 70%;
-    padding: 18px 14px;
-  }
-
-  .queRevisamosButton svg:last-child {
-    animation: none;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .queRevisamosButton:hover svg:last-child {
-    transform: translateY(3px);
-  }
-
-  .queRevisamosButton:hover svg:first-child {
-    animation: carDrive 0.6s ease-in-out;
-  }
-
-  @keyframes carDrive {
-    0% {
-      transform: translateX(0) scale(1);
-    }
-    50% {
-      transform: translateX(5px) scale(1.15);
-    }
-    100% {
-      transform: translateX(3px) scale(1.1);
-    }
-  }
-}
-
-/* ============================================
-   RESPONSIVE - Large Desktop (1280px+)
-   ============================================ */
-@media screen and (min-width: 1280px) {
-  .heroContent {
-    max-width: 700px;
-  }
-
-  .titleLine1 {
-    font-size: 62px;
-  }
-
-  .titleLine2 {
-    font-size: 62px;
-  }
-}
-
-/* ============================================
-   Reduced Motion
-   ============================================ */
+/* Reduced Motion */
 @media (prefers-reduced-motion: reduce) {
-  .queRevisamosButton svg:last-child,
-  .queRevisamosButton svg:first-child {
-    animation: none !important;
-  }
-
-  .ctaButton:hover,
-  .queRevisamosButton:hover {
-    transform: none;
-  }
-
-  .ctaButton,
-  .queRevisamosButton {
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .ctaButton::before,
-  .queRevisamosButton::before {
+  .ctaReady::before {
     display: none;
   }
 
-  .ctaButton svg,
-  .queRevisamosButton svg {
-    animation: none !important;
-    transition: none;
+  .ctaReady:hover,
+  .ctaDark:hover,
+  .ctaYellow:hover {
+    transform: none;
+  }
+
+  .carouselTrack {
+    animation: none;
   }
 }

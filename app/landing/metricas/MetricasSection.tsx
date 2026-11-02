@@ -15,7 +15,7 @@ export default function MetricasSection() {
       value: "+500",
     },
     {
-      icon: "/assets/icons/alcancia.svg",
+      icon: "/assets/icons/vista-previa-reporte-legal/alcancia.svg",
       description: "Ahorro promedio por cliente",
       value: "S/8,500",
     },

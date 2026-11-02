@@ -1,6 +1,5 @@
 import Hero from "./landing/hero/Hero";
 import ProcessSection from "./landing/processSection/ProcessSection";
-import ServicesSection from "./landing/servicesSection/ServicesSection";
 import RiesgosSection from "./landing/riesgos_miles_soles/RiesgosSection";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
@@ -31,11 +30,8 @@ export default async function Home() {
       </a>
 
       <main id="main-content">
-        {/*Hero section */}
+        {/* Hero + Plans + Legal CTA */}
         <Hero />
-
-        {/* Services section -> Aqui deben de estar los planes*/}
-        <ServicesSection />
 
         {/* Process section */}
         <ProcessSection />
