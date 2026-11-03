@@ -68,6 +68,7 @@ export default function NavBar() {
 
   // Solo aplicar el tema transparente (texto blanco) en la página principal
   const isHeroPage = pathname === "/";
+  const isBookingPage = pathname.startsWith("/agendar");
 
   //*Hace referencia a un elemento del DOM
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -217,7 +218,7 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""} ${!isHeroPage ? styles["navbarSticky"] : ""} ${isInServicesSection ? styles["navbarServices"] : ""}`}
+      className={`${styles["navbar"]} ${isScrolled ? styles["navbarScrolled"] : ""} ${!isHeroPage ? styles["navbarSolid"] : ""} ${!isHeroPage ? styles["navbarSticky"] : ""} ${isInServicesSection ? styles["navbarServices"] : ""} ${isBookingPage ? styles["navbarDark"] : ""}`}
       role="navigation"
       aria-label="Navegacion principal"
     >

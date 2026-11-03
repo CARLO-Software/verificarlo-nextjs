@@ -44,6 +44,97 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }
 
+/* Estado oscuro para /agendar */
+.navbarDark {
+  background: #1a1918 !important;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+.navbarDark .navbar-text {
+  color: var(--basics--white) !important;
+}
+
+.navbarDark .logo-image {
+  filter: none !important;
+}
+
+.navbarDark .navbar-actions {
+  color: #FFFFFF;
+}
+
+.navbarDark .user-icon-button {
+  border: none;
+  background: transparent;
+  color: #FFFFFF;
+}
+
+.navbarDark .user-icon-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navbarDark .user-button {
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--basics--white);
+}
+
+.navbarDark .user-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.navbarDark .user-avatar {
+  background: rgba(255, 255, 255, 0.2);
+  color: var(--basics--white);
+}
+
+.navbarDark .user-name {
+  color: var(--basics--white);
+}
+
+.navbarDark .dropdown-arrow {
+  color: var(--basics--white);
+}
+
+.navbarDark .sidebar-user-icon-img {
+  filter: brightness(0) invert(1);
+}
+
+.navbarDark .hamburger-button {
+  background: #FFFFFF;
+  border: none;
+}
+
+.navbarDark .hamburger-button img {
+  filter: brightness(0);
+}
+
+/* CTA blanco con texto negro en desktop */
+@media screen and (min-width: 992px) {
+  .navbarDark.navbarSolid .secondary-cta {
+    background-color: var(--basics--white);
+    color: #1a1918;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .navbarDark.navbarSolid .secondary-cta:hover {
+    background-color: var(--bright-sun--300);
+    color: var(--shark--950);
+    box-shadow: 0 8px 25px rgba(255, 225, 76, 0.4);
+  }
+
+  .navbarDark.navbarSolid .secondary-cta .sidebar-user-icon-img {
+    filter: brightness(0);
+  }
+
+  .navbarDark.navbarSolid .secondary-cta::before {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 225, 76, 0.4) 50%,
+        transparent 100%);
+  }
+}
+
 /* ============================================
    Estado cuando llegamos a la sección de servicios (solo PC)
    - Navbar se vuelve fixed (pegado arriba)
@@ -638,6 +729,14 @@
   /* Ocultar navbar-actions (carrito desktop) en móvil */
   .navbar-actions {
     display: none;
+  }
+
+  .navbarDark .navbar-actions {
+    display: flex;
+  }
+
+  .navbarDark .user-icon-button {
+    display: flex;
   }
 
   /* Mostrar items del menú en móvil */
