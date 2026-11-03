@@ -582,7 +582,7 @@ export default function AgendarForm({
                     </>
                   ) : (
                     <>
-                      Continuar al pago
+                      Continuar
                       <svg
                         width="20"
                         height="20"
@@ -601,6 +601,9 @@ export default function AgendarForm({
                   )}
                 </button>
               </div>
+              <p className={styles.footerNote}>
+                <em>El monto de la reserva se descuenta del precio total del plan elegido**</em>
+              </p>
             </div>
           )}
 
