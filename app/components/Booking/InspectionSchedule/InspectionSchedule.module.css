@@ -1,138 +1,40 @@
-/* =============================================================================
-   ESTILOS: InspectionSchedule
-   ============================================================================= */
-
 .container {
   width: 100%;
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
 }
 
-/* =============================================================================
-   Aviso de reserva
-   ============================================================================= */
-
-.reserveNotice {
-  display: flex;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #fff8e1 0%, #fffef5 100%);
-  border: 1px solid #ffc107;
-  border-radius: 10px;
+.subtitle {
+  font-size: 1rem;
+  color: #444;
   margin-bottom: 1.5rem;
-}
-
-.noticeIcon {
-  flex-shrink: 0;
-  color: #f59e0b;
-}
-
-.noticeIcon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.noticeContent {
-  flex: 1;
-}
-
-.noticeTitle {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #1a1a1a;
-  margin-bottom: 0.15rem;
-}
-
-.noticeText {
-  font-size: 0.8rem;
-  color: #666;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 /* =============================================================================
-   Secciones
+   Campos
    ============================================================================= */
 
-.section {
-  margin-bottom: 1.5rem;
-}
-
-.sectionTitle {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.75rem;
-}
-
-/* =============================================================================
-   Grid de fecha y hora
-   ============================================================================= */
-
-.dateTimeGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.calendarWrapper {
-  background: #fafafa;
-  border-radius: 10px;
-  padding: 0.875rem;
-}
-
-.slotsWrapper {
-  background: #fafafa;
-  border-radius: 10px;
-  padding: 0.875rem;
-}
-
-/* =============================================================================
-   Grid de contacto
-   ============================================================================= */
-
-.contactGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.875rem;
+.fieldGroup {
   margin-bottom: 1rem;
+  position: relative;
 }
 
-@media (min-width: 480px) {
-  .contactGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.required {
-  color: #ef4444;
-  margin-left: 2px;
+.inputWrapper {
+  position: relative;
 }
 
 .input {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.875rem 1rem;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.875rem;
+  border-radius: 12px;
+  font-size: 0.9375rem;
   color: #1a1a1a;
   background-color: white;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -144,16 +46,85 @@
   box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.15);
 }
 
-.input::placeholder {
-  color: #9ca3af;
+.requiredDot {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 1rem;
+  pointer-events: none;
+  font-size: 0.9375rem;
+  color: #6b7280;
+}
+
+.requiredDot::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Icono calendario */
+.calendarIcon {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.calendarIcon:hover {
+  color: #1a1a1a;
+}
+
+/* Dropdown calendario */
+.calendarDropdown {
+  margin-top: 0.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  padding: 0.875rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.slotsInCalendar {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* =============================================================================
-   Checkbox circular para marketing
+   Nota obligatorios
+   ============================================================================= */
+
+.requiredNote {
+  font-size: 0.75rem;
+  color: #e73a29;
+  margin-bottom: 1.25rem;
+}
+
+.required {
+  color: #ef4444;
+}
+
+/* =============================================================================
+   Checkboxes
    ============================================================================= */
 
 .checkboxWrapper {
-  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .checkboxLabel {
@@ -163,26 +134,17 @@
   cursor: pointer;
 }
 
-/* El checkbox circular personalizado */
 .circularCheckbox {
-  /* Quita el estilo nativo del navegador */
   appearance: none;
   -webkit-appearance: none;
-  -moz-appearance: none;
-
-  /* Dimensiones y forma circular */
   width: 22px;
   height: 22px;
   min-width: 22px;
   border-radius: 50%;
   border: 2px solid #d1d5db;
   background: white;
-
-  /* Transición suave */
   transition: all 0.2s ease;
   cursor: pointer;
-
-  /* Centrar el checkmark */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -193,27 +155,18 @@
   border-color: #9ca3af;
 }
 
-.circularCheckbox:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(108, 181, 69, 0.2);
-}
-
-/* Estado checked: fondo verde con checkmark */
 .circularCheckbox:checked {
-  background-color: #6cb545;
-  border-color: #6cb545;
+  background-color: white;
+  border-color: #1a1a1a;
 }
 
-/* Checkmark usando pseudo-elemento */
 .circularCheckbox:checked::after {
   content: "";
   display: block;
-  width: 6px;
+  width: 10px;
   height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-  margin-bottom: 2px;
+  border-radius: 50%;
+  background: #1a1a1a;
 }
 
 .checkboxText {
@@ -222,51 +175,13 @@
   line-height: 1.5;
 }
 
-/* Enlaces legales dentro del checkbox de términos */
 .legalLink {
-  color: #f59e0b;
+  color: #1a1a1a;
   text-decoration: underline;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-weight: 600;
+  transition: opacity 0.2s;
 }
 
 .legalLink:hover {
-  color: #d97706;
-}
-
-/* =============================================================================
-   Nota al pie
-   ============================================================================= */
-
-.footerNote {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  text-align: center;
-  margin-top: 1rem;
-}
-
-/* =============================================================================
-   Responsive
-   ============================================================================= */
-
-@media (max-width: 480px) {
-  .title {
-    font-size: 1.125rem;
-  }
-
-  .reserveNotice {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.625rem 0.75rem;
-  }
-
-  .calendarWrapper,
-  .slotsWrapper {
-    padding: 0.625rem;
-  }
-
-  .input {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
+  opacity: 0.7;
 }

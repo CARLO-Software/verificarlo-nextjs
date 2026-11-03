@@ -289,19 +289,22 @@ export default function VehicleLocationForm({
           {/* MARCA (full width) */}
           <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
             <div className={styles.dropdownContainer}>
-              <input
-                type="text"
-                value={brandQuery}
-                onChange={(e) => {
-                  setBrandQuery(e.target.value);
-                  setShowBrands(true);
-                }}
-                onFocus={() => setShowBrands(true)}
-                onBlur={() => setTimeout(() => setShowBrands(false), 200)}
-                placeholder="Marca *"
-                className={styles.inputWithArrow}
-                aria-required="true"
-              />
+              <div className={styles.inputWrapper}>
+                <input
+                  type="text"
+                  value={brandQuery}
+                  onChange={(e) => {
+                    setBrandQuery(e.target.value);
+                    setShowBrands(true);
+                  }}
+                  onFocus={() => setShowBrands(true)}
+                  onBlur={() => setTimeout(() => setShowBrands(false), 200)}
+                  placeholder=" "
+                  className={styles.inputWithArrow}
+                  aria-required="true"
+                />
+                {!brandQuery && <span className={styles.requiredDot}>Marca</span>}
+              </div>
               {showBrands && filteredBrands.length > 0 && (
                 <div className={styles.dropdown}>
                   {filteredBrands.map((brand) => (
@@ -327,20 +330,23 @@ export default function VehicleLocationForm({
           <div className={styles.formRow}>
             <div className={styles.formGroup}>
               <div className={styles.dropdownContainer}>
-                <input
-                  type="text"
-                  value={modelQuery}
-                  onChange={(e) => {
-                    setModelQuery(e.target.value);
-                    setShowModels(true);
-                  }}
-                  onFocus={() => setShowModels(true)}
-                  onBlur={() => setTimeout(() => setShowModels(false), 200)}
-                  placeholder={loadingModels ? "Cargando..." : "Modelo *"}
-                  disabled={!vehicleData.brandId || loadingModels}
-                  className={styles.input}
-                  aria-required="true"
-                />
+                <div className={styles.inputWrapper}>
+                  <input
+                    type="text"
+                    value={modelQuery}
+                    onChange={(e) => {
+                      setModelQuery(e.target.value);
+                      setShowModels(true);
+                    }}
+                    onFocus={() => setShowModels(true)}
+                    onBlur={() => setTimeout(() => setShowModels(false), 200)}
+                    placeholder={loadingModels ? "Cargando..." : " "}
+                    disabled={!vehicleData.brandId || loadingModels}
+                    className={styles.input}
+                    aria-required="true"
+                  />
+                  {!modelQuery && !loadingModels && <span className={styles.requiredDot}>Modelo</span>}
+                </div>
                 {showModels && filteredModels.length > 0 && (
                   <div className={styles.dropdown}>
                     {filteredModels.map((model) => (
@@ -360,16 +366,19 @@ export default function VehicleLocationForm({
             <div className={styles.formGroup}>
               {isOtherYear ? (
                 <>
-                  <input
-                    type="text"
-                    value={manualYearInput}
-                    onChange={(e) => handleManualYearInput(e.target.value)}
-                    placeholder="Año *"
-                    maxLength={4}
-                    className={styles.input}
-                    aria-required="true"
-                    autoFocus
-                  />
+                  <div className={styles.inputWrapper}>
+                    <input
+                      type="text"
+                      value={manualYearInput}
+                      onChange={(e) => handleManualYearInput(e.target.value)}
+                      placeholder=" "
+                      maxLength={4}
+                      className={styles.input}
+                      aria-required="true"
+                      autoFocus
+                    />
+                    {!manualYearInput && <span className={styles.requiredDot}>Año</span>}
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -390,7 +399,7 @@ export default function VehicleLocationForm({
                   className={styles.select}
                   aria-required="true"
                 >
-                  <option value="">Año *</option>
+                  <option value="">Año</option>
                   {getAvailableYears().map((year) => (
                     <option key={year} value={year}>
                       {year}
@@ -441,19 +450,22 @@ export default function VehicleLocationForm({
           {/* DISTRITO */}
           <div className={styles.formGroup}>
             <div className={styles.dropdownContainer}>
-              <input
-                type="text"
-                value={districtQuery}
-                onChange={(e) => {
-                  setDistrictQuery(e.target.value);
-                  setShowDistricts(true);
-                }}
-                onFocus={() => setShowDistricts(true)}
-                onBlur={() => setTimeout(() => setShowDistricts(false), 200)}
-                placeholder="Distrito de visita *"
-                className={styles.input}
-                aria-required="true"
-              />
+              <div className={styles.inputWrapper}>
+                <input
+                  type="text"
+                  value={districtQuery}
+                  onChange={(e) => {
+                    setDistrictQuery(e.target.value);
+                    setShowDistricts(true);
+                  }}
+                  onFocus={() => setShowDistricts(true)}
+                  onBlur={() => setTimeout(() => setShowDistricts(false), 200)}
+                  placeholder=" "
+                  className={styles.inputWithArrow}
+                  aria-required="true"
+                />
+                {!districtQuery && <span className={styles.requiredDot}>Distrito de visita</span>}
+              </div>
               {showDistricts && districtGroups.length > 0 && (
                 <div className={`${styles.dropdown} ${styles.dropdownDistricts}`}>
                   {districtGroups.map((group) => (
@@ -479,25 +491,26 @@ export default function VehicleLocationForm({
 
           {/* DIRECCIÓN EXACTA - Google Places Autocomplete */}
           <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-            <AddressAutocomplete
-              value={addressInput}
-              onChange={(value) => {
-                setAddressInput(value);
-                onLocationChange({
-                  ...locationData,
-                  address: value,
-                });
-              }}
-              onPlaceSelect={handlePlaceSelect}
-              placeholder="Dirección exacta *"
-              disabled={!locationData.districtId}
-              required
-            />
-            <span className={styles.helperText}>
-              Escribe para buscar direcciones en Lima
-            </span>
+            <div className={styles.inputWrapper}>
+              <AddressAutocomplete
+                value={addressInput}
+                onChange={(value) => {
+                  setAddressInput(value);
+                  onLocationChange({
+                    ...locationData,
+                    address: value,
+                  });
+                }}
+                onPlaceSelect={handlePlaceSelect}
+                placeholder={addressInput ? " " : " "}
+                disabled={!locationData.districtId}
+                required
+              />
+              {!addressInput && <span className={styles.requiredDot}>Dirección exacta</span>}
+            </div>
           </div>
         </div>
+        <p className={styles.requiredNote}>Los campos marcados con un asterisco (*) son obligatorios.</p>
       </div>
     </div>
   );

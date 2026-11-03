@@ -19,7 +19,7 @@
 
 .progressFill {
   height: 100%;
-  background-color: #6cb545;
+  background-color: #5fc62b;
   border-radius: 2px;
   transition: width 0.4s ease;
 }
@@ -43,7 +43,7 @@
 }
 
 .labelCompleted {
-  color: #6cb545;
+  color: #5fc62b;
 }
 
 /* Responsive */

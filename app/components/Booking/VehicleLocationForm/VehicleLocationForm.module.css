@@ -10,7 +10,7 @@
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: 0.25rem;
@@ -18,7 +18,7 @@
 
 .subtitle {
   color: #666;
-  font-size: 0.875rem;
+  font-size: 1rem;
   margin-bottom: 1.25rem;
 }
 
@@ -110,6 +110,31 @@
   cursor: not-allowed;
 }
 
+.inputWrapper {
+  position: relative;
+}
+
+.inputWrapper .input,
+.inputWrapper .inputWithArrow {
+  width: 100%;
+}
+
+.requiredDot {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 0.875rem;
+  pointer-events: none;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.requiredDot::after {
+  content: " *";
+  color: #ef4444;
+  font-weight: 600;
+}
+
 .input::placeholder {
   color: #6b7280;
 }
@@ -134,6 +159,12 @@
 .helperText {
   font-size: 0.75rem;
   color: #6b7280;
+}
+
+.requiredNote {
+  font-size: 0.75rem;
+  color: #e73a29;
+  margin-top: 0.5rem;
 }
 
 /* Botón de enlace para volver a la lista de años */
@@ -268,7 +299,7 @@
   }
 
   .title {
-    font-size: 1.125rem;
+    font-size: 1.25rem;
   }
 
   .input,
