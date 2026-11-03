@@ -9,7 +9,7 @@ import { es } from "date-fns/locale";
 import { sendEmail } from "@/lib/email/resend";
 
 const INFORME_API_URL = "http://161.132.38.122/informe/placa";
-const API_TIMEOUT_MS = 5 * 60 * 1000;
+const API_TIMEOUT_MS = 15 * 60 * 1000;
 const ADMIN_EMAIL = process.env.ADMIN_ALERT_EMAIL || "contacto@carlo.pe";
 
 type ApiErrorCode = "API_KEY_MISSING" | "API_DOWN" | "API_TIMEOUT" | "API_ERROR" | "PDF_ERROR";

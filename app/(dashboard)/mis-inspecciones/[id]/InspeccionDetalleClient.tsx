@@ -163,7 +163,6 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<"culqi" | "transfer" | "yape" | "whatsapp" | null>("culqi");
   const [error, setError] = useState<string | null>(null);
-  const [showChangeVehicle, setShowChangeVehicle] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -209,19 +208,13 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           Pendiente de pago
         </div>
 
-        {/* Vehicle info + change link */}
+        {/* Vehicle info */}
         <div className={styles.vehicleInfo}>
           <span className={styles.vehicleLabel}>Vehículo:</span>
           <span className={styles.vehicleValue}>
             {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
             {inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ""}
           </span>
-          <button
-            onClick={() => setShowChangeVehicle(true)}
-            className={styles.changeLink}
-          >
-            Cambiar vehículo
-          </button>
         </div>
 
         {/* Error */}
@@ -289,17 +282,6 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           </div>
         )}
       </div>
-
-      {showChangeVehicle && (
-        <ChangeVehicleModal
-          bookingId={inspection.id}
-          onClose={() => setShowChangeVehicle(false)}
-          onSuccess={() => {
-            setShowChangeVehicle(false);
-            router.refresh();
-          }}
-        />
-      )}
     </div>
   );
 }

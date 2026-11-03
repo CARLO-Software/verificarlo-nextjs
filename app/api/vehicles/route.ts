@@ -98,10 +98,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verificar que el año esté en el rango del modelo
-    if (year < model.yearFrom || year > model.yearTo) {
+    // Verificar que el año sea razonable (>= 2000)
+    if (year < 2000 || year > new Date().getFullYear() + 1) {
       return NextResponse.json(
-        { error: `El año debe estar entre ${model.yearFrom} y ${model.yearTo}` },
+        { error: `El año debe ser mayor a 2000` },
         { status: 400 }
       );
     }

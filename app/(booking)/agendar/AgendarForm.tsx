@@ -357,7 +357,6 @@ export default function AgendarForm({
           timeSlot: selectedSlot,
           inspectionPlanId: selectedInspection.id,
           vehicleId: vehicleResult.id,
-          // Datos adicionales del nuevo formulario
           district: locationData.districtName,
           address: locationData.address,
           contactName: contactData.fullName,
@@ -367,6 +366,18 @@ export default function AgendarForm({
       });
 
       const bookingResult = await bookingRes.json();
+
+      // Si ya existe una reserva pendiente, reutilizarla
+      if (bookingRes.status === 409 && bookingResult.bookingId) {
+        setBookingData({
+          id: bookingResult.bookingId,
+          code: `#v-${bookingResult.bookingId.toString().padStart(5, "0")}`,
+          expiresAt: new Date(bookingResult.expiresAt),
+          amount: bookingResult.amount,
+        });
+        goNext();
+        return;
+      }
 
       if (!bookingRes.ok) {
         throw new Error(bookingResult.error || "Error creando reserva");
@@ -631,29 +642,10 @@ export default function AgendarForm({
               />
 
               <div className={styles.stepButtons}>
-                <button onClick={() => setShowChangeVehicle(true)} className={styles.secondaryButton}>
-                  Cambiar vehículo
+                <button onClick={goBack} className={styles.secondaryButton}>
+                  Atrás
                 </button>
               </div>
-
-              {showChangeVehicle && bookingData && (
-                <ChangeVehicleModalAgendar
-                  bookingId={bookingData.id}
-                  brands={initialBrands}
-                  onClose={() => setShowChangeVehicle(false)}
-                  onSuccess={(vehicle) => {
-                    setVehicleData({
-                      brandId: vehicle.brandId,
-                      brandName: vehicle.brand,
-                      modelId: vehicle.modelId,
-                      modelName: vehicle.model,
-                      year: vehicle.year,
-                      plate: vehicle.plate || "",
-                    });
-                    setShowChangeVehicle(false);
-                  }}
-                />
-              )}
             </div>
           )}
         </div>

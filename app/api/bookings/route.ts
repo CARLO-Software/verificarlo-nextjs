@@ -114,12 +114,17 @@ export async function POST(req: NextRequest) {
         });
         console.log(`[Bookings] Auto-expired stale booking #${existingPending.id}`);
       } else {
-        // Aún no expiró, no permitir crear otra
+        // Aún no expiró — devolver datos para que el frontend reutilice la reserva
+        const pendingPlan = await db.inspectionPlan.findUnique({
+          where: { id: existingPending.inspectionPlanId },
+          select: { price: true },
+        });
         return NextResponse.json(
           {
-            error: "Ya tienes una reserva pendiente de pago. Complétala o espera a que expire.",
+            error: "existing_pending",
             bookingId: existingPending.id,
             expiresAt: existingPending.expiresAt,
+            amount: pendingPlan?.price || 0,
           },
           { status: 409 }
         );

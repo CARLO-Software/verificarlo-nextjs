@@ -414,6 +414,7 @@ export default function PaymentMethods({
     {
       id: "culqi" as const,
       label: "Culqi",
+      description: null,
       icons: [
         { src: "/assets/icons/visa.svg", alt: "Visa" },
         { src: "/assets/icons/mastercard.svg", alt: "MasterCard" },
@@ -423,19 +424,21 @@ export default function PaymentMethods({
     {
       id: "transfer" as const,
       label: "Transferencia Bancaria",
+      description: <>Para asegurar tu turno y confirmar la inspección de Verificarlo a domicilio, realiza el abono de la reserva en nuestra <strong>Cuenta Ahorros Soles BCP</strong> a nombre de <strong><em>VERIFICARLO</em></strong>. Los datos específicos de la cuenta se mostrarán en la siguiente pantalla al finalizar tu solicitud.</>,
       icons: [{ src: "/assets/icons/bank.svg", alt: "Banco" }],
     },
     {
       id: "yape" as const,
       label: "Yape / Plin",
+      description: <>Realiza el pago de tu reserva <strong>(S/ {bookingDetails.totalAmount.toFixed(0)})</strong> de forma rápida escaneando nuestro código QR o usando nuestro número oficial. Al finalizar tu solicitud, verás los datos de destino para realizar el abono.<br/><img src="/assets/images/yape.png" alt="Yape QR" style={{ marginTop: "0.75rem", maxWidth: "200px", borderRadius: "8px" }} /></>,
       icons: [
-        { src: "/assets/icons/plin.svg", alt: "Plin" },
-        { src: "/assets/icons/yape.svg", alt: "Yape" },
+        { src: "/assets/images/yape.png", alt: "Yape / Plin" },
       ],
     },
     {
       id: "whatsapp" as const,
       label: "Pago por Whatsapp",
+      description: <>Para asegurar tu turno y confirmar la inspección de Verificarlo a domicilio, <strong>el pago de la reserva se coordina directamente</strong> con un asesor. Al hacer clic en el botón inferior, serás redirigido a nuestro chat oficial.</>,
       icons: [{ src: "/assets/icons/whatsapp.svg", alt: "WhatsApp" }],
     },
   ];
@@ -538,6 +541,9 @@ export default function PaymentMethods({
                       ))}
                     </div>
                   </div>
+                  {isSelected && option.description && (
+                    <p className={styles.methodDescription}>{option.description}</p>
+                  )}
                 </div>
               </div>
             );

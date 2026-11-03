@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const FREE_CONSULTAR_URL = "http://161.132.38.122/free/consultar/placa";
-const TIMEOUT_MS = 15 * 1000;
+const TIMEOUT_MS = 2 * 60 * 1000;
 const MAX_RETRIES = 1;
 
 async function fetchWithRetry(
