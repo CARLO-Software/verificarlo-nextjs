@@ -47,6 +47,7 @@ export default async function AdminInspeccionesPage() {
     inspectionPaidAt: inspection.inspectionPaidAt,
     payment: inspection.payment ? {
       status: inspection.payment.status,
+      method: inspection.payment.method,
       amount: inspection.payment.amount,
       paidAt: inspection.payment.paidAt,
     } : null,

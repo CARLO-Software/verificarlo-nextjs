@@ -143,12 +143,16 @@ export default function AgendarForm({
   // =========================================================================
   const canProceedStep1 = selectedInspection !== null;
 
+  const plateClean = vehicleData.plate.replace(/[^A-Z0-9]/g, "");
+  const isPlateValid = plateClean.length === 0 || plateClean.length >= 6;
+
   const canProceedStep2 =
     vehicleData.brandId !== null &&
     vehicleData.modelId !== null &&
     vehicleData.year !== null &&
     locationData.districtId !== null &&
-    locationData.address.length >= 10;
+    locationData.address.length >= 10 &&
+    isPlateValid;
 
   const canProceedStep3 =
     selectedDate !== null &&
@@ -427,7 +431,7 @@ export default function AgendarForm({
     if (userRole === 'ADMIN') {
       router.push('/admin/inspecciones');
     } else {
-      router.push(`/mis-inspecciones?pendingVerification=${bookingData!.id}`);
+      router.push(`/mis-inspecciones/${bookingData!.id}`);
     }
   };
 
@@ -624,6 +628,21 @@ export default function AgendarForm({
               ================================================================= */}
           {currentStep === 4 && bookingData && selectedInspection && (
             <div className={styles.stepWrapper}>
+              <div className={styles.vehicleSummary}>
+                <div className={styles.vehicleSummaryRow}>
+                  <span className={styles.vehicleSummaryLabel}>Vehículo</span>
+                  <span className={styles.vehicleSummaryValue}>
+                    {vehicleData.brandName} {vehicleData.modelName} {vehicleData.year}
+                    {vehicleData.plate ? ` · ${vehicleData.plate}` : ""}
+                  </span>
+                </div>
+                <div className={styles.vehicleSummaryRow}>
+                  <span className={styles.vehicleSummaryLabel}>Ubicación</span>
+                  <span className={styles.vehicleSummaryValue}>
+                    {locationData.districtName}{locationData.address ? `, ${locationData.address}` : ""}
+                  </span>
+                </div>
+              </div>
               <PaymentMethods
                 selectedMethod={paymentMethod}
                 onSelectMethod={setPaymentMethod}

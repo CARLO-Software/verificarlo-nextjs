@@ -698,6 +698,34 @@
   color: #C2410C;
 }
 
+.verificationMethod {
+  font-size: 13px;
+  color: #6B7280;
+  text-align: center;
+  margin: 0 0 16px 0;
+  font-weight: 500;
+}
+
+.whatsappLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background: #25d366;
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.whatsappLink:hover {
+  background: #1fb855;
+}
+
 /* ============================================
    Modal Styles
    ============================================ */

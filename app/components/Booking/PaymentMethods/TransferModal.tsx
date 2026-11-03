@@ -105,32 +105,17 @@ export default function TransferModal({
 
         {/* Header */}
         <div className={styles.modalHeader}>
-          <div className={styles.modalIcon}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="18" height="18" rx="2" />
-              <path d="M3 9h18" />
-              <path d="M9 21V9" />
-            </svg>
-          </div>
           <h3 className={styles.modalTitle}>Transferencia Bancaria</h3>
           <p className={styles.modalSubtitle}>
-            Selecciona tu banco y realiza el abono de la reserva
+            Deposita <strong>S/ {amount.toFixed(2)}</strong> en la cuenta que prefieras
           </p>
         </div>
 
         {/* Body con datos */}
         <div className={styles.modalBody}>
-          {/* Monto a depositar */}
-          <div className={styles.infoCard}>
-            <div className={styles.infoRow}>
-              <span className={styles.infoLabel}>Monto a depositar:</span>
-              <span className={styles.infoValueLarge}>S/ {amount.toFixed(2)}</span>
-            </div>
-          </div>
-
           {/* Selector de banco */}
           <div className={styles.bankSelector}>
-            <span className={styles.bankSelectorLabel}>Selecciona tu banco:</span>
+            <span className={styles.bankSelectorLabel}>Banco</span>
             <div className={styles.bankTabs}>
               {banks.map((bank) => (
                 <button
@@ -176,19 +161,15 @@ export default function TransferModal({
           {selectedAccount && (
             <div className={styles.infoCard}>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Banco:</span>
-                <span className={styles.infoValue}>{selectedAccount.bank} - {selectedAccount.currency}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>N° de Cuenta:</span>
+                <span className={styles.infoLabel}>N° de Cuenta</span>
                 <span className={styles.infoValue}>{selectedAccount.accountNumber}</span>
               </div>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>CCI:</span>
+                <span className={styles.infoLabel}>CCI</span>
                 <span className={styles.infoValue}>{selectedAccount.cci}</span>
               </div>
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Titular:</span>
+                <span className={styles.infoLabel}>Titular</span>
                 <span className={styles.infoValue}>{selectedAccount.holder}</span>
               </div>
             </div>
@@ -198,10 +179,6 @@ export default function TransferModal({
         {/* Footer con botón */}
         <div className={styles.modalFooter}>
           <button className={`${styles.modalButton} ${styles.modalButtonPrimary}`} onClick={onSendVoucher}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M22 2L11 13" />
-              <path d="M22 2L15 22L11 13L2 9L22 2Z" />
-            </svg>
             Ya realicé la transferencia
           </button>
         </div>

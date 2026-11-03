@@ -17,7 +17,6 @@ import { useSession } from "next-auth/react";
 import styles from "./PaymentMethods.module.css";
 import TransferModal from "./TransferModal";
 import WhatsAppModal from "./WhatsAppModal";
-import CulqiYapePayment from "./CulqiYapePayment";
 
 // Declaración global de Culqi
 declare global {
@@ -141,6 +140,7 @@ export default function PaymentMethods({
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(0);
+  const [orderSummaryOpen, setOrderSummaryOpen] = useState(false);
 
   // Calcular tiempo restante
   useEffect(() => {
@@ -391,34 +391,82 @@ export default function PaymentMethods({
     return `https://api.whatsapp.com/send?phone=51934140010&text=${message}`;
   };
 
-  // Si está mostrando Yape con Culqi
+  // Si está mostrando Yape/Plin
   if (showYapePayment) {
     return (
-      <CulqiYapePayment
-        bookingId={bookingId}
-        amount={bookingDetails.totalAmount}
-        onBack={() => {
-          setShowYapePayment(false);
-          onSelectMethod(null);
-        }}
-        onSuccess={onPaymentSuccess}
-        onError={(msg) => setCulqiError(msg)}
-      />
+      <div className={styles.yapeFullPage}>
+        <button
+          className={styles.yapeBackButton}
+          onClick={() => {
+            setShowYapePayment(false);
+            onSelectMethod(null);
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+
+        <h2 className={styles.yapeTitle}>¡Casi listo! Escanea y paga tu reserva</h2>
+        <p className={styles.yapeSubtitle}>
+          Yapea o plinea S/ {bookingDetails.totalAmount.toFixed(2)} y envíanos el comprobante para confirmar tu inspección.
+        </p>
+
+        <div className={styles.yapeQrContainer}>
+          <img src="/assets/images/yape-qr.png" alt="QR Yape / Plin" className={styles.yapeQrImage} />
+        </div>
+
+        <div className={styles.yapeDetails}>
+          <div className={styles.yapeDetailRow}>
+            <span className={styles.yapeDetailLabel}>Número:</span>
+            <span className={styles.yapeDetailValue}>987 654 321</span>
+          </div>
+          <div className={styles.yapeDetailRow}>
+            <span className={styles.yapeDetailLabel}>Monto a yapear/plinear:</span>
+            <span className={styles.yapeDetailValue}>S/ {bookingDetails.totalAmount.toFixed(2)}</span>
+          </div>
+          <div className={styles.yapeDetailRow}>
+            <span className={styles.yapeDetailLabel}>Titular:</span>
+            <span className={styles.yapeDetailValue}>VERIFICARLO</span>
+          </div>
+        </div>
+
+        <button
+          className={styles.yapeSendButton}
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/payments/alternative", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  bookingId,
+                  paymentMethod: "YAPE",
+                }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error(data.error);
+              setShowYapePayment(false);
+              onAlternativePaymentSuccess();
+            } catch (err) {
+              setCulqiError(err instanceof Error ? err.message : "Error al registrar el pago");
+            }
+          }}
+        >
+          Enviar comprobante
+        </button>
+      </div>
     );
   }
-
-  const [orderSummaryOpen, setOrderSummaryOpen] = useState(false);
 
   // Configuración de cada método de pago
   const paymentOptions = [
     {
       id: "culqi" as const,
+      labelImage: "/assets/images/culqi.png",
       label: "Culqi",
       description: null,
       icons: [
-        { src: "/assets/icons/visa.svg", alt: "Visa" },
-        { src: "/assets/icons/mastercard.svg", alt: "MasterCard" },
-        { src: "/assets/icons/amex.svg", alt: "American Express" },
+        { src: "/assets/images/visa.png", alt: "Visa Mastercard Amex" },
       ],
     },
     {
@@ -525,7 +573,11 @@ export default function PaymentMethods({
 
                 <div className={styles.methodContent}>
                   <div className={styles.methodHeader}>
-                    <span className={styles.methodLabel}>{option.label}</span>
+                    {option.labelImage ? (
+                      <img src={option.labelImage} alt={option.label} className={styles.methodLabelImage} />
+                    ) : (
+                      <span className={styles.methodLabel}>{option.label}</span>
+                    )}
                     <div className={styles.methodIcons}>
                       {option.icons.map((icon, idx) => (
                         <img

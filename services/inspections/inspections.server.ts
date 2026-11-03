@@ -87,6 +87,7 @@ interface BookingBase {
   payment?: {
     id: number;
     status: string;
+    method: string | null;
     amount: number;
     paidAt: Date | null;
     receiptNumber: string | null;
@@ -337,6 +338,7 @@ export async function getAllBookings(filters?: {
         select: {
           id: true,
           status: true,
+          method: true,
           amount: true,
           paidAt: true,
           receiptNumber: true,
@@ -472,6 +474,7 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
         select: {
           id: true,
           status: true,
+          method: true,
           amount: true,
           paidAt: true,
           receiptNumber: true,

@@ -61,6 +61,7 @@ export default async function InspeccionDetallePage({ params }: PageProps) {
         ? {
             id: booking.payment.id,
             status: booking.payment.status,
+            method: booking.payment.method,
             amount: booking.payment.amount,
             paidAt: booking.payment.paidAt?.toISOString() || null,
             receiptNumber: booking.payment.receiptNumber,

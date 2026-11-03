@@ -427,6 +427,10 @@ export default function VehicleLocationForm({
                 maxLength={7}
                 className={styles.input}
               />
+              {vehicleData.plate.replace(/[^A-Z0-9]/gi, "").length > 0 &&
+                vehicleData.plate.replace(/[^A-Z0-9]/gi, "").length < 6 && (
+                <span className={styles.plateHint}>Completa la placa o déjala vacía</span>
+              )}
             </div>
 
             <div className={styles.formGroup}>

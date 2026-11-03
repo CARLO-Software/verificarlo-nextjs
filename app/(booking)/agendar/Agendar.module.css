@@ -291,6 +291,38 @@
 }
 
 /* ============================================
+   Vehicle Summary (Step 4)
+   ============================================ */
+
+.vehicleSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.25rem;
+}
+
+.vehicleSummaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.vehicleSummaryLabel {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.vehicleSummaryValue {
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  font-weight: 600;
+  text-align: right;
+}
+
+/* ============================================
    Change Vehicle Modal
    ============================================ */
 

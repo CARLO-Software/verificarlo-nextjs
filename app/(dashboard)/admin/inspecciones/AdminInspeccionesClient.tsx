@@ -57,6 +57,7 @@ interface Inspection {
   inspectionPaidAt: Date | null;
   payment: {
     status: string;
+    method: string | null;
     amount: number;
     paidAt: Date | null;
   } | null;
@@ -134,11 +135,19 @@ const filterPills = [
 const statusPills = [
   { value: 'all', label: 'Todos' },
   { value: 'PENDING_PAYMENT', label: 'Pendiente de pago' },
+  { value: 'PENDING_VERIFICATION', label: 'Verificar pago' },
   { value: 'PAID', label: 'Pagado' },
   { value: 'CANCELLED', label: 'Cancelado' },
   { value: 'NO_SHOW', label: 'No se presentó' },
   { value: 'EXPIRED', label: 'Expirado' },
 ];
+
+const paymentMethodBadge: Record<string, { label: string; bg: string; text: string }> = {
+  TRANSFER: { label: 'Transferencia', bg: 'bg-blue-50', text: 'text-blue-600' },
+  YAPE_PLIN: { label: 'Yape/Plin', bg: 'bg-purple-50', text: 'text-purple-600' },
+  WHATSAPP: { label: 'WhatsApp', bg: 'bg-green-50', text: 'text-green-600' },
+  CULQI: { label: 'Culqi', bg: 'bg-amber-50', text: 'text-amber-600' },
+};
 
 function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
   const initials = name
@@ -456,6 +465,7 @@ function InspectionDetailPanel({
                     className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
                   >
                     <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                    <option value="PENDING_VERIFICATION">Verificando pago</option>
                     <option value="PAID">Pagado</option>
                     <option value="CANCELLED">Cancelado</option>
                     <option value="NO_SHOW">No se presentó</option>
@@ -1439,6 +1449,7 @@ export function AdminInspeccionesClient({
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
@@ -1684,6 +1695,11 @@ export function AdminInspeccionesClient({
                   </div>
                 </div>
                 <div className="flex justify-end gap-1.5 mt-3 pt-3 border-t border-gray-100 flex-wrap">
+                  {inspection.status === 'PENDING_VERIFICATION' && inspection.payment?.method && paymentMethodBadge[inspection.payment.method] && (
+                    <span className={`inline-flex items-center px-2 py-1 text-[10px] font-semibold rounded-full ${paymentMethodBadge[inspection.payment.method].bg} ${paymentMethodBadge[inspection.payment.method].text}`}>
+                      {paymentMethodBadge[inspection.payment.method].label}
+                    </span>
+                  )}
                   {inspection.status === 'PENDING_VERIFICATION' && (
                     <button
                       onClick={(e) => {
@@ -1819,180 +1835,163 @@ export function AdminInspeccionesClient({
 
         {/* Desktop Table */}
         <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
-                    Cliente
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
-                    Vehículo
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden md:table-cell">
-                    Fecha
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
-                    Inspector
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                    Tipo
-                  </th>
-                  <th className="text-left text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
-                    Estado
-                  </th>
-                  <th className="text-right text-xs font-semibold text-gray-500 uppercase px-4 lg:px-6 py-3 lg:py-4">
-                    Acciones
-                  </th>
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th colSpan={3} className="p-0">
+                  <div className="flex items-center">
+                    <div className="flex-1 px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider">
+                      Vehículo
+                    </div>
+                    <div className="px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider whitespace-nowrap" style={{ width: 200, flexShrink: 0 }}>
+                      Fecha de Inspección
+                    </div>
+                    <div className="px-5 py-3 text-right text-xs font-bold text-[#2D2D2D] uppercase tracking-wider" style={{ width: 240, flexShrink: 0 }}>
+                      Estado
+                    </div>
+                    <div className="pr-4 py-3" style={{ width: 32, flexShrink: 0 }} />
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredInspections.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500">
+                    No se encontraron inspecciones
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredInspections.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                      No se encontraron inspecciones
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedInspections.map((inspection, index) => (
+              ) : (
+                paginatedInspections.map((inspection, index) => {
+                  const isExpanded = expandedId === inspection.id;
+                  const isEven = index % 2 === 0;
+                  return (
                     <tr
                       key={inspection.id}
-                      className={`border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer ${index % 2 === 1 ? 'bg-gray-50/50' : ''}`}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                      onClick={() => setSelectedInspection(inspection)}
+                      className="group"
                     >
-                      <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <div className="flex items-center gap-2 lg:gap-3">
-                          <Avatar name={inspection.client.name} size="sm" />
-                          <div className="min-w-0">
-                            <p className="font-medium text-[#2D2D2D] text-sm lg:text-base truncate">{inspection.client.name}</p>
-                            <p className="text-xs text-gray-500 truncate hidden lg:block">{inspection.client.email}</p>
+                      <td colSpan={3} className="p-0">
+                        {/* Main row */}
+                        <div
+                          className={`flex items-center cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/60' : isEven ? 'bg-white hover:bg-gray-50' : 'bg-[#f7f7f7] hover:bg-gray-100/40'}`}
+                          onClick={() => setExpandedId(isExpanded ? null : inspection.id)}
+                        >
+                          <div className="flex-1 px-5 py-2.5">
+                            <p className="font-medium text-[#2D2D2D] text-sm">
+                              {inspection.vehicle.brand} {inspection.vehicle.model}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {inspection.vehicle.year}{inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ''} · {inspection.client.name}
+                            </p>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <p className="font-medium text-[#2D2D2D] text-sm lg:text-base">
-                          {inspection.vehicle.brand} {inspection.vehicle.model}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {inspection.vehicle.year}{inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ''}
-                        </p>
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden md:table-cell">
-                        <p className="text-[#2D2D2D] text-sm">{formatearFechaHoraCorta(inspection.startTime)}</p>
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden lg:table-cell">
-                        {inspection.inspector ? (
-                          <div className="flex items-center gap-2">
-                            <Avatar name={inspection.inspector.name} size="sm" />
-                            <span className="text-sm">{inspection.inspector.name}</span>
+                          <div className="px-5 py-2.5 whitespace-nowrap" style={{ width: 200, flexShrink: 0 }}>
+                            <p className="text-[#2D2D2D] text-sm">{formatearFechaHoraCorta(inspection.startTime)}</p>
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 italic">Sin asignar</span>
-                        )}
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4 hidden xl:table-cell">
-                        <span className="text-sm text-gray-700">{inspection.inspectionType}</span>
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <StatusBadge status={inspection.status} size="sm" />
-                      </td>
-                      <td className="px-4 lg:px-6 py-3 lg:py-4">
-                        <div className="flex justify-end gap-1">
-                          {inspection.status === 'PENDING_VERIFICATION' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleVerifyPayment(inspection.id);
-                              }}
-                              disabled={verifyingId === inspection.id}
-                              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors bg-orange-50 text-orange-600 hover:bg-orange-100 disabled:opacity-50"
-                            >
-                              {verifyingId === inspection.id ? (
-                                <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                                </svg>
-                              ) : (
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                              )}
-                              Verificar
-                            </button>
-                          )}
-                          {inspection.vehicleInspection && (
-                            inspection.vehicleInspection.legalStatus === 'BLOQUEADO' ? (
-                              <span
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-400 cursor-not-allowed opacity-60"
-                                title="Esperando placa del mecánico"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                                Legal
+                          <div className="px-5 py-2.5 flex items-center justify-end gap-1.5 flex-wrap" style={{ width: 240, flexShrink: 0 }}>
+                            <StatusBadge status={inspection.status} size="sm" />
+                            {inspection.status === 'PENDING_VERIFICATION' && inspection.payment?.method && paymentMethodBadge[inspection.payment.method] && (
+                              <span className={`inline-flex items-center px-2 py-0.5 text-[10px] font-semibold rounded-full ${paymentMethodBadge[inspection.payment.method].bg} ${paymentMethodBadge[inspection.payment.method].text}`}>
+                                {paymentMethodBadge[inspection.payment.method].label}
                               </span>
-                            ) : (
-                              <a
-                                href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
-                                onClick={(e) => e.stopPropagation()}
-                                className={`inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                                  inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                                    ? 'bg-green-50 text-green-600 hover:bg-green-100'
-                                    : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                                    ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
-                                    : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
-                                }`}
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  {inspection.vehicleInspection.legalStatus === 'COMPLETADO' ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                  ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                  )}
-                                </svg>
-                                {inspection.vehicleInspection.legalStatus === 'COMPLETADO'
-                                  ? 'Legal ✓'
-                                  : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
-                                  ? 'Legal...'
-                                  : 'Legal'}
-                              </a>
-                            )
-                          )}
-                          {(inspection.reportId || inspection.vehicleInspection?.mechanicalStatus === 'COMPLETADO') && (
-                            <a
-                              href={`/admin/inspecciones/${inspection.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                              </svg>
-                              Reporte
-                            </a>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedInspection(inspection);
-                            }}
-                            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded-lg transition-colors text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            )}
+                          </div>
+                          <div className="pr-4 py-2.5 flex items-center" style={{ flexShrink: 0 }}>
+                            <svg className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
-                            Ver
-                          </button>
+                          </div>
                         </div>
+
+                        {/* Expanded detail */}
+                        {isExpanded && (
+                          <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center gap-6 flex-wrap">
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Inspector</p>
+                              <p className="text-sm text-[#2D2D2D] font-medium">{inspection.inspector ? inspection.inspector.name : <span className="text-gray-400 italic font-normal">Sin asignar</span>}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Tipo</p>
+                              <p className="text-sm text-[#2D2D2D]">{inspection.inspectionType}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Monto</p>
+                              <p className="text-sm text-[#2D2D2D] font-medium">S/ {inspection.inspectionPlanPrice.toFixed(2)}</p>
+                            </div>
+                            {inspection.district && (
+                              <div>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Distrito</p>
+                                <p className="text-sm text-[#2D2D2D]">{inspection.district}</p>
+                              </div>
+                            )}
+                            <div className="ml-auto flex items-center gap-2">
+                              {inspection.status === 'PENDING_VERIFICATION' && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleVerifyPayment(inspection.id);
+                                  }}
+                                  disabled={verifyingId === inspection.id}
+                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-[#FFE14C] text-[#2D2D2D] hover:bg-[#FFD700] transition-colors disabled:opacity-50"
+                                >
+                                  {verifyingId === inspection.id ? (
+                                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                  Verificar pago
+                                </button>
+                              )}
+                              {inspection.vehicleInspection && inspection.vehicleInspection.legalStatus !== 'BLOQUEADO' && (
+                                <a
+                                  href={`/admin/vehicle-inspections/${inspection.vehicleInspection.id}/legal`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className={`inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                                    inspection.vehicleInspection.legalStatus === 'COMPLETADO'
+                                      ? 'bg-green-50 text-green-600 hover:bg-green-100'
+                                      : inspection.vehicleInspection.legalStatus === 'EN_PROCESO'
+                                      ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                                      : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                                  }`}
+                                >
+                                  Legal{inspection.vehicleInspection.legalStatus === 'COMPLETADO' ? ' ✓' : inspection.vehicleInspection.legalStatus === 'EN_PROCESO' ? '...' : ''}
+                                </a>
+                              )}
+                              {(inspection.reportId || inspection.vehicleInspection?.mechanicalStatus === 'COMPLETADO') && (
+                                <a
+                                  href={`/admin/inspecciones/${inspection.id}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+                                >
+                                  Reporte
+                                </a>
+                              )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedInspection(inspection);
+                                }}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white hover:border-gray-300 transition-colors"
+                              >
+                                Ver detalle
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Row border */}
+                        <div className="border-b border-gray-100" />
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
 
           {/* Pagination */}
           <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
