@@ -148,9 +148,6 @@ function RegisterContent() {
                 if (!/\d/.test(value)) {
                     return "La contraseña debe tener al menos un número";
                 }
-                if (!/[!@#$%^&*()_+\-=\[\]{}|;':",./<>?]/.test(value)) {
-                    return "La contraseña debe tener al menos un carácter especial (!@#$%^&*)";
-                }
                 return "";
 
             case "confirmPassword":
@@ -606,7 +603,7 @@ function RegisterContent() {
                                 </button>
                             </div>
                             <span id="password-helper" className={styles.helperText}>
-                                Mínimo 8 caracteres, mayúscula, número y símbolo (!@#$%...)
+                                Mínimo 8 caracteres, una mayúscula y un número
                             </span>
                             {errors.password && (
                                 <span

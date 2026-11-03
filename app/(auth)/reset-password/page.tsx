@@ -38,8 +38,6 @@ function ResetPasswordForm() {
     if (password.length < 8) return "Mínimo 8 caracteres.";
     if (!/[A-Z]/.test(password)) return "Debe incluir al menos una mayúscula.";
     if (!/\d/.test(password)) return "Debe incluir al menos un número.";
-    if (!/[!@#$%^&*()_+\-=\[\]{}|;':",./<>?]/.test(password))
-      return "Debe incluir al menos un carácter especial (!@#$%...).";
     if (password !== confirmPassword) return "Las contraseñas no coinciden.";
     return null;
   }
@@ -151,7 +149,7 @@ function ResetPasswordForm() {
                 </button>
               </div>
               <span className={styles.helperText}>
-                Mínimo 8 caracteres, mayúscula, número y símbolo (!@#$%...)
+                Mínimo 8 caracteres, una mayúscula y un número
               </span>
             </div>
 
