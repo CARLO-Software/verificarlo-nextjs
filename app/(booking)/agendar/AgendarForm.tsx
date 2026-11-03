@@ -126,6 +126,7 @@ export default function AgendarForm({
   const [paymentMethod, setPaymentMethod] = useState<
     "culqi" | "transfer" | "yape" | "whatsapp" | null
   >(null);
+  const [showChangeVehicle, setShowChangeVehicle] = useState(false);
 
   // =========================================================================
   // DATOS DE RESERVA (después de crearla en el backend)
@@ -630,14 +631,158 @@ export default function AgendarForm({
               />
 
               <div className={styles.stepButtons}>
-                <button onClick={goBack} className={styles.secondaryButton}>
-                  Atrás
+                <button onClick={() => setShowChangeVehicle(true)} className={styles.secondaryButton}>
+                  Cambiar vehículo
                 </button>
               </div>
+
+              {showChangeVehicle && bookingData && (
+                <ChangeVehicleModalAgendar
+                  bookingId={bookingData.id}
+                  brands={initialBrands}
+                  onClose={() => setShowChangeVehicle(false)}
+                  onSuccess={(vehicle) => {
+                    setVehicleData({
+                      brandId: vehicle.brandId,
+                      brandName: vehicle.brand,
+                      modelId: vehicle.modelId,
+                      modelName: vehicle.model,
+                      year: vehicle.year,
+                      plate: vehicle.plate || "",
+                    });
+                    setShowChangeVehicle(false);
+                  }}
+                />
+              )}
             </div>
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+// ============================================
+// Change Vehicle Modal (inline for /agendar)
+// ============================================
+function ChangeVehicleModalAgendar({
+  bookingId,
+  brands,
+  onClose,
+  onSuccess,
+}: {
+  bookingId: number;
+  brands: { id: number; name: string }[];
+  onClose: () => void;
+  onSuccess: (vehicle: { brandId: number; brand: string; modelId: number; model: string; year: number; plate: string | null }) => void;
+}) {
+  const [models, setModels] = useState<{ id: number; name: string; yearFrom: number; yearTo: number }[]>([]);
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [modelId, setModelId] = useState<number | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+  const [plate, setPlate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (brandId) {
+      setModelId(null);
+      setYear(null);
+      fetch(`/api/vehicles/models/${brandId}`).then(r => r.json()).then(setModels).catch(() => {});
+    }
+  }, [brandId]);
+
+  const selectedModel = models.find(m => m.id === modelId);
+  const years = selectedModel
+    ? Array.from({ length: selectedModel.yearTo - selectedModel.yearFrom + 1 }, (_, i) => selectedModel.yearTo - i)
+    : [];
+
+  const canSubmit = brandId && modelId && year;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/change-vehicle`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modelId, year, plate: plate || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al cambiar vehículo");
+      const selectedBrand = brands.find(b => b.id === brandId);
+      onSuccess({
+        brandId: brandId!,
+        brand: selectedBrand?.name || "",
+        modelId: modelId!,
+        model: data.vehicle.model,
+        year: data.vehicle.year,
+        plate: data.vehicle.plate,
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <h3 className={styles.modalTitle}>Cambiar vehículo</h3>
+        <p className={styles.modalSubtitle}>Selecciona el nuevo vehículo para esta inspección.</p>
+
+        {error && <p className={styles.modalError}>{error}</p>}
+
+        <div className={styles.modalFields}>
+          <select
+            value={brandId || ""}
+            onChange={e => setBrandId(Number(e.target.value) || null)}
+            className={styles.modalSelect}
+          >
+            <option value="">Marca *</option>
+            {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+
+          <select
+            value={modelId || ""}
+            onChange={e => { setModelId(Number(e.target.value) || null); setYear(null); }}
+            disabled={!brandId}
+            className={styles.modalSelect}
+          >
+            <option value="">Modelo *</option>
+            {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+
+          <select
+            value={year || ""}
+            onChange={e => setYear(Number(e.target.value) || null)}
+            disabled={!modelId}
+            className={styles.modalSelect}
+          >
+            <option value="">Año *</option>
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+
+          <input
+            type="text"
+            value={plate}
+            onChange={e => setPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 7))}
+            placeholder="Placa (opcional)"
+            className={styles.modalSelect}
+          />
+        </div>
+
+        <div className={styles.modalActions}>
+          <button onClick={onClose} disabled={loading} className={styles.secondaryButton}>
+            Cancelar
+          </button>
+          <button onClick={handleSubmit} disabled={!canSubmit || loading} className={styles.primaryButton} style={{ justifyContent: "center" }}>
+            {loading ? "Guardando..." : "Confirmar"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

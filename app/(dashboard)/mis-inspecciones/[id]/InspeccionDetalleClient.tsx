@@ -1,11 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BookingStatus } from "@prisma/client";
 import styles from "./InspeccionDetalle.module.css";
-// Ya no usamos getVerdict - el veredicto viene directo del mecánico
 import { InspectionTimeline } from "./InspectionTimeline";
 import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
 
@@ -164,6 +163,9 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<"culqi" | "transfer" | "yape" | "whatsapp" | null>("culqi");
   const [error, setError] = useState<string | null>(null);
+  const [showChangeVehicle, setShowChangeVehicle] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const handlePaymentSuccess = () => {
     router.refresh();
@@ -177,6 +179,27 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
     router.refresh();
   };
 
+  const handleCancel = async () => {
+    setCancelLoading(true);
+    try {
+      const res = await fetch(`/api/bookings/${inspection.id}/cancel`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        router.push("/agendar");
+      } else {
+        setError(data.error || "Error al cancelar la inspección");
+        setShowCancelConfirm(false);
+      }
+    } catch {
+      setError("Error de conexión. Intenta nuevamente.");
+      setShowCancelConfirm(false);
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
   return (
     <div className={styles.content}>
       <div className={styles.mainCard}>
@@ -184,6 +207,21 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
         <div className={styles.statusBadge} data-status="pending">
           <span className={styles.statusDot} />
           Pendiente de pago
+        </div>
+
+        {/* Vehicle info + change link */}
+        <div className={styles.vehicleInfo}>
+          <span className={styles.vehicleLabel}>Vehículo:</span>
+          <span className={styles.vehicleValue}>
+            {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
+            {inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ""}
+          </span>
+          <button
+            onClick={() => setShowChangeVehicle(true)}
+            className={styles.changeLink}
+          >
+            Cambiar vehículo
+          </button>
         </div>
 
         {/* Error */}
@@ -215,7 +253,53 @@ function PendingPaymentView({ inspection }: { inspection: InspectionData }) {
           onAlternativePaymentSuccess={handleAlternativePaymentSuccess}
         />
 
+        {/* Cancel + rebook */}
+        <button
+          onClick={() => setShowCancelConfirm(true)}
+          disabled={cancelLoading}
+          className={styles.cancelLink}
+        >
+          Cancelar y volver a agendar
+        </button>
+
+        {showCancelConfirm && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modal}>
+              <h3 className={styles.modalTitle}>¿Cancelar inspección?</h3>
+              <p className={styles.modalMessage}>
+                Se cancelará esta reserva y serás redirigido a /agendar para crear una nueva.
+              </p>
+              <div className={styles.modalActions}>
+                <button
+                  onClick={() => setShowCancelConfirm(false)}
+                  disabled={cancelLoading}
+                  className={styles.secondaryButton}
+                >
+                  No, volver
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={cancelLoading}
+                  className={styles.dangerButton}
+                >
+                  {cancelLoading ? "Cancelando..." : "Sí, cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {showChangeVehicle && (
+        <ChangeVehicleModal
+          bookingId={inspection.id}
+          onClose={() => setShowChangeVehicle(false)}
+          onSuccess={() => {
+            setShowChangeVehicle(false);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1009,8 +1093,11 @@ function BookingSummary({
   inspection: InspectionData;
   showPrice?: boolean;
 }) {
+  const router = useRouter();
+  const [showChangeVehicle, setShowChangeVehicle] = useState(false);
+  const canChangeVehicle = ["PENDING_PAYMENT", "PENDING_VERIFICATION", "PAID"].includes(inspection.status);
+
   const formatDate = (dateStr: string) => {
-    // Extraer fecha del ISO string y usar mediodía UTC para evitar cambio de día
     const datePart = dateStr.split("T")[0];
     const date = new Date(datePart + "T12:00:00Z");
     return date.toLocaleDateString("es-PE", {
@@ -1046,6 +1133,14 @@ function BookingSummary({
         <span className={styles.summaryValue}>
           {inspection.vehicle.brand} {inspection.vehicle.model}{" "}
           {inspection.vehicle.year}
+          {canChangeVehicle && (
+            <button
+              onClick={() => setShowChangeVehicle(true)}
+              className={styles.changeLink}
+            >
+              Cambiar
+            </button>
+          )}
         </span>
       </div>
 
@@ -1081,6 +1176,137 @@ function BookingSummary({
           </div>
         </>
       )}
+
+      {showChangeVehicle && (
+        <ChangeVehicleModal
+          bookingId={inspection.id}
+          onClose={() => setShowChangeVehicle(false)}
+          onSuccess={() => {
+            setShowChangeVehicle(false);
+            router.refresh();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ============================================
+// Change Vehicle Modal
+// ============================================
+function ChangeVehicleModal({
+  bookingId,
+  onClose,
+  onSuccess,
+}: {
+  bookingId: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [brands, setBrands] = useState<{ id: number; name: string }[]>([]);
+  const [models, setModels] = useState<{ id: number; name: string; yearFrom: number; yearTo: number }[]>([]);
+  const [brandId, setBrandId] = useState<number | null>(null);
+  const [modelId, setModelId] = useState<number | null>(null);
+  const [year, setYear] = useState<number | null>(null);
+  const [plate, setPlate] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/vehicles/brands").then(r => r.json()).then(setBrands).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (brandId) {
+      setModelId(null);
+      setYear(null);
+      fetch(`/api/vehicles/models/${brandId}`).then(r => r.json()).then(setModels).catch(() => {});
+    }
+  }, [brandId]);
+
+  const selectedModel = models.find(m => m.id === modelId);
+  const years = selectedModel
+    ? Array.from({ length: selectedModel.yearTo - selectedModel.yearFrom + 1 }, (_, i) => selectedModel.yearTo - i)
+    : [];
+
+  const canSubmit = modelId && year;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/bookings/${bookingId}/change-vehicle`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modelId, year, plate: plate || null }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al cambiar vehículo");
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error desconocido");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay}>
+      <div className={styles.modal}>
+        <h3 className={styles.modalTitle}>Cambiar vehículo</h3>
+        <p className={styles.modalMessage}>Selecciona el nuevo vehículo para esta inspección.</p>
+
+        {error && <div className={styles.error}><span>{error}</span></div>}
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", margin: "1rem 0" }}>
+          <select
+            value={brandId || ""}
+            onChange={e => setBrandId(Number(e.target.value) || null)}
+            className={styles.modalInput}
+          >
+            <option value="">Marca *</option>
+            {brands.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </select>
+
+          <select
+            value={modelId || ""}
+            onChange={e => { setModelId(Number(e.target.value) || null); setYear(null); }}
+            disabled={!brandId}
+            className={styles.modalInput}
+          >
+            <option value="">Modelo *</option>
+            {models.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+          </select>
+
+          <select
+            value={year || ""}
+            onChange={e => setYear(Number(e.target.value) || null)}
+            disabled={!modelId}
+            className={styles.modalInput}
+          >
+            <option value="">Año *</option>
+            {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+
+          <input
+            type="text"
+            value={plate}
+            onChange={e => setPlate(e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, "").slice(0, 7))}
+            placeholder="Placa (opcional)"
+            className={styles.modalInput}
+          />
+        </div>
+
+        <div className={styles.modalActions}>
+          <button onClick={onClose} disabled={loading} className={styles.secondaryButton}>
+            Cancelar
+          </button>
+          <button onClick={handleSubmit} disabled={!canSubmit || loading} className={styles.primaryButton}>
+            {loading ? "Guardando..." : "Confirmar cambio"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

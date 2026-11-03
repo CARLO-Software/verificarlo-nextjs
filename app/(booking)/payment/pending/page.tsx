@@ -79,7 +79,7 @@ function PendingContent() {
         {data && (
           <div className={styles.statusChip} data-status="pending">
             <span className={styles.dot} />
-            Estado: {data.bookingStatus}
+            Estado: {data.bookingStatus === "PENDING_PAYMENT" ? "PENDIENTE DE PAGO" : data.bookingStatus === "PENDING_VERIFICATION" ? "PENDIENTE DE VERIFICACIÓN" : data.bookingStatus === "PAID" ? "PAGADO" : data.bookingStatus === "COMPLETED" ? "COMPLETADO" : data.bookingStatus}
           </div>
         )}
 

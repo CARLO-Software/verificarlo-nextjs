@@ -67,10 +67,12 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
   }
 
   // Si el usuario es cliente logueado, mostrar layout minimalista en páginas públicas
+  // Excepto /agendar que usa el NavBar con tema oscuro
+  const isBookingRoute = pathname.startsWith('/agendar');
   const isClientLoggedIn =
     status === 'authenticated' && session?.user?.role === 'CLIENT';
 
-  if (isClientLoggedIn) {
+  if (isClientLoggedIn && !isBookingRoute) {
     return (
       <div className="min-h-screen bg-gray-50">
         <MinimalHeader />

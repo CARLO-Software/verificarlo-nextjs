@@ -755,7 +755,8 @@
 
 .modalActions {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .dangerButton {
@@ -781,6 +782,91 @@
 
 .dangerButton:disabled {
   background: #FCA5A5;
+  cursor: not-allowed;
+}
+
+.vehicleInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: #F9FAFB;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+}
+
+.vehicleLabel {
+  color: #6B7280;
+  font-weight: 500;
+}
+
+.vehicleValue {
+  color: #1F2937;
+  font-weight: 600;
+}
+
+.changeLink {
+  margin-left: auto;
+  font-size: 13px;
+  color: #2563EB;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.changeLink:hover {
+  color: #1D4ED8;
+}
+
+.cancelLink {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: none;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #EF4444;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.cancelLink:hover {
+  background: #FEF2F2;
+  border-color: #FECACA;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #1F2937;
+  background: white;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.modalInput:focus {
+  border-color: #1a1918;
+}
+
+.modalInput:disabled {
+  background: #F9FAFB;
+  color: #9CA3AF;
   cursor: not-allowed;
 }
 

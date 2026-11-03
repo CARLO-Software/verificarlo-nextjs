@@ -407,12 +407,13 @@ export default function PaymentMethods({
     );
   }
 
+  const [orderSummaryOpen, setOrderSummaryOpen] = useState(false);
+
   // Configuración de cada método de pago
   const paymentOptions = [
     {
       id: "culqi" as const,
-      label: "Tarjeta de crédito/débito",
-      description: "Paga de forma segura con tu tarjeta. Procesado por Culqi.",
+      label: "Culqi",
       icons: [
         { src: "/assets/icons/visa.svg", alt: "Visa" },
         { src: "/assets/icons/mastercard.svg", alt: "MasterCard" },
@@ -420,21 +421,21 @@ export default function PaymentMethods({
       ],
     },
     {
-      id: "yape" as const,
-      label: "Yape",
-      description: "Escanea el código QR con tu app de Yape. Confirmación automática.",
-      icons: [{ src: "/assets/icons/yape.svg", alt: "Yape" }],
-    },
-    {
       id: "transfer" as const,
       label: "Transferencia Bancaria",
-      description: `Realiza una transferencia de S/${bookingDetails.totalAmount.toFixed(2)}. Verificación en 4 horas máximo.`,
       icons: [{ src: "/assets/icons/bank.svg", alt: "Banco" }],
     },
     {
+      id: "yape" as const,
+      label: "Yape / Plin",
+      icons: [
+        { src: "/assets/icons/plin.svg", alt: "Plin" },
+        { src: "/assets/icons/yape.svg", alt: "Yape" },
+      ],
+    },
+    {
       id: "whatsapp" as const,
-      label: "Coordinar por WhatsApp",
-      description: "Contacta a un asesor para coordinar el pago y la cita.",
+      label: "Pago por Whatsapp",
       icons: [{ src: "/assets/icons/whatsapp.svg", alt: "WhatsApp" }],
     },
   ];
@@ -458,24 +459,13 @@ export default function PaymentMethods({
       )}
 
       <div className={styles.container}>
-        <h2 className={styles.title}>Elige tu método de pago</h2>
+        <h2 className={styles.title}>Pago</h2>
         <p className={styles.subtitle}>
-          Selecciona cómo deseas pagar tu inspección
+          Todas las transacciones son seguras y están encriptadas.
         </p>
 
         {/* Timer */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          padding: "0.75rem 1rem",
-          background: isUrgent ? "#fef2f2" : "#f3f4f6",
-          borderRadius: "8px",
-          marginBottom: "1rem",
-          color: isUrgent ? "#dc2626" : "#4b5563",
-          fontWeight: 500,
-          fontSize: "0.9rem",
-        }}>
+        <div className={`${styles.timerBar} ${isUrgent ? styles.timerUrgent : ""}`}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <circle cx="12" cy="12" r="10" />
             <path d="M12 6v6l4 2" />
@@ -497,28 +487,12 @@ export default function PaymentMethods({
             {culqiError}
             <button
               onClick={() => setCulqiError(null)}
-              style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#dc2626" }}
+              className={styles.errorClose}
             >
               ×
             </button>
           </div>
         )}
-
-        {/* Resumen del pedido */}
-        <div className={styles.infoCard} style={{ marginBottom: "1.5rem" }}>
-          <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Plan</span>
-            <span className={styles.infoValue}>{bookingDetails.planTitle}</span>
-          </div>
-          <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Código</span>
-            <span className={styles.infoValue}>{bookingDetails.bookingCode}</span>
-          </div>
-          <div className={styles.infoRow}>
-            <span className={styles.infoLabel}>Total a pagar</span>
-            <span className={styles.infoValueLarge}>S/ {bookingDetails.totalAmount.toFixed(2)}</span>
-          </div>
-        </div>
 
         {/* Lista de métodos de pago */}
         <div className={styles.methodsList}>
@@ -540,16 +514,12 @@ export default function PaymentMethods({
                   }
                 }}
               >
-                {/* Radio button */}
                 <div className={styles.radioWrapper}>
-                  <div
-                    className={`${styles.radioCircle} ${isSelected ? styles.radioCircleSelected : ""}`}
-                  >
+                  <div className={`${styles.radioCircle} ${isSelected ? styles.radioCircleSelected : ""}`}>
                     {isSelected && <div className={styles.radioDot} />}
                   </div>
                 </div>
 
-                {/* Contenido */}
                 <div className={styles.methodContent}>
                   <div className={styles.methodHeader}>
                     <span className={styles.methodLabel}>{option.label}</span>
@@ -568,15 +538,50 @@ export default function PaymentMethods({
                       ))}
                     </div>
                   </div>
-
-                  {/* Descripción - solo visible cuando está seleccionado */}
-                  {isSelected && (
-                    <p className={styles.methodDescription}>{option.description}</p>
-                  )}
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Resumen del pedido (collapsible) */}
+        <div className={styles.orderSummary}>
+          <button
+            className={styles.orderSummaryToggle}
+            onClick={() => setOrderSummaryOpen(!orderSummaryOpen)}
+          >
+            <span>Resumen del pedido</span>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={orderSummaryOpen ? styles.chevronOpen : ""}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+          {orderSummaryOpen && (
+            <div className={styles.orderSummaryContent}>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Plan</span>
+                <span className={styles.infoValue}>{bookingDetails.planTitle}</span>
+              </div>
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Código</span>
+                <span className={styles.infoValue}>{bookingDetails.bookingCode}</span>
+              </div>
+              <div className={styles.orderSummaryDivider} />
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>Total a pagar</span>
+                <span className={styles.infoValueLarge}>S/ {bookingDetails.totalAmount.toFixed(2)}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Botón de acción según método seleccionado */}
@@ -588,7 +593,6 @@ export default function PaymentMethods({
             }}
             disabled={culqiLoading || isExpired}
             className={styles.continueButton}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="1" y="4" width="22" height="16" rx="2" />
@@ -603,17 +607,8 @@ export default function PaymentMethods({
             onClick={() => setShowYapePayment(true)}
             disabled={isExpired}
             className={styles.continueButton}
-            style={{ background: "#6B21A8" }}
           >
-            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" />
-                <rect x="7" y="7" width="3" height="3" />
-                <rect x="14" y="7" width="3" height="3" />
-                <rect x="7" y="14" width="3" height="3" />
-              </svg>
-              Pagar con Yape - S/ {bookingDetails.totalAmount.toFixed(2)}
-            </span>
+            Pagar con Yape - S/ {bookingDetails.totalAmount.toFixed(2)}
           </button>
         )}
 
@@ -622,7 +617,6 @@ export default function PaymentMethods({
             onClick={() => setShowTransferModal(true)}
             disabled={isExpired}
             className={styles.continueButton}
-            style={{ background: "#2563eb" }}
           >
             Ver datos para transferencia
           </button>
@@ -633,7 +627,6 @@ export default function PaymentMethods({
             onClick={() => setShowWhatsAppModal(true)}
             disabled={isExpired}
             className={styles.continueButton}
-            style={{ background: "#25d366" }}
           >
             Coordinar por WhatsApp
           </button>
@@ -646,21 +639,12 @@ export default function PaymentMethods({
         )}
 
         {/* Nota de seguridad */}
-        <p style={{
-          marginTop: "1rem",
-          fontSize: "0.8rem",
-          color: "#9ca3af",
-          textAlign: "center",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "0.5rem",
-        }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <p className={styles.securityNote}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D4A017" strokeWidth="2.5">
             <rect x="3" y="11" width="18" height="11" rx="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
-          Pago seguro procesado por Culqi
+          Pago 100% seguro
         </p>
 
         {/* =================================================================
