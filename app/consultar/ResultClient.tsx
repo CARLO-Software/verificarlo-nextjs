@@ -69,11 +69,21 @@ function isExpired(fechaVcto: string | undefined): boolean {
 }
 
 function getSoatExpiry(consultar: any): string | undefined {
-  return consultar?.soat?.Fin || consultar?.sbs_soat?.vencimiento;
+  const s = consultar?.soat;
+  const sbs = consultar?.sbs_soat;
+  const d = consultar?.desglose_soat?.[0];
+  return s?.Fin || s?.vigencia_hasta || s?.vencimiento
+    || sbs?.vencimiento || sbs?.Fin || sbs?.vigencia_hasta
+    || d?.vigencia_hasta;
 }
 
 function getSoatCompany(consultar: any): string {
-  return consultar?.soat?.["Compañía"] || consultar?.sbs_soat?.empresa || "";
+  const s = consultar?.soat;
+  const sbs = consultar?.sbs_soat;
+  const d = consultar?.desglose_soat?.[0];
+  return s?.["Compañía"] || s?.compania || s?.empresa
+    || sbs?.empresa || sbs?.["Compañía"] || sbs?.compania
+    || d?.compania || "";
 }
 
 function getSiniestrosCount(consultar: any): number {
