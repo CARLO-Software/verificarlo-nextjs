@@ -16,12 +16,12 @@ function cleanPlate(formatted: string): string {
 }
 
 const LOGOS = [
-  { src: "/assets/images/image-carrusel-1.png", alt: "SAT Lima" },
-  { src: "/assets/images/image-carrusel-2.png", alt: "APESEG" },
-  { src: "/assets/images/image-carrusel-3.png", alt: "SUTRAN" },
-  { src: "/assets/images/image-carrusel-4.png", alt: "MTC" },
-  { src: "/assets/images/image-carrusel-5.png", alt: "SBS" },
-  { src: "/assets/images/image-carrusel-6.png", alt: "SUNARP" },
+  { src: "/assets/icons/sat.svg", alt: "SAT Lima" },
+  { src: "/assets/icons/apeseg.svg", alt: "APESEG" },
+  { src: "/assets/icons/sutran.svg", alt: "SUTRAN" },
+  { src: "/assets/icons/mtc.svg", alt: "MTC" },
+  { src: "/assets/icons/superintendencia.svg", alt: "SBS" },
+  { src: "/assets/icons/sunarp.svg", alt: "SUNARP" },
 ];
 
 export default function Hero() {
@@ -100,7 +100,7 @@ export default function Hero() {
                   className={styles.plateInput}
                   aria-label="Número de placa del vehículo"
                 />
-                <Image src="/assets/images/icons/car.png" alt="" width={22} height={22} className={styles.carIcon} />
+                <Image src="/assets/icons/servicio-de-auto.svg" alt="" width={22} height={22} className={styles.carIcon} />
               </div>
 
               <button
@@ -117,14 +117,14 @@ export default function Hero() {
               <div className={styles.stats}>
                 <div className={styles.stat}>
                   <div className={styles.statIcon}>
-                    <Image src="/assets/images/icons/no-perfecto.png" alt="" width={20} height={20} />
+                    <Image src="/assets/icons/auto-falla.svg" alt="" width={20} height={20} />
                   </div>
                   <span className={styles.statValue}>82%</span>
                   <span className={styles.statLabel}>Autos &quot;perfectos&quot; que ocultaban fallas</span>
                 </div>
                 <div className={styles.stat}>
                   <div className={styles.statIcon}>
-                    <Image src="/assets/images/icons/mecanico.png" alt="" width={20} height={20} />
+                    <Image src="/assets/icons/mecanico.svg" alt="" width={20} height={20} />
                   </div>
                   <span className={styles.statValue}>+500</span>
                   <span className={styles.statLabel}>Inspecciones realizadas</span>
@@ -180,7 +180,7 @@ export default function Hero() {
             </div>
 
             <div className={styles.legalBadge}>
-              <span className={styles.legalIcon}><Image src="/assets/images/icons/documento.png" alt="" width={14} height={14} /></span>
+              <span className={styles.legalIcon}><Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={14} height={14} /></span>
               <span>Reporte legal <strong>GRATIS</strong></span>
               <span className={styles.legalSave}>Ahorra S/ 19.90</span>
             </div>
@@ -216,7 +216,7 @@ export default function Hero() {
             </div>
 
             <div className={styles.legalBadge}>
-              <span className={styles.legalIcon}><Image src="/assets/images/icons/documento.png" alt="" width={14} height={14} /></span>
+              <span className={styles.legalIcon}><Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={14} height={14} /></span>
               <span>Reporte legal <strong>GRATIS</strong></span>
               <span className={styles.legalSave}>Ahorra S/ 19.90</span>
             </div>

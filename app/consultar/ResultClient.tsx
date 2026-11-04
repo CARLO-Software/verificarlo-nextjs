@@ -55,7 +55,18 @@ function extractVehicle(consultar: any) {
   };
 }
 
-const SKIP_NAMES = new Set(["COPROPIEDAD", "PROPIEDAD EXCLUSIVA", "PERSONA NATURAL", "PERSONA JURÍDICA", "PERSONA JURIDICA", "SOLTERO", "SOLTERA", "CASADO", "CASADA", "VIUDO", "VIUDA", "DIVORCIADO", "DIVORCIADA"]);
+const SKIP_NAMES = new Set(["COPROPIEDAD", "PROPIEDAD EXCLUSIVA", "PERSONA NATURAL", "PERSONA JURÍDICA", "PERSONA JURIDICA", "SOCIEDAD CONYUGAL", "SOLTERO", "SOLTERA", "CASADO", "CASADA", "VIUDO", "VIUDA", "DIVORCIADO", "DIVORCIADA"]);
+
+const DOC_PREFIX = /^(L\.?E\.?|DNI|C\.?E\.?|RUC|PASAPORTE)\b/i;
+
+function isOwnerName(s: string): boolean {
+  const up = s.toUpperCase().trim();
+  if (!up) return false;
+  if (SKIP_NAMES.has(up)) return false;
+  if (DOC_PREFIX.test(up)) return false;
+  if (/\d{5,}/.test(up)) return false;
+  return true;
+}
 
 function countOwners(consultar: any): number {
   const titulos = getTitulos(consultar);
@@ -64,7 +75,7 @@ function countOwners(consultar: any): number {
   for (const t of titulos) {
     if (t?.nombre && typeof t.nombre === "string") {
       t.nombre.split("|").map((n: string) => n.trim()).filter(Boolean)
-        .filter((n: string) => !SKIP_NAMES.has(n.toUpperCase()))
+        .filter(isOwnerName)
         .forEach((n: string) => names.add(n.toUpperCase()));
     }
   }
