@@ -42,13 +42,24 @@ async function createInAppNotifications(
     type: NotificationType;
     title: string;
     message: string;
-    inspectionId: number;
+    inspectionId: number | null;
   }
 ) {
   if (userIds.length === 0) return;
-  await db.notification.createMany({
-    data: userIds.map((userId) => ({ ...payload, userId })),
-  });
+  const data = userIds.map((userId) => ({ ...payload, userId }));
+  try {
+    await db.notification.createMany({ data });
+  } catch (err: unknown) {
+    if (err && typeof err === "object" && "code" in err && err.code === "P2002") {
+      // Sequence out of sync — fix and retry once
+      await db.$executeRawUnsafe(
+        `SELECT setval('"Notification_id_seq"', (SELECT COALESCE(MAX(id), 0) FROM "Notification"))`
+      );
+      await db.notification.createMany({ data });
+    } else {
+      throw err;
+    }
+  }
 }
 
 async function getActiveAdminIds(): Promise<string[]> {

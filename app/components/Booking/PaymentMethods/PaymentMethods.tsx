@@ -271,8 +271,8 @@ export default function PaymentMethods({
             setCulqiError(data.error || "Error procesando el pago");
           }
         } catch {
-          router.push(`/payment/pending?bookingId=${bookingId}`);
-          return;
+          if (window.Culqi?.close) window.Culqi.close();
+          setCulqiError("Error de conexión al procesar el pago. Intenta de nuevo.");
         } finally {
           setCulqiLoading(false);
         }
@@ -360,8 +360,7 @@ export default function PaymentMethods({
         setCulqiError(data.error || "Error procesando el pago");
       }
     } catch {
-      router.push(`/payment/pending?bookingId=${bookingId}`);
-      return;
+      setCulqiError("Error de conexión al procesar el pago. Intenta de nuevo.");
     } finally {
       setCulqiLoading(false);
     }

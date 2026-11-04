@@ -1468,6 +1468,7 @@ export function AdminInspeccionesClient({
   const [selectedInspection, setSelectedInspection] = useState<Inspection | null>(null);
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
+  const [verifyConfirmId, setVerifyConfirmId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [brandFilter, setBrandFilter] = useState('all');
@@ -1502,10 +1503,14 @@ export function AdminInspeccionesClient({
     setTempBrandFilter('all');
   };
 
-  // Verificar pago alternativo y asignar inspector automáticamente
-  const handleVerifyPayment = async (inspectionId: number) => {
-    if (!confirm('¿Confirmar el pago y asignar inspector automáticamente?')) return;
+  const handleVerifyPayment = (inspectionId: number) => {
+    setVerifyConfirmId(inspectionId);
+  };
 
+  const executeVerifyPayment = async () => {
+    const inspectionId = verifyConfirmId;
+    if (!inspectionId) return;
+    setVerifyConfirmId(null);
     setVerifyingId(inspectionId);
     try {
       const res = await fetch(`/api/admin/bookings/${inspectionId}/verify-payment`, {
@@ -2174,6 +2179,93 @@ export function AdminInspeccionesClient({
           onSuccess={handleCreateSuccess}
         />
       )}
+
+      {/* Verify Payment Confirmation Modal */}
+      {verifyConfirmId && (() => {
+        const inv = inspections.find(i => i.id === verifyConfirmId);
+        if (!inv) return null;
+        return createPortal(
+          <>
+            <div className="fixed inset-0 bg-black/40 z-[80]" onClick={() => setVerifyConfirmId(null)} />
+            <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
+              <div
+                className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden"
+                style={{ animation: 'verifyModalIn 0.2s ease-out' }}
+              >
+                <div className="bg-gradient-to-r from-[#FFE14C] to-[#FFD700] px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-white/30 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-[#2D2D2D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-[#2D2D2D]">Verificar pago</h3>
+                      <p className="text-xs text-[#2D2D2D]/70">Inspección {inv.code}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 py-5 space-y-4">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Cliente</p>
+                      <p className="font-medium text-gray-900 truncate">{inv.client.name}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Monto</p>
+                      <p className="font-medium text-gray-900">S/ {inv.payment?.amount?.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Método</p>
+                      <p className="font-medium text-gray-900">{inv.payment?.method || '—'}</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <p className="text-xs text-gray-500 mb-1">Plan</p>
+                      <p className="font-medium text-gray-900">{inv.inspectionType}</p>
+                    </div>
+                  </div>
+
+                  {inv.payment?.voucherUrl && (
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Comprobante adjunto</p>
+                      <a href={inv.payment.voucherUrl} target="_blank" rel="noopener noreferrer">
+                        <img
+                          src={inv.payment.voucherUrl}
+                          alt="Comprobante"
+                          className="w-full max-h-56 object-contain rounded-lg border border-gray-200 bg-gray-50 cursor-pointer hover:opacity-90 transition-opacity"
+                        />
+                      </a>
+                    </div>
+                  )}
+
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs text-amber-800">
+                      Al confirmar, el pago se marcará como verificado y se asignará un inspector automáticamente.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="px-6 pb-5 flex gap-3">
+                  <button
+                    onClick={() => setVerifyConfirmId(null)}
+                    className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={executeVerifyPayment}
+                    className="flex-1 px-4 py-2.5 text-sm font-bold text-[#2D2D2D] bg-[#FFE14C] hover:bg-[#FFD700] rounded-xl transition-colors"
+                  >
+                    Confirmar pago
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>,
+          document.body
+        );
+      })()}
     </div>
   );
 }

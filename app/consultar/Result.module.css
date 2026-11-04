@@ -880,11 +880,7 @@
   padding: 14px 20px;
   display: flex;
   align-items: center;
-}
-
-.previewLogo {
-  font: 800 20px 'DM Sans', 'Inter', sans-serif;
-  letter-spacing: -0.02em;
+  justify-content: space-between;
 }
 
 .previewPage {

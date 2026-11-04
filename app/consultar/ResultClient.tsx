@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import PromotionalBanner from "@/app/layout/promotionalBanner/PromotionalBanner";
+import NavBar from "@/app/layout/navBar/NavBar";
+import Footer from "@/app/layout/footer/Footer";
 import styles from "./Consultar.module.css";
 import demo from "./Result.module.css";
 
@@ -161,7 +164,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
   const handleGenerarPdf = async () => {
     setPhase("generating");
-    setGenStep(0);
+    setGenStep(5);
     const timer = setInterval(() => setGenStep(p => Math.min(p + 1, REPORT_SOURCES.length - 1)), 12000);
 
     try {
@@ -279,17 +282,8 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
     const nSiniestros = siniestros?.cantidad || siniestros?.siniestros?.length || (siniestros && !siniestros.sin_resultados ? 1 : 0);
     return (
       <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-        {/* Banner */}
-        <div className={demo.promoBanner}>
-          🔥 <em>20% de descuento en Inspección Premium</em>
-        </div>
-        {/* Header */}
-        <div className={demo.previewHeader}>
-          <span className={demo.previewLogo}>
-            <span style={{ color: "#EFC901" }}>VERIFI</span>
-            <span style={{ color: "#fff", fontStyle: "italic" }}>CARLO</span>
-          </span>
-        </div>
+        <PromotionalBanner />
+        <NavBar />
 
         <div style={{ maxWidth: 480, margin: "0 auto", padding: "24px 20px" }}>
           <div className={demo.previewPage}>
@@ -591,7 +585,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
               {/* CTA final */}
               <div className={demo.ctaCard}>
                 <h2 className={demo.ctaCardTitle}>
-                  Obtén el Reporte Legal Completo en minutos <em>por solo S/ 19.90.</em>
+                  Obtén el Reporte Legal Completo en minutos <em>por solo S/ 0.00.</em>
                 </h2>
                 <p className={demo.ctaCardDesc}>
                   Desbloquea para ver el resto de información legal del carro usado que vas a comprar. Toma de 3 a 5 minutos.
@@ -605,7 +599,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                 </div>
 
                 <button className={demo.ctaCardBtn} onClick={handleGenerarPdf}>
-                  Desbloquear todo por S/ 19.90
+                  Desbloquear todo por S/ 0.00
                 </button>
 
                 <button onClick={handleDownloadExample} className={demo.ctaCardLink}>
@@ -682,22 +676,48 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
   if (phase === "done" && pdfUrl) {
     return (
-      <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
-        <div style={{ maxWidth: 480, margin: "0 auto", padding: "48px 20px", textAlign: "center" }}>
-          <div className={demo.doneIcon}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+      <div style={{ minHeight: "100vh", background: "#f8fafc", fontFamily: "'DM Sans', system-ui, sans-serif", display: "flex", flexDirection: "column" }}>
+        <PromotionalBanner />
+        <NavBar />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 20px 80px" }}>
+          <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
+            <div className={demo.doneIcon}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+            </div>
+            <h2 className={demo.doneTitle}>Reporte Legal generado</h2>
+            <p className={demo.doneSubtitle}>Placa {cleanPlate}</p>
+
+            <div style={{ background: "#fff", border: "1.5px solid #e5e5e5", borderRadius: 20, padding: "40px 32px", marginBottom: 24, boxShadow: "0 4px 24px rgba(0,0,0,0.04)" }}>
+              <Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={56} height={56} style={{ margin: "0 auto 20px", display: "block", opacity: 0.8 }} />
+              <p style={{ margin: "0 0 6px", font: "600 18px 'DM Sans', sans-serif", color: "#1c1d22" }}>
+                Tu reporte está listo
+              </p>
+              <p style={{ margin: "0 0 20px", font: "400 14px/1.6 'Inter', sans-serif", color: "#64748b" }}>
+                Descárgalo para ver el historial legal completo del vehículo: propietarios, siniestros, gravámenes, papeletas y más.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 8 }}>
+                {[
+                  { icon: "/assets/icons/vista-previa-reporte-legal/propietarios.svg", label: "Propietarios" },
+                  { icon: "/assets/icons/vista-previa-reporte-legal/siniestros.svg", label: "Siniestros" },
+                  { icon: "/assets/icons/vista-previa-reporte-legal/alcancia.svg", label: "Gravámenes" },
+                  { icon: "/assets/icons/vista-previa-reporte-legal/Wallet.svg", label: "Deudas" },
+                ].map((item) => (
+                  <span key={item.label} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", background: "#f1f5f9", borderRadius: 100, font: "500 13px 'Inter', sans-serif", color: "#475569" }}>
+                    <Image src={item.icon} alt="" width={16} height={16} />
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <a href={pdfUrl} download={`reporte-legal-${cleanPlate}.pdf`} className={demo.doneDownload}>
+              Descargar PDF
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+            </a>
+            <button onClick={reset} className={demo.doneReset}>Consultar otra placa</button>
           </div>
-          <h2 className={demo.doneTitle}>Reporte Legal generado</h2>
-          <p className={demo.doneSubtitle}>Placa {cleanPlate}</p>
-
-          <iframe src={pdfUrl} className={demo.donePdf} title="PDF Preview" />
-
-          <a href={pdfUrl} download={`reporte-legal-${cleanPlate}.pdf`} className={demo.doneDownload}>
-            Descargar PDF
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
-          </a>
-          <button onClick={reset} className={demo.doneReset}>Consultar otra placa</button>
         </div>
+        <Footer />
       </div>
     );
   }

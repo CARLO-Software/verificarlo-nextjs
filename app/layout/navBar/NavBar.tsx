@@ -68,7 +68,7 @@ export default function NavBar() {
 
   // Solo aplicar el tema transparente (texto blanco) en la página principal
   const isHeroPage = pathname === "/";
-  const isBookingPage = pathname.startsWith("/agendar");
+  const isBookingPage = pathname.startsWith("/agendar") || pathname.startsWith("/consultar");
 
   //*Hace referencia a un elemento del DOM
   const dropdownRef = useRef<HTMLDivElement>(null);
