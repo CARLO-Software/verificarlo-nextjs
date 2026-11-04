@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import React from "react";
 import { renderToBuffer } from "@react-pdf/renderer";
+
+export const maxDuration = 900;
 import LegalReportPDF, { type LegalReportData } from "@/lib/pdf/legal/LegalReportPDF";
 import { transformApiResponse } from "@/lib/pdf/legal/transform-api-response";
 import { format } from "date-fns";
