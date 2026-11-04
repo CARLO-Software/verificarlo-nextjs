@@ -68,19 +68,43 @@ function isExpired(fechaVcto: string | undefined): boolean {
   return new Date(`${y}-${m}-${d}T23:59:59`) < new Date();
 }
 
+function getSoatExpiry(consultar: any): string | undefined {
+  return consultar?.soat?.Fin || consultar?.sbs_soat?.vencimiento;
+}
+
+function getSoatCompany(consultar: any): string {
+  return consultar?.soat?.["Compañía"] || consultar?.sbs_soat?.empresa || "";
+}
+
+function getSiniestrosCount(consultar: any): number {
+  const explicit = consultar?.siniestros_soat || consultar?.sbs_siniestros;
+  if (explicit && !explicit.sin_resultados) {
+    return explicit.cantidad || explicit.siniestros?.length || 1;
+  }
+  const soatHist = consultar?.soat?.historial;
+  if (Array.isArray(soatHist)) {
+    let total = 0;
+    for (const h of soatHist) {
+      const n = parseInt(h?.["Nro. Accidentes"] || h?.nro_accidentes || "0", 10);
+      if (!isNaN(n)) total += n;
+    }
+    return total;
+  }
+  return 0;
+}
+
 function buildFindings(consultar: any): { icon: string; label: string; variant: "danger" | "green" | "yellow" }[] {
   const findings: { icon: string; label: string; variant: "danger" | "green" | "yellow" }[] = [];
 
-  const soat = consultar?.sbs_soat;
-  if (soat) {
-    const expired = isExpired(soat.vencimiento);
+  const soatExpiry = getSoatExpiry(consultar);
+  if (soatExpiry) {
+    const expired = isExpired(soatExpiry);
     findings.push({ icon: expired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg", label: expired ? "SOAT Vencido" : "SOAT Vigente", variant: expired ? "danger" : "green" });
   }
 
-  const siniestros = consultar?.siniestros_soat || consultar?.sbs_siniestros;
-  if (siniestros && !siniestros.sin_resultados) {
-    const count = siniestros.cantidad || siniestros.siniestros?.length || 1;
-    findings.push({ icon: "/assets/icons/vista-previa-reporte-legal/Shield.svg", label: `${count} siniestro${count > 1 ? "s" : ""} registrado${count > 1 ? "s" : ""}`, variant: "danger" });
+  const nSiniestros = getSiniestrosCount(consultar);
+  if (nSiniestros > 0) {
+    findings.push({ icon: "/assets/icons/vista-previa-reporte-legal/Shield.svg", label: `${nSiniestros} siniestro${nSiniestros > 1 ? "s" : ""} registrado${nSiniestros > 1 ? "s" : ""}`, variant: "danger" });
   }
 
   const nOwners = countOwners(consultar);
@@ -263,12 +287,12 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
     const vehicle = extractVehicle(previewData.consultar);
     const findings = buildFindings(previewData.consultar);
     const nOwners = countOwners(previewData.consultar);
-    const soat = previewData.consultar?.sbs_soat;
-    const soatExpired = soat ? isExpired(soat.vencimiento) : false;
+    const soatExpiry = getSoatExpiry(previewData.consultar);
+    const soatCompany = getSoatCompany(previewData.consultar);
+    const soatExpired = soatExpiry ? isExpired(soatExpiry) : false;
     const citv = previewData.consultar?.citv;
     const citvExpired = citv ? isExpired(citv.fecha_vcto) : false;
-    const siniestros = previewData.consultar?.siniestros_soat || previewData.consultar?.sbs_siniestros;
-    const nSiniestros = siniestros?.cantidad || siniestros?.siniestros?.length || (siniestros && !siniestros.sin_resultados ? 1 : 0);
+    const nSiniestros = getSiniestrosCount(previewData.consultar);
     return (
       <div style={{ minHeight: "100vh", background: "#ffffff", fontFamily: "'DM Sans', system-ui, sans-serif" }}>
         <PromotionalBanner />
@@ -397,11 +421,11 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                     <h3 className={demo.ownerCardTitle}>SOAT y revisión técnica</h3>
                   </div>
 
-                  {soat && (
+                  {soatExpiry && (
                     <div className={demo.soatRow}>
                       <div>
-                        <span className={demo.soatName}>SOAT {soat.empresa || ""}</span>
-                        <span className={demo.soatDate}>VIGENCIA HASTA {soat.vencimiento || "—"}</span>
+                        <span className={demo.soatName}>SOAT {soatCompany}</span>
+                        <span className={demo.soatDate}>VIGENCIA HASTA {soatExpiry}</span>
                       </div>
                       <span className={`${demo.statusBadge} ${soatExpired ? demo.statusDanger : demo.statusOk}`}>
                         <Image src={soatExpired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {soatExpired ? "Vencido" : "Al día"}
