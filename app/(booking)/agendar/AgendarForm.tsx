@@ -25,7 +25,6 @@ import styles from "./Agendar.module.css";
 
 // Componentes del flujo de reserva
 import StepTimeline from "@/app/components/Booking/StepTimeline/StepTimeline";
-import PlanSelector from "@/app/components/Booking/PlanSelector/PlanSelector";
 import VehicleLocationForm from "@/app/components/Booking/VehicleLocationForm/VehicleLocationForm";
 import InspectionSchedule from "@/app/components/Booking/InspectionSchedule/InspectionSchedule";
 import PaymentMethods from "@/app/components/Booking/PaymentMethods/PaymentMethods";
@@ -55,8 +54,8 @@ interface AgendarFormProps {
   initialBrands: Brand[];
 }
 
-// Tipo para los pasos del flujo (1-4)
-type BookingStep = 1 | 2 | 3 | 4;
+// Tipo para los pasos del flujo (1-3)
+type BookingStep = 1 | 2 | 3;
 
 // =============================================================================
 // COMPONENTE PRINCIPAL
@@ -79,6 +78,7 @@ export default function AgendarForm({
 
   // Flag: el usuario volvió del login con draft listo para pagar
   const [pendingPayment, setPendingPayment] = useState(false);
+
 
   // Estados de carga y error
   const [loading, setLoading] = useState(false);
@@ -141,12 +141,10 @@ export default function AgendarForm({
   // =========================================================================
   // VALIDACIONES POR PASO (declaradas antes de los efectos que las usan)
   // =========================================================================
-  const canProceedStep1 = selectedInspection !== null;
-
   const plateClean = vehicleData.plate.replace(/[^A-Z0-9]/g, "");
   const isPlateValid = plateClean.length === 0 || plateClean.length >= 6;
 
-  const canProceedStep2 =
+  const canProceedStep1 =
     vehicleData.brandId !== null &&
     vehicleData.modelId !== null &&
     vehicleData.year !== null &&
@@ -154,7 +152,7 @@ export default function AgendarForm({
     locationData.address.length >= 10 &&
     isPlateValid;
 
-  const canProceedStep3 =
+  const canProceedStep2 =
     selectedDate !== null &&
     selectedSlot !== null &&
     contactData.fullName.length >= 3 &&
@@ -189,9 +187,12 @@ export default function AgendarForm({
       if (draft.selectedSlot) setSelectedSlot(draft.selectedSlot);
       if (draft.contactData) setContactData(draft.contactData);
       if (draft.currentStep) {
-        console.log("[AgendarForm] Restaurando currentStep:", draft.currentStep);
-        setCurrentStep(draft.currentStep);
-        if (draft.currentStep === 3) {
+        // Mapear pasos del draft viejo (4 pasos) al nuevo (3 pasos)
+        const mapped = draft.currentStep >= 2 ? (draft.currentStep - 1) as BookingStep : 1;
+        const step = Math.min(mapped, 3) as BookingStep;
+        console.log("[AgendarForm] Restaurando currentStep:", step);
+        setCurrentStep(step);
+        if (step === 2) {
           setPendingPayment(true);
         }
       }
@@ -207,30 +208,24 @@ export default function AgendarForm({
 
   // Auto-proceder al pago si el usuario volvió del login con draft en paso 3
   useEffect(() => {
-    if (pendingPayment && status === "authenticated" && currentStep === 3 && canProceedStep3) {
+    if (pendingPayment && status === "authenticated" && currentStep === 2 && canProceedStep2) {
       setPendingPayment(false);
       handleProceedToPayment();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingPayment, status, currentStep, canProceedStep3]);
+  }, [pendingPayment, status, currentStep, canProceedStep2]);
 
   // =========================================================================
-  // EFECTO: Pre-seleccionar plan desde parámetro de URL
+  // EFECTO: Seleccionar plan desde parámetro de URL o default BASIC
   // =========================================================================
-  // Si el usuario viene desde la landing con ?plan=tipo, pre-seleccionamos
-  // El parámetro de URL tiene prioridad sobre el draft porque el usuario
-  // explícitamente eligió un plan desde la landing
   useEffect(() => {
+    if (selectedInspection) return;
     const planType = searchParams.get("plan");
-    if (!planType) return;
-
-    const matchingPlan = initialInspections.find((p) => p.type === planType);
+    const matchingPlan = planType
+      ? initialInspections.find((p) => p.type === planType)
+      : initialInspections.find((p) => p.type === "basica") || initialInspections[0];
     if (matchingPlan) {
       setSelectedInspection(matchingPlan);
-      // Limpiar draft para empezar fresco con el plan elegido desde landing
-      localStorage.removeItem(DRAFT_KEY);
-      // Reset al paso 1 si venía de un draft en otro paso
-      setCurrentStep(1);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
@@ -274,14 +269,11 @@ export default function AgendarForm({
   useEffect(() => {
     // Si está en paso 4 con booking creado, limpiar el draft
     // (ya no necesitamos restaurar, el booking está en el backend)
-    if (currentStep === 4 && bookingData) {
+    if (currentStep === 3 && bookingData) {
       localStorage.removeItem(DRAFT_KEY);
       console.log("[AgendarForm] Draft eliminado - booking creado");
     }
   }, [currentStep, bookingData]);
-
-  // canProceedStep4 se usa implícitamente en PaymentMethods
-  const _canProceedStep4 = paymentMethod !== null;
 
   // =========================================================================
   // NAVEGACIÓN ENTRE PASOS
@@ -293,7 +285,7 @@ export default function AgendarForm({
   };
 
   const goNext = () => {
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setCurrentStep((prev) => (prev + 1) as BookingStep);
     }
   };
@@ -310,14 +302,14 @@ export default function AgendarForm({
   // Crea el vehículo y la reserva en el backend
 
   const handleProceedToPayment = async () => {
-    if (!canProceedStep3 || !selectedInspection) return;
+    if (!canProceedStep2 || !selectedInspection) return;
 
     // Si el usuario aún no está autenticado, guardar el borrador y llevarlo al login.
     // Al volver, el useEffect de arriba restaurará todo automáticamente.
     // Usamos localStorage para que persista después de Google OAuth.
     if (status === "unauthenticated") {
       const draftData = {
-        currentStep: 3,
+        currentStep: 2,
         selectedInspectionId: selectedInspection.id,
         vehicleData,
         locationData,
@@ -420,7 +412,7 @@ export default function AgendarForm({
       "El tiempo para pagar ha expirado. Por favor, inicia una nueva reserva."
     );
     setBookingData(null);
-    goToStep(3);
+    goToStep(2);
   };
 
   // Transferencia / WhatsApp registrado (verificación manual)
@@ -497,14 +489,16 @@ export default function AgendarForm({
           )}
 
           {/* =================================================================
-              PASO 1: Selección de Plan
+              PASO 1: Datos del Vehículo y Ubicación
               ================================================================= */}
           {currentStep === 1 && (
             <div className={styles.stepWrapper}>
-              <PlanSelector
-                plans={initialInspections}
-                selectedPlanId={selectedInspection?.id || null}
-                onSelectPlan={(plan) => setSelectedInspection(plan)}
+              <VehicleLocationForm
+                brands={initialBrands}
+                vehicleData={vehicleData}
+                locationData={locationData}
+                onVehicleChange={setVehicleData}
+                onLocationChange={setLocationData}
               />
 
               <div className={`${styles.stepButtons} ${styles.stepButtonsCenter}`}>
@@ -529,46 +523,9 @@ export default function AgendarForm({
           )}
 
           {/* =================================================================
-              PASO 2: Datos del Vehículo y Ubicación
+              PASO 2: Fecha, Hora y Contacto
               ================================================================= */}
           {currentStep === 2 && (
-            <div className={styles.stepWrapper}>
-              <VehicleLocationForm
-                brands={initialBrands}
-                vehicleData={vehicleData}
-                locationData={locationData}
-                onVehicleChange={setVehicleData}
-                onLocationChange={setLocationData}
-              />
-
-              <div className={styles.stepButtons}>
-                <button onClick={goBack} className={styles.secondaryButton}>
-                  Atrás
-                </button>
-                <button
-                  onClick={goNext}
-                  disabled={!canProceedStep2}
-                  className={styles.primaryButton}
-                >
-                  Continuar
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                    <path
-                      d="M7 5l5 5-5 5"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              PASO 3: Fecha, Hora y Contacto
-              ================================================================= */}
-          {currentStep === 3 && (
             <div className={styles.stepWrapper}>
               <InspectionSchedule
                 selectedDate={selectedDate}
@@ -588,7 +545,7 @@ export default function AgendarForm({
                 </button>
                 <button
                   onClick={handleProceedToPayment}
-                  disabled={!canProceedStep3 || loading}
+                  disabled={!canProceedStep2 || loading}
                   className={styles.primaryButton}
                 >
                   {loading ? (
@@ -624,9 +581,9 @@ export default function AgendarForm({
           )}
 
           {/* =================================================================
-              PASO 4: Métodos de Pago
+              PASO 3: Métodos de Pago
               ================================================================= */}
-          {currentStep === 4 && bookingData && selectedInspection && (
+          {currentStep === 3 && bookingData && selectedInspection && (
             <div className={styles.stepWrapper}>
               <div className={styles.vehicleSummary}>
                 <div className={styles.vehicleSummaryRow}>

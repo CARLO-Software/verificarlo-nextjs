@@ -156,7 +156,7 @@ export default function Hero() {
 
         <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
-            <em>Inspección mecánica a domicilio</em>,
+            <em>Inspección mecánica a domicilio</em>,{' '}
             <br />
             hecha por expertos
           </h2>
@@ -193,8 +193,8 @@ export default function Hero() {
               </ul>
             </div>
 
-            <a href="/agendar" className={styles.ctaDark}>Quiero el plan Básico</a>
-            <a href="/agendar?plan=BASIC" className={styles.ctaLink}>Saber más</a>
+            <a href="/agendar?plan=basica" className={styles.ctaDark}>Quiero el plan Básico</a>
+            <a href="/agendar?plan=basica" className={styles.ctaLink}>Saber más</a>
           </div>
 
           {/* Premium */}
@@ -229,8 +229,8 @@ export default function Hero() {
               </ul>
             </div>
 
-            <a href="/agendar?plan=PREMIUM" className={styles.ctaYellow}>Quiero el plan Premium</a>
-            <a href="/agendar?plan=PREMIUM" className={styles.ctaLink}>Saber más</a>
+            <a href="/agendar?plan=completa" className={styles.ctaYellow}>Quiero el plan Premium</a>
+            <a href="/agendar?plan=completa" className={styles.ctaLink}>Saber más</a>
           </div>
         </div>
       </section>
@@ -240,7 +240,7 @@ export default function Hero() {
         <div className={styles.legalCtaInner}>
           <div className={styles.legalCtaText}>
             <h2 className={styles.legalCtaTitle}>
-              Obtén tu <strong>reporte legal por S/19.90</strong>
+              Obtén tu <em>reporte legal por S/19.90</em>
             </h2>
             <p className={styles.legalCtaDesc}>
               Siniestros, gravámenes, papeletas e historial de propietarios en minutos.

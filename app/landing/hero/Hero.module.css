@@ -764,7 +764,7 @@
 
 .legalCtaText {
   flex: 1;
-  padding: 28px 20px;
+  padding: 28px 0 28px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -774,12 +774,13 @@
 
 .legalCtaTitle {
   margin: 0;
-  font: 400 24px/1.25 'DM Sans', 'Inter', sans-serif;
+  font: 400 28px/1.25 'DM Sans', 'Inter', sans-serif;
   color: #1c1d22;
 }
 
-.legalCtaTitle strong {
-  font-weight: 800;
+.legalCtaTitle em {
+  font-style: italic;
+  font-weight: 700;
 }
 
 .legalCtaDesc {
@@ -840,7 +841,7 @@
   }
 
   .legalCtaTitle {
-    font-size: 32px;
+    font-size: 36px;
   }
 
   .legalCtaDesc {
