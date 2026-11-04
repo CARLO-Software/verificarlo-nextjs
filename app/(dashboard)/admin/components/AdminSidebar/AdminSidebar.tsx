@@ -1,25 +1,24 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
   CalendarCheck,
   Users,
   FileBarChart,
   Settings,
-  LogOut,
   FileText,
   PlayCircle,
   Mail,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import styles from './AdminSidebar.module.css';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-  { href: '/admin/inspecciones', label: 'Inspecciones', icon: CalendarCheck, badgeKey: 'legalReviews' },
+  { href: '/admin/inspecciones', label: 'Inspecciones', icon: CalendarCheck },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/newsletter', label: 'Newsletter', icon: Mail },
@@ -31,31 +30,12 @@ const navItems = [
 interface AdminSidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
-export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
+export function AdminSidebar({ isOpen, onClose, collapsed, onToggleCollapse }: AdminSidebarProps) {
   const pathname = usePathname();
-  const [legalReviewsCount, setLegalReviewsCount] = useState(0);
-
-  // Fetch count of pending legal reviews
-  const fetchLegalReviewsCount = useCallback(async () => {
-    try {
-      const res = await fetch('/api/admin/legal-reviews/count');
-      if (res.ok) {
-        const data = await res.json();
-        setLegalReviewsCount(data.count || 0);
-      }
-    } catch (error) {
-      console.error('Error fetching legal reviews count:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchLegalReviewsCount();
-    // Polling cada 30 segundos
-    const interval = setInterval(fetchLegalReviewsCount, 30000);
-    return () => clearInterval(interval);
-  }, [fetchLegalReviewsCount]);
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
@@ -72,7 +52,7 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       />
 
       <aside
-        className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
+        className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''} ${collapsed ? styles.sidebarCollapsed : ''}`}
         role="navigation"
         aria-label="Menú principal"
       >
@@ -90,7 +70,6 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href, item.exact);
-            const badgeCount = item.badgeKey === 'legalReviews' ? legalReviewsCount : 0;
 
             return (
               <Link
@@ -105,36 +84,25 @@ export function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
                 </span>
                 <span className={styles.navLinkLabel}>
                   {item.label}
-                  {badgeCount > 0 && (
-                    <span className={styles.badge}>
-                      {badgeCount > 99 ? '99+' : badgeCount}
-                    </span>
-                  )}
                 </span>
-                {/* Badge flotante para modo colapsado (tablet) */}
-                {badgeCount > 0 && (
-                  <span className={`${styles.badge} ${styles.badgeCollapsed}`}>
-                    {badgeCount > 9 ? '9+' : badgeCount}
-                  </span>
-                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Footer con logout */}
-        <div className={styles.footer}>
-          <button
-            className={styles.logoutBtn}
-            onClick={() => signOut({ callbackUrl: '/' })}
-            title="Cerrar sesión"
-          >
-            <span className={styles.navIcon}>
-              <LogOut size={20} />
-            </span>
-            <span className={styles.logoutText}>Cerrar sesión</span>
-          </button>
-        </div>
+        {/* Toggle collapse (solo visible en desktop) */}
+        {onToggleCollapse && (
+          <div className={styles.collapseToggle}>
+            <button
+              onClick={onToggleCollapse}
+              className={styles.collapseBtn}
+              title={collapsed ? 'Expandir menú' : 'Comprimir menú'}
+            >
+              {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
+            </button>
+          </div>
+        )}
+
       </aside>
     </>
   );

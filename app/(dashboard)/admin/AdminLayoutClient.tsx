@@ -12,6 +12,20 @@ interface AdminLayoutClientProps {
 
 export function AdminLayoutClient({ userName, children }: AdminLayoutClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Cargar estado colapsado de localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('admin-sidebar-collapsed');
+    if (saved === 'true') setSidebarCollapsed(true);
+  }, []);
+
+  const toggleCollapse = () => {
+    setSidebarCollapsed((prev) => {
+      localStorage.setItem('admin-sidebar-collapsed', String(!prev));
+      return !prev;
+    });
+  };
 
   // Cerrar sidebar al cambiar el tamaño de ventana a desktop
   useEffect(() => {
@@ -38,10 +52,12 @@ export function AdminLayoutClient({ userName, children }: AdminLayoutClientProps
   }, [sidebarOpen]);
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${sidebarCollapsed ? styles.collapsed : ''}`}>
       <AdminSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleCollapse}
       />
       <div className={styles.mainArea}>
         <AdminHeader

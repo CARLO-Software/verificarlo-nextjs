@@ -24,6 +24,22 @@ export async function GET(request: Request) {
     const onlyUnread = searchParams.get("unread") === "true";
     const limit = Math.min(parseInt(searchParams.get("limit") ?? "30", 10), 100);
 
+    // Auto-limpiar: leídas >7 días, no leídas >30 días
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    await db.notification.deleteMany({
+      where: {
+        userId: user.id,
+        OR: [
+          { read: true, createdAt: { lt: sevenDaysAgo } },
+          { read: false, createdAt: { lt: thirtyDaysAgo } },
+        ],
+      },
+    });
+
     const notifications = await db.notification.findMany({
       where: {
         userId: user.id,

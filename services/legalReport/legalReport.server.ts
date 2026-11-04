@@ -418,11 +418,15 @@ export async function renewLock(id: number, adminId: string) {
  * Para mostrar en el badge del sidebar admin
  */
 export async function getPendingCount() {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
   return prisma.legalReport.count({
     where: {
       status: {
         in: [LegalReportStatus.PENDING_REVIEW, LegalReportStatus.IN_PROGRESS],
       },
+      createdAt: { gte: thirtyDaysAgo },
     },
   });
 }

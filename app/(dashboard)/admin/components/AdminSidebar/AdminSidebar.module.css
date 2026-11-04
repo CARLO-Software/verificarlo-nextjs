@@ -220,6 +220,88 @@
   pointer-events: auto !important;
 }
 
+/* Toggle button */
+.collapseToggle {
+  padding: 0.5rem 0.75rem;
+  display: none;
+}
+
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  color: #9CA3AF;
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapseBtn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #F9FAFB;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DESKTOP COLLAPSED (≥1280px con clase .sidebarCollapsed)
+═══════════════════════════════════════════════════════════════════ */
+@media (min-width: 1280px) {
+  .collapseToggle {
+    display: block;
+  }
+
+  .sidebarCollapsed {
+    width: 72px;
+  }
+
+  .sidebarCollapsed .logo {
+    padding: 1.25rem 1rem;
+    justify-content: center;
+  }
+
+  .sidebarCollapsed .logoTextContainer {
+    width: 0;
+    opacity: 0;
+  }
+
+  .sidebarCollapsed .nav {
+    padding: 1rem 0.5rem;
+  }
+
+  .sidebarCollapsed .navLink {
+    justify-content: center;
+  }
+
+  .sidebarCollapsed .navLinkLabel {
+    width: 0;
+    opacity: 0;
+  }
+
+  .sidebarCollapsed .badge {
+    display: none;
+  }
+
+  .sidebarCollapsed .badgeCollapsed {
+    display: inline-flex;
+  }
+
+  .sidebarCollapsed .footer {
+    padding: 1rem 0.5rem;
+  }
+
+  .sidebarCollapsed .logoutBtn {
+    justify-content: center;
+  }
+
+  .sidebarCollapsed .logoutText {
+    width: 0;
+    opacity: 0;
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    TABLET (768px - 1279px): Sidebar colapsado con toggle
 ═══════════════════════════════════════════════════════════════════ */

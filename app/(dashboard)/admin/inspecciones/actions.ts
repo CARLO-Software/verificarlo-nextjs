@@ -14,6 +14,8 @@ import {
 } from '@/services/inspections/inspections.server';
 import { assignInspector as autoAssignInspector } from '@/lib/scheduling/inspector-assignment';
 import { BookingStatus } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 export async function updateStatusAction(id: number, status: BookingStatus) {
   try {
@@ -64,6 +66,10 @@ export async function saveInspectionChangesAction(
   try {
     const { db } = await import('@/lib/db');
 
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id ?? null;
+    const logs: { action: string; detail: string }[] = [];
+
     const results: {
       status?: boolean;
       inspector?: boolean;
@@ -77,6 +83,11 @@ export async function saveInspectionChangesAction(
     if (changes.status) {
       await updateInspectionStatus(id, changes.status);
       results.status = true;
+      const statusLabels: Record<string, string> = {
+        PENDING_PAYMENT: 'Pendiente de pago', PENDING_VERIFICATION: 'Verificando pago',
+        PAID: 'Pagado', COMPLETED: 'Completado', CANCELLED: 'Cancelado', NO_SHOW: 'No se presentó', EXPIRED: 'Expirado',
+      };
+      logs.push({ action: 'status_change', detail: `Estado cambiado a "${statusLabels[changes.status] || changes.status}"` });
 
       // Si cambia a PAID, verificar y crear VehicleInspection si no existe
       if (changes.status === 'PAID') {
@@ -122,6 +133,8 @@ export async function saveInspectionChangesAction(
     if (changes.inspectorId) {
       await assignInspector(id, changes.inspectorId);
       results.inspector = true;
+      const inspectorName = await db.user.findUnique({ where: { id: changes.inspectorId }, select: { name: true } });
+      logs.push({ action: 'inspector_assigned', detail: `Inspector asignado: ${inspectorName?.name || changes.inspectorId}` });
     }
     // Si el estado cambió a PAID y NO se asignó inspector manualmente,
     // verificar si ya tiene inspector asignado antes de asignar automáticamente
@@ -140,6 +153,7 @@ export async function saveInspectionChangesAction(
             inspectorId: autoResult.inspectorId,
             inspectorName: autoResult.inspectorName,
           };
+          logs.push({ action: 'inspector_auto_assigned', detail: `Inspector auto-asignado: ${autoResult.inspectorName}` });
         }
       }
     }
@@ -154,6 +168,7 @@ export async function saveInspectionChangesAction(
     if (changes.date && changes.timeSlot) {
       await updateInspectionDateTime(id, changes.date, changes.timeSlot);
       results.dateTime = true;
+      logs.push({ action: 'date_changed', detail: `Fecha/hora cambiada a ${changes.date} ${changes.timeSlot}` });
     }
 
     // Actualizar ubicación si cambió
@@ -164,6 +179,18 @@ export async function saveInspectionChangesAction(
           ...(changes.address !== undefined && { address: changes.address || null }),
           ...(changes.district !== undefined && { district: changes.district || null }),
         },
+      });
+    }
+
+    // Guardar logs
+    if (logs.length > 0) {
+      await db.bookingLog.createMany({
+        data: logs.map((log) => ({
+          bookingId: id,
+          action: log.action,
+          detail: log.detail,
+          userId,
+        })),
       });
     }
 
@@ -377,5 +404,36 @@ export async function getAvailableInspectorsForSlotAction(date: string, timeSlot
   } catch (error) {
     console.error('Error obteniendo inspectores disponibles:', error);
     return { success: false, error: 'Error al obtener inspectores', inspectors: [] };
+  }
+}
+
+export async function getBookingLogsAction(bookingId: number) {
+  try {
+    const { db } = await import('@/lib/db');
+    const logs = await db.bookingLog.findMany({
+      where: { bookingId },
+      orderBy: { createdAt: 'desc' },
+      include: { booking: { select: { id: true } } },
+    });
+
+    const userIds = [...new Set(logs.map((l) => l.userId).filter(Boolean))] as string[];
+    const users = userIds.length > 0
+      ? await db.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true } })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+
+    return {
+      success: true,
+      logs: logs.map((l) => ({
+        id: l.id,
+        action: l.action,
+        detail: l.detail,
+        userName: l.userId ? userMap.get(l.userId) || 'Admin' : 'Sistema',
+        createdAt: l.createdAt.toISOString(),
+      })),
+    };
+  } catch (error) {
+    console.error('Error obteniendo historial:', error);
+    return { success: false, error: 'Error al obtener historial', logs: [] };
   }
 }

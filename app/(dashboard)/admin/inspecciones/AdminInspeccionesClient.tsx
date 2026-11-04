@@ -17,6 +17,7 @@ import {
   getAvailabilityForDateAction,
   getAvailableInspectorsForSlotAction,
   deleteCancelledInspectionAction,
+  getBookingLogsAction,
 } from './actions';
 
 interface Inspection {
@@ -180,6 +181,59 @@ function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
   );
 }
 
+function HistoryTab({ inspectionId, createdAt }: { inspectionId: number; createdAt: Date }) {
+  const [logs, setLogs] = useState<{ id: number; action: string; detail: string; userName: string; createdAt: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getBookingLogsAction(inspectionId).then((res) => {
+      if (res.success && res.logs) setLogs(res.logs);
+      setLoading(false);
+    });
+  }, [inspectionId]);
+
+  if (loading) {
+    return <p className="text-sm text-gray-400 text-center py-8">Cargando historial...</p>;
+  }
+
+  const actionIcons: Record<string, string> = {
+    status_change: 'bg-amber-100 text-amber-600',
+    inspector_assigned: 'bg-blue-100 text-blue-600',
+    inspector_auto_assigned: 'bg-cyan-100 text-cyan-600',
+    date_changed: 'bg-purple-100 text-purple-600',
+  };
+
+  return (
+    <div className="space-y-0">
+      {logs.map((log, i) => (
+        <div key={log.id} className="flex gap-3">
+          <div className="flex flex-col items-center">
+            <div className={`w-2.5 h-2.5 rounded-full mt-1.5 ${actionIcons[log.action] || 'bg-gray-200 text-gray-500'}`} />
+            {i < logs.length ? <div className="w-px flex-1 bg-gray-200" /> : null}
+          </div>
+          <div className="pb-4 min-w-0">
+            <p className="text-sm text-[#2D2D2D]">{log.detail}</p>
+            <p className="text-xs text-gray-400">{log.userName} · {formatearFechaHoraCorta(new Date(log.createdAt))}</p>
+          </div>
+        </div>
+      ))}
+      {/* Evento fijo: creación */}
+      <div className="flex gap-3">
+        <div className="flex flex-col items-center">
+          <div className="w-2.5 h-2.5 rounded-full mt-1.5 bg-green-100" />
+        </div>
+        <div className="pb-2">
+          <p className="text-sm text-[#2D2D2D]">Inspección creada</p>
+          <p className="text-xs text-gray-400">{formatearFechaHoraCorta(createdAt)}</p>
+        </div>
+      </div>
+      {logs.length === 0 && (
+        <p className="text-xs text-gray-400 mt-2">No hay cambios registrados aún</p>
+      )}
+    </div>
+  );
+}
+
 function InspectionDetailPanel({
   inspection,
   inspectors,
@@ -191,7 +245,7 @@ function InspectionDetailPanel({
   onClose: () => void;
   onSaveSuccess: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<'details' | 'checklist' | 'evidence' | 'history'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'history'>('details');
   const [isPending, startTransition] = useTransition();
 
   // Estado local para ediciones
@@ -211,8 +265,12 @@ function InspectionDetailPanel({
   const [editedAddress, setEditedAddress] = useState<string>(inspection.address || '');
   const [editedDistrict, setEditedDistrict] = useState<string>(inspection.district || '');
 
-  // Horarios disponibles
-  const timeSlots = ['09:00', '10:30', '12:00', '14:00', '15:30'];
+  const WEEKDAY_SLOTS = ['09:00', '10:00', '11:00', '12:00', '14:00', '15:00', '16:00', '17:00'];
+  const SATURDAY_SLOTS = ['09:00', '10:00', '11:00', '12:00'];
+  const selectedDay = editedDate ? new Date(editedDate + 'T12:00:00').getDay() : -1;
+  const isSunday = selectedDay === 0;
+  const isSaturday = selectedDay === 6;
+  const timeSlots = isSunday ? [] : isSaturday ? SATURDAY_SLOTS : WEEKDAY_SLOTS;
 
   // Estado para feedback
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -333,8 +391,6 @@ function InspectionDetailPanel({
             <div className="flex gap-1 overflow-x-auto pb-1 sm:pb-0 sm:overflow-visible">
               {[
                 { id: 'details', label: 'Detalles' },
-                { id: 'checklist', label: 'Checklist' },
-                { id: 'evidence', label: 'Evidencias' },
                 { id: 'history', label: 'Historial' },
               ].map((tab) => (
                 <button
@@ -359,229 +415,177 @@ function InspectionDetailPanel({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {activeTab === 'details' && (
-            <div className="space-y-4 sm:space-y-6">
-              {/* Client info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Cliente</h3>
-                <div className="flex items-center gap-3">
-                  <Avatar name={inspection.client.name} />
+            <div className="space-y-5">
+              {/* Resumen superior: cliente + vehículo */}
+              <div className="border border-gray-200 rounded-xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
                   <div>
-                    <p className="font-medium text-[#2D2D2D]">{inspection.client.name}</p>
-                    <p className="text-sm text-gray-500">{inspection.client.email}</p>
+                    <p className="font-semibold text-[#2D2D2D] text-sm">{inspection.client.name}</p>
+                    <p className="text-xs text-gray-400">{inspection.client.email}</p>
                   </div>
+                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded font-mono">{inspection.inspectionType}</span>
+                </div>
+                <div className="px-4 py-3 flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-[#2D2D2D] text-sm">
+                      {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
+                    </p>
+                    <p className="text-xs text-gray-400">{inspection.vehicle.plate || 'Sin placa'}</p>
+                  </div>
+                  <span className="text-sm font-semibold text-[#2D2D2D]">S/ {inspection.inspectionPlanPrice.toFixed(2)}</span>
                 </div>
               </div>
 
-              {/* Vehicle info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Vehículo</h3>
-                <p className="font-medium text-[#2D2D2D]">
-                  {inspection.vehicle.brand} {inspection.vehicle.model} {inspection.vehicle.year}
-                </p>
-                <p className="text-sm text-gray-500">Placa: {inspection.vehicle.plate || 'Sin placa'}</p>
+              {/* Fecha y hora */}
+              <div>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Fecha y hora</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="date"
+                    value={editedDate}
+                    onChange={(e) => setEditedDate(e.target.value)}
+                    disabled={isPending}
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white"
+                  />
+                  <select
+                    value={editedTimeSlot}
+                    onChange={(e) => setEditedTimeSlot(e.target.value)}
+                    disabled={isPending || isSunday}
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white disabled:bg-gray-100 disabled:text-gray-400"
+                  >
+                    {isSunday ? (
+                      <option value="">No disponible</option>
+                    ) : (
+                      timeSlots.map((slot) => (
+                        <option key={slot} value={slot}>{slot}</option>
+                      ))
+                    )}
+                  </select>
+                </div>
+                {isSunday && (
+                  <p className="text-xs text-red-500 mt-1.5">Los domingos no hay atención</p>
+                )}
               </div>
 
               {/* Ubicación */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase">Ubicación</h3>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Ubicación</label>
                   {(editedAddress || inspection.locationUrl) && (
                     <a
                       href={inspection.locationUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(editedAddress + (editedDistrict ? ', ' + editedDistrict + ', Lima' : ''))}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                      className="text-xs text-blue-500 hover:text-blue-700 transition-colors"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                      </svg>
-                      Google Maps
+                      Ver en Maps
                     </a>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
                   <input
                     type="text"
                     value={editedDistrict}
                     onChange={(e) => setEditedDistrict(e.target.value)}
                     placeholder="Distrito"
                     disabled={isPending}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white"
                   />
                   <input
                     type="text"
                     value={editedAddress}
                     onChange={(e) => setEditedAddress(e.target.value)}
-                    placeholder="Dirección completa"
+                    placeholder="Dirección"
                     disabled={isPending}
-                    className="w-full text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                    className="text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white col-span-2"
                   />
                 </div>
               </div>
 
-              {/* Inspection info */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspección</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Fecha</span>
-                    <input
-                      type="date"
-                      value={editedDate}
-                      onChange={(e) => setEditedDate(e.target.value)}
-                      disabled={isPending}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                    />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Hora</span>
-                    <select
-                      value={editedTimeSlot}
-                      onChange={(e) => setEditedTimeSlot(e.target.value)}
-                      disabled={isPending}
-                      className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                    >
-                      {timeSlots.map((slot) => (
-                        <option key={slot} value={slot}>{slot}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Tipo</span>
-                    <span className="font-medium">{inspection.inspectionType}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Pago de inspección */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Pago de inspección</h3>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-500">S/{inspection.inspectionPlanPrice}</span>
-                  <select
-                    value={editedStatus}
-                    onChange={(e) => setEditedStatus(e.target.value as BookingStatus)}
-                    disabled={isPending}
-                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
-                  >
-                    <option value="PENDING_PAYMENT">Pendiente de pago</option>
-                    <option value="PENDING_VERIFICATION">Verificando pago</option>
-                    <option value="PAID">Pagado</option>
-                    <option value="CANCELLED">Cancelado</option>
-                    <option value="NO_SHOW">No se presentó</option>
-                    <option value="EXPIRED">Expirado</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Inspector assignment */}
+              {/* Estado del pago */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">Inspector asignado</h3>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Estado del pago</label>
+                <select
+                  value={editedStatus}
+                  onChange={(e) => setEditedStatus(e.target.value as BookingStatus)}
+                  disabled={isPending}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white"
+                >
+                  <option value="PENDING_PAYMENT">Pendiente de pago</option>
+                  <option value="PENDING_VERIFICATION">Verificando pago</option>
+                  <option value="PAID">Pagado</option>
+                  <option value="COMPLETED">Completado</option>
+                  <option value="CANCELLED">Cancelado</option>
+                  <option value="NO_SHOW">No se presentó</option>
+                  <option value="EXPIRED">Expirado</option>
+                </select>
+                <p className="text-xs text-gray-400 mt-1.5">
+                  {{
+                    PENDING_PAYMENT: 'El cliente aún no ha realizado el pago',
+                    PENDING_VERIFICATION: 'El cliente envió comprobante, revisar y confirmar',
+                    PAID: 'Pago confirmado, la inspección puede proceder',
+                    COMPLETED: 'Inspección finalizada con reporte generado',
+                    CANCELLED: 'Inspección cancelada, no se realizará',
+                    NO_SHOW: 'El cliente no se presentó en la fecha acordada',
+                    EXPIRED: 'La reserva venció sin recibir pago',
+                  }[editedStatus]}
+                </p>
+              </div>
+
+              {/* Inspector */}
+              <div>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Inspector</label>
                 <select
                   value={editedInspectorId || ''}
                   onChange={(e) => setEditedInspectorId(e.target.value || null)}
                   disabled={isPending}
-                  className={`
-                    w-full p-3 rounded-lg text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50
-                    ${editedInspectorId
-                      ? 'border border-gray-200 focus:border-[#FFE14C]'
-                      : 'border-2 border-dashed border-gray-200 text-gray-500 hover:border-[#FFE14C]'
-                    }
-                  `}
+                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white"
                 >
-                  <option value="">+ Seleccionar inspector</option>
+                  <option value="">Sin asignar</option>
                   {inspectors.map((inspector) => (
                     <option key={inspector.id} value={inspector.id}>
                       {inspector.name}
                     </option>
                   ))}
                 </select>
-                {editedInspectorId && (
-                  <div className="flex items-center gap-3 mt-3 p-3 bg-gray-50 rounded-lg">
-                    <Avatar
-                      name={inspectors.find((i) => i.id === editedInspectorId)?.name || '?'}
-                      size="sm"
-                    />
-                    <span className="font-medium text-sm">
-                      {inspectors.find((i) => i.id === editedInspectorId)?.name}
-                    </span>
-                  </div>
-                )}
               </div>
 
-              {/* Notes */}
+              {/* Notas admin */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">
                   Notas del administrador
-                </h3>
+                </label>
                 <textarea
-                  placeholder="Agregar notas del administrador..."
+                  placeholder="Agregar notas..."
                   value={editedNotes}
                   onChange={(e) => setEditedNotes(e.target.value)}
                   disabled={isPending}
-                  className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none h-28 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C]"
+                  className="w-full p-3 border border-gray-200 rounded-lg text-sm resize-none h-24 focus:outline-none focus:ring-2 focus:ring-[#FFE14C]/50 focus:border-[#FFE14C] bg-white"
                 />
               </div>
 
               {/* Notas del cliente e inspector (solo lectura) */}
-              {inspection.clientNotes && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
-                    Notas del cliente
-                  </h3>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                    {inspection.clientNotes}
-                  </p>
+              {(inspection.clientNotes || inspection.inspectorNotes) && (
+                <div className="border-t border-gray-100 pt-4 space-y-3">
+                  {inspection.clientNotes && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Nota del cliente</label>
+                      <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">{inspection.clientNotes}</p>
+                    </div>
+                  )}
+                  {inspection.inspectorNotes && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 block">Nota del inspector</label>
+                      <p className="text-sm text-gray-600 bg-gray-50 rounded-lg px-3 py-2">{inspection.inspectorNotes}</p>
+                    </div>
+                  )}
                 </div>
               )}
-
-              {inspection.inspectorNotes && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-3">
-                    Notas del inspector
-                  </h3>
-                  <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
-                    {inspection.inspectorNotes}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'checklist' && (
-            <div className="text-center py-12 text-gray-500">
-              <p>Checklist no disponible aún</p>
-              <p className="text-sm mt-2">Esta funcionalidad estará disponible próximamente</p>
-            </div>
-          )}
-
-          {activeTab === 'evidence' && (
-            <div>
-              <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
-                <svg className="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-gray-500 mb-2">Arrastra imágenes aquí</p>
-                <button className="text-sm text-[#FFE14C] hover:underline">
-                  o selecciona archivos
-                </button>
-              </div>
             </div>
           )}
 
           {activeTab === 'history' && (
-            <div className="space-y-4">
-              <div className="flex gap-4">
-                <div className="flex flex-col items-center">
-                  <div className="w-2 h-2 bg-[#FFE14C] rounded-full" />
-                  <div className="w-px h-full bg-gray-200" />
-                </div>
-                <div className="pb-4">
-                  <p className="text-sm text-[#2D2D2D]">Inspección creada</p>
-                  <p className="text-xs text-gray-500">{formatearFechaHoraCorta(inspection.createdAt)}</p>
-                </div>
-              </div>
-            </div>
+            <HistoryTab inspectionId={inspection.id} createdAt={inspection.createdAt} />
           )}
         </div>
 
@@ -1450,10 +1454,38 @@ export function AdminInspeccionesClient({
   const [showCreatePanel, setShowCreatePanel] = useState(false);
   const [verifyingId, setVerifyingId] = useState<number | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [tempFilter, setTempFilter] = useState('all');
+  const [tempStatusFilter, setTempStatusFilter] = useState('all');
+  const [tempInspectorFilter, setTempInspectorFilter] = useState('all');
+  const [tempBrandFilter, setTempBrandFilter] = useState('all');
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const activeFilterCount = [statusFilter, inspectorFilter, brandFilter].filter(f => f !== 'all').length;
+
+  const openFilters = () => {
+    setTempStatusFilter(statusFilter);
+    setTempInspectorFilter(inspectorFilter);
+    setTempBrandFilter(brandFilter);
+    setShowFilters(true);
+  };
+
+  const applyFilters = () => {
+    setStatusFilter(tempStatusFilter);
+    setInspectorFilter(tempInspectorFilter);
+    setBrandFilter(tempBrandFilter);
+    setShowFilters(false);
+  };
+
+  const clearFilters = () => {
+    setTempStatusFilter('all');
+    setTempInspectorFilter('all');
+    setTempBrandFilter('all');
+  };
 
   // Verificar pago alternativo y asignar inspector automáticamente
   const handleVerifyPayment = async (inspectionId: number) => {
@@ -1522,12 +1554,19 @@ export function AdminInspeccionesClient({
         if (inspection.inspector?.id !== inspectorFilter) return false;
       }
     }
+    if (brandFilter !== 'all' && inspection.vehicle.brand !== brandFilter) {
+      return false;
+    }
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       return (
         inspection.client.name.toLowerCase().includes(query) ||
         (inspection.vehicle.plate?.toLowerCase().includes(query) ?? false) ||
-        inspection.code.toLowerCase().includes(query)
+        inspection.code.toLowerCase().includes(query) ||
+        inspection.vehicle.brand.toLowerCase().includes(query) ||
+        inspection.vehicle.model.toLowerCase().includes(query) ||
+        String(inspection.vehicle.year).includes(query) ||
+        (inspection.inspector?.name.toLowerCase().includes(query) ?? false)
       );
     }
     return true;
@@ -1594,66 +1633,6 @@ export function AdminInspeccionesClient({
           </div>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-2 sm:gap-3 mb-3 sm:mb-4">
-          <div className="w-full">
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] text-sm"
-            />
-          </div>
-          {/* Filter pills con scroll horizontal en móvil */}
-          <div className="space-y-2">
-            <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible -webkit-overflow-scrolling-touch">
-              {filterPills.map((pill) => (
-                <button
-                  key={pill.value}
-                  onClick={() => setFilter(pill.value)}
-                  className={`
-                    px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex-shrink-0
-                    ${filter === pill.value
-                      ? 'bg-[#2D2D2D] text-white'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-400'
-                    }
-                  `}
-                >
-                  {pill.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2 items-center overflow-x-auto pb-2 sm:pb-0 sm:flex-wrap sm:overflow-visible -webkit-overflow-scrolling-touch">
-              {statusPills.map((pill) => (
-                <button
-                  key={pill.value}
-                  onClick={() => setStatusFilter(pill.value)}
-                  className={`
-                    px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all flex-shrink-0
-                    ${statusFilter === pill.value
-                      ? 'bg-[#FFE14C] text-[#2D2D2D]'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-[#FFE14C]'
-                    }
-                  `}
-                >
-                  {pill.label}
-                </button>
-              ))}
-              <select
-                value={inspectorFilter}
-                onChange={(e) => setInspectorFilter(e.target.value)}
-                className="px-3 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium border border-gray-200 bg-white text-gray-600 focus:outline-none focus:border-gray-400 flex-shrink-0"
-              >
-                <option value="all">Todos los inspectores</option>
-                <option value="none">Sin inspector</option>
-                {inspectors.map((ins) => (
-                  <option key={ins.id} value={ins.id}>{ins.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
 
         {/* Mobile Cards View */}
         <div className="sm:hidden space-y-3">
@@ -1834,17 +1813,108 @@ export function AdminInspeccionesClient({
         </div>
 
         {/* Desktop Table */}
-        <div className="hidden sm:block bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className={`hidden sm:block bg-white border border-gray-200 rounded-xl shadow-sm ${showFilters ? 'overflow-visible' : 'overflow-hidden'}`}>
           <table className="w-full">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th colSpan={3} className="p-0">
+                  <div className="px-5 py-2 border-b border-gray-200 flex justify-end items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre, placa, vehículo o inspector..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full max-w-xs px-3 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] text-sm"
+                    />
+                    <div className="relative">
+                      <button
+                        onClick={openFilters}
+                        className={`p-2 rounded-lg border transition-colors ${activeFilterCount > 0 ? 'border-[#FFE14C] bg-[#FFE14C]/10 text-[#2D2D2D]' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                        </svg>
+                        {activeFilterCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FFE14C] text-[#2D2D2D] text-[10px] font-bold rounded-full flex items-center justify-center">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </button>
+                      {showFilters && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setShowFilters(false)} />
+                          <div className="absolute right-0 top-full mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
+                            <div className="p-4 space-y-4">
+                              <div>
+                                <label className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1.5 block">Estado de pago</label>
+                                <select
+                                  value={tempStatusFilter}
+                                  onChange={(e) => setTempStatusFilter(e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] bg-white"
+                                >
+                                  {statusPills.map((pill) => (
+                                    <option key={pill.value} value={pill.value}>{pill.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1.5 block">Marca</label>
+                                <select
+                                  value={tempBrandFilter}
+                                  onChange={(e) => setTempBrandFilter(e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] bg-white"
+                                >
+                                  <option value="all">Todas</option>
+                                  {[...new Set(inspections.map((i) => i.vehicle.brand))].sort().map((brand) => (
+                                    <option key={brand} value={brand}>{brand}</option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-1.5 block">Inspector</label>
+                                <select
+                                  value={tempInspectorFilter}
+                                  onChange={(e) => setTempInspectorFilter(e.target.value)}
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#FFE14C] bg-white"
+                                >
+                                  <option value="all">Todos</option>
+                                  <option value="none">Sin asignar</option>
+                                  {inspectors.map((ins) => (
+                                    <option key={ins.id} value={ins.id}>{ins.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between bg-gray-50">
+                              <button
+                                onClick={clearFilters}
+                                className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+                              >
+                                Limpiar filtros
+                              </button>
+                              <button
+                                onClick={applyFilters}
+                                className="px-4 py-1.5 bg-[#FFE14C] text-[#2D2D2D] text-sm font-semibold rounded-lg hover:bg-[#FFD700] transition-colors"
+                              >
+                                Aplicar
+                              </button>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex items-center">
                     <div className="flex-1 px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider">
                       Vehículo
                     </div>
-                    <div className="px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider whitespace-nowrap" style={{ width: 200, flexShrink: 0 }}>
+                    <div className="px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider whitespace-nowrap" style={{ width: 240, flexShrink: 0 }}>
                       Fecha de Inspección
+                    </div>
+                    <div className="px-5 py-3 text-left text-xs font-bold text-[#2D2D2D] uppercase tracking-wider" style={{ width: 240, flexShrink: 0 }}>
+                      Inspector
                     </div>
                     <div className="px-5 py-3 text-right text-xs font-bold text-[#2D2D2D] uppercase tracking-wider" style={{ width: 240, flexShrink: 0 }}>
                       Estado
@@ -1862,18 +1932,17 @@ export function AdminInspeccionesClient({
                   </td>
                 </tr>
               ) : (
-                paginatedInspections.map((inspection, index) => {
+                paginatedInspections.map((inspection) => {
                   const isExpanded = expandedId === inspection.id;
-                  const isEven = index % 2 === 0;
                   return (
                     <tr
                       key={inspection.id}
                       className="group"
                     >
-                      <td colSpan={3} className="p-0">
+                      <td colSpan={3} className={`p-0 ${isExpanded ? 'border-l-3 border-l-[#FFE14C]' : ''}`}>
                         {/* Main row */}
                         <div
-                          className={`flex items-center cursor-pointer transition-colors ${isExpanded ? 'bg-blue-50/60' : isEven ? 'bg-white hover:bg-gray-50' : 'bg-[#f7f7f7] hover:bg-gray-100/40'}`}
+                          className={`flex items-center cursor-pointer transition-colors ${isExpanded ? 'bg-[#FFFDF0]' : 'bg-white hover:bg-gray-50'}`}
                           onClick={() => setExpandedId(isExpanded ? null : inspection.id)}
                         >
                           <div className="flex-1 px-5 py-2.5">
@@ -1884,8 +1953,15 @@ export function AdminInspeccionesClient({
                               {inspection.vehicle.year}{inspection.vehicle.plate ? ` · ${inspection.vehicle.plate}` : ''} · {inspection.client.name}
                             </p>
                           </div>
-                          <div className="px-5 py-2.5 whitespace-nowrap" style={{ width: 200, flexShrink: 0 }}>
+                          <div className="px-5 py-2.5 whitespace-nowrap" style={{ width: 240, flexShrink: 0 }}>
                             <p className="text-[#2D2D2D] text-sm">{formatearFechaHoraCorta(inspection.startTime)}</p>
+                          </div>
+                          <div className="px-5 py-2.5" style={{ width: 240, flexShrink: 0 }}>
+                            {inspection.inspector ? (
+                              <p className="text-sm text-[#2D2D2D] truncate">{inspection.inspector.name}</p>
+                            ) : (
+                              <span className="text-xs text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Sin asignar</span>
+                            )}
                           </div>
                           <div className="px-5 py-2.5 flex items-center justify-end gap-1.5 flex-wrap" style={{ width: 240, flexShrink: 0 }}>
                             <StatusBadge status={inspection.status} size="sm" />
@@ -1904,11 +1980,7 @@ export function AdminInspeccionesClient({
 
                         {/* Expanded detail */}
                         {isExpanded && (
-                          <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center gap-6 flex-wrap">
-                            <div>
-                              <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Inspector</p>
-                              <p className="text-sm text-[#2D2D2D] font-medium">{inspection.inspector ? inspection.inspector.name : <span className="text-gray-400 italic font-normal">Sin asignar</span>}</p>
-                            </div>
+                          <div className="bg-[#FFFDF0] border-t border-[#FFE14C]/20 px-5 py-3 flex items-center gap-6 flex-wrap">
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Tipo</p>
                               <p className="text-sm text-[#2D2D2D]">{inspection.inspectionType}</p>

@@ -1,6 +1,8 @@
 'use client';
 
-import { Menu, X } from 'lucide-react';
+import { useState } from 'react';
+import { Menu, X, LogOut } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import { NotificationBell } from '@/app/components/NotificationBell/NotificationBell';
 import styles from './AdminHeader.module.css';
 
@@ -11,6 +13,8 @@ interface AdminHeaderProps {
 }
 
 export function AdminHeader({ userName, onToggleSidebar, sidebarOpen }: AdminHeaderProps) {
+  const [showMenu, setShowMenu] = useState(false);
+
   const initials = userName
     .split(' ')
     .map((n) => n[0])
@@ -35,9 +39,28 @@ export function AdminHeader({ userName, onToggleSidebar, sidebarOpen }: AdminHea
       <div className={styles.rightSection}>
         <NotificationBell />
 
-        <div className={styles.userInfo}>
-          <div className={styles.avatar}>{initials}</div>
-          <span className={styles.userName}>{userName}</span>
+        <div className={styles.userMenuWrapper}>
+          <button
+            className={styles.userInfo}
+            onClick={() => setShowMenu((prev) => !prev)}
+          >
+            <div className={styles.avatar}>{initials}</div>
+            <span className={styles.userName}>{userName}</span>
+          </button>
+          {showMenu && (
+            <>
+              <div className={styles.menuBackdrop} onClick={() => setShowMenu(false)} />
+              <div className={styles.userMenu}>
+                <button
+                  className={styles.menuItem}
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                >
+                  <LogOut size={16} />
+                  Cerrar sesión
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </header>
