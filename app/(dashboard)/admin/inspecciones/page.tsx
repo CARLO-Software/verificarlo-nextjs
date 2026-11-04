@@ -50,6 +50,7 @@ export default async function AdminInspeccionesPage() {
       method: inspection.payment.method,
       amount: inspection.payment.amount,
       paidAt: inspection.payment.paidAt,
+      voucherUrl: inspection.payment.voucherUrl,
     } : null,
     reportId: inspection.report?.id || null,
     legalReportStatus: inspection.report?.legalReport?.status || null,

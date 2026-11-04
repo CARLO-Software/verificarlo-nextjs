@@ -127,6 +127,22 @@ export async function saveInspectionChangesAction(
           results.vehicleInspectionCreated = true;
         }
       }
+
+      // Eliminar comprobante de Cloudinary al verificar o cerrar
+      if (['PAID', 'CANCELLED', 'EXPIRED'].includes(changes.status)) {
+        const payment = await db.payment.findUnique({
+          where: { bookingId: id },
+          select: { voucherPublicId: true },
+        });
+        if (payment?.voucherPublicId) {
+          const { cloudinary } = await import('@/lib/cloudinary');
+          cloudinary.uploader.destroy(payment.voucherPublicId).catch(() => {});
+          await db.payment.update({
+            where: { bookingId: id },
+            data: { voucherUrl: null, voucherPublicId: null },
+          });
+        }
+      }
     }
 
     // Asignar inspector si cambió (manual)

@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -137,6 +137,12 @@ export default function PaymentMethods({
   const [expiryYear, setExpiryYear] = useState("");
   const [cvv, setCvv] = useState("");
   const [cardEmail, setCardEmail] = useState("");
+
+  // Voucher para Yape inline
+  const [yapeVoucherFile, setYapeVoucherFile] = useState<File | null>(null);
+  const [yapeVoucherPreview, setYapeVoucherPreview] = useState<string | null>(null);
+  const [yapeUploading, setYapeUploading] = useState(false);
+  const yapeFileInputRef = useRef<HTMLInputElement>(null);
 
   // Timer
   const [timeLeft, setTimeLeft] = useState(0);
@@ -431,28 +437,91 @@ export default function PaymentMethods({
           </div>
         </div>
 
+        {/* Upload comprobante */}
+        <div className={styles.voucherUpload} style={{ margin: "0 auto", maxWidth: 340 }}>
+          <label className={styles.voucherLabel}>
+            Comprobante de pago <span style={{ color: "#e53e3e" }}>*</span>
+          </label>
+          <input
+            ref={yapeFileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (!file.type.startsWith("image/")) { setCulqiError("Solo se permiten imágenes"); return; }
+              if (file.size > 5 * 1024 * 1024) { setCulqiError("La imagen no debe superar 5MB"); return; }
+              setCulqiError(null);
+              setYapeVoucherFile(file);
+              setYapeVoucherPreview(URL.createObjectURL(file));
+            }}
+            style={{ display: "none" }}
+          />
+          {yapeVoucherPreview ? (
+            <div className={styles.voucherPreviewWrapper}>
+              <img src={yapeVoucherPreview} alt="Comprobante" className={styles.voucherPreviewImg} />
+              <button
+                className={styles.voucherRemove}
+                onClick={() => {
+                  setYapeVoucherFile(null);
+                  setYapeVoucherPreview(null);
+                  if (yapeFileInputRef.current) yapeFileInputRef.current.value = "";
+                }}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+          ) : (
+            <button
+              className={styles.voucherDropzone}
+              onClick={() => yapeFileInputRef.current?.click()}
+              type="button"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+              </svg>
+              <span>Toca para adjuntar foto del comprobante</span>
+            </button>
+          )}
+        </div>
+
+        {culqiError && (
+          <p style={{ color: "#e53e3e", fontSize: "0.85rem", textAlign: "center", marginTop: 8 }}>{culqiError}</p>
+        )}
+
         <button
           className={styles.yapeSendButton}
+          disabled={!yapeVoucherFile || yapeUploading}
           onClick={async () => {
+            if (!yapeVoucherFile) { setCulqiError("Debes adjuntar el comprobante de pago"); return; }
+            setYapeUploading(true);
+            setCulqiError(null);
             try {
+              const formData = new FormData();
+              formData.append("file", yapeVoucherFile);
+              formData.append("bookingId", bookingId.toString());
+              const uploadRes = await fetch("/api/payments/voucher", { method: "POST", body: formData });
+              if (!uploadRes.ok) { const d = await uploadRes.json(); throw new Error(d.error); }
+
               const res = await fetch("/api/payments/alternative", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  bookingId,
-                  paymentMethod: "YAPE",
-                }),
+                body: JSON.stringify({ bookingId, paymentMethod: "YAPE" }),
               });
               const data = await res.json();
               if (!res.ok) throw new Error(data.error);
               setShowYapePayment(false);
+              setYapeVoucherFile(null);
+              setYapeVoucherPreview(null);
               onAlternativePaymentSuccess();
             } catch (err) {
               setCulqiError(err instanceof Error ? err.message : "Error al registrar el pago");
+              setYapeUploading(false);
             }
           }}
         >
-          Enviar comprobante
+          {yapeUploading ? "Enviando..." : "Enviar comprobante"}
         </button>
       </div>
     );
@@ -715,6 +784,7 @@ export default function PaymentMethods({
           onClose={() => setShowTransferModal(false)}
           bankAccounts={BANK_ACCOUNTS}
           amount={bookingDetails.totalAmount}
+          bookingId={bookingId}
           onSendVoucher={handleTransferComplete}
         />
 

@@ -61,6 +61,7 @@ interface Inspection {
     method: string | null;
     amount: number;
     paidAt: Date | null;
+    voucherUrl: string | null;
   } | null;
   reportId: number | null;
   legalReportStatus: string | null;
@@ -531,6 +532,20 @@ function InspectionDetailPanel({
                   }[editedStatus]}
                 </p>
               </div>
+
+              {/* Comprobante de pago */}
+              {inspection.payment?.voucherUrl && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Comprobante de pago</label>
+                  <a href={inspection.payment.voucherUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <img
+                      src={inspection.payment.voucherUrl}
+                      alt="Comprobante"
+                      className="max-w-full max-h-48 rounded-lg border border-gray-200 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                    />
+                  </a>
+                </div>
+              )}
 
               {/* Inspector */}
               <div>

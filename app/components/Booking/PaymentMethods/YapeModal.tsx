@@ -1,10 +1,6 @@
-// =============================================================================
-// COMPONENTE: YapeModal (Modal de Yape/Plin)
-// =============================================================================
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import styles from "./PaymentMethods.module.css";
 
@@ -19,6 +15,7 @@ interface YapeModalProps {
   onClose: () => void;
   yapeData: YapeData;
   amount: number;
+  bookingId: number;
   onPaymentConfirm: (operationNumber: string) => Promise<void>;
 }
 
@@ -27,48 +24,69 @@ export default function YapeModal({
   onClose,
   yapeData,
   amount,
+  bookingId,
   onPaymentConfirm,
 }: YapeModalProps) {
   const [step, setStep] = useState<"info" | "confirm">("info");
   const [operationNumber, setOperationNumber] = useState("");
+  const [voucherFile, setVoucherFile] = useState<File | null>(null);
+  const [voucherPreview, setVoucherPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Reset estado al cerrar
   useEffect(() => {
     if (!isOpen) {
       setStep("info");
       setOperationNumber("");
+      setVoucherFile(null);
+      setVoucherPreview(null);
       setError(null);
     }
   }, [isOpen]);
 
-  // Bloquear scroll
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
 
-  // Cerrar con ESC
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape" && !loading) onClose();
     };
-    if (isOpen) {
-      window.addEventListener("keydown", handleEsc);
-    }
+    if (isOpen) window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [isOpen, onClose, loading]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Solo se permiten imágenes");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("La imagen no debe superar 5MB");
+      return;
+    }
+
+    setError(null);
+    setVoucherFile(file);
+    setVoucherPreview(URL.createObjectURL(file));
+  };
 
   const handleConfirmPayment = async () => {
     if (!operationNumber.trim()) {
       setError("Ingresa el número de operación");
+      return;
+    }
+    if (!voucherFile) {
+      setError("Debes adjuntar el comprobante de pago");
       return;
     }
 
@@ -76,6 +94,17 @@ export default function YapeModal({
     setError(null);
 
     try {
+      // Subir comprobante primero
+      const formData = new FormData();
+      formData.append("file", voucherFile);
+      formData.append("bookingId", bookingId.toString());
+
+      const uploadRes = await fetch("/api/payments/voucher", { method: "POST", body: formData });
+      if (!uploadRes.ok) {
+        const data = await uploadRes.json();
+        throw new Error(data.error || "Error al subir comprobante");
+      }
+
       await onPaymentConfirm(operationNumber.trim());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al registrar el pago");
@@ -87,17 +116,8 @@ export default function YapeModal({
 
   const modalContent = (
     <div className={styles.modalOverlay} onClick={loading ? undefined : onClose}>
-      <div
-        className={styles.modalContent}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Botón cerrar */}
-        <button
-          className={styles.modalClose}
-          onClick={onClose}
-          aria-label="Cerrar"
-          disabled={loading}
-        >
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <button className={styles.modalClose} onClick={onClose} aria-label="Cerrar" disabled={loading}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M18 6L6 18M6 6l12 12" />
           </svg>
@@ -105,7 +125,6 @@ export default function YapeModal({
 
         {step === "info" ? (
           <>
-            {/* Header */}
             <div className={styles.modalHeader}>
               <div className={styles.modalIcon}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -124,9 +143,7 @@ export default function YapeModal({
               </p>
             </div>
 
-            {/* Body */}
             <div className={styles.modalBody}>
-              {/* Código QR */}
               <div className={styles.qrWrapper}>
                 <img
                   src={yapeData.qrImage}
@@ -139,7 +156,6 @@ export default function YapeModal({
                 />
               </div>
 
-              {/* Datos */}
               <div className={styles.infoCard}>
                 <div className={styles.infoRow}>
                   <span className={styles.infoLabel}>Número:</span>
@@ -156,12 +172,8 @@ export default function YapeModal({
               </div>
             </div>
 
-            {/* Footer */}
             <div className={styles.modalFooter}>
-              <button
-                className={styles.modalButtonSecondary}
-                onClick={onClose}
-              >
+              <button className={styles.modalButtonSecondary} onClick={onClose}>
                 Cancelar
               </button>
               <button
@@ -174,7 +186,6 @@ export default function YapeModal({
           </>
         ) : (
           <>
-            {/* Paso 2: Confirmar pago */}
             <div className={styles.modalHeader}>
               <div className={styles.modalIconSuccess}>
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -184,7 +195,7 @@ export default function YapeModal({
               </div>
               <h3 className={styles.modalTitle}>Confirma tu pago</h3>
               <p className={styles.modalSubtitle}>
-                Ingresa el número de operación de tu Yape/Plin para verificar el pago
+                Ingresa el número de operación y adjunta el comprobante
               </p>
             </div>
 
@@ -216,6 +227,47 @@ export default function YapeModal({
                   Lo encuentras en el comprobante de Yape/Plin
                 </span>
               </div>
+
+              {/* Upload comprobante */}
+              <div className={styles.voucherUpload}>
+                <label className={styles.voucherLabel}>
+                  Comprobante de pago <span style={{ color: "#e53e3e" }}>*</span>
+                </label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  style={{ display: "none" }}
+                />
+                {voucherPreview ? (
+                  <div className={styles.voucherPreviewWrapper}>
+                    <img src={voucherPreview} alt="Comprobante" className={styles.voucherPreviewImg} />
+                    <button
+                      className={styles.voucherRemove}
+                      onClick={() => {
+                        setVoucherFile(null);
+                        setVoucherPreview(null);
+                        if (fileInputRef.current) fileInputRef.current.value = "";
+                      }}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className={styles.voucherDropzone}
+                    onClick={() => fileInputRef.current?.click()}
+                    type="button"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                    </svg>
+                    <span>Toca para adjuntar foto del comprobante</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className={styles.modalFooter}>
@@ -229,7 +281,7 @@ export default function YapeModal({
               <button
                 className={`${styles.modalButton} ${styles.modalButtonPrimary}`}
                 onClick={handleConfirmPayment}
-                disabled={loading || !operationNumber.trim()}
+                disabled={loading || !operationNumber.trim() || !voucherFile}
               >
                 {loading ? (
                   <>
@@ -248,6 +300,5 @@ export default function YapeModal({
   );
 
   if (typeof document === "undefined") return null;
-
   return createPortal(modalContent, document.body);
 }

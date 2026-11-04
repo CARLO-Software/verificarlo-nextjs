@@ -91,6 +91,7 @@ interface BookingBase {
     amount: number;
     paidAt: Date | null;
     receiptNumber: string | null;
+    voucherUrl: string | null;
   } | null;
 }
 
@@ -342,6 +343,7 @@ export async function getAllBookings(filters?: {
           amount: true,
           paidAt: true,
           receiptNumber: true,
+          voucherUrl: true,
         },
       },
     },
@@ -478,6 +480,7 @@ export async function getInspectionById(id: number): Promise<BookingWithDetails 
           amount: true,
           paidAt: true,
           receiptNumber: true,
+          voucherUrl: true,
         },
       },
       report: {

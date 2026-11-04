@@ -339,8 +339,9 @@ model Payment {
   culqiToken    String?
 
   // Datos para pagos alternativos (Yape/Transfer)
-  operationNumber String?   // Número de operación del cliente
-  voucherUrl      String?   // URL del comprobante (opcional)
+  operationNumber  String?   // Número de operación del cliente
+  voucherUrl       String?   // URL del comprobante
+  voucherPublicId  String?   // Cloudinary public_id para eliminar después
 
   // Verificación por admin
   verifiedBy String?   // ID del admin que verificó
