@@ -177,8 +177,17 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
   const handleGenerarPdf = async () => {
     setPhase("generating");
-    setGenStep(5);
-    const timer = setInterval(() => setGenStep(p => Math.min(p + 1, REPORT_SOURCES.length - 1)), 12000);
+    setGenStep(0);
+    let step = 0;
+    const fastTimer = setInterval(() => {
+      step++;
+      setGenStep(step);
+      if (step >= 5) clearInterval(fastTimer);
+    }, 400);
+    const timer = setTimeout(() => {
+      clearInterval(fastTimer);
+    }, 2500);
+    const slowTimer = setInterval(() => setGenStep(p => Math.min(p + 1, REPORT_SOURCES.length - 1)), 12000);
 
     try {
       const res = await fetch("/api/legal-report/generate", {
@@ -197,7 +206,9 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       setError(err instanceof Error ? err.message : "Error generando el PDF");
       setPhase("error");
     } finally {
-      clearInterval(timer);
+      clearInterval(fastTimer);
+      clearTimeout(timer);
+      clearInterval(slowTimer);
     }
   };
 
@@ -368,6 +379,10 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
                 <p className={demo.findingsDesc}>
                   Ya sabes que existen. Qué tan fuerte fue el choque, si el auto tiene deudas o embargos y cuánto pagó el vendedor: eso está en el Reporte Legal Completo.
+                </p>
+
+                <p className={demo.launchPromo}>
+                  Por Lanzamiento: ¡Genera tu reporte completo gratis por tiempo limitado!
                 </p>
 
                 <button className={demo.unlockBtn} onClick={handleGenerarPdf}>
@@ -610,6 +625,10 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/Wallet.svg" alt="" width={16} height={16} /></span> Último precio de compra</div>
                   <div className={demo.ctaCardItem}><span className={demo.ctaCardIcon}><Image src="/assets/icons/vista-previa-reporte-legal/documento.svg" alt="" width={16} height={16} /></span> Papeletas, deudas SAT y otros</div>
                 </div>
+
+                <p className={`${demo.launchPromo} ${demo.launchPromoDark}`}>
+                  Por Lanzamiento: ¡Genera tu reporte completo gratis por tiempo limitado!
+                </p>
 
                 <button className={demo.ctaCardBtn} onClick={handleGenerarPdf}>
                   Desbloquear todo por S/ 0.00

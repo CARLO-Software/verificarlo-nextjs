@@ -1050,6 +1050,17 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+.launchPromo {
+  margin: 0 0 14px;
+  font: 600 13px/1.4 'DM Sans', 'Inter', sans-serif;
+  color: #ffe04d;
+  text-align: center;
+}
+
+.launchPromoDark {
+  color: #1c1d22;
+}
+
 .unlockBtn {
   width: 100%;
   height: 52px;
@@ -1188,6 +1199,9 @@
 
 .statusBadge {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font: 600 12px 'DM Sans', 'Inter', sans-serif;
   padding: 5px 12px;
   border-radius: 999px;
@@ -1352,8 +1366,11 @@
 .ctaCardLink {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   margin-top: 14px;
+  width: 100%;
+  text-align: center;
   background: none;
   border: none;
   font: 700 15px 'DM Sans', 'Inter', sans-serif;
