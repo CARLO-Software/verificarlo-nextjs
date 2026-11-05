@@ -57,7 +57,10 @@ function extractVehicle(consultar: any) {
 
 function countOwners(consultar: any): number {
   const titulos = getTitulos(consultar);
-  return titulos.filter((t: any) => t?.tipo_doc === "Transferencia de Propiedad").length;
+  return titulos.filter((t: any) => {
+    const doc = t?.tipo_doc || "";
+    return doc === "Transferencia de Propiedad" || /inscripci[oó]n.*veh[ií]culo|primera\s+inscripci[oó]n/i.test(doc);
+  }).length;
 }
 
 function isExpired(fechaVcto: string | undefined): boolean {
