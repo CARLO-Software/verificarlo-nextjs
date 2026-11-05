@@ -10,6 +10,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateLegalPDF } from "@/lib/pdf/legal/generate-legal-pdf";
+export const dynamic = 'force-dynamic';
 
 export async function GET(
   req: NextRequest,

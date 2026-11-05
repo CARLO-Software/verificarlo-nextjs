@@ -6,6 +6,7 @@ import { Role } from "@prisma/client";
 import { generateSecurePassword } from "@/lib/password";
 import { sendEmail } from "@/lib/email/resend";
 import { WelcomeCredentialsEmail } from "@/lib/email/templates/WelcomeCredentials";
+export const dynamic = 'force-dynamic';
 
 // Middleware para verificar rol de admin
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

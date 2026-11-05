@@ -9,6 +9,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { assignInspector } from "@/lib/scheduling/inspector-assignment";
 import { createVehicleInspection } from "@/lib/vehicle-inspection/create-inspection";
+export const dynamic = 'force-dynamic';
 
 export async function POST(
   _req: NextRequest,

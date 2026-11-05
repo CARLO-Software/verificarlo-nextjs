@@ -8,6 +8,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import {
+export const dynamic = 'force-dynamic';
   getLegalReport,
   updateLegalReport,
 } from "@/services/legalReport/legalReport.server";

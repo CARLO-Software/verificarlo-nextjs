@@ -11,6 +11,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { generateLegalPDF } from "@/lib/pdf/legal/generate-legal-pdf";
 import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
+export const dynamic = 'force-dynamic';
 
 export async function POST(
   req: NextRequest,

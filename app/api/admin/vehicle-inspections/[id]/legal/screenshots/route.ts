@@ -10,6 +10,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { cloudinary, isCloudinaryConfigured } from "@/lib/cloudinary";
 import { LEGAL_SOURCES } from "@/lib/constants/legal-sources";
+export const dynamic = 'force-dynamic';
 
 // Estructura de una imagen
 interface ScreenshotImage {

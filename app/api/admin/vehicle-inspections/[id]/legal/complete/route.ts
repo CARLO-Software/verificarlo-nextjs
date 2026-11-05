@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { notifyInspectionCompleted } from '@/lib/vehicle-inspection/notifications';
+export const dynamic = 'force-dynamic';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

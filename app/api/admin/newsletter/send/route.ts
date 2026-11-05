@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getResendClient, EMAIL_FROM } from "@/lib/email/resend";
 import { getBlogNewsletterHtml } from "@/lib/email/templates/BlogNewsletter";
+export const dynamic = 'force-dynamic';
 
 // POST /api/admin/newsletter/send - Send newsletter to all subscribers
 export async function POST(request: NextRequest) {

@@ -8,6 +8,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { EmbedType, ReelCategory } from "@prisma/client";
+export const dynamic = 'force-dynamic';
 
 // ============================================
 // Helper: Verificar rol de admin

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
+export const dynamic = 'force-dynamic';
 
 // GET /api/admin/newsletter - Get newsletter stats and published blogs
 export async function GET() {
