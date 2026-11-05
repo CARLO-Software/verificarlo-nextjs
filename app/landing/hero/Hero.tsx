@@ -240,7 +240,7 @@ export default function Hero() {
         <div className={styles.legalCtaInner}>
           <div className={styles.legalCtaText}>
             <h2 className={styles.legalCtaTitle}>
-              Obtén tu <em>reporte legal por S/19.90</em>
+              Obtén tu <em>reporte legal por S/ 0.00</em>
             </h2>
             <p className={styles.legalCtaDesc}>
               Siniestros, gravámenes, papeletas e historial de propietarios en minutos.
@@ -254,7 +254,7 @@ export default function Hero() {
           </div>
           <div className={styles.legalCtaImg}>
             <Image
-              src="/assets/images/imagen-joven-celular.png"
+              src="/assets/images/joven-celular.png"
               alt="Joven consultando reporte en su celular"
               width={200}
               height={280}
