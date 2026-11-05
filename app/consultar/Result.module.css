@@ -1061,6 +1061,194 @@
   color: #1c1d22;
 }
 
+/* ============================================
+   Modal overlay
+   ============================================ */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modalContent {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  max-width: 440px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modalClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: color 0.2s;
+}
+
+.modalClose:hover {
+  color: #1c1d22;
+}
+
+/* ============================================
+   Capture / Verify form
+   ============================================ */
+
+.captureVerifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8fbe9;
+  color: #179d1f;
+  font: 600 12px 'DM Sans', 'Inter', sans-serif;
+  padding: 5px 12px;
+  border-radius: 999px;
+}
+
+.captureTitle {
+  margin: 16px 0 4px;
+  font: 700 22px/1.3 'DM Sans', 'Inter', sans-serif;
+  color: #1c1d22;
+}
+
+.captureSubtitle {
+  margin: 0 0 24px;
+  font: 400 14px/1.5 'Inter', 'DM Sans', sans-serif;
+  color: #64748b;
+}
+
+.captureField {
+  position: relative;
+  margin-bottom: 18px;
+}
+
+.captureLabel {
+  display: block;
+  margin-bottom: 6px;
+  font: 500 13px 'DM Sans', 'Inter', sans-serif;
+  color: #374151;
+}
+
+.captureInput {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 12px;
+  font: 400 15px 'Inter', 'DM Sans', sans-serif;
+  color: #1c1d22;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.captureInput:focus {
+  border-color: #1c1d22;
+}
+
+.captureInput::placeholder {
+  color: #9ca3af;
+}
+
+.capturePhoneRow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.capturePhonePrefix {
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  background: #f3f4f6;
+  border: 1.5px solid #d1d5db;
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  font: 500 15px 'Inter', 'DM Sans', sans-serif;
+  color: #374151;
+}
+
+.capturePhoneRow .captureInput {
+  border-radius: 0 12px 12px 0;
+}
+
+.captureError {
+  margin: 0 0 14px;
+  font: 500 13px 'Inter', 'DM Sans', sans-serif;
+  color: #ef4444;
+}
+
+.captureBtn {
+  width: 100%;
+  height: 52px;
+  border-radius: 999px;
+  border: none;
+  background: #1c1d22;
+  font: 700 15px 'DM Sans', 'Inter', sans-serif;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.captureBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.captureBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.captureResend {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  background: none;
+  border: none;
+  font: 600 14px 'DM Sans', 'Inter', sans-serif;
+  color: #64748b;
+  cursor: pointer;
+  text-align: center;
+}
+
+.captureResend:hover:not(:disabled) {
+  color: #1c1d22;
+}
+
+.captureResend:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .unlockBtn {
   width: 100%;
   height: 52px;

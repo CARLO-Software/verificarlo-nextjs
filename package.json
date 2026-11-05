@@ -33,6 +33,7 @@
     "react-dom": "^18",
     "react-quill-new": "^3.8.3",
     "resend": "^6.9.4",
+    "twilio": "^6.2.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {

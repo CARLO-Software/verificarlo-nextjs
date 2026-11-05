@@ -981,3 +981,15 @@ model Reel {
   @@index([isActive, sortOrder])
   @@index([category])
 }
+
+model ConsultaLead {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  plate      String
+  verified   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([phone])
+  @@index([plate])
+}

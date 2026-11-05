@@ -133,13 +133,17 @@ function formatPlateDisplay(plate: string): string {
 
 export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
   const [placa] = useState(initialPlaca);
-  const [phase, setPhase] = useState<"loading" | "preview" | "generating" | "done" | "error">("loading");
+  const [phase, setPhase] = useState<"loading" | "preview" | "capture" | "verify" | "generating" | "done" | "error">("loading");
   const [step, setStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [previewData, setPreviewData] = useState<any>(null);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [genStep, setGenStep] = useState(0);
+  const [captureForm, setCaptureForm] = useState({ name: "", phone: "" });
+  const [otpCode, setOtpCode] = useState("");
+  const [formError, setFormError] = useState("");
+  const [formLoading, setFormLoading] = useState(false);
 
   const cleanPlate = placa.toUpperCase().replace(/-/g, "").replace(/\s/g, "");
   const didFetch = useRef(false);
@@ -177,6 +181,74 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         clearInterval(progTimer);
       });
   }, [cleanPlate]);
+
+  const handleUnlock = () => {
+    setPhase("capture");
+    setFormError("");
+  };
+
+  const handleSendCode = async () => {
+    const { name, phone } = captureForm;
+    if (!name.trim() || name.trim().length < 2) { setFormError("Ingresa tu nombre"); return; }
+    if (!/^9\d{8}$/.test(phone)) { setFormError("Ingresa un número válido (9 dígitos)"); return; }
+    setFormError("");
+    setFormLoading(true);
+    try {
+      const res = await fetch("/api/verify/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), phone, plate: cleanPlate }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Error enviando código");
+      }
+      setPhase("verify");
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Error enviando código");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    if (otpCode.length !== 6) { setFormError("Ingresa el código de 6 dígitos"); return; }
+    setFormError("");
+    setFormLoading(true);
+    try {
+      const res = await fetch("/api/verify/check-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: captureForm.phone, code: otpCode }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Código incorrecto");
+      }
+      handleGenerarPdf();
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Código incorrecto");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setFormError("");
+    setFormLoading(true);
+    try {
+      await fetch("/api/verify/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: captureForm.name.trim(), phone: captureForm.phone, plate: cleanPlate }),
+      });
+      setFormError("Código reenviado");
+    } catch {
+      setFormError("Error reenviando código");
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   const handleGenerarPdf = async () => {
     setPhase("generating");
@@ -297,7 +369,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
     );
   }
 
-  if (phase === "preview" && previewData) {
+  if ((phase === "preview" || phase === "capture" || phase === "verify") && previewData) {
     const vehicle = extractVehicle(previewData.consultar);
     const findings = buildFindings(previewData.consultar);
     const nOwners = countOwners(previewData.consultar);
@@ -388,7 +460,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   Por Lanzamiento: ¡Genera tu reporte completo gratis por tiempo limitado!
                 </p>
 
-                <button className={demo.unlockBtn} onClick={handleGenerarPdf}>
+                <button className={demo.unlockBtn} onClick={handleUnlock}>
                   Desbloquear todo por S/ 0.00
                 </button>
               </div>
@@ -633,7 +705,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                   Por Lanzamiento: ¡Genera tu reporte completo gratis por tiempo limitado!
                 </p>
 
-                <button className={demo.ctaCardBtn} onClick={handleGenerarPdf}>
+                <button className={demo.ctaCardBtn} onClick={handleUnlock}>
                   Desbloquear todo por S/ 0.00
                 </button>
 
@@ -645,6 +717,94 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
               </div>
             </div>
           </div>
+
+          {(phase === "capture" || phase === "verify") && (
+            <div className={demo.modalOverlay} onClick={() => setPhase("preview")}>
+              <div className={demo.modalContent} onClick={e => e.stopPropagation()}>
+                <button className={demo.modalClose} onClick={() => setPhase("preview")}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                </button>
+
+                <span className={demo.captureVerifiedBadge}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#179d1f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 13l4 4L19 7" /></svg>
+                  Placa verificada
+                </span>
+
+                <h2 className={demo.captureTitle}>
+                  Placa {formatPlateDisplay(cleanPlate)} verificada
+                </h2>
+
+                {phase === "capture" ? (
+                  <>
+                    <p className={demo.captureSubtitle}>
+                      Ingresa tus datos para ver tu reporte gratuito del {vehicle.marca} {vehicle.modelo} {vehicle.anio}
+                    </p>
+
+                    <div className={demo.captureField}>
+                      <label className={demo.captureLabel}>Nombre *</label>
+                      <input
+                        type="text"
+                        className={demo.captureInput}
+                        placeholder="Tu nombre"
+                        value={captureForm.name}
+                        onChange={e => setCaptureForm(f => ({ ...f, name: e.target.value }))}
+                      />
+                    </div>
+
+                    <div className={demo.captureField}>
+                      <label className={demo.captureLabel}>Número de Celular *</label>
+                      <div className={demo.capturePhoneRow}>
+                        <span className={demo.capturePhonePrefix}>+51</span>
+                        <input
+                          type="tel"
+                          className={demo.captureInput}
+                          placeholder="987 654 321"
+                          maxLength={9}
+                          value={captureForm.phone}
+                          onChange={e => setCaptureForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, "").slice(0, 9) }))}
+                        />
+                      </div>
+                    </div>
+
+                    {formError && <p className={demo.captureError}>{formError}</p>}
+
+                    <button className={demo.captureBtn} onClick={handleSendCode} disabled={formLoading}>
+                      {formLoading ? "Enviando..." : "Verificar número"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className={demo.captureSubtitle}>
+                      Ingresa el código de 6 dígitos que enviamos a tu WhatsApp
+                    </p>
+
+                    <div className={demo.captureField}>
+                      <label className={demo.captureLabel}>Código de verificación *</label>
+                      <input
+                        type="text"
+                        className={demo.captureInput}
+                        placeholder="123456"
+                        maxLength={6}
+                        value={otpCode}
+                        onChange={e => setOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                        style={{ textAlign: "center", letterSpacing: "0.5em", fontSize: 20 }}
+                      />
+                    </div>
+
+                    {formError && <p className={demo.captureError}>{formError}</p>}
+
+                    <button className={demo.captureBtn} onClick={handleVerifyCode} disabled={formLoading}>
+                      {formLoading ? "Verificando..." : "Confirmar código"}
+                    </button>
+
+                    <button className={demo.captureResend} onClick={handleResendCode} disabled={formLoading}>
+                      Reenviar código
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
     );
   }
