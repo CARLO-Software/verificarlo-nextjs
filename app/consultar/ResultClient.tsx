@@ -144,6 +144,8 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
   const [otpCode, setOtpCode] = useState("");
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
+  const [otpExpiry, setOtpExpiry] = useState(0);
+  const otpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const cleanPlate = placa.toUpperCase().replace(/-/g, "").replace(/\s/g, "");
   const didFetch = useRef(false);
@@ -182,6 +184,24 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       });
   }, [cleanPlate]);
 
+  const startOtpTimer = () => {
+    if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+    setOtpExpiry(600);
+    otpTimerRef.current = setInterval(() => {
+      setOtpExpiry(prev => {
+        if (prev <= 1) {
+          if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  useEffect(() => {
+    return () => { if (otpTimerRef.current) clearInterval(otpTimerRef.current); };
+  }, []);
+
   const handleUnlock = () => {
     setPhase("capture");
     setFormError("");
@@ -204,6 +224,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         throw new Error(body.error || "Error enviando código");
       }
       setPhase("verify");
+      startOtpTimer();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error enviando código");
     } finally {
@@ -243,6 +264,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         body: JSON.stringify({ name: captureForm.name.trim(), phone: captureForm.phone, plate: cleanPlate }),
       });
       setFormError("Código reenviado");
+      startOtpTimer();
     } catch {
       setFormError("Error reenviando código");
     } finally {
@@ -778,6 +800,14 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                       Ingresa el código de 6 dígitos que enviamos a tu WhatsApp
                     </p>
 
+                    {otpExpiry > 0 ? (
+                      <p className={demo.otpTimer}>
+                        Código válido por {Math.floor(otpExpiry / 60)}:{String(otpExpiry % 60).padStart(2, "0")}
+                      </p>
+                    ) : (
+                      <p className={demo.otpExpired}>Código expirado — reenvía uno nuevo</p>
+                    )}
+
                     <div className={demo.captureField}>
                       <label className={demo.captureLabel}>Código de verificación *</label>
                       <input
@@ -793,12 +823,12 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
 
                     {formError && <p className={demo.captureError}>{formError}</p>}
 
-                    <button className={demo.captureBtn} onClick={handleVerifyCode} disabled={formLoading}>
+                    <button className={demo.captureBtn} onClick={handleVerifyCode} disabled={formLoading || otpExpiry === 0}>
                       {formLoading ? "Verificando..." : "Confirmar código"}
                     </button>
 
                     <button className={demo.captureResend} onClick={handleResendCode} disabled={formLoading}>
-                      Reenviar código
+                      {otpExpiry === 0 ? "Reenviar código nuevo" : "Reenviar código"}
                     </button>
                   </>
                 )}

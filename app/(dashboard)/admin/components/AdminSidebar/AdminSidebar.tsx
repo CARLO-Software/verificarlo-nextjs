@@ -11,6 +11,7 @@ import {
   FileText,
   PlayCircle,
   Mail,
+  ClipboardList,
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ import styles from './AdminSidebar.module.css';
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { href: '/admin/inspecciones', label: 'Inspecciones', icon: CalendarCheck },
+  { href: '/admin/consulta-leads', label: 'Consultas', icon: ClipboardList },
   { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
   { href: '/admin/blog', label: 'Blog', icon: FileText },
   { href: '/admin/newsletter', label: 'Newsletter', icon: Mail },
