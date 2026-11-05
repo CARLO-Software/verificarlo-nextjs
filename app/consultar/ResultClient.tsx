@@ -147,6 +147,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [otpExpiry, setOtpExpiry] = useState(0);
   const otpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const otpSentAtRef = useRef<number>(0);
 
   const cleanPlate = placa.toUpperCase().replace(/-/g, "").replace(/\s/g, "");
   const didFetch = useRef(false);
@@ -185,13 +186,21 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       });
   }, [cleanPlate]);
 
-  const startOtpTimer = () => {
+  const startOtpTimer = (isResend = false) => {
     if (otpTimerRef.current) clearInterval(otpTimerRef.current);
-    setOtpExpiry(600);
+    const now = Date.now();
+    if (!isResend || otpSentAtRef.current === 0) {
+      otpSentAtRef.current = now;
+    }
+    const elapsed = Math.floor((now - otpSentAtRef.current) / 1000);
+    const remaining = Math.max(600 - elapsed, 0);
+    setOtpExpiry(remaining);
+    if (remaining === 0) return;
     otpTimerRef.current = setInterval(() => {
       setOtpExpiry(prev => {
         if (prev <= 1) {
           if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+          otpSentAtRef.current = 0;
           return 0;
         }
         return prev - 1;
@@ -231,7 +240,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         throw new Error(body.error || "Error enviando código");
       }
       setPhase("verify");
-      startOtpTimer();
+      startOtpTimer(false);
       setResendCooldown(60);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error enviando código");
@@ -272,7 +281,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         body: JSON.stringify({ name: captureForm.name.trim(), phone: captureForm.phone, plate: cleanPlate }),
       });
       setFormError("Código reenviado");
-      startOtpTimer();
+      startOtpTimer(true);
       setResendCooldown(60);
     } catch {
       setFormError("Error reenviando código");
