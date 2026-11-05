@@ -144,6 +144,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
   const [otpCode, setOtpCode] = useState("");
   const [formError, setFormError] = useState("");
   const [formLoading, setFormLoading] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [otpExpiry, setOtpExpiry] = useState(0);
   const otpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -202,6 +203,12 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
     return () => { if (otpTimerRef.current) clearInterval(otpTimerRef.current); };
   }, []);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown(c => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
   const handleUnlock = () => {
     setPhase("capture");
     setFormError("");
@@ -225,6 +232,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       }
       setPhase("verify");
       startOtpTimer();
+      setResendCooldown(60);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Error enviando código");
     } finally {
@@ -265,6 +273,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       });
       setFormError("Código reenviado");
       startOtpTimer();
+      setResendCooldown(60);
     } catch {
       setFormError("Error reenviando código");
     } finally {
@@ -827,8 +836,10 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                       {formLoading ? "Verificando..." : "Confirmar código"}
                     </button>
 
-                    <button className={demo.captureResend} onClick={handleResendCode} disabled={formLoading}>
-                      {otpExpiry === 0 ? "Reenviar código nuevo" : "Reenviar código"}
+                    <button className={demo.captureResend} onClick={handleResendCode} disabled={formLoading || resendCooldown > 0}>
+                      {resendCooldown > 0
+                        ? `Reenviar en ${resendCooldown}s`
+                        : otpExpiry === 0 ? "Reenviar código nuevo" : "Reenviar código"}
                     </button>
                   </>
                 )}
