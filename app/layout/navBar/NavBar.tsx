@@ -68,7 +68,7 @@ export default function NavBar() {
 
   // Solo aplicar el tema transparente (texto blanco) en la página principal
   const isHeroPage = pathname === "/";
-  const isBookingPage = pathname.startsWith("/agendar") || pathname.startsWith("/consultar");
+  const isBookingPage = pathname.startsWith("/agendar") || pathname.startsWith("/consultar") || pathname.startsWith("/planes");
 
   //*Hace referencia a un elemento del DOM
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -313,7 +313,7 @@ export default function NavBar() {
 
           {/* Items del menú con navegación smooth */}
           <nav className={styles["sidebar-nav"]}>
-            <a href="/#planes" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
+            <a href="/planes" className={styles["navbar-item"]} onClick={() => setIsMobileMenuOpen(false)}>
               <span className={styles["navbar-text"]}>Planes</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="9 18 15 12 9 6" /></svg>
             </a>
