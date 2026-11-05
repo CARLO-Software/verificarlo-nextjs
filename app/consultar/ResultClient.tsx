@@ -69,11 +69,11 @@ function isExpired(fechaVcto: string | undefined): boolean {
 }
 
 function getSoatExpiry(consultar: any): string | undefined {
-  return consultar?.sbs_soat?.vencimiento || consultar?.soat?.Fin;
+  return consultar?.soat?.Fin;
 }
 
 function getSoatCompany(consultar: any): string {
-  return consultar?.sbs_soat?.empresa || consultar?.soat?.["Compañía"] || "";
+  return consultar?.soat?.["Compañía"] || "";
 }
 
 function getSiniestrosCount(consultar: any): number {
@@ -99,7 +99,7 @@ function buildFindings(consultar: any): { icon: string; label: string; variant: 
   const soatExpiry = getSoatExpiry(consultar);
   if (soatExpiry) {
     const expired = isExpired(soatExpiry);
-    findings.push({ icon: expired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg", label: expired ? "SOAT Vencido" : "SOAT Vigente", variant: expired ? "danger" : "green" });
+    findings.push({ icon: expired ? "/assets/icons/vista-previa-reporte-legal/vencido.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg", label: expired ? "SOAT Vencido" : "SOAT Vigente", variant: expired ? "danger" : "green" });
   }
 
   const nSiniestros = getSiniestrosCount(consultar);
@@ -428,7 +428,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                         <span className={demo.soatDate}>VIGENCIA HASTA {soatExpiry}</span>
                       </div>
                       <span className={`${demo.statusBadge} ${soatExpired ? demo.statusDanger : demo.statusOk}`}>
-                        <Image src={soatExpired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {soatExpired ? "Vencido" : "Al día"}
+                        <Image src={soatExpired ? "/assets/icons/vista-previa-reporte-legal/vencido.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {soatExpired ? "Vencido" : "Al día"}
                       </span>
                     </div>
                   )}
@@ -440,7 +440,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
                         <span className={demo.soatDate}>{citvExpired ? "VENCIDA" : "APROBADA Y VIGENTE"}</span>
                       </div>
                       <span className={`${demo.statusBadge} ${citvExpired ? demo.statusDanger : demo.statusOk}`}>
-                        <Image src={citvExpired ? "/assets/icons/vista-previa-reporte-legal/Close.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {citvExpired ? "Vencido" : "Al día"}
+                        <Image src={citvExpired ? "/assets/icons/vista-previa-reporte-legal/vencido.svg" : "/assets/icons/vista-previa-reporte-legal/Check.svg"} alt="" width={14} height={14} /> {citvExpired ? "Vencido" : "Al día"}
                       </span>
                     </div>
                   )}
