@@ -7,10 +7,11 @@
 // Redirige automáticamente a mis-inspecciones después de 5 segundos.
 // ============================================================================
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePaymentStatus } from "@/app/hooks/usePaymentStatus";
+import { trackPurchase } from "@/lib/track";
 import styles from "../payment.module.css";
 import { formatDate } from "@/lib/utils/formatDate";
 
@@ -25,9 +26,22 @@ function SuccessContent() {
 
   // Single fetch — no polling needed on success page
   const { data, isLoading } = usePaymentStatus(bookingId, { intervalMs: 0 });
+  const trackedRef = useRef(false);
 
   // Contador para redirección automática
   const [countdown, setCountdown] = useState(REDIRECT_DELAY);
+
+  useEffect(() => {
+    if (!data || trackedRef.current) return;
+    trackedRef.current = true;
+    const variant = data.plan?.title?.toLowerCase().includes("premium") ? "premium" : "basica";
+    trackPurchase(
+      String(data.bookingId),
+      "reserva_inspeccion",
+      data.amount ?? 0,
+      { item_id: `reserva_${variant}`, item_name: data.plan?.title || `Reserva inspección`, item_variant: variant, price: data.amount ?? 0, quantity: 1 },
+    );
+  }, [data]);
 
   useEffect(() => {
     if (isLoading) return;

@@ -25,7 +25,7 @@ const geistMono = localFont({
 });
 
 // ===================== METADATA PARA SEO =====================
-const baseUrl = "https://verificarlo.com";
+const baseUrl = "https://www.verificarlo.com";
 
 export const metadata: Metadata = {
   // Metadata básica
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
     title: "VerifiCARLO - Inspección de Autos Usados en Lima",
     description:
       "Revisamos más de 200 puntos antes de tu compra. Mecánica, estética y documentos legales. Desde S/299 con servicio a domicilio.",
-    url: baseUrl,
+    url: "https://www.verificarlo.com",
     images: [
       {
         url: `${baseUrl}/assets/images/image0.png`,
@@ -112,9 +112,7 @@ export const metadata: Metadata = {
 
   // Verificación de propiedad (agregar IDs reales cuando los tengas)
   verification: {
-    google: "tu-codigo-google-search-console", // TODO: Agregar código real
-    // yandex: "tu-codigo-yandex",
-    // bing: "tu-codigo-bing",
+    google: "vVjmHNabYwU2CVj-ZK45WBwXV91n-2rWeEHL89WPRZc",
   },
 
   // Categoría del sitio

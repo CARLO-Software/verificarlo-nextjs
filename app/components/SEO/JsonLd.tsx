@@ -9,9 +9,9 @@ export function LocalBusinessSchema() {
     name: "VerifiCARLO",
     description:
       "Servicio de inspección de autos usados en Lima. Revisamos más de 200 puntos en mecánica, estética y documentación legal antes de tu compra.",
-    url: "https://verificarlo.com",
-    logo: "https://verificarlo.com/assets/images/verificarlo-logo.png",
-    image: "https://verificarlo.com/assets/images/image0.png",
+    url: "https://www.verificarlo.com",
+    logo: "https://www.verificarlo.com/assets/images/verificarlo-logo.png",
+    image: "https://www.verificarlo.com/assets/images/image0.png",
     telephone: "+51934140010", // TODO: Reemplazar con número real
     email: "verificarlo@carlo.pe", // TODO: Reemplazar con email real
     address: {
@@ -50,9 +50,10 @@ export function LocalBusinessSchema() {
       },
     ],
     sameAs: [
-      "https://www.facebook.com/verificarlo", // TODO: URLs reales
-      "https://www.instagram.com/verificarlo",
-      "https://www.tiktok.com/@verificarlo",
+      "https://www.facebook.com/profile.php?id=61577445755386",
+      "https://www.instagram.com/verificarlo.peru",
+      "https://www.tiktok.com/@verificarlo.peru",
+      "https://www.linkedin.com/company/107714281",
     ],
   };
 
@@ -70,7 +71,7 @@ export function WebSiteSchema() {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "VerifiCARLO",
-    url: "https://verificarlo.com",
+    url: "https://www.verificarlo.com",
     description:
       "Inspección profesional de autos usados en Lima, Perú. Evita fraudes y compra con confianza.",
     publisher: {
@@ -78,14 +79,14 @@ export function WebSiteSchema() {
       name: "VerifiCARLO",
       logo: {
         "@type": "ImageObject",
-        url: "https://verificarlo.com/assets/images/verificarlo-logo.png",
+        url: "https://www.verificarlo.com/assets/images/verificarlo-logo.png",
       },
     },
     potentialAction: {
       "@type": "SearchAction",
       target: {
         "@type": "EntryPoint",
-        urlTemplate: "https://verificarlo.com/blog?search={search_term_string}",
+        urlTemplate: "https://www.verificarlo.com/blog?search={search_term_string}",
       },
       "query-input": "required name=search_term_string",
     },
@@ -111,7 +112,7 @@ export function ServiceSchema() {
     provider: {
       "@type": "LocalBusiness",
       name: "VerifiCARLO",
-      url: "https://verificarlo.com",
+      url: "https://www.verificarlo.com",
     },
     areaServed: {
       "@type": "City",
@@ -217,7 +218,7 @@ export function BlogPostSchema({
     headline: title,
     description: description,
     image: coverImage,
-    url: `https://verificarlo.com/blog/${slug}`,
+    url: `https://www.verificarlo.com/blog/${slug}`,
     datePublished: publishedAt,
     dateModified: modifiedAt || publishedAt,
     author: {
@@ -229,12 +230,12 @@ export function BlogPostSchema({
       name: "VerifiCARLO",
       logo: {
         "@type": "ImageObject",
-        url: "https://verificarlo.com/assets/images/verificarlo-logo.png",
+        url: "https://www.verificarlo.com/assets/images/verificarlo-logo.png",
       },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
-      "@id": `https://verificarlo.com/blog/${slug}`,
+      "@id": `https://www.verificarlo.com/blog/${slug}`,
     },
   };
 
@@ -274,7 +275,7 @@ export function BreadcrumbSchema({ items }: { items: BreadcrumbItem[] }) {
 
 // Schema de Navegación del Sitio - Ayuda a Google a mostrar sitelinks
 export function SiteNavigationSchema() {
-  const baseUrl = "https://verificarlo.com";
+  const baseUrl = "https://www.verificarlo.com";
 
   const navigationItems = [
     { name: "Tarifas de Inspección", url: `${baseUrl}/#planes` },

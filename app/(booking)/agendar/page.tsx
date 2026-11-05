@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     description:
       "Reserva online en minutos. Inspección profesional de más de 200 puntos. Servicio a domicilio en Lima.",
     type: "website",
-    url: "https://verificarlo.com/agendar",
+    url: "https://www.verificarlo.com/agendar",
   },
   alternates: {
     canonical: "/agendar",

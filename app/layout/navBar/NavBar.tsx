@@ -467,7 +467,7 @@ export default function NavBar() {
             {/* Iconos sociales */}
             <div className={styles["social-icons"]}>
               <a
-                href="https://www.facebook.com/verificarlo"
+                href="https://www.facebook.com/profile.php?id=61577445755386"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles["social-icon"]}
@@ -478,7 +478,7 @@ export default function NavBar() {
                 </svg>
               </a>
               <a
-                href="https://www.instagram.com/verificarlo"
+                href="https://www.instagram.com/verificarlo.peru"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles["social-icon"]}
@@ -489,7 +489,7 @@ export default function NavBar() {
                 </svg>
               </a>
               <a
-                href="https://www.tiktok.com/@verificarlo"
+                href="https://www.tiktok.com/@verificarlo.peru"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles["social-icon"]}
@@ -500,7 +500,7 @@ export default function NavBar() {
                 </svg>
               </a>
               <a
-                href="https://www.linkedin.com/company/verificarlo"
+                href="https://www.linkedin.com/company/107714281"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles["social-icon"]}

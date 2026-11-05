@@ -21,6 +21,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const DRAFT_KEY = "agendar_draft";
+import { trackEcommerce } from "@/lib/track";
 import styles from "./Agendar.module.css";
 
 // Componentes del flujo de reserva
@@ -371,6 +372,11 @@ export default function AgendarForm({
           expiresAt: new Date(bookingResult.expiresAt),
           amount: bookingResult.amount,
         });
+        const v = selectedInspection.title?.toLowerCase().includes("premium") ? "premium" : "basica";
+        trackEcommerce("begin_checkout", {
+          currency: "PEN", value: bookingResult.amount,
+          items: [{ item_id: `reserva_${v}`, item_name: `Reserva inspección ${v === "premium" ? "Premium" : "Básica"}`, item_variant: v, price: bookingResult.amount, quantity: 1 }],
+        }, { producto: "reserva_inspeccion" });
         goNext();
         return;
       }
@@ -387,7 +393,21 @@ export default function AgendarForm({
         amount: bookingResult.amount,
       });
 
-      // 4. Avanzar al paso de pago
+      // 4. Evento begin_checkout para GA4
+      const variant = selectedInspection.title?.toLowerCase().includes("premium") ? "premium" : "basica";
+      trackEcommerce("begin_checkout", {
+        currency: "PEN",
+        value: bookingResult.amount,
+        items: [{
+          item_id: `reserva_${variant}`,
+          item_name: `Reserva inspección ${variant === "premium" ? "Premium" : "Básica"}`,
+          item_variant: variant,
+          price: bookingResult.amount,
+          quantity: 1,
+        }],
+      }, { producto: "reserva_inspeccion" });
+
+      // 5. Avanzar al paso de pago
       goNext();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error desconocido");

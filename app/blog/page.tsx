@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     description:
       "Consejos de expertos para comprar autos usados de forma segura. Guías, tips y todo lo que necesitas saber.",
     type: "website",
-    url: "https://verificarlo.com/blog",
+    url: "https://www.verificarlo.com/blog",
   },
   alternates: {
     canonical: "/blog",
@@ -57,6 +57,7 @@ async function getPosts(search?: string, page: number = 1) {
 
   const where = {
     published: true,
+    slug: { not: "probando" },
     ...(search && {
       OR: [
         { title: { contains: search } },

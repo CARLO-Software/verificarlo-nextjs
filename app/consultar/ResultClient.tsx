@@ -5,6 +5,7 @@ import Image from "next/image";
 import PromotionalBanner from "@/app/layout/promotionalBanner/PromotionalBanner";
 import NavBar from "@/app/layout/navBar/NavBar";
 import Footer from "@/app/layout/footer/Footer";
+import { track } from "@/lib/track";
 import styles from "./Consultar.module.css";
 import demo from "./Result.module.css";
 
@@ -174,10 +175,12 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
       .then(data => {
         setPreviewData(data);
         setProgress(100);
+        track("consulta_resultado", { resultado: data ? "ok" : "sin_datos" });
         setTimeout(() => setPhase("preview"), 400);
       })
       .catch((err) => {
         setError(err.message || "No se pudo consultar la placa. Verifica e intenta de nuevo.");
+        track("consulta_resultado", { resultado: "error" });
         setPhase("error");
       })
       .finally(() => {
@@ -263,6 +266,7 @@ export default function DemoClient({ initialPlaca }: { initialPlaca: string }) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || "Código incorrecto");
       }
+      track("generate_lead", { lead_tipo: "reporte" });
       handleGenerarPdf();
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Código incorrecto");

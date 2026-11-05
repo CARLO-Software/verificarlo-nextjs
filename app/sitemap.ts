@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://verificarlo.com";
+  const baseUrl = "https://www.verificarlo.com";
 
   // Páginas estáticas principales
   const staticPages: MetadataRoute.Sitemap = [
@@ -72,7 +72,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let blogPosts: MetadataRoute.Sitemap = [];
   try {
     const posts = await db.blogPost.findMany({
-      where: { published: true },
+      where: { published: true, slug: { not: "probando" } },
       select: { slug: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
     });

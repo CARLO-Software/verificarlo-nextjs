@@ -3,44 +3,6 @@ import styles from "./footer.module.css";
 import ComplaintBookButton from "@/app/components/ComplaintBook/ComplaintBookButton";
 
 export default function Footer() {
-  // Keywords SEO - para posicionamiento en buscadores
-  const keywords = [
-    "diagnosticar",
-    "diagnosticar auto usado",
-    "diagnosticar auto",
-    "diagnosticar auto lima",
-    "diagnosticar carro usado",
-    "diagnosticar carros",
-    "diagnóstico vehicular",
-    "diagnóstico de autos usados Lima",
-    "diagnóstico vehicular Lima",
-    "inspección auto usado Lima",
-    "antecedentes vehiculares Perú",
-    "comprar auto usado seguro Lima",
-    "asesoría para comprar un auto",
-    "herramientas diagnóstico vehicular",
-    "diagnostico mecánico",
-    "inspección y diagnóstico de carros usados",
-    "inspección de vehiculos usados",
-    "verificacion de antecendes vehiculares",
-    "estafas autos usados Lima",
-    "SUNARP verificar auto",
-    "verificación legal autos Lima",
-    "Revisión mecánica",
-    "Inspección de autos usados Lima",
-    "Verificación legal de autos",
-    "Peritaje vehicular Lima",
-    "Comprar auto seguro",
-    "Detectar choques",
-    "Informe vehicular técnico",
-    "Escaneo de motor",
-    "Gravamen vehicular",
-    "Escaneo motor",
-    "Inspección vehicular a domicilio",
-    "Historial de multas",
-    "Fallas mecánicas ocultas",
-  ];
-
   return (
     <footer className={styles.footer} id="contacto">
       <div className={styles.container}>
@@ -196,21 +158,6 @@ export default function Footer() {
               <div className={styles.dividerAfterContact}></div>
             </div>
           </div>
-        </div>
-
-        {/* Línea divisora arriba de keywords - solo PC */}
-        <div className={styles.dividerDesktop}></div>
-
-        {/* Sección de keywords SEO */}
-        <div className={styles.keywordsSection}>
-          {keywords.map((keyword, index) => (
-            <span key={index} className={styles.keyword}>
-              {keyword}
-              {index < keywords.length - 1 && (
-                <span className={styles.separator}>|</span>
-              )}
-            </span>
-          ))}
         </div>
 
         {/* Línea divisora */}
