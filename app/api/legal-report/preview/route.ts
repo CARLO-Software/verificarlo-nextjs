@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 const FREE_CONSULTAR_URL = "http://161.132.38.122/free/consultar/placa";
-const TIMEOUT_MS = 2 * 60 * 1000;
+const TIMEOUT_MS = 35_000;
 const MAX_RETRIES = 1;
 
 async function fetchWithRetry(
@@ -64,6 +64,16 @@ export async function POST(req: NextRequest) {
     }
 
     const consultarData = await consultarRes.json();
+
+    const titulos =
+      consultarData?.sunarp?.siguelo?.titulos ??
+      consultarData?.siguelo?.titulos;
+    if (!Array.isArray(titulos) || titulos.length === 0) {
+      return NextResponse.json(
+        { error: "No encontramos un vehículo con esa placa. Verifica e intenta de nuevo." },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({
       consultar: consultarData,
